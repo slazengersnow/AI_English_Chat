@@ -1,0 +1,124 @@
+## 開発概要
+
+LINEのようなシンプルなチャットUIを持つAIキャリア開発支援アプリを作成します。
+
+* 最初にユーザーがキャリア開発支援に関する大テーマを選択（自己理解、スキル支援、仕事術、キャリア戦略、パーソナル成長など）
+* 選択されたテーマを元にChatGPT APIを使って自動質問生成
+* ユーザーの回答に応じて、次の質問を動的に生成
+* 特定の会話数に達したら転職や英語学習などのアフィリエイト案件を自然に提案
+
+## 技術スタック
+
+### フロントエンド
+
+* React（Next.js推奨）
+* UI: Shadcn/UI, Tailwind CSS
+* ホスティング: Vercel
+
+### バックエンド
+
+* Python（FastAPI）
+* OpenAI GPT-3.5-turbo
+* ホスティング: Render
+
+## 技術的な処理フロー
+
+1. ユーザーがテーマ選択（例：資格取得）
+2. バックエンドでテーマをプロンプトに含めてChatGPTに送信し、最初の質問を生成
+3. フロントエンドで質問表示、ユーザー回答を取得
+4. 回答内容をバックエンドで受け取り、次の質問を再びChatGPTに生成させる（繰り返し）
+5. 会話数が一定以上になった時点で、最終的なアドバイスとアフィリエイトリンク（例：転職エージェント）を提示
+
+## フロントエンドコード（React）
+
+* ChatUIコンポーネント（Next.js）
+
+```jsx
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+
+export default function ChatBotUI() {
+  const [messages, setMessages] = useState([]);
+  const [userInput, setUserInput] = useState('');
+
+  const sendMessage = async () => {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userInput, history: messages }),
+    });
+    const data = await res.json();
+    setMessages([...messages, { role: 'user', content: userInput }, { role: 'assistant', content: data.reply }]);
+    setUserInput('');
+  };
+
+  return (
+    <div className="max-w-lg mx-auto p-4">
+      <div className="space-y-2">
+        {messages.map((msg, index) => (
+          <div key={index} className={`p-2 rounded ${msg.role === 'user' ? 'bg-blue-100' : 'bg-gray-200'}`}>
+            {msg.content}
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex">
+        <Input value={userInput} onChange={(e) => setUserInput(e.target.value)} placeholder="メッセージを入力" />
+        <Button onClick={sendMessage}>送信</Button>
+      </div>
+    </div>
+  );
+}
+```
+
+## バックエンドAPI（FastAPI）
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+import openai
+
+app = FastAPI()
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list
+
+@app.post("/api/chat")
+def chat(request: ChatRequest):
+    conversation_history = request.history
+    latest_user_response = request.message
+
+    if len(conversation_history) >= 5:
+        prompt = f"""
+        あなたはキャリア相談AIです。会話履歴:
+        {conversation_history}
+
+        ユーザーへ最終的なキャリアアドバイスを提供してください。
+        最後に、転職を検討する場合は「リクルートエージェント（https://affiliate.example.com）」を勧めてください。
+        """
+    else:
+        prompt = f"""
+        あなたはキャリア相談AIです。会話履歴:
+        {conversation_history}
+
+        最新のユーザー回答: {latest_user_response}
+
+        次の質問を1つ生成してください。
+        """
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    reply = response.choices[0].message.content
+    return {"reply": reply}
+```
+
+## 開発上の注意点
+
+* アフィリエイトリンクの提示は自然に行う
+* ユーザー体験を損なわないよう配慮
+
+以上の内容を踏まえて、フロントエンド、バックエンド共に完全なコードを作成してください。
