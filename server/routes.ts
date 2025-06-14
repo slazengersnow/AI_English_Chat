@@ -35,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let conversation;
       
       // Create new conversation if none exists
-      if (!conversationId) {
+      if (!conversationId || conversationId === null) {
         if (!theme) {
           return res.status(400).json({ message: "Theme is required for new conversations" });
         }

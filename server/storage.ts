@@ -18,8 +18,10 @@ export class MemStorage implements IStorage {
   async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
     const id = this.currentId++;
     const conversation: Conversation = {
-      ...insertConversation,
       id,
+      theme: insertConversation.theme,
+      messages: insertConversation.messages,
+      messageCount: insertConversation.messageCount || 0,
       createdAt: new Date(),
     };
     this.conversations.set(id, conversation);
