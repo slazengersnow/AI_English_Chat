@@ -17,7 +17,7 @@ This is a mobile-first English composition training application that helps users
 ### Backend Architecture
 - **Express.js** server with TypeScript
 - **RESTful API** design with translation and payment endpoints
-- **Claude Haiku API** integration for English translation and correction
+- **OpenAI GPT-4** integration for English translation and correction
 - **Stripe** integration for subscription management
 - **Memory-based storage** for session data
 
@@ -25,7 +25,7 @@ This is a mobile-first English composition training application that helps users
 - **Mobile-first responsive design** optimized for smartphones
 - **LINE-inspired chat interface** with message bubbles
 - **Bottom input area** for easy thumb typing
-- **Difficulty level selection** (Middle School, High School, TOEIC, Basic Verbs)
+- **Difficulty level selection** (TOEIC, Middle School, High School, Basic Verbs, Business Email)
 - **Star rating system** for translation quality
 
 ## Key Components
@@ -37,7 +37,7 @@ This is a mobile-first English composition training application that helps users
 - **ResultDisplay**: Translation feedback with star ratings
 
 ### Backend Components
-- **Translation Service**: Claude Haiku API integration
+- **Translation Service**: OpenAI GPT-4 API integration
 - **Payment Service**: Stripe subscription management
 - **Session Management**: User progress tracking
 
@@ -46,12 +46,12 @@ This is a mobile-first English composition training application that helps users
 1. **Difficulty Selection**: User selects vocabulary level
 2. **Problem Generation**: System provides Japanese sentence for translation
 3. **Translation Input**: User types English translation
-4. **AI Evaluation**: Claude Haiku evaluates and corrects translation
+4. **AI Evaluation**: OpenAI GPT-4 evaluates and corrects translation
 5. **Feedback Display**: Star rating and model answer shown
 6. **Progress Tracking**: Results saved for user improvement
 
 ## Environment Configuration
-- **Claude API**: API key via `CLAUDE_API_KEY` environment variable
+- **OpenAI API**: API key via `OPENAI_API_KEY` environment variable
 - **Stripe**: Secret key via `STRIPE_SECRET_KEY` environment variable
 - **Payment**: Price ID via `STRIPE_PRICE_ID` environment variable
 
@@ -61,8 +61,11 @@ This is a mobile-first English composition training application that helps users
 Changelog:
 - June 19, 2025. Initial project setup for instant English composition training app
 - Mobile-first design with LINE-style chat interface
-- Claude Haiku API integration for translation evaluation
+- OpenAI GPT-4 API integration for translation evaluation (switched from Claude)
+- Reordered difficulty levels: TOEIC, Middle School, High School, Basic Verbs, Business Email
+- Added Business Email difficulty level with mail icon
 - Stripe subscription system with 7-day trial
+- Comprehensive training interface with star ratings and detailed feedback
 ```
 
 ## User Preferences

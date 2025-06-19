@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { BookOpen, GraduationCap, Briefcase, Zap } from "lucide-react";
+import { BookOpen, GraduationCap, Briefcase, Zap, Mail } from "lucide-react";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
 interface DifficultySelectionProps {
@@ -11,6 +11,7 @@ const iconMap = {
   'graduation-cap': GraduationCap,
   'briefcase': Briefcase,
   'zap': Zap,
+  'mail': Mail,
 };
 
 const colorMap = {
@@ -18,6 +19,7 @@ const colorMap = {
   green: 'bg-green-100 text-green-600',
   purple: 'bg-purple-100 text-purple-600',
   orange: 'bg-orange-100 text-orange-600',
+  red: 'bg-red-100 text-red-600',
 };
 
 export function DifficultySelection({ onDifficultySelect }: DifficultySelectionProps) {

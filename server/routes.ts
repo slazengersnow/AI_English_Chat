@@ -18,6 +18,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Problem sentences by difficulty level
       const problemSets = {
+        'toeic': [
+          '会議の資料を準備しておいてください。',
+          '売上が前年比20%増加しました。',
+          '新しいプロジェクトの進捗はいかがですか。',
+          '顧客からのフィードバックを検討する必要があります。',
+          '来週までに報告書を提出してください。'
+        ],
         'middle-school': [
           '私は毎日学校に行きます。',
           '今日は雨が降っています。',
@@ -32,19 +39,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'この本を読み終えたら、感想を教えてください。',
           'もし時間があれば、一緒に旅行に行きませんか。'
         ],
-        'toeic': [
-          '会議の資料を準備しておいてください。',
-          '売上が前年比20%増加しました。',
-          '新しいプロジェクトの進捗はいかがですか。',
-          '顧客からのフィードバックを検討する必要があります。',
-          '来週までに報告書を提出してください。'
-        ],
         'basic-verbs': [
           '彼は毎朝コーヒーを作ります。',
           '子供たちが公園で遊んでいます。',
           '母は料理を作っています。',
           '私は友達に手紙を書きました。',
           '電車が駅に到着しました。'
+        ],
+        'business-email': [
+          'お忙しい中、お時間をいただきありがとうございます。',
+          '添付ファイルをご確認いただけますでしょうか。',
+          '来週の会議の件でご連絡いたします。',
+          'ご質問がございましたらお気軽にお声かけください。',
+          'お返事をお待ちしております。'
         ]
       };
 
@@ -67,9 +74,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { japaneseSentence, userTranslation, difficultyLevel } = translateRequestSchema.parse(req.body);
       
-      const claudeApiKey = process.env.CLAUDE_API_KEY;
-      if (!claudeApiKey) {
-        return res.status(500).json({ message: "Claude API key not configured" });
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        return res.status(500).json({ message: "OpenAI API key not configured" });
       }
 
       const prompt = `あなたは英語教師です。以下の日本語文の英訳を評価してください。
@@ -87,36 +94,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }`;
 
       try {
-        const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
           method: "POST",
           headers: {
-            "x-api-key": claudeApiKey,
-            "anthropic-version": "2023-06-01",
+            "Authorization": `Bearer ${openaiApiKey}`,
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 1000,
+            model: "gpt-4o",
             messages: [
               { role: "user", content: prompt }
-            ]
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+            response_format: { type: "json_object" }
           })
         });
 
-        if (!claudeResponse.ok) {
-          throw new Error(`Claude API error: ${claudeResponse.status}`);
+        if (!openaiResponse.ok) {
+          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
         }
 
-        const claudeData = await claudeResponse.json();
-        const content = claudeData.content[0].text;
+        const openaiData = await openaiResponse.json();
+        const content = openaiData.choices[0].message.content;
         
-        // Extract JSON from Claude's response
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-          throw new Error("Could not parse Claude response");
-        }
-
-        const parsedResult = JSON.parse(jsonMatch[0]);
+        const parsedResult = JSON.parse(content);
         
         const response: TranslateResponse = {
           correctTranslation: parsedResult.correctTranslation,
@@ -137,8 +139,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         res.json(response);
-      } catch (claudeError) {
-        console.error("Claude API error:", claudeError);
+      } catch (openaiError) {
+        console.error("OpenAI API error:", openaiError);
         res.status(500).json({ message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。" });
       }
     } catch (error) {
