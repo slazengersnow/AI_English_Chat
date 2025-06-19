@@ -1,8 +1,8 @@
-# AI Career Development Support App
+# Instant English Composition Training App
 
 ## Overview
 
-This is a LINE-style chat interface application that provides AI-powered career development support. Users select career-related themes and engage in dynamic conversations with an AI assistant powered by OpenAI's GPT-4. The application features a responsive mobile-first design and includes affiliate recommendation functionality after meaningful conversations.
+This is a mobile-first English composition training application that helps users practice translating Japanese sentences to English. The app provides instant feedback and corrections using AI, with a LINE-style chat interface optimized for smartphone usage.
 
 ## System Architecture
 
@@ -11,105 +11,63 @@ This is a LINE-style chat interface application that provides AI-powered career 
 - **Vite** as the build tool and development server
 - **Wouter** for lightweight client-side routing
 - **TanStack Query** for server state management and caching
-- **Tailwind CSS** with custom CSS variables for theming
+- **Tailwind CSS** with mobile-first responsive design
 - **Shadcn/UI** components for consistent design system
 
 ### Backend Architecture
 - **Express.js** server with TypeScript
-- **RESTful API** design with `/api/chat` and `/api/conversations` endpoints
-- **OpenAI GPT-4** integration for intelligent conversation generation
-- **Memory-based storage** (MemStorage class) for conversation persistence
-- **Middleware** for request logging and error handling
+- **RESTful API** design with translation and payment endpoints
+- **Claude Haiku API** integration for English translation and correction
+- **Stripe** integration for subscription management
+- **Memory-based storage** for session data
 
 ### UI/UX Design
-- **Mobile-first responsive design** optimized for chat interfaces
-- **LINE-inspired styling** with green accent colors and bubble layouts
-- **Theme-based conversation starters** with icon-based selection
-- **Progressive disclosure** with affiliate modal recommendations
+- **Mobile-first responsive design** optimized for smartphones
+- **LINE-inspired chat interface** with message bubbles
+- **Bottom input area** for easy thumb typing
+- **Difficulty level selection** (Middle School, High School, TOEIC, Basic Verbs)
+- **Star rating system** for translation quality
 
 ## Key Components
 
 ### Frontend Components
-- **ThemeSelection**: Landing page with career theme cards
-- **ChatInterface**: Main conversation interface with message bubbles
-- **AffiliateModal**: Recommendation modal for external services
-- **Custom UI Components**: Extensive library of reusable components from Shadcn/UI
+- **DifficultySelection**: Landing page with difficulty level cards
+- **ChatInterface**: Main translation training interface
+- **PaymentModal**: Stripe checkout integration
+- **ResultDisplay**: Translation feedback with star ratings
 
 ### Backend Components
-- **Storage Layer**: Abstract `IStorage` interface with in-memory implementation
-- **Route Handlers**: Express routes for conversation management and chat processing
-- **OpenAI Integration**: Intelligent conversation generation and response handling
-- **Message Processing**: Structured chat message handling with timestamps
-
-### Database Schema (Prepared for PostgreSQL)
-- **Conversations Table**: Stores conversation metadata, messages as JSONB, and message counts
-- **Drizzle ORM**: Type-safe database operations with PostgreSQL dialect
-- **Schema Validation**: Zod-based validation for API requests and responses
+- **Translation Service**: Claude Haiku API integration
+- **Payment Service**: Stripe subscription management
+- **Session Management**: User progress tracking
 
 ## Data Flow
 
-1. **Theme Selection**: User selects a career development theme (self-understanding, skill development, etc.)
-2. **Conversation Initialization**: System creates new conversation with selected theme
-3. **Message Exchange**: 
-   - User sends message via chat interface
-   - Frontend sends request to `/api/chat` endpoint
-   - Backend processes message and generates AI response using OpenAI
-   - Response returned with updated conversation state
-4. **Progressive Enhancement**: After sufficient interaction, affiliate recommendations are triggered
-5. **State Management**: TanStack Query manages server state and optimistic updates
+1. **Difficulty Selection**: User selects vocabulary level
+2. **Problem Generation**: System provides Japanese sentence for translation
+3. **Translation Input**: User types English translation
+4. **AI Evaluation**: Claude Haiku evaluates and corrects translation
+5. **Feedback Display**: Star rating and model answer shown
+6. **Progress Tracking**: Results saved for user improvement
 
-## External Dependencies
-
-### Core Runtime Dependencies
-- **@neondatabase/serverless**: PostgreSQL database connectivity (prepared for future use)
-- **drizzle-orm**: Type-safe database ORM with PostgreSQL support
-- **openai**: Official OpenAI API client for GPT-4 integration
-- **express**: Web framework for API server
-- **@tanstack/react-query**: Server state management
-- **wouter**: Lightweight React router
-
-### UI and Styling
-- **@radix-ui**: Comprehensive set of accessible UI primitives
-- **tailwindcss**: Utility-first CSS framework
-- **class-variance-authority**: Type-safe variant styling
-- **lucide-react**: Icon library for consistent iconography
-
-### Development Tools
-- **tsx**: TypeScript execution for development
-- **esbuild**: Fast bundling for production builds
-- **drizzle-kit**: Database migration and schema management
-
-## Deployment Strategy
-
-### Development Environment
-- **Replit-optimized**: Configured for Replit's cloud development environment
-- **Hot Module Replacement**: Vite-powered development with instant updates
-- **Port Configuration**: Express server on port 5000 with external port 80
-
-### Production Build
-- **Client Build**: Vite builds static assets to `dist/public`
-- **Server Build**: esbuild bundles server code to `dist/index.js`
-- **Static File Serving**: Express serves built client assets in production
-
-### Environment Configuration
-- **Database**: PostgreSQL via `DATABASE_URL` environment variable
-- **OpenAI**: API key via `OPENAI_API_KEY` environment variable
-- **Autoscale Deployment**: Configured for automatic scaling based on traffic
-
-### Migration Strategy
-- **Database Schema**: Drizzle migrations in `./migrations` directory
-- **Schema Push**: `npm run db:push` for development schema updates
-- **Production Migrations**: Automated via Drizzle Kit
+## Environment Configuration
+- **Claude API**: API key via `CLAUDE_API_KEY` environment variable
+- **Stripe**: Secret key via `STRIPE_SECRET_KEY` environment variable
+- **Payment**: Price ID via `STRIPE_PRICE_ID` environment variable
 
 ## Changelog
 
 ```
 Changelog:
-- June 14, 2025. Initial setup
+- June 19, 2025. Initial project setup for instant English composition training app
+- Mobile-first design with LINE-style chat interface
+- Claude Haiku API integration for translation evaluation
+- Stripe subscription system with 7-day trial
 ```
 
 ## User Preferences
 
 ```
 Preferred communication style: Simple, everyday language.
+Project focus: Mobile-optimized English learning app with instant feedback.
 ```

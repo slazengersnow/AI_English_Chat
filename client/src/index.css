@@ -24,13 +24,16 @@
   --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
 
-  /* Custom colors for LINE-like interface */
-  --line-green: hsl(120, 94%, 42%);
-  --chat-blue: hsl(214, 100%, 52%);
+  /* Custom colors for English training app */
+  --primary-blue: hsl(214, 100%, 52%);
+  --primary-indigo: hsl(237, 94%, 62%);
+  --success-green: hsl(142, 76%, 36%);
+  --warning-orange: hsl(32, 95%, 44%);
+  --error-red: hsl(0, 84%, 60%);
+  --purple-gradient: hsl(280, 87%, 65%);
+  --pink-gradient: hsl(330, 81%, 60%);
   --chat-gray: hsl(219, 6%, 90%);
   --bg-gray: hsl(220, 13%, 97%);
-  --ai-bubble: hsl(0, 0%, 100%);
-  --user-bubble: hsl(214, 100%, 52%);
   --secondary-text: hsl(220, 9%, 56%);
 }
 
@@ -69,12 +72,20 @@
 }
 
 @layer utilities {
-  .bg-line-green {
-    background-color: var(--line-green);
+  .bg-primary-blue {
+    background-color: var(--primary-blue);
   }
   
-  .bg-chat-blue {
-    background-color: var(--chat-blue);
+  .bg-primary-indigo {
+    background-color: var(--primary-indigo);
+  }
+  
+  .bg-success-green {
+    background-color: var(--success-green);
+  }
+  
+  .bg-warning-orange {
+    background-color: var(--warning-orange);
   }
   
   .bg-chat-gray {
@@ -83,14 +94,6 @@
   
   .bg-bg-gray {
     background-color: var(--bg-gray);
-  }
-  
-  .bg-ai-bubble {
-    background-color: var(--ai-bubble);
-  }
-  
-  .bg-user-bubble {
-    background-color: var(--user-bubble);
   }
   
   .text-secondary-text {

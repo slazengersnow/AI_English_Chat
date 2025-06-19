@@ -1,49 +1,28 @@
-export const THEMES = {
-  'self-understanding': {
-    name: '自己理解',
-    description: '強み・弱み、価値観の発見',
-    icon: 'user',
+export const DIFFICULTY_LEVELS = {
+  'middle-school': {
+    name: '中学英語',
+    description: '基本的な文法と語彙',
     color: 'blue',
+    icon: 'book-open',
   },
-  'skill-development': {
-    name: 'スキル開発', 
-    description: '必要なスキルの習得方法',
-    icon: 'zap',
+  'high-school': {
+    name: '高校英語',
+    description: '応用文法と表現',
     color: 'green',
+    icon: 'graduation-cap',
   },
-  'work-techniques': {
-    name: '仕事術',
-    description: '効率的な働き方のコツ',
-    icon: 'lightbulb',
+  'toeic': {
+    name: 'TOEIC',
+    description: 'ビジネス英語',
     color: 'purple',
+    icon: 'briefcase',
   },
-  'career-strategy': {
-    name: 'キャリア戦略',
-    description: '長期的なキャリアプランニング',
-    icon: 'trending-up',
-    color: 'red',
-  },
-  'personal-growth': {
-    name: 'パーソナル成長',
-    description: '個人的な成長と自己啓発',
-    icon: 'heart',
-    color: 'yellow',
+  'basic-verbs': {
+    name: '基本動詞',
+    description: '日常動詞の使い分け',
+    color: 'orange',
+    icon: 'zap',
   },
 } as const;
 
-export type ThemeKey = keyof typeof THEMES;
-
-export const AFFILIATE_LINKS = {
-  recruit: {
-    name: 'リクルートエージェント',
-    description: '転職支援実績No.1',
-    url: 'https://www.r-agent.com/',
-    color: 'blue',
-  },
-  studysapuri: {
-    name: 'スタディサプリENGLISH',
-    description: 'ビジネス英語学習',
-    url: 'https://eigosapuri.jp/',
-    color: 'green',
-  },
-} as const;
+export type DifficultyKey = keyof typeof DIFFICULTY_LEVELS;

@@ -1,50 +1,50 @@
 import { useState } from "react";
-import { ThemeSelection } from "@/components/theme-selection";
-import { ChatInterface } from "@/components/chat-interface";
-import { AffiliateModal } from "@/components/affiliate-modal";
-import type { ThemeKey } from "@/lib/constants";
+import { DifficultySelection } from "@/components/difficulty-selection";
+import { TrainingInterface } from "@/components/training-interface";
+import { PaymentModal } from "@/components/payment-modal";
+import type { DifficultyKey } from "@/lib/constants";
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<'theme' | 'chat'>('theme');
-  const [selectedTheme, setSelectedTheme] = useState<ThemeKey | null>(null);
-  const [showAffiliateModal, setShowAffiliateModal] = useState(false);
+  const [currentView, setCurrentView] = useState<'difficulty' | 'training'>('difficulty');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const handleThemeSelect = (theme: ThemeKey) => {
-    setSelectedTheme(theme);
-    setCurrentView('chat');
+  const handleDifficultySelect = (difficulty: DifficultyKey) => {
+    setSelectedDifficulty(difficulty);
+    setCurrentView('training');
   };
 
-  const handleBackToThemes = () => {
-    setCurrentView('theme');
-    setSelectedTheme(null);
-    setShowAffiliateModal(false);
+  const handleBackToDifficulty = () => {
+    setCurrentView('difficulty');
+    setSelectedDifficulty(null);
+    setShowPaymentModal(false);
   };
 
-  const handleShowAffiliate = () => {
-    setShowAffiliateModal(true);
+  const handleShowPayment = () => {
+    setShowPaymentModal(true);
   };
 
-  const handleCloseAffiliate = () => {
-    setShowAffiliateModal(false);
+  const handleClosePayment = () => {
+    setShowPaymentModal(false);
   };
 
   return (
     <>
-      {currentView === 'theme' && (
-        <ThemeSelection onThemeSelect={handleThemeSelect} />
+      {currentView === 'difficulty' && (
+        <DifficultySelection onDifficultySelect={handleDifficultySelect} />
       )}
       
-      {currentView === 'chat' && selectedTheme && (
-        <ChatInterface 
-          theme={selectedTheme}
-          onBack={handleBackToThemes}
-          onShowAffiliate={handleShowAffiliate}
+      {currentView === 'training' && selectedDifficulty && (
+        <TrainingInterface 
+          difficulty={selectedDifficulty}
+          onBack={handleBackToDifficulty}
+          onShowPayment={handleShowPayment}
         />
       )}
       
-      <AffiliateModal 
-        isOpen={showAffiliateModal}
-        onClose={handleCloseAffiliate}
+      <PaymentModal 
+        isOpen={showPaymentModal}
+        onClose={handleClosePayment}
       />
     </>
   );

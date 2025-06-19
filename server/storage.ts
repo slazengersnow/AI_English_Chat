@@ -1,49 +1,40 @@
-import { conversations, type Conversation, type InsertConversation, type ChatMessage } from "@shared/schema";
+import { TrainingSession } from "@shared/schema";
 
 export interface IStorage {
-  createConversation(conversation: InsertConversation): Promise<Conversation>;
-  getConversation(id: number): Promise<Conversation | undefined>;
-  updateConversation(id: number, messages: ChatMessage[], messageCount: number): Promise<Conversation | undefined>;
+  addTrainingSession(session: Omit<TrainingSession, 'id'>): Promise<TrainingSession>;
+  getTrainingSessions(): Promise<TrainingSession[]>;
+  getSessionsByDifficulty(difficultyLevel: string): Promise<TrainingSession[]>;
 }
 
 export class MemStorage implements IStorage {
-  private conversations: Map<number, Conversation>;
+  private sessions: Map<number, TrainingSession>;
   private currentId: number;
 
   constructor() {
-    this.conversations = new Map();
+    this.sessions = new Map();
     this.currentId = 1;
   }
 
-  async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
+  async addTrainingSession(sessionData: Omit<TrainingSession, 'id'>): Promise<TrainingSession> {
     const id = this.currentId++;
-    const conversation: Conversation = {
+    const session: TrainingSession = {
+      ...sessionData,
       id,
-      theme: insertConversation.theme,
-      messages: insertConversation.messages,
-      messageCount: insertConversation.messageCount || 0,
-      createdAt: new Date(),
     };
-    this.conversations.set(id, conversation);
-    return conversation;
+    this.sessions.set(id, session);
+    return session;
   }
 
-  async getConversation(id: number): Promise<Conversation | undefined> {
-    return this.conversations.get(id);
+  async getTrainingSessions(): Promise<TrainingSession[]> {
+    return Array.from(this.sessions.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
   }
 
-  async updateConversation(id: number, messages: ChatMessage[], messageCount: number): Promise<Conversation | undefined> {
-    const conversation = this.conversations.get(id);
-    if (!conversation) return undefined;
-
-    const updatedConversation: Conversation = {
-      ...conversation,
-      messages,
-      messageCount,
-    };
-    
-    this.conversations.set(id, updatedConversation);
-    return updatedConversation;
+  async getSessionsByDifficulty(difficultyLevel: string): Promise<TrainingSession[]> {
+    return Array.from(this.sessions.values())
+      .filter(session => session.difficultyLevel === difficultyLevel)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 }
 
