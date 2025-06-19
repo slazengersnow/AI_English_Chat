@@ -32,9 +32,9 @@ This is a mobile-first English composition training application that helps users
 
 ### Frontend Components
 - **DifficultySelection**: Landing page with difficulty level cards
-- **ChatInterface**: Main translation training interface
+- **TrainingInterface**: Enhanced translation training with problem numbering, bookmarks, and detailed feedback
 - **PaymentModal**: Stripe checkout integration
-- **ResultDisplay**: Translation feedback with star ratings
+- **ResultDisplay**: Translation feedback with star ratings, large-font model answers, Japanese explanations, and similar phrases
 
 ### Backend Components
 - **Translation Service**: OpenAI GPT-4 API integration
@@ -64,8 +64,14 @@ Changelog:
 - OpenAI GPT-4 API integration for translation evaluation (switched from Claude)
 - Reordered difficulty levels: TOEIC, Middle School, High School, Basic Verbs, Business Email
 - Added Business Email difficulty level with mail icon
+- Enhanced training interface with:
+  • Problem numbering (問題1, 問題2, etc.)
+  • Bookmark functionality using localStorage
+  • Large-font model answers for better readability
+  • Japanese explanations for grammar and vocabulary
+  • Similar phrase suggestions (2 examples per problem)
 - Stripe subscription system with 7-day trial
-- Comprehensive training interface with star ratings and detailed feedback
+- Comprehensive feedback system with star ratings
 ```
 
 ## User Preferences

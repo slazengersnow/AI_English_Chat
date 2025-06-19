@@ -28,6 +28,8 @@ export const translateResponseSchema = z.object({
   feedback: z.string(),
   rating: z.number().min(1).max(5),
   improvements: z.array(z.string()).optional(),
+  explanation: z.string(),
+  similarPhrases: z.array(z.string()),
 });
 
 export const problemRequestSchema = z.object({

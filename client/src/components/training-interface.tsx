@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Star, Sparkles } from "lucide-react";
+import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
@@ -19,7 +19,12 @@ interface TrainingMessage {
   rating?: number;
   feedback?: string;
   correctTranslation?: string;
+  explanation?: string;
+  similarPhrases?: string[];
+  improvements?: string[];
   timestamp: string;
+  problemNumber?: number;
+  isBookmarked?: boolean;
 }
 
 export function TrainingInterface({ difficulty, onBack, onShowPayment }: TrainingInterfaceProps) {
@@ -27,9 +32,36 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
   const [input, setInput] = useState("");
   const [currentProblem, setCurrentProblem] = useState<string>("");
   const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
+  const [problemNumber, setProblemNumber] = useState(1);
+  const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
+
+  // Load bookmarks from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(`bookmarks-${difficulty}`);
+    if (saved) {
+      setBookmarkedProblems(new Set(JSON.parse(saved)));
+    }
+  }, [difficulty]);
+
+  // Save bookmarks to localStorage
+  const saveBookmarks = (bookmarks: Set<string>) => {
+    localStorage.setItem(`bookmarks-${difficulty}`, JSON.stringify(Array.from(bookmarks)));
+  };
+
+  // Toggle bookmark for a problem
+  const toggleBookmark = (problemText: string) => {
+    const newBookmarks = new Set(bookmarkedProblems);
+    if (newBookmarks.has(problemText)) {
+      newBookmarks.delete(problemText);
+    } else {
+      newBookmarks.add(problemText);
+    }
+    setBookmarkedProblems(newBookmarks);
+    saveBookmarks(newBookmarks);
+  };
 
   // Get new problem
   const getProblemMutation = useMutation({
@@ -45,9 +77,12 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
         type: 'problem',
         content: data.japaneseSentence,
         timestamp: new Date().toISOString(),
+        problemNumber: problemNumber,
+        isBookmarked: bookmarkedProblems.has(data.japaneseSentence),
       };
       setMessages(prev => [...prev, problemMessage]);
       setIsWaitingForTranslation(true);
+      setProblemNumber(prev => prev + 1);
     },
   });
 
@@ -68,6 +103,9 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
         rating: data.rating,
         feedback: data.feedback,
         correctTranslation: data.correctTranslation,
+        explanation: data.explanation,
+        similarPhrases: data.similarPhrases,
+        improvements: data.improvements,
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, evaluationMessage]);
@@ -170,8 +208,24 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border">
-                  <p className="text-sm font-medium text-blue-600 mb-1">翻訳してください</p>
+                <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-blue-600">
+                      問題{message.problemNumber} - 翻訳してください
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-auto"
+                      onClick={() => toggleBookmark(message.content)}
+                    >
+                      {bookmarkedProblems.has(message.content) ? (
+                        <BookmarkCheck className="w-4 h-4 text-blue-500" />
+                      ) : (
+                        <Bookmark className="w-4 h-4 text-gray-400" />
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-base leading-relaxed text-gray-900">
                     {message.content}
                   </p>
@@ -203,11 +257,37 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
                     </span>
                   </div>
                   
-                  {/* Correct Translation */}
+                  {/* Correct Translation - Large Font */}
                   {message.correctTranslation && (
-                    <div className="mb-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                      <p className="text-xs font-medium text-green-700 mb-1">模範解答</p>
-                      <p className="text-sm text-green-800">{message.correctTranslation}</p>
+                    <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <p className="text-sm font-medium text-green-700 mb-2">模範解答</p>
+                      <p className="text-lg font-medium text-green-900 leading-relaxed">
+                        {message.correctTranslation}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Explanation in Japanese */}
+                  {message.explanation && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-sm font-medium text-blue-700 mb-2">解説</p>
+                      <p className="text-sm text-blue-800 leading-relaxed">
+                        {message.explanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Similar Phrases */}
+                  {message.similarPhrases && message.similarPhrases.length > 0 && (
+                    <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                      <p className="text-sm font-medium text-purple-700 mb-2">類似フレーズ</p>
+                      <div className="space-y-1">
+                        {message.similarPhrases.map((phrase, idx) => (
+                          <p key={idx} className="text-sm text-purple-800">
+                            • {phrase}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
                   

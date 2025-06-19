@@ -90,7 +90,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   "correctTranslation": "正しい英訳",
   "feedback": "具体的なフィードバック（良い点と改善点）",
   "rating": 1から5の評価（1=要改善、5=完璧）,
-  "improvements": ["改善提案1", "改善提案2"]
+  "improvements": ["改善提案1", "改善提案2"],
+  "explanation": "文法や語彙の詳しい解説（日本語で）",
+  "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
 }`;
 
       try {
@@ -124,7 +126,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           correctTranslation: parsedResult.correctTranslation,
           feedback: parsedResult.feedback,
           rating: Math.max(1, Math.min(5, parsedResult.rating)),
-          improvements: parsedResult.improvements || []
+          improvements: parsedResult.improvements || [],
+          explanation: parsedResult.explanation || "",
+          similarPhrases: parsedResult.similarPhrases || []
         };
 
         // Save training session

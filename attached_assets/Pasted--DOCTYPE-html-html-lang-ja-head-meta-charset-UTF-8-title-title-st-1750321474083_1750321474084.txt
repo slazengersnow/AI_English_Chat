@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>英作文アプリ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        .answer-section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .model-answer {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #2a2a2a;
+        }
+        .explanation, .similar-phrases {
+            margin-top: 10px;
+        }
+        .bookmark-btn {
+            margin-top: 15px;
+            padding: 5px 12px;
+            background-color: #ffe066;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="answer-section">
+        <p class="model-answer">✔ 模範解答: How is the new project progressing?</p>
+        <div class="explanation">
+            <strong>解説（日本語）:</strong> 「新しいプロジェクトの進捗状況はいかがですか？」という意味です。progressing は「進捗している」をより明確に表現します。
+        </div>
+        <div class="similar-phrases">
+            <strong>類似表現:</strong>
+            <ul>
+                <li>How is the progress on the new project?</li>
+                <li>How’s everything going with the new project?</li>
+            </ul>
+        </div>
+        <button class="bookmark-btn" onclick="bookmarkAnswer()">⭐️ ブックマーク</button>
+    </div>
+
+    <script>
+        function bookmarkAnswer() {
+            const answer = document.querySelector('.model-answer').innerText;
+            let bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+            if (!bookmarks.includes(answer)) {
+                bookmarks.push(answer);
+                localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+                alert('ブックマークに追加しました！');
+            } else {
+                alert('すでにブックマークされています。');
+            }
+        }
+    </script>
+</body>
+</html>
