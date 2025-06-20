@@ -133,13 +133,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Save training session
         await storage.addTrainingSession({
-          difficultyLevel: difficultyLevel as any,
+          difficultyLevel,
           japaneseSentence,
           userTranslation,
           correctTranslation: response.correctTranslation,
           feedback: response.feedback,
           rating: response.rating,
-          createdAt: new Date().toISOString()
         });
 
         res.json(response);
@@ -209,6 +208,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(sessions);
     } catch (error) {
       res.status(500).json({ message: "履歴の取得に失敗しました" });
+    }
+  });
+
+  // My Page APIs
+  
+  // Get user goals
+  app.get("/api/user-goals", async (req, res) => {
+    try {
+      const goals = await storage.getUserGoals();
+      res.json(goals || { dailyGoal: 30, monthlyGoal: 900 });
+    } catch (error) {
+      res.status(500).json({ message: "目標の取得に失敗しました" });
+    }
+  });
+
+  // Update user goals
+  app.post("/api/user-goals", async (req, res) => {
+    try {
+      const { dailyGoal, monthlyGoal } = req.body;
+      const goals = await storage.updateUserGoals({ dailyGoal, monthlyGoal });
+      res.json(goals);
+    } catch (error) {
+      res.status(500).json({ message: "目標の更新に失敗しました" });
+    }
+  });
+
+  // Get progress history
+  app.get("/api/progress", async (req, res) => {
+    try {
+      const { period = 'week' } = req.query;
+      const endDate = new Date();
+      const startDate = new Date();
+      
+      if (period === 'week') {
+        startDate.setDate(endDate.getDate() - 7);
+      } else if (period === 'month') {
+        startDate.setMonth(endDate.getMonth() - 1);
+      } else {
+        startDate.setDate(endDate.getDate() - 1);
+      }
+
+      const progress = await storage.getProgressHistory(
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0]
+      );
+      res.json(progress);
+    } catch (error) {
+      res.status(500).json({ message: "進捗データの取得に失敗しました" });
+    }
+  });
+
+  // Get streak count
+  app.get("/api/streak", async (req, res) => {
+    try {
+      const streak = await storage.getStreakCount();
+      res.json({ streak });
+    } catch (error) {
+      res.status(500).json({ message: "連続学習日数の取得に失敗しました" });
+    }
+  });
+
+  // Get difficulty stats
+  app.get("/api/difficulty-stats", async (req, res) => {
+    try {
+      const stats = await storage.getDifficultyStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "レベル別統計の取得に失敗しました" });
+    }
+  });
+
+  // Get monthly stats
+  app.get("/api/monthly-stats", async (req, res) => {
+    try {
+      const year = parseInt(req.query.year as string) || new Date().getFullYear();
+      const month = parseInt(req.query.month as string) || new Date().getMonth() + 1;
+      const stats = await storage.getMonthlyStats(year, month);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "月間統計の取得に失敗しました" });
+    }
+  });
+
+  // Get sessions for review (★2以下)
+  app.get("/api/review-sessions", async (req, res) => {
+    try {
+      const threshold = parseInt(req.query.threshold as string) || 2;
+      const sessions = await storage.getSessionsForReview(threshold);
+      res.json(sessions);
+    } catch (error) {
+      res.status(500).json({ message: "復習セッションの取得に失敗しました" });
+    }
+  });
+
+  // Get bookmarked sessions
+  app.get("/api/bookmarked-sessions", async (req, res) => {
+    try {
+      const sessions = await storage.getBookmarkedSessions();
+      res.json(sessions);
+    } catch (error) {
+      res.status(500).json({ message: "ブックマークの取得に失敗しました" });
+    }
+  });
+
+  // Update bookmark status
+  app.post("/api/sessions/:id/bookmark", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id);
+      const { isBookmarked } = req.body;
+      await storage.updateBookmark(sessionId, isBookmarked);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "ブックマークの更新に失敗しました" });
+    }
+  });
+
+  // Update review count
+  app.post("/api/sessions/:id/review", async (req, res) => {
+    try {
+      const sessionId = parseInt(req.params.id);
+      await storage.updateReviewCount(sessionId);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "復習カウントの更新に失敗しました" });
+    }
+  });
+
+  // Custom scenarios
+  app.get("/api/custom-scenarios", async (req, res) => {
+    try {
+      const scenarios = await storage.getCustomScenarios();
+      res.json(scenarios);
+    } catch (error) {
+      res.status(500).json({ message: "カスタムシナリオの取得に失敗しました" });
+    }
+  });
+
+  app.post("/api/custom-scenarios", async (req, res) => {
+    try {
+      const { title, description } = req.body;
+      const scenario = await storage.addCustomScenario({ title, description });
+      res.json(scenario);
+    } catch (error) {
+      res.status(500).json({ message: "カスタムシナリオの作成に失敗しました" });
+    }
+  });
+
+  app.put("/api/custom-scenarios/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { title, description } = req.body;
+      const scenario = await storage.updateCustomScenario(id, { title, description });
+      res.json(scenario);
+    } catch (error) {
+      res.status(500).json({ message: "カスタムシナリオの更新に失敗しました" });
+    }
+  });
+
+  app.delete("/api/custom-scenarios/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCustomScenario(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "カスタムシナリオの削除に失敗しました" });
     }
   });
 

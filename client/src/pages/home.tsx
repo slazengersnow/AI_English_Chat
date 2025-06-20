@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { DifficultySelection } from "@/components/difficulty-selection";
 import { TrainingInterface } from "@/components/training-interface";
 import { PaymentModal } from "@/components/payment-modal";
+import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
 import type { DifficultyKey } from "@/lib/constants";
 
 export default function Home() {
@@ -29,7 +32,17 @@ export default function Home() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation header */}
+      <div className="fixed top-4 right-4 z-50">
+        <Link href="/my-page">
+          <Button variant="outline" size="sm" className="bg-white shadow-md">
+            <User className="w-4 h-4 mr-2" />
+            マイページ
+          </Button>
+        </Link>
+      </div>
+
       {currentView === 'difficulty' && (
         <DifficultySelection onDifficultySelect={handleDifficultySelect} />
       )}
@@ -46,6 +59,6 @@ export default function Home() {
         isOpen={showPaymentModal}
         onClose={handleClosePayment}
       />
-    </>
+    </div>
   );
 }

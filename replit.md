@@ -19,7 +19,13 @@ This is a mobile-first English composition training application that helps users
 - **RESTful API** design with translation and payment endpoints
 - **OpenAI GPT-4** integration for English translation and correction
 - **Stripe** integration for subscription management
-- **Memory-based storage** for session data
+- **PostgreSQL database** with Drizzle ORM for data persistence
+
+### Database Schema
+- **Training Sessions**: Stores user translations, ratings, bookmarks, and review counts
+- **User Goals**: Daily and monthly targets for problem solving
+- **Daily Progress**: Tracks completion and average ratings by date
+- **Custom Scenarios**: User-created simulation scenarios
 
 ### UI/UX Design
 - **Mobile-first responsive design** optimized for smartphones
@@ -33,13 +39,15 @@ This is a mobile-first English composition training application that helps users
 ### Frontend Components
 - **DifficultySelection**: Landing page with difficulty level cards
 - **TrainingInterface**: Enhanced translation training with problem numbering, bookmarks, and detailed feedback
+- **MyPage**: Comprehensive user dashboard with progress tracking and scenario creation
 - **PaymentModal**: Stripe checkout integration
 - **ResultDisplay**: Translation feedback with star ratings, large-font model answers, Japanese explanations, and similar phrases
 
 ### Backend Components
 - **Translation Service**: OpenAI GPT-4 API integration
 - **Payment Service**: Stripe subscription management
-- **Session Management**: User progress tracking
+- **Session Management**: User progress tracking with database persistence
+- **Analytics Service**: Progress reports and difficulty statistics
 
 ## Data Flow
 
@@ -48,12 +56,24 @@ This is a mobile-first English composition training application that helps users
 3. **Translation Input**: User types English translation
 4. **AI Evaluation**: OpenAI GPT-4 evaluates and corrects translation
 5. **Feedback Display**: Star rating and model answer shown
-6. **Progress Tracking**: Results saved for user improvement
+6. **Progress Tracking**: Results saved to database for user improvement
 
 ## Environment Configuration
 - **OpenAI API**: API key via `OPENAI_API_KEY` environment variable
 - **Stripe**: Secret key via `STRIPE_SECRET_KEY` environment variable
 - **Payment**: Price ID via `STRIPE_PRICE_ID` environment variable
+- **Database**: PostgreSQL connection via `DATABASE_URL` environment variable
+
+## Recent Changes
+
+### December 20, 2025 - My Page Feature Implementation
+- Added comprehensive My Page with three main sections:
+  1. **Progress Report**: User goal setting, streak tracking, progress charts, difficulty-level analytics
+  2. **Review Functions**: Lists for low-rated problems (★2 below), rechallenge items (★3), bookmark management
+  3. **Simulation Creation**: Custom scenario builder for personalized training contexts
+- Migrated from memory storage to PostgreSQL database with Drizzle ORM
+- Added navigation from home page to My Page
+- Implemented real-time progress tracking and analytics
 
 ## Changelog
 
@@ -72,11 +92,12 @@ Changelog:
   • Similar phrase suggestions (2 examples per problem)
 - Stripe subscription system with 7-day trial
 - Comprehensive feedback system with star ratings
+- December 20, 2025: Added My Page with progress reports, review functions, and custom scenario creation
 ```
 
 ## User Preferences
 
 ```
 Preferred communication style: Simple, everyday language.
-Project focus: Mobile-optimized English learning app with instant feedback.
+Project focus: Mobile-optimized English learning app with instant feedback and comprehensive progress tracking.
 ```

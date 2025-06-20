@@ -1,20 +1,115 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Training session types
+// Database Tables
+// Session storage table (mandatory for Replit Auth)
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Training sessions table
+export const trainingSessions = pgTable("training_sessions", {
+  id: serial("id").primaryKey(),
+  difficultyLevel: varchar("difficulty_level").notNull(),
+  japaneseSentence: text("japanese_sentence").notNull(),
+  userTranslation: text("user_translation").notNull(),
+  correctTranslation: text("correct_translation").notNull(),
+  feedback: text("feedback").notNull(),
+  rating: integer("rating").notNull(),
+  isBookmarked: boolean("is_bookmarked").default(false).notNull(),
+  reviewCount: integer("review_count").default(0).notNull(),
+  lastReviewed: timestamp("last_reviewed"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User goals table
+export const userGoals = pgTable("user_goals", {
+  id: serial("id").primaryKey(),
+  dailyGoal: integer("daily_goal").default(30).notNull(),
+  monthlyGoal: integer("monthly_goal").default(900).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Daily progress table
+export const dailyProgress = pgTable("daily_progress", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull(),
+  problemsCompleted: integer("problems_completed").default(0).notNull(),
+  averageRating: integer("average_rating").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Custom scenarios table
+export const customScenarios = pgTable("custom_scenarios", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Insert schemas
+export const insertTrainingSessionSchema = createInsertSchema(trainingSessions).omit({ id: true, createdAt: true });
+export const insertUserGoalSchema = createInsertSchema(userGoals).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({ id: true, createdAt: true });
+export const insertCustomScenarioSchema = createInsertSchema(customScenarios).omit({ id: true, createdAt: true });
+
+// Zod Schemas  
 export const trainingSessionSchema = z.object({
   id: z.number(),
-  difficultyLevel: z.enum(['toeic', 'middle-school', 'high-school', 'basic-verbs', 'business-email']),
+  difficultyLevel: z.string(),
   japaneseSentence: z.string(),
   userTranslation: z.string(),
   correctTranslation: z.string(),
   feedback: z.string(),
   rating: z.number().min(1).max(5),
+  isBookmarked: z.boolean().optional(),
+  reviewCount: z.number().optional(),
+  lastReviewed: z.string().optional(),
   createdAt: z.string(),
 });
 
+export const userGoalSchema = z.object({
+  id: z.number(),
+  dailyGoal: z.number(),
+  monthlyGoal: z.number(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const dailyProgressSchema = z.object({
+  id: z.number(),
+  date: z.string(),
+  problemsCompleted: z.number(),
+  averageRating: z.number(),
+  createdAt: z.string(),
+});
+
+export const customScenarioSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+  description: z.string(),
+  isActive: z.boolean(),
+  createdAt: z.string(),
+});
+
+// Types
 export type TrainingSession = z.infer<typeof trainingSessionSchema>;
+export type UserGoal = z.infer<typeof userGoalSchema>;
+export type DailyProgress = z.infer<typeof dailyProgressSchema>;
+export type CustomScenario = z.infer<typeof customScenarioSchema>;
+export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
+export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
+export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
+export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
 
 // API request/response schemas
 export const translateRequestSchema = z.object({
