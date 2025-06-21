@@ -376,6 +376,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single custom scenario
+  app.get("/api/custom-scenarios/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const scenario = await storage.getCustomScenario(id);
+      if (!scenario) {
+        return res.status(404).json({ message: "シナリオが見つかりません" });
+      }
+      res.json(scenario);
+    } catch (error) {
+      res.status(500).json({ message: "シナリオの取得に失敗しました" });
+    }
+  });
+
+  // Generate simulation problem
+  app.get("/api/simulation-problem/:scenarioId", async (req, res) => {
+    try {
+      const scenarioId = parseInt(req.params.scenarioId);
+      const scenario = await storage.getCustomScenario(scenarioId);
+      
+      if (!scenario) {
+        return res.status(404).json({ message: "シナリオが見つかりません" });
+      }
+
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        return res.status(500).json({ message: "OpenAI API key not configured" });
+      }
+
+      const prompt = `以下のシミュレーション設定に基づいて、実践的な日本語文を1つ生成してください。
+
+シミュレーション: ${scenario.title}
+詳細: ${scenario.description}
+
+以下の形式でJSONで回答してください：
+{
+  "japaneseSentence": "日本語の文章",
+  "context": "具体的なシチュエーションの説明（20文字以内）"
+}
+
+実際の場面で使われそうな自然な日本語文を生成してください。`;
+
+      try {
+        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${openaiApiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              { role: "user", content: prompt }
+            ],
+            max_tokens: 500,
+            temperature: 0.8,
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!openaiResponse.ok) {
+          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        }
+
+        const openaiData = await openaiResponse.json();
+        const result = JSON.parse(openaiData.choices[0].message.content);
+        
+        res.json({
+          japaneseSentence: result.japaneseSentence,
+          context: result.context || scenario.description
+        });
+      } catch (openaiError) {
+        console.error("OpenAI API error:", openaiError);
+        res.status(500).json({ message: "問題生成に失敗しました" });
+      }
+    } catch (error) {
+      console.error("Simulation problem error:", error);
+      res.status(500).json({ message: "問題生成に失敗しました" });
+    }
+  });
+
+  // Evaluate simulation translation
+  app.post("/api/simulation-translate", async (req, res) => {
+    try {
+      const { scenarioId, japaneseSentence, userTranslation, context } = req.body;
+      
+      const openaiApiKey = process.env.OPENAI_API_KEY;
+      if (!openaiApiKey) {
+        return res.status(500).json({ message: "OpenAI API key not configured" });
+      }
+
+      const scenario = await storage.getCustomScenario(scenarioId);
+      if (!scenario) {
+        return res.status(404).json({ message: "シナリオが見つかりません" });
+      }
+
+      const prompt = `あなたは英語教師です。シミュレーション練習の英訳を評価してください。
+
+シミュレーション設定: ${scenario.title}
+詳細: ${scenario.description}
+シチュエーション: ${context}
+日本語文: ${japaneseSentence}
+ユーザーの英訳: ${userTranslation}
+
+以下の形式でJSONで回答してください：
+{
+  "correctTranslation": "正しい英訳（そのシチュエーションに最適な表現）",
+  "feedback": "具体的なフィードバック（良い点と改善点）",
+  "rating": 1から5の評価（1=要改善、5=完璧）,
+  "improvements": ["改善提案1", "改善提案2"],
+  "explanation": "そのシチュエーションでの表現のポイント（日本語で）",
+  "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
+}`;
+
+      try {
+        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${openaiApiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              { role: "user", content: prompt }
+            ],
+            max_tokens: 1000,
+            temperature: 0.7,
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!openaiResponse.ok) {
+          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        }
+
+        const openaiData = await openaiResponse.json();
+        const parsedResult = JSON.parse(openaiData.choices[0].message.content);
+        
+        const response = {
+          correctTranslation: parsedResult.correctTranslation,
+          feedback: parsedResult.feedback,
+          rating: Math.max(1, Math.min(5, parsedResult.rating)),
+          improvements: parsedResult.improvements || [],
+          explanation: parsedResult.explanation || "",
+          similarPhrases: parsedResult.similarPhrases || []
+        };
+
+        // Save simulation session to database (same structure as training sessions but with scenario context)
+        await storage.addTrainingSession({
+          difficultyLevel: `simulation-${scenarioId}`,
+          japaneseSentence,
+          userTranslation,
+          correctTranslation: response.correctTranslation,
+          feedback: response.feedback,
+          rating: response.rating,
+        });
+
+        res.json(response);
+      } catch (openaiError) {
+        console.error("OpenAI API error:", openaiError);
+        res.status(500).json({ message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。" });
+      }
+    } catch (error) {
+      console.error("Simulation translation error:", error);
+      res.status(500).json({ message: "翻訳評価に失敗しました" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -532,6 +532,9 @@ export default function MyPage() {
             <Card>
               <CardHeader>
                 <CardTitle>作成済みシミュレーション</CardTitle>
+                <CardDescription>
+                  シナリオを編集するか、「練習開始」で実際にシミュレーション練習ができます
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -568,6 +571,13 @@ export default function MyPage() {
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              <Button 
+                                size="sm" 
+                                variant="default"
+                                onClick={() => window.location.href = `/simulation/${scenario.id}`}
+                              >
+                                練習開始
+                              </Button>
                               <Button 
                                 size="sm" 
                                 variant="outline"

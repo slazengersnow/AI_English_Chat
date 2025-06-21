@@ -34,7 +34,13 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation header */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Link href="/simulation">
+          <Button variant="outline" size="sm" className="bg-white shadow-md">
+            <User className="w-4 h-4 mr-2" />
+            シミュレーション
+          </Button>
+        </Link>
         <Link href="/my-page">
           <Button variant="outline" size="sm" className="bg-white shadow-md">
             <User className="w-4 h-4 mr-2" />

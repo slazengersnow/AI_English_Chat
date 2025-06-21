@@ -37,6 +37,7 @@ export interface IStorage {
   
   // Custom scenarios
   getCustomScenarios(): Promise<CustomScenario[]>;
+  getCustomScenario(id: number): Promise<CustomScenario | undefined>;
   addCustomScenario(scenario: InsertCustomScenario): Promise<CustomScenario>;
   updateCustomScenario(id: number, scenario: Partial<InsertCustomScenario>): Promise<CustomScenario>;
   deleteCustomScenario(id: number): Promise<void>;
@@ -289,8 +290,24 @@ export class DatabaseStorage implements IStorage {
     
     return scenarios.map(scenario => ({
       ...scenario,
-      createdAt: scenario.createdAt.toISOString(),
+      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      isActive: scenario.isActive || true,
     }));
+  }
+
+  async getCustomScenario(id: number): Promise<CustomScenario | undefined> {
+    const [scenario] = await db
+      .select()
+      .from(customScenarios)
+      .where(and(eq(customScenarios.id, id), eq(customScenarios.isActive, true)));
+    
+    if (!scenario) return undefined;
+    
+    return {
+      ...scenario,
+      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      isActive: scenario.isActive || true,
+    };
   }
 
   async addCustomScenario(scenarioData: InsertCustomScenario): Promise<CustomScenario> {
@@ -301,7 +318,8 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...scenario,
-      createdAt: scenario.createdAt.toISOString(),
+      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      isActive: scenario.isActive || true,
     };
   }
 
@@ -314,7 +332,8 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...scenario,
-      createdAt: scenario.createdAt.toISOString(),
+      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      isActive: scenario.isActive || true,
     };
   }
 
