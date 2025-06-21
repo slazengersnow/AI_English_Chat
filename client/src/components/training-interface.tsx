@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck } from "lucide-react";
+import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck, User, Home } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import type { TranslateResponse, ProblemResponse } from "@shared/schema";
+import { useLocation } from "wouter";
 
 interface TrainingInterfaceProps {
   difficulty: DifficultyKey;
@@ -37,6 +38,7 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Load bookmarks from localStorage
   useEffect(() => {
@@ -190,12 +192,21 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <p className="text-xs text-gray-600">{DIFFICULTY_LEVELS[difficulty].name}</p>
         </div>
         <Button
+          variant="ghost"
+          size="sm"
+          className="p-2 rounded-full hover:bg-gray-100"
+          onClick={() => setLocation('/')}
+        >
+          <Home className="w-5 h-5 text-gray-600" />
+        </Button>
+        <Button
           variant="outline"
           size="sm"
           className="text-xs"
-          onClick={onShowPayment}
+          onClick={() => setLocation('/my-page')}
         >
-          プレミアム
+          <User className="w-4 h-4 mr-1" />
+          マイページ
         </Button>
       </div>
 

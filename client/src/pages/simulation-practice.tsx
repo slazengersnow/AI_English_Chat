@@ -1,18 +1,15 @@
-import { useState, useEffect } from "react";
-import { useParams } from "wouter";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { 
   ArrowLeft, 
   Send, 
   Star, 
-  RotateCcw, 
-  CheckCircle,
-  Users
+  Sparkles,
+  User,
+  Home
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +25,20 @@ interface SimulationProblem {
   context: string;
 }
 
+interface SimulationMessage {
+  type: 'problem' | 'user' | 'evaluation';
+  content: string;
+  rating?: number;
+  feedback?: string;
+  correctTranslation?: string;
+  explanation?: string;
+  similarPhrases?: string[];
+  improvements?: string[];
+  timestamp: string;
+  problemNumber?: number;
+  context?: string;
+}
+
 interface SimulationResponse {
   correctTranslation: string;
   feedback: string;
@@ -38,13 +49,19 @@ interface SimulationResponse {
 }
 
 export default function SimulationPractice() {
-  const { id } = useParams();
-  const [userTranslation, setUserTranslation] = useState("");
-  const [currentProblem, setCurrentProblem] = useState<SimulationProblem | null>(null);
-  const [response, setResponse] = useState<SimulationResponse | null>(null);
-  const [problemCount, setProblemCount] = useState(1);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const { id } = useParams<{ id: string }>();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const scenarioId = parseInt(id || "1");
+  
+  const [messages, setMessages] = useState<SimulationMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [currentProblem, setCurrentProblem] = useState<string>("");
+  const [currentContext, setCurrentContext] = useState<string>("");
+  const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
+  const [problemNumber, setProblemNumber] = useState(1);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get scenario details
   const { data: scenario } = useQuery<CustomScenario>({
@@ -53,232 +70,297 @@ export default function SimulationPractice() {
   });
 
   // Get simulation problem
-  const { data: problemData, refetch: refetchProblem } = useQuery<SimulationProblem>({
-    queryKey: [`/api/simulation-problem/${id}`],
-    enabled: !!id,
-  });
-
-  // Submit translation mutation
-  const submitMutation = useMutation({
-    mutationFn: async (translation: string) => {
-      const response = await fetch("/api/simulation-translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenarioId: parseInt(id!),
-          japaneseSentence: currentProblem?.japaneseSentence,
-          userTranslation: translation,
-          context: currentProblem?.context || scenario?.description
-        })
-      });
-      if (!response.ok) throw new Error("Failed to submit translation");
+  const getSimulationProblemMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/simulation-problem/${scenarioId}`);
+      if (!response.ok) throw new Error('Failed to fetch problem');
       return response.json();
     },
-    onSuccess: (data) => {
-      setResponse(data);
-      setIsSubmitted(true);
+    onSuccess: (data: SimulationProblem) => {
+      setCurrentProblem(data.japaneseSentence);
+      setCurrentContext(data.context);
+      
+      const problemMessage: SimulationMessage = {
+        type: 'problem',
+        content: data.japaneseSentence,
+        timestamp: new Date().toISOString(),
+        problemNumber: problemNumber,
+        context: data.context,
+      };
+      
+      setMessages(prev => [...prev, problemMessage]);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Problem generation error:", error);
       toast({
         title: "エラー",
-        description: "翻訳の評価に失敗しました",
-        variant: "destructive"
+        description: "問題の生成に失敗しました。しばらくしてからもう一度お試しください。",
+        variant: "destructive",
       });
-    }
+    },
   });
 
-  useEffect(() => {
-    if (problemData) {
-      setCurrentProblem(problemData);
-    }
-  }, [problemData]);
+  const translateMutation = useMutation({
+    mutationFn: async (translation: string) => {
+      return await apiRequest("/api/translate", "POST", {
+        japaneseSentence: currentProblem,
+        userTranslation: translation,
+        difficultyLevel: `simulation-${scenarioId}`,
+      });
+    },
+    onSuccess: (data: SimulationResponse) => {
+      const userMessage: SimulationMessage = {
+        type: 'user',
+        content: input,
+        timestamp: new Date().toISOString(),
+      };
+
+      const evaluationMessage: SimulationMessage = {
+        type: 'evaluation',
+        content: data.feedback,
+        rating: data.rating,
+        correctTranslation: data.correctTranslation,
+        explanation: data.explanation,
+        similarPhrases: data.similarPhrases,
+        improvements: data.improvements,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages(prev => [...prev, userMessage, evaluationMessage]);
+      setInput("");
+      setIsWaitingForTranslation(false);
+      
+      // Auto-focus textarea for next input
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+    },
+    onError: (error) => {
+      console.error("Translation error:", error);
+      setIsWaitingForTranslation(false);
+      toast({
+        title: "エラー",
+        description: "AI評価に失敗しました。しばらくしてからもう一度お試しください。",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = () => {
-    if (userTranslation.trim() && currentProblem) {
-      submitMutation.mutate(userTranslation.trim());
+    if (input.trim() && !isWaitingForTranslation) {
+      setIsWaitingForTranslation(true);
+      translateMutation.mutate(input.trim());
     }
   };
 
   const handleNextProblem = () => {
-    setUserTranslation("");
-    setResponse(null);
-    setIsSubmitted(false);
-    setProblemCount(prev => prev + 1);
-    refetchProblem();
+    setProblemNumber(prev => prev + 1);
+    getSimulationProblemMutation.mutate();
   };
 
-  const handleBackToSelection = () => {
-    window.location.href = "/simulation";
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
-  if (!scenario || !currentProblem) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>シミュレーションを読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Start with first problem
+  useEffect(() => {
+    if (messages.length === 0) {
+      getSimulationProblemMutation.mutate();
+    }
+  }, []);
+
+  const renderStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${
+          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+        }`}
+      />
+    ));
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={handleBackToSelection}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
-              <h1 className="font-semibold">{scenario.title}</h1>
-            </div>
-          </div>
-          <Badge variant="outline">問題 {problemCount}</Badge>
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center space-x-3">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className="p-2 -ml-2 rounded-full hover:bg-gray-100"
+          onClick={() => setLocation('/simulation')}
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
+        </Button>
+        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+          <Sparkles className="w-5 h-5 text-white" />
         </div>
+        <div className="flex-1">
+          <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
+          <p className="text-xs text-gray-600">{scenario?.title || "読み込み中..."}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-2 rounded-full hover:bg-gray-100"
+          onClick={() => setLocation('/')}
+        >
+          <Home className="w-5 h-5 text-gray-600" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs"
+          onClick={() => setLocation('/my-page')}
+        >
+          <User className="w-4 h-4 mr-1" />
+          マイページ
+        </Button>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
-        {/* Scenario Context */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">シミュレーション内容</CardTitle>
-            <CardDescription>{scenario.description}</CardDescription>
-          </CardHeader>
-        </Card>
-
-        {/* Problem */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-medium">
-                問題 {problemCount}
-              </span>
-              日本語文を英語に翻訳してください
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="text-base leading-relaxed text-gray-900 text-center">
-                {currentProblem.japaneseSentence}
-              </p>
-            </div>
-            
-            {currentProblem.context && (
-              <div className="mb-4">
-                <p className="text-xs text-gray-600">
-                  <strong>シチュエーション:</strong> {currentProblem.context}
-                </p>
-              </div>
-            )}
-
-            {!isSubmitted ? (
-              <div className="space-y-4">
-                <Textarea
-                  placeholder="英語で翻訳を入力してください..."
-                  value={userTranslation}
-                  onChange={(e) => setUserTranslation(e.target.value)}
-                  rows={3}
-                  className="text-sm"
-                />
-                <Button 
-                  onClick={handleSubmit}
-                  disabled={!userTranslation.trim() || submitMutation.isPending}
-                  className="w-full"
-                >
-                  {submitMutation.isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  ) : (
-                    <Send className="w-4 h-4 mr-2" />
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {messages.map((message, index) => (
+          <div key={index} className="animate-fade-in">
+            {message.type === 'problem' && (
+              <div className="flex items-start space-x-2">
+                <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-purple-600">
+                      問題{message.problemNumber} - 翻訳してください
+                    </p>
+                  </div>
+                  {message.context && (
+                    <p className="text-xs text-gray-600 mb-2">
+                      <strong>シチュエーション:</strong> {message.context}
+                    </p>
                   )}
-                  翻訳を送信
-                </Button>
-              </div>
-            ) : response && (
-              <div className="space-y-4">
-                {/* User's answer */}
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-sm text-blue-800 mb-2">あなたの回答</h4>
-                  <p className="text-sm leading-relaxed">{userTranslation}</p>
+                  <p className="text-base leading-relaxed text-gray-900">
+                    {message.content}
+                  </p>
                 </div>
-
-                {/* Rating */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">評価:</span>
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-5 h-5 ${
-                        i < response.rating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                  <span className="text-sm text-muted-foreground ml-2">
-                    ({response.rating}/5)
-                  </span>
-                </div>
-
-                {/* Model answer */}
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-sm text-green-800 mb-2">模範解答</h4>
-                  <p className="text-base leading-relaxed text-gray-900 font-medium">{response.correctTranslation}</p>
-                </div>
-
-                {/* Feedback */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-sm mb-2">フィードバック</h4>
-                  <p className="text-sm">{response.feedback}</p>
-                </div>
-
-                {/* Explanation */}
-                {response.explanation && (
-                  <div className="bg-yellow-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-sm mb-2">解説</h4>
-                    <p className="text-sm">{response.explanation}</p>
-                  </div>
-                )}
-
-                {/* Improvements */}
-                {response.improvements && response.improvements.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">改善提案</h4>
-                    <ul className="list-disc list-inside space-y-1">
-                      {response.improvements.map((improvement, index) => (
-                        <li key={index} className="text-sm text-muted-foreground">
-                          {improvement}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Similar phrases */}
-                {response.similarPhrases && response.similarPhrases.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">類似表現</h4>
-                    <div className="space-y-1">
-                      {response.similarPhrases.map((phrase, index) => (
-                        <div key={index} className="text-sm bg-gray-100 p-2 rounded">
-                          {phrase}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Next problem button */}
-                <Button onClick={handleNextProblem} className="w-full">
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  次の問題へ
-                </Button>
               </div>
             )}
-          </CardContent>
-        </Card>
+
+            {message.type === 'user' && (
+              <div className="flex justify-end">
+                <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-[85%] shadow-sm">
+                  <p className="text-sm leading-relaxed">
+                    {message.content}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {message.type === 'evaluation' && (
+              <div className="flex items-start space-x-2">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Star className="w-4 h-4 text-white" />
+                </div>
+                <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border flex-1 space-y-4">
+                  {/* Rating */}
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      {renderStars(message.rating || 0)}
+                    </div>
+                    <span className="text-sm text-gray-600">
+                      ({message.rating}/5点)
+                    </span>
+                  </div>
+
+                  {/* Model Answer */}
+                  <div className="bg-green-50 p-3 rounded-lg">
+                    <h4 className="font-medium text-sm text-green-800 mb-2">模範解答</h4>
+                    <p className="text-base leading-relaxed text-gray-900 font-medium">
+                      {message.correctTranslation}
+                    </p>
+                  </div>
+
+                  {/* Explanation */}
+                  {message.explanation && (
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-sm text-blue-800 mb-2">解説</h4>
+                      <p className="text-sm leading-relaxed text-gray-700">
+                        {message.explanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Similar Phrases */}
+                  {message.similarPhrases && message.similarPhrases.length > 0 && (
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                      <h4 className="font-medium text-sm text-purple-800 mb-2">類似フレーズ</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        {message.similarPhrases.map((phrase, i) => (
+                          <li key={i}>• {phrase}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Next Problem Button */}
+                  <div className="pt-2">
+                    <Button
+                      onClick={handleNextProblem}
+                      className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+                      disabled={getSimulationProblemMutation.isPending}
+                    >
+                      {getSimulationProblemMutation.isPending ? "生成中..." : "次の問題"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {isWaitingForTranslation && (
+          <div className="flex items-start space-x-2">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <Star className="w-4 h-4 text-white animate-pulse" />
+            </div>
+            <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border">
+              <p className="text-sm text-gray-600">AIが評価しています...</p>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="bg-white border-t border-gray-200 px-4 py-3">
+        <div className="flex space-x-2">
+          <Textarea
+            ref={textareaRef}
+            placeholder="英語で翻訳を入力してください..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
+            rows={1}
+            className="flex-1 resize-none text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
+            disabled={isWaitingForTranslation}
+          />
+          <Button
+            onClick={handleSubmit}
+            disabled={!input.trim() || isWaitingForTranslation}
+            size="sm"
+            className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-4 py-2 self-end"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
