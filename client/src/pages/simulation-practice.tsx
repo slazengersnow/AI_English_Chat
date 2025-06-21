@@ -161,14 +161,14 @@ export default function SimulationPractice() {
           </CardHeader>
           <CardContent>
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <p className="text-lg font-medium text-center">
+              <p className="text-base leading-relaxed text-gray-900 text-center">
                 {currentProblem.japaneseSentence}
               </p>
             </div>
             
             {currentProblem.context && (
               <div className="mb-4">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs text-gray-600">
                   <strong>シチュエーション:</strong> {currentProblem.context}
                 </p>
               </div>
@@ -181,7 +181,7 @@ export default function SimulationPractice() {
                   value={userTranslation}
                   onChange={(e) => setUserTranslation(e.target.value)}
                   rows={3}
-                  className="text-lg"
+                  className="text-sm"
                 />
                 <Button 
                   onClick={handleSubmit}
@@ -201,7 +201,7 @@ export default function SimulationPractice() {
                 {/* User's answer */}
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-medium text-sm text-blue-800 mb-2">あなたの回答</h4>
-                  <p className="text-lg">{userTranslation}</p>
+                  <p className="text-sm leading-relaxed">{userTranslation}</p>
                 </div>
 
                 {/* Rating */}
@@ -225,7 +225,7 @@ export default function SimulationPractice() {
                 {/* Model answer */}
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h4 className="font-medium text-sm text-green-800 mb-2">模範解答</h4>
-                  <p className="text-lg font-medium">{response.correctTranslation}</p>
+                  <p className="text-base leading-relaxed text-gray-900 font-medium">{response.correctTranslation}</p>
                 </div>
 
                 {/* Feedback */}
