@@ -67,8 +67,8 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
                 </div>
               </Card>
               
-              {/* Insert Simulation Option after basic-verbs */}
-              {key === 'basic-verbs' && (
+              {/* Insert Simulation Option after business-email */}
+              {key === 'business-email' && (
                 <Link href="/simulation">
                   <Card className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02] mt-3">
                     <div className="flex items-center space-x-3">
