@@ -10,6 +10,39 @@ import {
   type CheckoutSessionResponse
 } from "@shared/schema";
 
+// Session-based problem tracking to prevent duplicates
+const sessionProblems = new Map<string, Set<string>>();
+
+function getSessionId(req: any): string {
+  // Use session ID if available, otherwise use IP as fallback
+  return req.sessionID || req.ip || 'default';
+}
+
+function getUsedProblems(sessionId: string): Set<string> {
+  if (!sessionProblems.has(sessionId)) {
+    sessionProblems.set(sessionId, new Set());
+  }
+  return sessionProblems.get(sessionId)!;
+}
+
+function markProblemAsUsed(sessionId: string, problem: string): void {
+  const usedProblems = getUsedProblems(sessionId);
+  usedProblems.add(problem);
+}
+
+function getUnusedProblem(sessionId: string, problems: string[]): string | null {
+  const usedProblems = getUsedProblems(sessionId);
+  const availableProblems = problems.filter(p => !usedProblems.has(p));
+  
+  // If all problems have been used, reset the session
+  if (availableProblems.length === 0) {
+    sessionProblems.delete(sessionId);
+    return problems[Math.floor(Math.random() * problems.length)];
+  }
+  
+  return availableProblems[Math.floor(Math.random() * availableProblems.length)];
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Generate Japanese problem for translation
   app.post("/api/problem", async (req, res) => {
@@ -56,10 +89,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const sentences = problemSets[difficultyLevel];
-      const randomSentence = sentences[Math.floor(Math.random() * sentences.length)];
+      const sessionId = getSessionId(req);
+      const selectedSentence = getUnusedProblem(sessionId, sentences);
+      
+      if (!selectedSentence) {
+        return res.status(500).json({ message: "No problems available" });
+      }
+      
+      markProblemAsUsed(sessionId, selectedSentence);
       
       const response: ProblemResponse = {
-        japaneseSentence: randomSentence,
+        japaneseSentence: selectedSentence,
         hints: []
       };
 
@@ -442,6 +482,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const openaiData = await openaiResponse.json();
         const result = JSON.parse(openaiData.choices[0].message.content);
+        
+        // Track simulation problems to prevent duplicates
+        const sessionId = `${getSessionId(req)}-simulation-${scenarioId}`;
+        const usedProblems = getUsedProblems(sessionId);
+        
+        // If this problem was already used, try to generate a different one
+        if (usedProblems.has(result.japaneseSentence)) {
+          const variationPrompt = `${prompt}\n\n既に使用された問題: ${Array.from(usedProblems).join(', ')}\n\n上記とは異なる新しい問題を生成してください。`;
+          
+          try {
+            const retryResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${openaiApiKey}`,
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                model: "gpt-4o",
+                messages: [
+                  { role: "user", content: variationPrompt }
+                ],
+                max_tokens: 500,
+                temperature: 0.9,
+                response_format: { type: "json_object" }
+              })
+            });
+            
+            if (retryResponse.ok) {
+              const retryData = await retryResponse.json();
+              const retryResult = JSON.parse(retryData.choices[0].message.content);
+              markProblemAsUsed(sessionId, retryResult.japaneseSentence);
+              
+              return res.json({
+                japaneseSentence: retryResult.japaneseSentence,
+                context: retryResult.context || scenario.description
+              });
+            }
+          } catch (retryError) {
+            console.log("Retry generation failed, using original");
+          }
+        }
+        
+        markProblemAsUsed(sessionId, result.japaneseSentence);
         
         res.json({
           japaneseSentence: result.japaneseSentence,
