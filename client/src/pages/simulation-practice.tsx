@@ -101,12 +101,13 @@ export default function SimulationPractice() {
   });
 
   const translateMutation = useMutation({
-    mutationFn: async (translation: string) => {
-      return await apiRequest("/api/translate", "POST", {
+    mutationFn: async (translation: string): Promise<SimulationResponse> => {
+      const response = await apiRequest("POST", "/api/translate", {
         japaneseSentence: currentProblem,
         userTranslation: translation,
         difficultyLevel: `simulation-${scenarioId}`,
       });
+      return await response.json();
     },
     onSuccess: (data: SimulationResponse) => {
       const userMessage: SimulationMessage = {
