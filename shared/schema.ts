@@ -41,7 +41,7 @@ export const userGoals = pgTable("user_goals", {
 // Daily progress table
 export const dailyProgress = pgTable("daily_progress", {
   id: serial("id").primaryKey(),
-  date: date("date").notNull(),
+  date: date("date").notNull().unique(),
   problemsCompleted: integer("problems_completed").default(0).notNull(),
   averageRating: integer("average_rating").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
