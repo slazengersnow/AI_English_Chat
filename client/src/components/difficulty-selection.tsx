@@ -43,49 +43,52 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
       <div className="max-w-md mx-auto space-y-3">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2">レベルを選択してください</h2>
         
-        {Object.entries(DIFFICULTY_LEVELS).map(([key, level]) => {
+        {Object.entries(DIFFICULTY_LEVELS).map(([key, level], index) => {
           const Icon = iconMap[level.icon as keyof typeof iconMap];
           const colorClass = colorMap[level.color as keyof typeof colorMap];
           
           return (
-            <Card 
-              key={key}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]"
-              onClick={() => onDifficultySelect(key as DifficultyKey)}
-            >
-              <div className="flex items-center space-x-3">
-                <div className={`w-12 h-12 ${colorClass} rounded-full flex items-center justify-center`}>
-                  <Icon className="w-6 h-6" />
+            <div key={key}>
+              <Card 
+                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]"
+                onClick={() => onDifficultySelect(key as DifficultyKey)}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 ${colorClass} rounded-full flex items-center justify-center`}>
+                    <Icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{level.name}</h3>
+                    <p className="text-sm text-gray-600">{level.description}</p>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                  </svg>
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{level.name}</h3>
-                  <p className="text-sm text-gray-600">{level.description}</p>
-                </div>
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
-                </svg>
-              </div>
-            </Card>
+              </Card>
+              
+              {/* Insert Simulation Option after basic-verbs */}
+              {key === 'basic-verbs' && (
+                <Link href="/simulation">
+                  <Card className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02] mt-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
+                        <p className="text-sm text-gray-600">実際の場面を想定した練習</p>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </div>
+                  </Card>
+                </Link>
+              )}
+            </div>
           );
         })}
-
-        {/* Simulation Option */}
-        <Link href="/simulation">
-          <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 shadow-sm border-0 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02] text-white">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <Users className="w-6 h-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold">シミュレーション練習</h3>
-                <p className="text-sm text-white text-opacity-90">実際の場面を想定した練習</p>
-              </div>
-              <svg className="w-5 h-5 text-white text-opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </div>
-          </Card>
-        </Link>
       </div>
 
       {/* Premium Features */}
