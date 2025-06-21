@@ -115,7 +115,7 @@ export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
 export const translateRequestSchema = z.object({
   japaneseSentence: z.string().min(1),
   userTranslation: z.string().min(1),
-  difficultyLevel: z.enum(['toeic', 'middle-school', 'high-school', 'basic-verbs', 'business-email']),
+  difficultyLevel: z.string(), // Allow simulation-X format as well as standard difficulty levels
 });
 
 export const translateResponseSchema = z.object({
