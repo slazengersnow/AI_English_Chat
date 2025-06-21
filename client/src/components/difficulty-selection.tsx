@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { BookOpen, GraduationCap, Briefcase, Zap, Mail } from "lucide-react";
+import { BookOpen, GraduationCap, Briefcase, Zap, Mail, Users } from "lucide-react";
+import { Link } from "wouter";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
 interface DifficultySelectionProps {
@@ -67,6 +68,24 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
             </Card>
           );
         })}
+
+        {/* Simulation Option */}
+        <Link href="/simulation">
+          <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 shadow-sm border-0 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02] text-white">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold">シミュレーション練習</h3>
+                <p className="text-sm text-white text-opacity-90">実際の場面を想定した練習</p>
+              </div>
+              <svg className="w-5 h-5 text-white text-opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </Card>
+        </Link>
       </div>
 
       {/* Premium Features */}

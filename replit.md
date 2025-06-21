@@ -75,6 +75,15 @@ This is a mobile-first English composition training application that helps users
 - Added navigation from home page to My Page
 - Implemented real-time progress tracking and analytics
 
+### December 20, 2025 - Simulation Practice Feature Implementation
+- Added simulation practice functionality with complete workflow:
+  1. **Simulation Selection Page**: Displays user-created custom scenarios
+  2. **Simulation Practice Interface**: Context-aware problem generation and evaluation
+  3. **Integration with Difficulty Selection**: Added simulation option to main level selection screen
+- Custom scenarios generate contextual Japanese problems using OpenAI
+- Simulation results are stored separately from regular difficulty levels (prefixed with "simulation-")
+- Removed simulation navigation from header to consolidate access through difficulty selection
+
 ## Changelog
 
 ```
