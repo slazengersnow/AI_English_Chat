@@ -131,10 +131,15 @@ export default function SimulationPractice() {
       setInput("");
       setIsWaitingForTranslation(false);
       
-      // Auto-focus textarea for next input
+      // Auto-generate next problem after evaluation
       setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 100);
+        setProblemNumber(prev => prev + 1);
+        getSimulationProblemMutation.mutate();
+        // Auto-focus textarea for next input after problem is generated
+        setTimeout(() => {
+          textareaRef.current?.focus();
+        }, 100);
+      }, 1000);
     },
     onError: (error) => {
       console.error("Translation error:", error);
@@ -310,15 +315,11 @@ export default function SimulationPractice() {
                     </div>
                   )}
 
-                  {/* Next Problem Button */}
+                  {/* Auto-generating next problem message */}
                   <div className="pt-2">
-                    <Button
-                      onClick={handleNextProblem}
-                      className="w-full bg-purple-500 hover:bg-purple-600 text-white"
-                      disabled={getSimulationProblemMutation.isPending}
-                    >
-                      {getSimulationProblemMutation.isPending ? "生成中..." : "次の問題"}
-                    </Button>
+                    <p className="text-xs text-gray-500 text-center">
+                      次の問題を自動生成中...
+                    </p>
                   </div>
                 </div>
               </div>

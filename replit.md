@@ -84,6 +84,20 @@ This is a mobile-first English composition training application that helps users
 - Simulation results are stored separately from regular difficulty levels (prefixed with "simulation-")
 - Removed simulation navigation from header to consolidate access through difficulty selection
 
+### June 21, 2025 - UI Consistency and Auto-Generation Updates
+- **UI Standardization**: Converted simulation practice to match TOEIC training chat interface
+  - Unified font sizes, colors, and layout between all practice modes
+  - Replaced card-based UI with chat-style message bubbles
+  - Consistent styling for Japanese problems, user answers, and model responses
+- **Enhanced Navigation**: Added universal navigation buttons to all practice screens
+  - Home button and My Page button available in all difficulty levels
+  - Consistent header layout across TOEIC and simulation practice
+- **Auto-Generation Feature**: Simulation practice now automatically generates next problem
+  - Eliminates manual "next problem" button clicking
+  - Seamless continuous practice experience with 1-second delay after evaluation
+  - Auto-focus on input field for immediate next answer entry
+- **Schema Fixes**: Updated API schemas to support simulation difficulty levels (simulation-X format)
+
 ## Changelog
 
 ```
