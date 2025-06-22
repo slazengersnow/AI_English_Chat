@@ -13,14 +13,24 @@ export default function Home() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Handle URL query parameters for difficulty selection
+  // Handle URL query parameters for difficulty selection and review problems
   useEffect(() => {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
     const difficulty = urlParams.get('difficulty') as DifficultyKey;
     
+    // Check for review problem in sessionStorage
+    const reviewProblem = sessionStorage.getItem('reviewProblem');
+    
     if (difficulty && DIFFICULTY_LEVELS[difficulty]) {
       setSelectedDifficulty(difficulty);
       setCurrentView('training');
+    } else if (reviewProblem) {
+      // If there's a review problem, extract difficulty and go to training
+      const problemData = JSON.parse(reviewProblem);
+      if (problemData.difficultyLevel && DIFFICULTY_LEVELS[problemData.difficultyLevel as DifficultyKey]) {
+        setSelectedDifficulty(problemData.difficultyLevel as DifficultyKey);
+        setCurrentView('training');
+      }
     }
   }, [location]);
 
