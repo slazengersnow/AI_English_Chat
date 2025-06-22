@@ -1,16 +1,28 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { DifficultySelection } from "@/components/difficulty-selection";
 import { TrainingInterface } from "@/components/training-interface";
 import { PaymentModal } from "@/components/payment-modal";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import type { DifficultyKey } from "@/lib/constants";
+import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
 export default function Home() {
+  const [location] = useLocation();
   const [currentView, setCurrentView] = useState<'difficulty' | 'training'>('difficulty');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Handle URL query parameters for difficulty selection
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const difficulty = urlParams.get('difficulty') as DifficultyKey;
+    
+    if (difficulty && DIFFICULTY_LEVELS[difficulty]) {
+      setSelectedDifficulty(difficulty);
+      setCurrentView('training');
+    }
+  }, [location]);
 
   const handleDifficultySelect = (difficulty: DifficultyKey) => {
     setSelectedDifficulty(difficulty);

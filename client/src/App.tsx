@@ -16,6 +16,7 @@ function Router() {
       <Route path="/my-page" component={MyPage} />
       <Route path="/simulation" component={SimulationSelection} />
       <Route path="/simulation/:id" component={SimulationPractice} />
+      <Route path="/simulation-practice" component={SimulationPractice} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -228,7 +228,8 @@ export default function MyPage() {
       const scenarioId = session.difficultyLevel.replace('simulation-', '');
       setLocation(`/simulation-practice?scenario=${scenarioId}`);
     } else {
-      setLocation(`/training?difficulty=${session.difficultyLevel}`);
+      // Navigate to home page with difficulty selection
+      setLocation(`/?difficulty=${session.difficultyLevel}`);
     }
   };
 
@@ -254,9 +255,8 @@ export default function MyPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="progress">進捗レポート</TabsTrigger>
-            <TabsTrigger value="bookmarks">ブックマーク</TabsTrigger>
             <TabsTrigger value="review">振り返り機能</TabsTrigger>
             <TabsTrigger value="scenarios">シミュレーション作成</TabsTrigger>
           </TabsList>
@@ -403,67 +403,7 @@ export default function MyPage() {
             </Card>
           </TabsContent>
 
-          {/* ブックマーク */}
-          <TabsContent value="bookmarks" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bookmark className="w-5 h-5 text-blue-500" />
-                  ブックマークした問題
-                </CardTitle>
-                <CardDescription>
-                  重要な問題や復習したい問題をブックマークして管理
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {bookmarkedSessions.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Bookmark className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p>ブックマークした問題がありません</p>
-                      <p className="text-sm mt-1">練習中に重要な問題をブックマークしてみましょう</p>
-                    </div>
-                  ) : (
-                    bookmarkedSessions.map((session) => (
-                      <div key={session.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900 mb-1">{session.japaneseSentence}</div>
-                            <div className="text-sm text-gray-600 mb-2">{session.userTranslation}</div>
-                            <div className="text-sm text-green-700 mb-2">
-                              <strong>模範解答:</strong> {session.correctTranslation}
-                            </div>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span>{getDifficultyName(session.difficultyLevel)}</span>
-                              <span>{new Date(session.createdAt).toLocaleDateString('ja-JP')}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 ml-4">
-                            <div className="flex items-center gap-1">
-                              {Array.from({length: session.rating}).map((_, i) => (
-                                <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                              ))}
-                              {Array.from({length: 5 - session.rating}).map((_, i) => (
-                                <Star key={i} className="w-3 h-3 text-gray-300" />
-                              ))}
-                            </div>
-                            <Bookmark className="w-4 h-4 text-blue-500 fill-current" />
-                          </div>
-                        </div>
-                        {session.feedback && (
-                          <div className="mt-3 p-3 bg-blue-50 rounded-md">
-                            <div className="text-sm text-blue-800">
-                              <strong>フィードバック:</strong> {session.feedback}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
 
           {/* 振り返り機能 */}
           <TabsContent value="review" className="space-y-6">
