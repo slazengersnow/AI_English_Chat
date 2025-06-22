@@ -125,6 +125,7 @@ export const translateResponseSchema = z.object({
   improvements: z.array(z.string()).optional(),
   explanation: z.string(),
   similarPhrases: z.array(z.string()),
+  sessionId: z.number().optional(),
 });
 
 export const problemRequestSchema = z.object({

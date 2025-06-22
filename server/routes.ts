@@ -171,8 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           similarPhrases: parsedResult.similarPhrases || []
         };
 
-        // Save training session
-        await storage.addTrainingSession({
+        // Save training session and get the session ID
+        const trainingSession = await storage.addTrainingSession({
           difficultyLevel,
           japaneseSentence,
           userTranslation,
@@ -181,7 +181,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rating: response.rating,
         });
 
-        res.json(response);
+        // Include session ID in response for bookmark functionality
+        const responseWithSessionId = {
+          ...response,
+          sessionId: trainingSession.id
+        };
+
+        res.json(responseWithSessionId);
       } catch (openaiError) {
         console.error("OpenAI API error:", openaiError);
         res.status(500).json({ message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。" });

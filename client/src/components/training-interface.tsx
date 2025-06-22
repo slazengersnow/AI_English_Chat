@@ -48,21 +48,40 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
     }
   }, [difficulty]);
 
+  // Store training session IDs to enable database bookmark updates
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
+
   // Save bookmarks to localStorage
   const saveBookmarks = (bookmarks: Set<string>) => {
     localStorage.setItem(`bookmarks-${difficulty}`, JSON.stringify(Array.from(bookmarks)));
   };
 
-  // Toggle bookmark for a problem
-  const toggleBookmark = (problemText: string) => {
+  // Toggle bookmark for a problem and update database if training session exists
+  const toggleBookmark = async (problemText: string) => {
     const newBookmarks = new Set(bookmarkedProblems);
+    const isBookmarked = !newBookmarks.has(problemText);
+    
     if (newBookmarks.has(problemText)) {
       newBookmarks.delete(problemText);
     } else {
       newBookmarks.add(problemText);
     }
+    
     setBookmarkedProblems(newBookmarks);
     saveBookmarks(newBookmarks);
+
+    // Update database bookmark if we have a current session ID
+    if (currentSessionId) {
+      try {
+        await apiRequest("POST", `/api/sessions/${currentSessionId}/bookmark`, {
+          isBookmarked
+        });
+        // Invalidate bookmarked sessions cache
+        queryClient.invalidateQueries({ queryKey: ["/api/bookmarked-sessions"] });
+      } catch (error) {
+        console.error("Failed to update bookmark in database:", error);
+      }
+    }
   };
 
   // Get new problem
@@ -112,6 +131,11 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
       };
       setMessages(prev => [...prev, evaluationMessage]);
       setIsWaitingForTranslation(false);
+      
+      // Store session ID if available for bookmark functionality
+      if (data.sessionId) {
+        setCurrentSessionId(data.sessionId);
+      }
       
       // Auto-generate next problem after 3 seconds
       setTimeout(() => {
