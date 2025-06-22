@@ -176,9 +176,31 @@ export default function SimulationPractice() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start with first problem
+  // Check for review problem from sessionStorage or start with first problem
   useEffect(() => {
     if (messages.length === 0) {
+      const reviewProblem = sessionStorage.getItem('reviewProblem');
+      if (reviewProblem) {
+        const problemData = JSON.parse(reviewProblem);
+        if (problemData.difficultyLevel === `simulation-${scenarioId}`) {
+          // Set up review problem
+          setCurrentProblem(problemData.japaneseSentence);
+          const problemMessage: SimulationMessage = {
+            type: 'problem',
+            content: problemData.japaneseSentence,
+            timestamp: new Date().toISOString(),
+            problemNumber: 1,
+            context: "復習問題"
+          };
+          setMessages([problemMessage]);
+          setProblemNumber(1);
+          
+          // Clear the review problem from sessionStorage
+          sessionStorage.removeItem('reviewProblem');
+          return;
+        }
+      }
+      // No review problem or not for this simulation, get new problem
       getSimulationProblemMutation.mutate();
     }
   }, []);

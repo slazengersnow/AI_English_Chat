@@ -102,7 +102,7 @@ export const customScenarioSchema = z.object({
 });
 
 // Types
-export type TrainingSession = z.infer<typeof trainingSessionSchema>;
+export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = z.infer<typeof userGoalSchema>;
 export type DailyProgress = z.infer<typeof dailyProgressSchema>;
 export type CustomScenario = z.infer<typeof customScenarioSchema>;

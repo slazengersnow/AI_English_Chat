@@ -30,10 +30,12 @@ import {
   Plus,
   Edit,
   Trash2,
-  ArrowLeft
+  ArrowLeft,
+  ArrowRight
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface UserGoals {
   dailyGoal: number;
@@ -77,6 +79,7 @@ export default function MyPage() {
   const [newScenario, setNewScenario] = useState({ title: "", description: "" });
   const [editingScenario, setEditingScenario] = useState<CustomScenario | null>(null);
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // API queries
   const { data: userGoals } = useQuery({
@@ -210,6 +213,23 @@ export default function MyPage() {
       'business-email': 'ビジネスメール'
     };
     return names[level as keyof typeof names] || level;
+  };
+
+  const handleReviewProblem = (session: TrainingSession) => {
+    // Store the problem data in sessionStorage for the practice interface
+    sessionStorage.setItem('reviewProblem', JSON.stringify({
+      japaneseSentence: session.japaneseSentence,
+      difficultyLevel: session.difficultyLevel,
+      isReview: true
+    }));
+    
+    // Navigate to appropriate practice interface
+    if (session.difficultyLevel.startsWith('simulation-')) {
+      const scenarioId = session.difficultyLevel.replace('simulation-', '');
+      setLocation(`/simulation-practice?scenario=${scenarioId}`);
+    } else {
+      setLocation(`/training?difficulty=${session.difficultyLevel}`);
+    }
   };
 
   const formatProgressData = () => {
@@ -455,24 +475,29 @@ export default function MyPage() {
                   要復習リスト（★2以下）
                 </CardTitle>
                 <CardDescription>
-                  評価が低い問題を復習しましょう
+                  評価が低い問題を復習しましょう。クリックして再挑戦できます。
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {reviewSessions.map((session) => (
-                    <div key={session.id} className="p-3 border rounded-lg">
+                    <div 
+                      key={session.id} 
+                      className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                      onClick={() => handleReviewProblem(session)}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="text-sm font-medium">{session.japaneseSentence}</div>
                           <div className="text-xs text-muted-foreground mt-1">
                             {getDifficultyName(session.difficultyLevel)}
                           </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            前回の回答: {session.userTranslation}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({length: session.rating}).map((_, i) => (
-                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          ))}
+                        <div className="text-blue-600">
+                          <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </div>
@@ -489,24 +514,29 @@ export default function MyPage() {
                   再挑戦リスト（★3）
                 </CardTitle>
                 <CardDescription>
-                  もう一度チャレンジしてスコアアップを目指しましょう
+                  もう一度チャレンジしてスコアアップを目指しましょう。クリックして再挑戦できます。
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {rechallengeList.map((session) => (
-                    <div key={session.id} className="p-3 border rounded-lg">
+                    <div 
+                      key={session.id} 
+                      className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                      onClick={() => handleReviewProblem(session)}
+                    >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
                           <div className="text-sm font-medium">{session.japaneseSentence}</div>
                           <div className="text-xs text-muted-foreground mt-1">
                             {getDifficultyName(session.difficultyLevel)}
                           </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            前回の回答: {session.userTranslation}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({length: session.rating}).map((_, i) => (
-                            <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                          ))}
+                        <div className="text-blue-600">
+                          <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </div>

@@ -178,9 +178,31 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Start with first problem
+  // Check for review problem from sessionStorage or start with first problem
   useEffect(() => {
     if (messages.length === 0) {
+      const reviewProblem = sessionStorage.getItem('reviewProblem');
+      if (reviewProblem) {
+        const problemData = JSON.parse(reviewProblem);
+        if (problemData.difficultyLevel === difficulty) {
+          // Set up review problem
+          setCurrentProblem(problemData.japaneseSentence);
+          const problemMessage: TrainingMessage = {
+            type: 'problem',
+            content: problemData.japaneseSentence,
+            timestamp: new Date().toISOString(),
+            problemNumber: 1,
+          };
+          setMessages([problemMessage]);
+          setProblemNumber(1);
+          setIsWaitingForTranslation(true);
+          
+          // Clear the review problem from sessionStorage
+          sessionStorage.removeItem('reviewProblem');
+          return;
+        }
+      }
+      // No review problem or not for this difficulty, get new problem
       getProblemMutation.mutate();
     }
   }, []);
