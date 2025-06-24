@@ -251,9 +251,11 @@ export default function MyPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
             <div className="flex items-center gap-2">
               <User className="w-6 h-6 text-blue-600" />
               <h1 className="text-2xl font-bold">マイページ</h1>
