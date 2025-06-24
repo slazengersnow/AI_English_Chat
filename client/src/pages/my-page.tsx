@@ -31,11 +31,13 @@ import {
   Edit,
   Trash2,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Home
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { Link } from "wouter";
 
 interface UserGoals {
   dailyGoal: number;
@@ -244,14 +246,22 @@ export default function MyPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <User className="w-6 h-6 text-blue-600" />
-            <h1 className="text-2xl font-bold">マイページ</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <User className="w-6 h-6 text-blue-600" />
+              <h1 className="text-2xl font-bold">マイページ</h1>
+            </div>
           </div>
+          <Link href="/">
+            <Button variant="outline" size="sm" className="bg-white shadow-md">
+              <Home className="w-4 h-4 mr-2" />
+              トップページ
+            </Button>
+          </Link>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
