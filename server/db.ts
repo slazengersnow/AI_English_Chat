@@ -5,11 +5,16 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
+// Use DATABASE_URL for now since SUPABASE_DATABASE_URL appears to be a JWT token
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
   throw new Error(
     "DATABASE_URL must be set. Did you forget to provision a database?",
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+console.log("Using database URL:", databaseUrl.substring(0, 20) + "...");
+
+export const pool = new Pool({ connectionString: databaseUrl });
 export const db = drizzle({ client: pool, schema });

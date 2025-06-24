@@ -265,6 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const goals = await storage.getUserGoals();
       res.json(goals || { dailyGoal: 30, monthlyGoal: 900 });
     } catch (error) {
+      console.error("User goals error:", error);
       res.status(500).json({ message: "目標の取得に失敗しました" });
     }
   });

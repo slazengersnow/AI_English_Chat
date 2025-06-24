@@ -110,7 +110,10 @@ export default function MyPage() {
 
   const { data: rechallengeList = [] } = useQuery<TrainingSession[]>({
     queryKey: ["/api/review-sessions", { threshold: 3 }],
-    queryFn: () => fetch("/api/review-sessions?threshold=3").then(res => res.json()),
+    queryFn: () => fetch("/api/review-sessions?threshold=3").then(res => {
+      if (!res.ok) return [];
+      return res.json();
+    }),
   });
 
   const { data: bookmarkedSessions = [] } = useQuery<TrainingSession[]>({
