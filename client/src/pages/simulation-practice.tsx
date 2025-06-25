@@ -49,6 +49,14 @@ interface SimulationResponse {
 }
 
 export default function SimulationPractice() {
+  return (
+    <PremiumGate feature="シミュレーション練習">
+      <SimulationPracticeContent />
+    </PremiumGate>
+  );
+}
+
+function SimulationPracticeContent() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();

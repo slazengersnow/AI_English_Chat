@@ -392,6 +392,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User subscription
+  app.get("/api/user-subscription", async (req, res) => {
+    try {
+      const subscription = await storage.getUserSubscription();
+      // Default to admin premium for the current user
+      res.json(subscription || { 
+        subscriptionType: "premium", 
+        isAdmin: true,
+        userId: "default_user"
+      });
+    } catch (error) {
+      console.error("Subscription error:", error);
+      res.status(500).json({ message: "サブスクリプション情報の取得に失敗しました" });
+    }
+  });
+
   app.post("/api/custom-scenarios", async (req, res) => {
     try {
       const { title, description } = req.body;

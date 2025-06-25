@@ -14,6 +14,14 @@ interface CustomScenario {
 }
 
 export default function SimulationSelection() {
+  return (
+    <PremiumGate feature="シミュレーション練習">
+      <SimulationSelectionContent />
+    </PremiumGate>
+  );
+}
+
+function SimulationSelectionContent() {
   const { data: customScenarios = [] } = useQuery<CustomScenario[]>({
     queryKey: ["/api/custom-scenarios"],
   });

@@ -38,6 +38,16 @@ export const userGoals = pgTable("user_goals", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// User subscription table
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").default("default_user").notNull(),
+  subscriptionType: varchar("subscription_type").default("standard").notNull(), // "standard" or "premium"
+  isAdmin: boolean("is_admin").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Daily progress table
 export const dailyProgress = pgTable("daily_progress", {
   id: serial("id").primaryKey(),
@@ -61,6 +71,7 @@ export const insertTrainingSessionSchema = createInsertSchema(trainingSessions).
 export const insertUserGoalSchema = createInsertSchema(userGoals).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({ id: true, createdAt: true });
 export const insertCustomScenarioSchema = createInsertSchema(customScenarios).omit({ id: true, createdAt: true });
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Zod Schemas  
 export const trainingSessionSchema = z.object({
@@ -101,15 +112,26 @@ export const customScenarioSchema = z.object({
   createdAt: z.string(),
 });
 
+export const userSubscriptionSchema = z.object({
+  id: z.number(),
+  userId: z.string(),
+  subscriptionType: z.enum(["standard", "premium"]),
+  isAdmin: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 // Types
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = z.infer<typeof userGoalSchema>;
 export type DailyProgress = z.infer<typeof dailyProgressSchema>;
 export type CustomScenario = z.infer<typeof customScenarioSchema>;
+export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
 export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
 export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
 
 // API request/response schemas
 export const translateRequestSchema = z.object({

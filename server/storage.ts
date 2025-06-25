@@ -3,14 +3,17 @@ import {
   userGoals,
   dailyProgress,
   customScenarios,
+  userSubscriptions,
   type TrainingSession,
   type UserGoal,
   type DailyProgress,
   type CustomScenario,
+  type UserSubscription,
   type InsertTrainingSession,
   type InsertUserGoal,
   type InsertDailyProgress,
   type InsertCustomScenario,
+  type InsertUserSubscription,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
@@ -45,6 +48,10 @@ export interface IStorage {
   // Analytics
   getDifficultyStats(): Promise<Array<{ difficulty: string; count: number; averageRating: number }>>;
   getMonthlyStats(year: number, month: number): Promise<{ totalProblems: number; averageRating: number }>;
+  
+  // User subscription
+  getUserSubscription(userId?: string): Promise<UserSubscription | undefined>;
+  updateUserSubscription(userId: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -383,6 +390,32 @@ export class DatabaseStorage implements IStorage {
       totalProblems: Number(stats?.totalProblems || 0),
       averageRating: Number(stats?.averageRating || 0),
     };
+  }
+
+  async getUserSubscription(userId: string = "default_user"): Promise<UserSubscription | undefined> {
+    const [subscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId));
+    return subscription;
+  }
+
+  async updateUserSubscription(userId: string, subscriptionData: Partial<InsertUserSubscription>): Promise<UserSubscription> {
+    const [subscription] = await db
+      .insert(userSubscriptions)
+      .values({
+        userId,
+        ...subscriptionData,
+      })
+      .onConflictDoUpdate({
+        target: userSubscriptions.userId,
+        set: {
+          ...subscriptionData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return subscription;
   }
 }
 
