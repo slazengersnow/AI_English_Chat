@@ -70,7 +70,7 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
               </Card>
               
               {/* Insert Simulation Option after business-email */}
-              {key === 'business-email' && (
+              {key === 'business-email' && canAccessPremiumFeatures && (
                 <Link href="/simulation">
                   <Card className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02] mt-3">
                     <div className="flex items-center space-x-3">
@@ -93,49 +93,7 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
         })}
       </div>
 
-      {/* シミュレーション練習 */}
-      <div className="max-w-md mx-auto mt-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">シミュレーション練習</h3>
-        {canAccessPremiumFeatures ? (
-          <Link href="/simulation">
-            <Card className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
-              <div className="p-6 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                  <Briefcase className="w-8 h-8 text-white" />
-                </div>
-                <h4 className="text-lg font-semibold mb-2 text-purple-900">ビジネスシミュレーション</h4>
-                <p className="text-sm text-purple-700">実際のビジネスシーンを想定した練習</p>
-              </div>
-            </Card>
-          </Link>
-        ) : (
-          <Card className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
-            <div className="p-6 text-center">
-              <div className="absolute top-3 right-3">
-                <div className="bg-yellow-400 text-yellow-900 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                  <Crown className="w-3 h-3" />
-                  Premium
-                </div>
-              </div>
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                <Briefcase className="w-8 h-8 text-white" />
-              </div>
-              <h4 className="text-lg font-semibold mb-2 text-gray-700">ビジネスシミュレーション</h4>
-              <p className="text-sm text-gray-600 mb-4">実際のビジネスシーンを想定した練習</p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 justify-center mb-2">
-                  <Lock className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-blue-800 font-medium">プレミアム機能</span>
-                </div>
-                <p className="text-xs text-blue-700 leading-relaxed">
-                  この機能はプレミアムプラン限定です。<br/>
-                  リアルなビジネスシーンを想定したシミュレーション練習を体験したい方は、プレミアムプランをご検討ください。
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
-      </div>
+
 
       {/* Premium Features */}
       <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white">
