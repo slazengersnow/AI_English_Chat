@@ -13,16 +13,22 @@ export default function Home() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Handle URL query parameters for difficulty selection and review problems
+  // Handle URL query parameters and path parameters for difficulty selection
   useEffect(() => {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
     const difficulty = urlParams.get('difficulty') as DifficultyKey;
     
+    // Check for difficulty in URL path (e.g., /chat/toeic or /practice/toeic)
+    const pathMatch = location.match(/\/(chat|practice)\/(.+)/);
+    const pathDifficulty = pathMatch ? pathMatch[2] as DifficultyKey : null;
+    
+    const targetDifficulty = difficulty || pathDifficulty;
+    
     // Check for review problem in sessionStorage
     const reviewProblem = sessionStorage.getItem('reviewProblem');
     
-    if (difficulty && DIFFICULTY_LEVELS[difficulty]) {
-      setSelectedDifficulty(difficulty);
+    if (targetDifficulty && DIFFICULTY_LEVELS[targetDifficulty]) {
+      setSelectedDifficulty(targetDifficulty);
       setCurrentView('training');
     } else if (reviewProblem) {
       // If there's a review problem, extract difficulty and go to training

@@ -19,6 +19,9 @@ function Router() {
       <Route path="/simulation/:id" component={SimulationPractice} />
       <Route path="/simulation-practice" component={SimulationPractice} />
       <Route path="/admin" component={Admin} />
+      {/* Add routes for direct difficulty access */}
+      <Route path="/chat/:difficulty" component={Home} />
+      <Route path="/practice/:difficulty" component={Home} />
       <Route component={NotFound} />
     </Switch>
   );
