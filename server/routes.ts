@@ -408,6 +408,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin routes
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const userSubscription = await storage.getUserSubscription();
+      if (!userSubscription?.isAdmin) {
+        return res.status(403).json({ message: "管理者権限が必要です" });
+      }
+
+      const stats = await storage.getAdminStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Admin stats error:", error);
+      res.status(500).json({ message: "統計データの取得に失敗しました" });
+    }
+  });
+
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const userSubscription = await storage.getUserSubscription();
+      if (!userSubscription?.isAdmin) {
+        return res.status(403).json({ message: "管理者権限が必要です" });
+      }
+
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Admin users error:", error);
+      res.status(500).json({ message: "ユーザーデータの取得に失敗しました" });
+    }
+  });
+
+  app.get("/api/admin/analytics", async (req, res) => {
+    try {
+      const userSubscription = await storage.getUserSubscription();
+      if (!userSubscription?.isAdmin) {
+        return res.status(403).json({ message: "管理者権限が必要です" });
+      }
+
+      const analytics = await storage.getLearningAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Admin analytics error:", error);
+      res.status(500).json({ message: "分析データの取得に失敗しました" });
+    }
+  });
+
+  app.get("/api/admin/export/:type", async (req, res) => {
+    try {
+      const userSubscription = await storage.getUserSubscription();
+      if (!userSubscription?.isAdmin) {
+        return res.status(403).json({ message: "管理者権限が必要です" });
+      }
+
+      const { type } = req.params;
+      const csvData = await storage.exportData(type);
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${type}-export.csv"`);
+      res.send(csvData);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).json({ message: "データのエクスポートに失敗しました" });
+    }
+  });
+
   app.post("/api/custom-scenarios", async (req, res) => {
     try {
       const { title, description } = req.body;

@@ -52,6 +52,12 @@ export interface IStorage {
   // User subscription
   getUserSubscription(userId?: string): Promise<UserSubscription | undefined>;
   updateUserSubscription(userId: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription>;
+  
+  // Admin functions
+  getAdminStats(): Promise<{ totalUsers: number; totalSessions: number; activeSubscriptions: number; monthlyActiveUsers: number }>;
+  getAllUsers(): Promise<Array<{ id: string; email: string; subscriptionType: string; isAdmin: boolean; createdAt: string; lastActive: string }>>;
+  getLearningAnalytics(): Promise<{ totalLearningTime: number; totalLearningCount: number; categoryStats: Array<{ category: string; correctRate: number; totalAttempts: number }>; monthlyStats: Array<{ month: string; sessions: number; averageRating: number }> }>;
+  exportData(type: string): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -416,6 +422,100 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return subscription;
+  }
+
+  // Admin functions
+  async getAdminStats(): Promise<{ totalUsers: number; totalSessions: number; activeSubscriptions: number; monthlyActiveUsers: number }> {
+    const [userCount] = await db
+      .select({ count: count() })
+      .from(userSubscriptions);
+
+    const [sessionCount] = await db
+      .select({ count: count() })
+      .from(trainingSessions);
+
+    const [activeSubscriptions] = await db
+      .select({ count: count() })
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.subscriptionType, "premium"));
+
+    return {
+      totalUsers: userCount?.count || 0,
+      totalSessions: sessionCount?.count || 0,
+      activeSubscriptions: activeSubscriptions?.count || 0,
+      monthlyActiveUsers: 0, // Placeholder for now
+    };
+  }
+
+  async getAllUsers(): Promise<Array<{ id: string; email: string; subscriptionType: string; isAdmin: boolean; createdAt: string; lastActive: string }>> {
+    const users = await db.select().from(userSubscriptions);
+    return users.map(user => ({
+      id: user.userId,
+      email: user.userId + "@example.com", // Placeholder email
+      subscriptionType: user.subscriptionType,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt.toISOString(),
+      lastActive: user.updatedAt.toISOString(),
+    }));
+  }
+
+  async getLearningAnalytics(): Promise<{ totalLearningTime: number; totalLearningCount: number; categoryStats: Array<{ category: string; correctRate: number; totalAttempts: number }>; monthlyStats: Array<{ month: string; sessions: number; averageRating: number }> }> {
+    const [sessionCount] = await db
+      .select({ count: count() })
+      .from(trainingSessions);
+
+    const difficultyStats = await db
+      .select({
+        difficulty: trainingSessions.difficultyLevel,
+        count: count(),
+        averageRating: sql<number>`ROUND(AVG(${trainingSessions.rating})::numeric, 1)`,
+      })
+      .from(trainingSessions)
+      .groupBy(trainingSessions.difficultyLevel);
+
+    const monthlyStats = await db
+      .select({
+        month: sql<string>`TO_CHAR(${trainingSessions.createdAt}, 'YYYY-MM')`,
+        sessions: count(),
+        averageRating: sql<number>`ROUND(AVG(${trainingSessions.rating})::numeric, 1)`,
+      })
+      .from(trainingSessions)
+      .groupBy(sql`TO_CHAR(${trainingSessions.createdAt}, 'YYYY-MM')`)
+      .orderBy(sql`TO_CHAR(${trainingSessions.createdAt}, 'YYYY-MM')`);
+
+    return {
+      totalLearningTime: (sessionCount?.count || 0) * 5, // Estimate 5 minutes per session
+      totalLearningCount: sessionCount?.count || 0,
+      categoryStats: difficultyStats.map(stat => ({
+        category: stat.difficulty,
+        correctRate: Math.round((Number(stat.averageRating) / 5) * 100),
+        totalAttempts: Number(stat.count),
+      })),
+      monthlyStats: monthlyStats.map(stat => ({
+        month: stat.month,
+        sessions: Number(stat.sessions),
+        averageRating: Number(stat.averageRating),
+      })),
+    };
+  }
+
+  async exportData(type: string): Promise<string> {
+    if (type === "users") {
+      const users = await this.getAllUsers();
+      const headers = "ID,Email,Subscription Type,Is Admin,Created At,Last Active\n";
+      const rows = users.map(user => 
+        `${user.id},${user.email},${user.subscriptionType},${user.isAdmin},${user.createdAt},${user.lastActive}`
+      ).join("\n");
+      return headers + rows;
+    } else if (type === "sessions") {
+      const sessions = await db.select().from(trainingSessions);
+      const headers = "ID,Difficulty Level,Japanese Sentence,User Translation,Correct Translation,Rating,Created At\n";
+      const rows = sessions.map(session => 
+        `${session.id},"${session.difficultyLevel}","${session.japaneseSentence.replace(/"/g, '""')}","${session.userTranslation.replace(/"/g, '""')}","${session.correctTranslation.replace(/"/g, '""')}",${session.rating},${session.createdAt.toISOString()}`
+      ).join("\n");
+      return headers + rows;
+    }
+    throw new Error("Invalid export type");
   }
 }
 
