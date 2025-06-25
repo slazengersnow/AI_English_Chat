@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Play, Plus, Users } from "lucide-react";
+import { PremiumGate } from "@/components/premium-gate";
 
 interface CustomScenario {
   id: number;

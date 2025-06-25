@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PremiumGate } from "@/components/premium-gate";
 
 interface CustomScenario {
   id: number;
