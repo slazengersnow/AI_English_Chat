@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import MyPage from "@/pages/my-page";
 import SimulationSelection from "@/pages/simulation-selection";
 import SimulationPractice from "@/pages/simulation-practice";
+import Admin from "@/pages/admin";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/simulation" component={SimulationSelection} />
       <Route path="/simulation/:id" component={SimulationPractice} />
       <Route path="/simulation-practice" component={SimulationPractice} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );
