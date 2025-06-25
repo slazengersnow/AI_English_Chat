@@ -4,14 +4,20 @@ import { DifficultySelection } from "@/components/difficulty-selection";
 import { TrainingInterface } from "@/components/training-interface";
 import { PaymentModal } from "@/components/payment-modal";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
+import { User, Shield } from "lucide-react";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
   const [location] = useLocation();
   const [currentView, setCurrentView] = useState<'difficulty' | 'training'>('difficulty');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Check admin status
+  const { data: userSubscription } = useQuery({
+    queryKey: ["/api/user-subscription"],
+  });
 
   // Handle URL query parameters and path parameters for difficulty selection
   useEffect(() => {
@@ -62,7 +68,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation header */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50 flex items-center space-x-2">
+        {userSubscription?.isAdmin && (
+          <Link href="/admin">
+            <Button variant="outline" size="sm" className="bg-white shadow-md">
+              <Shield className="w-4 h-4 mr-2" />
+              管理者
+            </Button>
+          </Link>
+        )}
         <Link href="/my-page">
           <Button variant="outline" size="sm" className="bg-white shadow-md">
             <User className="w-4 h-4 mr-2" />
