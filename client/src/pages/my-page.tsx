@@ -247,23 +247,20 @@ export default function MyPage() {
   const handleRepeatPractice = () => {
     if (recentSessions.length === 0) return;
     
-    // Get a random session from recent sessions
-    const randomSession = recentSessions[Math.floor(Math.random() * recentSessions.length)];
+    // Store all recent sessions for repeat practice mode
+    sessionStorage.setItem('repeatPracticeMode', 'true');
+    sessionStorage.setItem('repeatPracticeSessions', JSON.stringify(recentSessions));
+    sessionStorage.setItem('repeatPracticeIndex', '0');
     
-    // Store the problem data in sessionStorage for the practice interface
-    sessionStorage.setItem('reviewProblem', JSON.stringify({
-      japaneseSentence: randomSession.japaneseSentence,
-      difficultyLevel: randomSession.difficultyLevel,
-      isReview: true
-    }));
+    // Start with the first session from recent sessions
+    const firstSession = recentSessions[0];
     
     // Navigate to appropriate practice interface
-    if (randomSession.difficultyLevel.startsWith('simulation-')) {
-      const scenarioId = randomSession.difficultyLevel.replace('simulation-', '');
+    if (firstSession.difficultyLevel.startsWith('simulation-')) {
+      const scenarioId = firstSession.difficultyLevel.replace('simulation-', '');
       setLocation(`/simulation-practice?scenario=${scenarioId}`);
     } else {
-      // Navigate to home page with difficulty selection
-      setLocation(`/?difficulty=${randomSession.difficultyLevel}`);
+      setLocation(`/practice/${firstSession.difficultyLevel}`);
     }
   };
 

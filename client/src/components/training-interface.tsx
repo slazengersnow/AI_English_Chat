@@ -139,6 +139,42 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
       
       // Auto-generate next problem after 3 seconds
       setTimeout(() => {
+        // Check if we're in repeat practice mode
+        const isRepeatMode = sessionStorage.getItem('repeatPracticeMode');
+        const repeatSessions = sessionStorage.getItem('repeatPracticeSessions');
+        const repeatIndex = sessionStorage.getItem('repeatPracticeIndex');
+        
+        if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+          const sessions = JSON.parse(repeatSessions);
+          const currentIndex = parseInt(repeatIndex);
+          const nextIndex = currentIndex + 1;
+          
+          if (nextIndex < sessions.length) {
+            const nextSession = sessions.filter(s => s.difficultyLevel === difficulty)[nextIndex];
+            if (nextSession) {
+              // Update index and show next repeat practice problem
+              sessionStorage.setItem('repeatPracticeIndex', nextIndex.toString());
+              setCurrentProblem(nextSession.japaneseSentence);
+              setProblemNumber(nextIndex + 1);
+              const problemMessage: TrainingMessage = {
+                type: 'problem',
+                content: nextSession.japaneseSentence,
+                timestamp: new Date().toISOString(),
+                problemNumber: nextIndex + 1,
+              };
+              setMessages(prev => [...prev, problemMessage]);
+              setIsWaitingForTranslation(true);
+              return;
+            }
+          } else {
+            // All repeat practice problems completed
+            sessionStorage.removeItem('repeatPracticeMode');
+            sessionStorage.removeItem('repeatPracticeSessions');
+            sessionStorage.removeItem('repeatPracticeIndex');
+          }
+        }
+        
+        // Regular mode - get new problem
         getProblemMutation.mutate();
       }, 3000);
     },
@@ -178,23 +214,57 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Check for review problem from sessionStorage or start with first problem
+  // Check for repeat practice mode or review problem from sessionStorage or start with first problem
   useEffect(() => {
     if (messages.length === 0) {
+      // Check for repeat practice mode
+      const isRepeatMode = sessionStorage.getItem('repeatPracticeMode');
+      const repeatSessions = sessionStorage.getItem('repeatPracticeSessions');
+      const repeatIndex = sessionStorage.getItem('repeatPracticeIndex');
+      
+      if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+        const sessions = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+        
+        if (currentIndex < sessions.length) {
+          const currentSession = sessions[currentIndex];
+          if (currentSession.difficultyLevel === difficulty) {
+            // Set up repeat practice problem
+            setCurrentProblem(currentSession.japaneseSentence);
+            setProblemNumber(currentIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: 'problem',
+              content: currentSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: currentIndex + 1,
+            };
+            setMessages([problemMessage]);
+            setIsWaitingForTranslation(true);
+            return;
+          }
+        } else {
+          // All repeat practice problems completed, clear mode
+          sessionStorage.removeItem('repeatPracticeMode');
+          sessionStorage.removeItem('repeatPracticeSessions');
+          sessionStorage.removeItem('repeatPracticeIndex');
+        }
+      }
+      
+      // Check for single review problem
       const reviewProblem = sessionStorage.getItem('reviewProblem');
       if (reviewProblem) {
         const problemData = JSON.parse(reviewProblem);
         if (problemData.difficultyLevel === difficulty) {
-          // Set up review problem
+          // Set up review problem - start from problem 1 for review mode
           setCurrentProblem(problemData.japaneseSentence);
+          setProblemNumber(1);
           const problemMessage: TrainingMessage = {
             type: 'problem',
             content: problemData.japaneseSentence,
             timestamp: new Date().toISOString(),
-            problemNumber: problemNumber,
+            problemNumber: 1,
           };
           setMessages([problemMessage]);
-          // Don't reset problem number, let it continue from current value
           setIsWaitingForTranslation(true);
           
           // Clear the review problem from sessionStorage
