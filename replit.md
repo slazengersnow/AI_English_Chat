@@ -111,11 +111,16 @@ This is a mobile-first English composition training application that helps users
   - Added informative messaging about premium benefits for business simulation practice
   - Maintains existing bookmark and low-rating review access for all users
 
-### June 26, 2025 - Navigation Enhancement
+### June 26, 2025 - Navigation Enhancement and Subscription Management
 - **Enhanced Header Navigation**: Added prominent Home button to training interface
   - Home button positioned to the left of My Page button for quick access to main page
   - Consistent styling with clear borders and hover effects
   - User requested feature for improved navigation flow during training sessions
+- **Admin Subscription Management**: Added user subscription management functionality
+  - Admins can change user subscription types between Standard and Premium
+  - Standard/Premium toggle buttons in user management interface
+  - API endpoint `/api/admin/users/:userId/subscription` for subscription updates
+  - Real-time cache invalidation for immediate UI updates
 
 ### June 21, 2025 - UI Consistency and Auto-Generation Updates
 - **UI Standardization**: Converted simulation practice to match TOEIC training chat interface

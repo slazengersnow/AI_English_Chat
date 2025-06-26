@@ -11,9 +11,10 @@ import {
   BarChart3, 
   Download,
   Lock,
-  Home
+  Home,
+  Edit
 } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
@@ -96,6 +97,29 @@ export default function Admin() {
       toast({
         title: "エクスポートエラー",
         description: "データのエクスポートに失敗しました。",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateSubscriptionMutation = useMutation({
+    mutationFn: async ({ userId, subscriptionType }: { userId: string; subscriptionType: string }) => {
+      return await apiRequest("PUT", `/api/admin/users/${userId}/subscription`, {
+        subscriptionType,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "更新完了",
+        description: "ユーザーのサブスクリプションタイプを更新しました。",
+      });
+      // Invalidate and refetch users data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: () => {
+      toast({
+        title: "更新エラー",
+        description: "サブスクリプションタイプの更新に失敗しました。",
         variant: "destructive",
       });
     },
@@ -239,15 +263,35 @@ export default function Admin() {
               <div className="space-y-4">
                 {users?.map((user) => (
                   <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{user.email}</div>
                       <div className="text-sm text-gray-500">登録日: {new Date(user.createdAt).toLocaleDateString('ja-JP')}</div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={user.subscriptionType === "premium" ? "default" : "secondary"}>
-                        {user.subscriptionType}
-                      </Badge>
-                      {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={user.subscriptionType === "premium" ? "default" : "secondary"}>
+                          {user.subscriptionType}
+                        </Badge>
+                        {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant={user.subscriptionType === "standard" ? "default" : "outline"}
+                          onClick={() => updateSubscriptionMutation.mutate({ userId: user.id, subscriptionType: "standard" })}
+                          disabled={updateSubscriptionMutation.isPending || user.subscriptionType === "standard"}
+                        >
+                          Standard
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={user.subscriptionType === "premium" ? "default" : "outline"}
+                          onClick={() => updateSubscriptionMutation.mutate({ userId: user.id, subscriptionType: "premium" })}
+                          disabled={updateSubscriptionMutation.isPending || user.subscriptionType === "premium"}
+                        >
+                          Premium
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )) || <div className="text-center py-8 text-gray-500">ユーザーデータを読み込み中...</div>}

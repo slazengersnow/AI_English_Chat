@@ -499,6 +499,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/admin/users/:userId/subscription", async (req, res) => {
+    try {
+      const userSubscription = await storage.getUserSubscription();
+      if (!userSubscription?.isAdmin) {
+        return res.status(403).json({ message: "管理者権限が必要です" });
+      }
+
+      const { userId } = req.params;
+      const { subscriptionType } = req.body;
+
+      if (!subscriptionType || !['standard', 'premium'].includes(subscriptionType)) {
+        return res.status(400).json({ message: "有効なサブスクリプションタイプを指定してください" });
+      }
+
+      const updatedSubscription = await storage.updateUserSubscription(userId, { subscriptionType });
+      res.json(updatedSubscription);
+    } catch (error) {
+      console.error("Update subscription error:", error);
+      res.status(500).json({ message: "サブスクリプションの更新に失敗しました" });
+    }
+  });
+
   app.post("/api/custom-scenarios", async (req, res) => {
     try {
       const { title, description } = req.body;
