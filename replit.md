@@ -1,4 +1,4 @@
-# Instant English Composition Training App
+# AI英作文チャット (AI English Composition Chat)
 
 ## Overview
 
@@ -100,7 +100,11 @@ This is a mobile-first English composition training application that helps users
 - Simulation results are stored separately from regular difficulty levels (prefixed with "simulation-")
 - Removed simulation navigation from header to consolidate access through difficulty selection
 
-### June 26, 2025 - Premium Feature Restrictions
+### June 26, 2025 - App Title Update and Premium Restrictions
+- **App Title Change**: Updated application title to "AI英作文チャット" (AI English Composition Chat)
+  - Modified training interface header to display new title
+  - Updated main documentation to reflect new branding
+  - Emphasizes AI-powered chat-based learning approach
 - **Review Function Premium Restriction**: Made repeat practice a premium-only feature
   - Standard users see disabled button with premium upgrade message
   - Premium users retain full access to repeat practice functionality

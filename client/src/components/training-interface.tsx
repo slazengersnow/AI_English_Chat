@@ -318,7 +318,7 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <Sparkles className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900">英作文トレーニング</h3>
+          <h3 className="font-semibold text-gray-900">AI英作文チャット</h3>
           <p className="text-xs text-gray-600">{DIFFICULTY_LEVELS[difficulty].name}</p>
         </div>
         <div className="flex items-center gap-2">
