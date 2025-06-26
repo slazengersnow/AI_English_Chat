@@ -95,20 +95,21 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
 
 
 
-      {/* Premium Features */}
-      <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white">
-        <div className="text-center">
-          <h3 className="font-semibold mb-2">プレミアム機能</h3>
-          <p className="text-sm opacity-90 mb-3">
-            • 詳細な添削フィードバック<br/>
-            • 進捗レポート機能<br/>
-            • 無制限の練習問題
-          </p>
-          <button className="bg-white text-purple-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
-            7日間無料で試す
-          </button>
+      {/* Premium Features - Only show for standard users */}
+      {!canAccessPremiumFeatures && (
+        <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white">
+          <div className="text-center">
+            <h3 className="font-semibold mb-2">プレミアム機能</h3>
+            <p className="text-sm opacity-90 mb-3">
+              • 繰り返し練習<br/>
+              • シミュレーション練習
+            </p>
+            <button className="bg-white text-purple-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
+              プレミアムにアップグレード
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
