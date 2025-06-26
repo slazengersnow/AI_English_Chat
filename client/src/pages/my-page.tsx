@@ -21,7 +21,6 @@ import {
 } from "recharts";
 import { 
   User, 
-  Target, 
   TrendingUp, 
   Calendar, 
   Star, 
@@ -40,10 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Link } from "wouter";
 
-interface UserGoals {
-  dailyGoal: number;
-  monthlyGoal: number;
-}
+
 
 interface ProgressData {
   date: string;
@@ -78,16 +74,13 @@ interface CustomScenario {
 export default function MyPage() {
   const [activeTab, setActiveTab] = useState("progress");
   const [selectedPeriod, setSelectedPeriod] = useState("week");
-  const [goals, setGoals] = useState<UserGoals>({ dailyGoal: 30, monthlyGoal: 900 });
+
   const [newScenario, setNewScenario] = useState({ title: "", description: "" });
   const [editingScenario, setEditingScenario] = useState<CustomScenario | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
   // API queries
-  const { data: userGoals } = useQuery({
-    queryKey: ["/api/user-goals"],
-  });
 
   const { data: progressData = [] } = useQuery<ProgressData[]>({
     queryKey: ["/api/progress", selectedPeriod],
@@ -131,21 +124,6 @@ export default function MyPage() {
   });
 
   // Mutations
-  const updateGoalsMutation = useMutation({
-    mutationFn: async (goals: UserGoals) => {
-      const response = await fetch("/api/user-goals", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(goals)
-      });
-      if (!response.ok) throw new Error("Failed to update goals");
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: "目標を更新しました" });
-      queryClient.invalidateQueries({ queryKey: ["/api/user-goals"] });
-    }
-  });
 
   const createScenarioMutation = useMutation({
     mutationFn: async (scenario: { title: string; description: string }) => {
@@ -195,9 +173,7 @@ export default function MyPage() {
     }
   });
 
-  const handleGoalsUpdate = () => {
-    updateGoalsMutation.mutate(goals);
-  };
+
 
   const handleCreateScenario = () => {
     if (newScenario.title && newScenario.description) {
@@ -305,40 +281,6 @@ export default function MyPage() {
 
           {/* 進捗レポート */}
           <TabsContent value="progress" className="space-y-6">
-            {/* 目標設定 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5" />
-                  目標設定
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="dailyGoal">1日の目標</Label>
-                    <Input
-                      id="dailyGoal"
-                      type="number"
-                      value={goals.dailyGoal}
-                      onChange={(e) => setGoals({...goals, dailyGoal: parseInt(e.target.value)})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="monthlyGoal">1ヶ月の目標</Label>
-                    <Input
-                      id="monthlyGoal"
-                      type="number"
-                      value={goals.monthlyGoal}
-                      onChange={(e) => setGoals({...goals, monthlyGoal: parseInt(e.target.value)})}
-                    />
-                  </div>
-                </div>
-                <Button onClick={handleGoalsUpdate} disabled={updateGoalsMutation.isPending}>
-                  目標を更新
-                </Button>
-              </CardContent>
-            </Card>
 
             {/* 統計情報 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -362,10 +304,7 @@ export default function MyPage() {
                   <div className="text-2xl font-bold text-blue-600">
                     {(monthlyStats as any)?.totalProblems || 0}問
                   </div>
-                  <Progress 
-                    value={((monthlyStats as any)?.totalProblems || 0) / goals.monthlyGoal * 100} 
-                    className="mt-2"
-                  />
+                  <p className="text-xs text-muted-foreground mt-2">今月の実績</p>
                 </CardContent>
               </Card>
 
