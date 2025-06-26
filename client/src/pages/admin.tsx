@@ -3,6 +3,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   Shield, 
   Users, 
@@ -274,23 +276,25 @@ export default function Admin() {
                         </Badge>
                         {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant={user.subscriptionType === "standard" ? "default" : "outline"}
-                          onClick={() => updateSubscriptionMutation.mutate({ userId: user.id, subscriptionType: "standard" })}
-                          disabled={updateSubscriptionMutation.isPending || user.subscriptionType === "standard"}
-                        >
+                      <div className="flex items-center space-x-3">
+                        <Label htmlFor={`subscription-${user.id}`} className="text-sm text-gray-600">
                           Standard
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={user.subscriptionType === "premium" ? "default" : "outline"}
-                          onClick={() => updateSubscriptionMutation.mutate({ userId: user.id, subscriptionType: "premium" })}
-                          disabled={updateSubscriptionMutation.isPending || user.subscriptionType === "premium"}
-                        >
+                        </Label>
+                        <Switch
+                          id={`subscription-${user.id}`}
+                          checked={user.subscriptionType === "premium"}
+                          onCheckedChange={(checked) => {
+                            const newSubscriptionType = checked ? "premium" : "standard";
+                            updateSubscriptionMutation.mutate({ 
+                              userId: user.id, 
+                              subscriptionType: newSubscriptionType 
+                            });
+                          }}
+                          disabled={updateSubscriptionMutation.isPending}
+                        />
+                        <Label htmlFor={`subscription-${user.id}`} className="text-sm text-gray-600">
                           Premium
-                        </Button>
+                        </Label>
                       </div>
                     </div>
                   </div>
