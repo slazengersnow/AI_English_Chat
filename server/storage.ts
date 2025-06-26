@@ -39,6 +39,11 @@ export interface IStorage {
   getProgressHistory(startDate: string, endDate: string): Promise<DailyProgress[]>;
   getStreakCount(): Promise<number>;
   
+  // Daily limit functionality
+  getTodaysProblemCount(): Promise<number>;
+  incrementDailyCount(): Promise<boolean>; // Returns false if limit reached
+  resetDailyCount(date?: string): Promise<void>;
+  
   // Custom scenarios
   getCustomScenarios(): Promise<CustomScenario[]>;
   getCustomScenario(id: number): Promise<CustomScenario | undefined>;
@@ -310,6 +315,60 @@ export class DatabaseStorage implements IStorage {
     }
     
     return streak;
+  }
+
+  // Daily limit functionality
+  async getTodaysProblemCount(): Promise<number> {
+    const today = new Date().toISOString().split('T')[0];
+    const progress = await this.getDailyProgress(today);
+    return progress?.dailyCount || 0;
+  }
+
+  async incrementDailyCount(): Promise<boolean> {
+    const today = new Date().toISOString().split('T')[0];
+    const currentCount = await this.getTodaysProblemCount();
+    
+    // Check if limit reached
+    if (currentCount >= 100) {
+      return false;
+    }
+    
+    // Increment count
+    await db
+      .insert(dailyProgress)
+      .values({
+        date: today,
+        dailyCount: currentCount + 1,
+        problemsCompleted: 0,
+        averageRating: 0,
+      })
+      .onConflictDoUpdate({
+        target: dailyProgress.date,
+        set: {
+          dailyCount: currentCount + 1,
+        },
+      });
+    
+    return true;
+  }
+
+  async resetDailyCount(date?: string): Promise<void> {
+    const targetDate = date || new Date().toISOString().split('T')[0];
+    
+    await db
+      .insert(dailyProgress)
+      .values({
+        date: targetDate,
+        dailyCount: 0,
+        problemsCompleted: 0,
+        averageRating: 0,
+      })
+      .onConflictDoUpdate({
+        target: dailyProgress.date,
+        set: {
+          dailyCount: 0,
+        },
+      });
   }
 
   // Custom scenarios

@@ -54,6 +54,7 @@ export const dailyProgress = pgTable("daily_progress", {
   date: date("date").notNull().unique(),
   problemsCompleted: integer("problems_completed").default(0).notNull(),
   averageRating: integer("average_rating").default(0).notNull(),
+  dailyCount: integer("daily_count").default(0).notNull(), // Track problems attempted today
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -101,6 +102,7 @@ export const dailyProgressSchema = z.object({
   date: z.string(),
   problemsCompleted: z.number(),
   averageRating: z.number(),
+  dailyCount: z.number(),
   createdAt: z.string(),
 });
 

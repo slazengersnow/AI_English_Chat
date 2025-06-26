@@ -123,6 +123,10 @@ export default function MyPage() {
     queryKey: ["/api/custom-scenarios"],
   });
 
+  const { data: dailyCount } = useQuery({
+    queryKey: ["/api/daily-count"],
+  });
+
   // Mutations
 
   const createScenarioMutation = useMutation({
@@ -283,7 +287,7 @@ export default function MyPage() {
           <TabsContent value="progress" className="space-y-6">
 
             {/* 統計情報 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">連続学習日数</CardTitle>
@@ -317,6 +321,24 @@ export default function MyPage() {
                     ★{(monthlyStats as any)?.averageRating || 0}
                   </div>
                   <p className="text-xs text-muted-foreground">今月の平均</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">今日の問題数</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {(dailyCount as any)?.count || 0}/100
+                  </div>
+                  <Progress 
+                    value={((dailyCount as any)?.count || 0)} 
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    残り {(dailyCount as any)?.remaining || 100}問
+                  </p>
                 </CardContent>
               </Card>
             </div>

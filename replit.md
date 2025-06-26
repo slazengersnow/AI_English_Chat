@@ -66,6 +66,15 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### June 26, 2025 - Daily Problem Limit Implementation
+- Added daily problem limit of 100 questions with automatic midnight reset
+- Enhanced database schema with `dailyCount` field in daily progress table
+- Implemented server-side limit enforcement on `/api/problem` endpoint
+- Added appropriate Japanese error message when limit reached: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
+- Added daily count display to My Page showing current usage (X/100) with progress bar
+- Created `/api/daily-count` endpoint to track remaining questions
+- Added `/api/reset-daily-count` endpoint for admin/testing purposes
+
 ### December 20, 2025 - My Page Feature Implementation
 - Added comprehensive My Page with three main sections:
   1. **Progress Report**: User goal setting, streak tracking, progress charts, difficulty-level analytics

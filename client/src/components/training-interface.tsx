@@ -105,6 +105,20 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
       setIsWaitingForTranslation(true);
       setProblemNumber(prev => prev + 1);
     },
+    onError: (error: any) => {
+      if (error.message?.includes('429') || error.message?.includes('最大出題数')) {
+        // Daily limit reached
+        const limitMessage: TrainingMessage = {
+          type: 'evaluation',
+          content: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+          timestamp: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, limitMessage]);
+        setIsWaitingForTranslation(false);
+      } else {
+        console.error("Problem generation error:", error);
+      }
+    },
   });
 
   // Evaluate translation

@@ -47,6 +47,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Generate Japanese problem for translation
   app.post("/api/problem", async (req, res) => {
     try {
+      // Check daily limit first
+      const canProceed = await storage.incrementDailyCount();
+      if (!canProceed) {
+        return res.status(429).json({ 
+          message: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+          dailyLimitReached: true 
+        });
+      }
+
       const { difficultyLevel } = problemRequestSchema.parse(req.body);
       
       // Problem sentences by difficulty level
@@ -724,6 +733,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Simulation translation error:", error);
       res.status(500).json({ message: "翻訳評価に失敗しました" });
+    }
+  });
+
+  // Get today's problem count
+  app.get("/api/daily-count", async (req, res) => {
+    try {
+      const count = await storage.getTodaysProblemCount();
+      res.json({ count, remaining: Math.max(0, 100 - count) });
+    } catch (error) {
+      console.error("Error getting daily count:", error);
+      res.status(500).json({ message: "Failed to get daily count" });
+    }
+  });
+
+  // Reset daily count (for testing/admin purposes)
+  app.post("/api/reset-daily-count", async (req, res) => {
+    try {
+      await storage.resetDailyCount();
+      res.json({ message: "Daily count reset successfully" });
+    } catch (error) {
+      console.error("Error resetting daily count:", error);
+      res.status(500).json({ message: "Failed to reset daily count" });
     }
   });
 
