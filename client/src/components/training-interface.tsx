@@ -325,16 +325,16 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <Button
             variant="outline"
             size="sm"
-            className="text-xs px-3 py-1"
+            className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
             onClick={() => setLocation('/')}
           >
             <Home className="w-4 h-4 mr-1" />
-            トップ
+            Home
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="text-xs px-3 py-1"
+            className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
             onClick={() => setLocation('/my-page')}
           >
             <User className="w-4 h-4 mr-1" />

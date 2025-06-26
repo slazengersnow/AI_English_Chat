@@ -100,6 +100,12 @@ This is a mobile-first English composition training application that helps users
 - Simulation results are stored separately from regular difficulty levels (prefixed with "simulation-")
 - Removed simulation navigation from header to consolidate access through difficulty selection
 
+### June 26, 2025 - Navigation Enhancement
+- **Enhanced Header Navigation**: Added prominent Home button to training interface
+  - Home button positioned to the left of My Page button for quick access to main page
+  - Consistent styling with clear borders and hover effects
+  - User requested feature for improved navigation flow during training sessions
+
 ### June 21, 2025 - UI Consistency and Auto-Generation Updates
 - **UI Standardization**: Converted simulation practice to match TOEIC training chat interface
   - Unified font sizes, colors, and layout between all practice modes
