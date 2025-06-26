@@ -191,10 +191,10 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
             type: 'problem',
             content: problemData.japaneseSentence,
             timestamp: new Date().toISOString(),
-            problemNumber: 1,
+            problemNumber: problemNumber,
           };
           setMessages([problemMessage]);
-          setProblemNumber(1);
+          // Don't reset problem number, let it continue from current value
           setIsWaitingForTranslation(true);
           
           // Clear the review problem from sessionStorage
