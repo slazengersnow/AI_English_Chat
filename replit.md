@@ -59,16 +59,16 @@ This is a mobile-first English composition training application that helps users
 6. **Progress Tracking**: Results saved to database for user improvement
 
 ## Environment Configuration
-- **Anthropic API**: API key via `ANTHROPIC_API_KEY` environment variable for Claude 3 Haiku
+- **OpenAI API**: API key via `OPENAI_API_KEY` environment variable for GPT-4o
 - **Stripe**: Secret key via `STRIPE_SECRET_KEY` environment variable
 - **Payment**: Price ID via `STRIPE_PRICE_ID` environment variable
 - **Database**: PostgreSQL connection via `DATABASE_URL` environment variable
 
 ## Recent Changes
 
-### June 26, 2025 - AI Provider Migration to Claude 3 Haiku
-- Migrated from OpenAI GPT-4 to Anthropic Claude 3 Haiku for translation evaluation
-- Updated API integration to use Anthropic's Messages API with claude-3-haiku-20240307 model
+### June 26, 2025 - AI Provider: Reverted to OpenAI GPT-4
+- Attempted migration to Anthropic Claude 3 Haiku but reverted due to insufficient API credits
+- Currently using OpenAI GPT-4o for translation evaluation with JSON response format
 - Maintained existing Japanese feedback format and evaluation criteria
 - Preserved translation quality assessment with 1-5 star rating system
 - Kept structured response format: correctTranslation, feedback, rating, improvements, explanation, similarPhrases
