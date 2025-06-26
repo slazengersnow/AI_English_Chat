@@ -483,47 +483,39 @@ export default function MyPage() {
 
           {/* 振り返り機能 */}
           <TabsContent value="review" className="space-y-6">
-            {/* 繰り返し練習リスト (直近1週間) */}
+            {/* 繰り返し練習 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <RefreshCw className="w-5 h-5 text-blue-500" />
-                  繰り返し練習リスト（直近1週間）
+                  繰り返し練習
                 </CardTitle>
                 <CardDescription>
-                  過去1週間に解いた問題を再度練習できます。クリックして再挑戦しましょう。
+                  過去1週間に解いた問題をランダムに練習できます。復習に最適です。
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
+                <div className="text-center space-y-4">
                   {recentSessions.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <RefreshCw className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                    <div className="py-8 text-gray-500">
+                      <RefreshCw className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                       <p className="text-sm">直近1週間の練習履歴がありません</p>
                       <p className="text-sm mt-1">練習を開始して履歴を蓄積しましょう</p>
                     </div>
                   ) : (
-                    recentSessions.map((session: TrainingSession) => (
-                      <div 
-                        key={session.id} 
-                        className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
-                        onClick={() => handleReviewProblem(session)}
-                      >
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="text-sm font-medium">{session.japaneseSentence}</div>
-                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
-                              <span>{getDifficultyName(session.difficultyLevel)}</span>
-                              <span>★{session.rating}</span>
-                              <span>{new Date(session.createdAt).toLocaleDateString('ja-JP')}</span>
-                            </div>
-                          </div>
-                          <div className="text-blue-600">
-                            <ArrowRight className="w-4 h-4" />
-                          </div>
-                        </div>
+                    <div className="space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        過去1週間で {recentSessions.length} 問の履歴があります
                       </div>
-                    ))
+                      <Button 
+                        onClick={() => handleRepeatPractice()}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        繰り返し練習を開始
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardContent>
