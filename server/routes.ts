@@ -349,6 +349,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get recent sessions (past week)
+  app.get("/api/recent-sessions", async (req, res) => {
+    try {
+      const daysBack = parseInt(req.query.days as string) || 7;
+      const sessions = await storage.getRecentSessions(daysBack);
+      res.json(sessions);
+    } catch (error) {
+      res.status(500).json({ message: "直近の練習履歴の取得に失敗しました" });
+    }
+  });
+
   // Get bookmarked sessions
   app.get("/api/bookmarked-sessions", async (req, res) => {
     try {

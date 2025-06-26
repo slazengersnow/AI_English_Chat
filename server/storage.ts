@@ -27,6 +27,7 @@ export interface IStorage {
   getSessionsForReview(ratingThreshold: number): Promise<TrainingSession[]>;
   getBookmarkedSessions(): Promise<TrainingSession[]>;
   updateReviewCount(sessionId: number): Promise<void>;
+  getRecentSessions(daysBack: number): Promise<TrainingSession[]>;
   
   // User goals
   getUserGoals(): Promise<UserGoal | undefined>;
@@ -157,6 +158,24 @@ export class DatabaseStorage implements IStorage {
         lastReviewed: new Date()
       })
       .where(eq(trainingSessions.id, sessionId));
+  }
+
+  async getRecentSessions(daysBack: number = 7): Promise<TrainingSession[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+    
+    const sessions = await db
+      .select()
+      .from(trainingSessions)
+      .where(gte(trainingSessions.createdAt, cutoffDate))
+      .orderBy(desc(trainingSessions.createdAt))
+      .limit(50); // Limit to prevent too many results
+    
+    return sessions.map(session => ({
+      ...session,
+      createdAt: session.createdAt.toISOString(),
+      lastReviewed: session.lastReviewed?.toISOString(),
+    }));
   }
 
   // User goals
