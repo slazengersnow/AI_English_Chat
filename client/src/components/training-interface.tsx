@@ -321,23 +321,26 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <h3 className="font-semibold text-gray-900">英作文トレーニング</h3>
           <p className="text-xs text-gray-600">{DIFFICULTY_LEVELS[difficulty].name}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-2 rounded-full hover:bg-gray-100"
-          onClick={() => setLocation('/')}
-        >
-          <Home className="w-5 h-5 text-gray-600" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs"
-          onClick={() => setLocation('/my-page')}
-        >
-          <User className="w-4 h-4 mr-1" />
-          マイページ
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={() => setLocation('/')}
+          >
+            <Home className="w-4 h-4 mr-1" />
+            トップ
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs"
+            onClick={() => setLocation('/my-page')}
+          >
+            <User className="w-4 h-4 mr-1" />
+            マイページ
+          </Button>
+        </div>
       </div>
 
       {/* Messages Container */}
