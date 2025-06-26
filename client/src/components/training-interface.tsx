@@ -321,11 +321,11 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <h3 className="font-semibold text-gray-900">英作文トレーニング</h3>
           <p className="text-xs text-gray-600">{DIFFICULTY_LEVELS[difficulty].name}</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="text-xs"
+            className="text-xs px-3 py-1"
             onClick={() => setLocation('/')}
           >
             <Home className="w-4 h-4 mr-1" />
@@ -334,7 +334,7 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <Button
             variant="outline"
             size="sm"
-            className="text-xs"
+            className="text-xs px-3 py-1"
             onClick={() => setLocation('/my-page')}
           >
             <User className="w-4 h-4 mr-1" />
