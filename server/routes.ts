@@ -123,18 +123,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { japaneseSentence, userTranslation, difficultyLevel } = translateRequestSchema.parse(req.body);
       
-      const openaiApiKey = process.env.OPENAI_API_KEY;
-      if (!openaiApiKey) {
-        return res.status(500).json({ message: "OpenAI API key not configured" });
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+      if (!anthropicApiKey) {
+        return res.status(500).json({ message: "Anthropic API key not configured" });
       }
 
-      const prompt = `あなたは英語教師です。以下の日本語文の英訳を評価してください。
+      const prompt = `以下の日本語文を、英語に自然に翻訳してください。その後、以下の順番で出力してください：
 
-難易度レベル: ${difficultyLevel}
+1. 英訳された英文（ネイティブが自然に使う表現）
+2. 文法や語彙の簡単な解説（中学〜高校英語のレベル）
+3. 重要な単語やフレーズの意味や使い方の補足
+4. 英文の構造の簡単な解説（SVや時制など）
+5. 類似表現があれば主に2つ紹介する
+
+【注意点】
+- 英文はシンプルで実用的なものにしてください（TOEIC700〜800レベル）。
+- 訳は直訳ではなく自然な英語にしてください。
+- 難しすぎる単語や構文は避けてください。
+- 中学生や高校生が見ても分かるような解説を心がけてください。
+
+ユーザーの回答: ${userTranslation}
 日本語文: ${japaneseSentence}
-ユーザーの英訳: ${userTranslation}
 
-以下の形式でJSONで回答してください：
+上記のユーザー回答を評価し、以下のJSON形式で回答してください：
 {
   "correctTranslation": "正しい英訳",
   "feedback": "具体的なフィードバック（良い点と改善点）",
@@ -145,29 +156,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }`;
 
       try {
-        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${openaiApiKey}`,
-            "Content-Type": "application/json"
+            "x-api-key": anthropicApiKey,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "claude-3-haiku-20240307",
+            max_tokens: 1000,
+            system: "You are an English teacher. Please respond in JSON format only.",
             messages: [
               { role: "user", content: prompt }
-            ],
-            max_tokens: 1000,
-            temperature: 0.7,
-            response_format: { type: "json_object" }
+            ]
           })
         });
 
-        if (!openaiResponse.ok) {
-          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        if (!anthropicResponse.ok) {
+          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
         }
 
-        const openaiData = await openaiResponse.json();
-        const content = openaiData.choices[0].message.content;
+        const anthropicData = await anthropicResponse.json();
+        const content = anthropicData.content[0].text;
         
         const parsedResult = JSON.parse(content);
         
@@ -197,8 +208,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         res.json(responseWithSessionId);
-      } catch (openaiError) {
-        console.error("OpenAI API error:", openaiError);
+      } catch (anthropicError) {
+        console.error("Anthropic API error:", anthropicError);
         res.status(500).json({ message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。" });
       }
     } catch (error) {

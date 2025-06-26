@@ -17,7 +17,7 @@ This is a mobile-first English composition training application that helps users
 ### Backend Architecture
 - **Express.js** server with TypeScript
 - **RESTful API** design with translation and payment endpoints
-- **OpenAI GPT-4** integration for English translation and correction
+- **Anthropic Claude 3 Haiku** integration for English translation and correction
 - **Stripe** integration for subscription management
 - **PostgreSQL database** with Drizzle ORM for data persistence
 
@@ -54,17 +54,24 @@ This is a mobile-first English composition training application that helps users
 1. **Difficulty Selection**: User selects vocabulary level
 2. **Problem Generation**: System provides Japanese sentence for translation
 3. **Translation Input**: User types English translation
-4. **AI Evaluation**: OpenAI GPT-4 evaluates and corrects translation
+4. **AI Evaluation**: Anthropic Claude 3 Haiku evaluates and corrects translation
 5. **Feedback Display**: Star rating and model answer shown
 6. **Progress Tracking**: Results saved to database for user improvement
 
 ## Environment Configuration
-- **OpenAI API**: API key via `OPENAI_API_KEY` environment variable
+- **Anthropic API**: API key via `ANTHROPIC_API_KEY` environment variable for Claude 3 Haiku
 - **Stripe**: Secret key via `STRIPE_SECRET_KEY` environment variable
 - **Payment**: Price ID via `STRIPE_PRICE_ID` environment variable
 - **Database**: PostgreSQL connection via `DATABASE_URL` environment variable
 
 ## Recent Changes
+
+### June 26, 2025 - AI Provider Migration to Claude 3 Haiku
+- Migrated from OpenAI GPT-4 to Anthropic Claude 3 Haiku for translation evaluation
+- Updated API integration to use Anthropic's Messages API with claude-3-haiku-20240307 model
+- Maintained existing Japanese feedback format and evaluation criteria
+- Preserved translation quality assessment with 1-5 star rating system
+- Kept structured response format: correctTranslation, feedback, rating, improvements, explanation, similarPhrases
 
 ### June 26, 2025 - Daily Problem Limit Implementation
 - Added daily problem limit of 100 questions with automatic midnight reset
