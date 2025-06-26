@@ -244,6 +244,29 @@ export default function MyPage() {
     }
   };
 
+  const handleRepeatPractice = () => {
+    if (recentSessions.length === 0) return;
+    
+    // Get a random session from recent sessions
+    const randomSession = recentSessions[Math.floor(Math.random() * recentSessions.length)];
+    
+    // Store the problem data in sessionStorage for the practice interface
+    sessionStorage.setItem('reviewProblem', JSON.stringify({
+      japaneseSentence: randomSession.japaneseSentence,
+      difficultyLevel: randomSession.difficultyLevel,
+      isReview: true
+    }));
+    
+    // Navigate to appropriate practice interface
+    if (randomSession.difficultyLevel.startsWith('simulation-')) {
+      const scenarioId = randomSession.difficultyLevel.replace('simulation-', '');
+      setLocation(`/simulation-practice?scenario=${scenarioId}`);
+    } else {
+      // Navigate to home page with difficulty selection
+      setLocation(`/?difficulty=${randomSession.difficultyLevel}`);
+    }
+  };
+
   const formatProgressData = () => {
     return progressData.map(item => ({
       date: new Date(item.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' }),
