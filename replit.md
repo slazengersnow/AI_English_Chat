@@ -100,6 +100,13 @@ This is a mobile-first English composition training application that helps users
 - Simulation results are stored separately from regular difficulty levels (prefixed with "simulation-")
 - Removed simulation navigation from header to consolidate access through difficulty selection
 
+### June 26, 2025 - Premium Feature Restrictions
+- **Review Function Premium Restriction**: Made repeat practice a premium-only feature
+  - Standard users see disabled button with premium upgrade message
+  - Premium users retain full access to repeat practice functionality
+  - Added informative messaging about premium benefits for business simulation practice
+  - Maintains existing bookmark and low-rating review access for all users
+
 ### June 26, 2025 - Navigation Enhancement
 - **Enhanced Header Navigation**: Added prominent Home button to training interface
   - Home button positioned to the left of My Page button for quick access to main page

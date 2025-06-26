@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ export default function MyPage() {
   const [editingScenario, setEditingScenario] = useState<CustomScenario | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { subscription } = useSubscription();
 
   // API queries
 
@@ -488,14 +490,35 @@ export default function MyPage() {
                       <div className="text-sm text-muted-foreground">
                         過去1週間で {recentSessions.length} 問の履歴があります
                       </div>
-                      <Button 
-                        onClick={() => handleRepeatPractice()}
-                        className="w-full"
-                        size="lg"
-                      >
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        繰り返し練習を開始
-                      </Button>
+                      {subscription?.subscriptionType === 'premium' ? (
+                        <Button 
+                          onClick={() => handleRepeatPractice()}
+                          className="w-full"
+                          size="lg"
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          繰り返し練習を開始
+                        </Button>
+                      ) : (
+                        <div className="space-y-3">
+                          <Button 
+                            className="w-full"
+                            size="lg"
+                            disabled
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            繰り返し練習を開始
+                          </Button>
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800 mb-2">
+                              <strong>この機能はプレミアムプラン限定です。</strong>
+                            </p>
+                            <p className="text-sm text-yellow-700">
+                              リアルなビジネスシーンを想定したシミュレーション練習を体験したい方は、プレミアムプランをご検討ください。繰り返すだけで、確実に話せる英語が増えていきます。
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
