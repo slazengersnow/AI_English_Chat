@@ -58,46 +58,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { difficultyLevel } = problemRequestSchema.parse(req.body);
       
-      // Problem sentences by difficulty level
+      // Get previously attempted problems from database
+      const previousProblems = await storage.getUserAttemptedProblems(difficultyLevel);
+      const attemptedSentences = new Set(previousProblems.map(p => p.japaneseSentence));
+
+      // Problem sentences by difficulty level (expanded sets)
       const problemSets = {
         'toeic': [
           '会議の資料を準備しておいてください。',
           '売上が前年比20%増加しました。',
           '新しいプロジェクトの進捗はいかがですか。',
           '顧客からのフィードバックを検討する必要があります。',
-          '来週までに報告書を提出してください。'
+          '来週までに報告書を提出してください。',
+          'クライアントとの打ち合わせが予定されています。',
+          '予算の見直しが必要です。',
+          'スケジュールを調整いたします。',
+          'チームメンバーと連携を取ってください。',
+          '納期に間に合うよう努力します。',
+          '品質管理の向上が課題です。',
+          'マーケティング戦略を検討しています。',
+          '競合他社の動向を調査しました。',
+          '今四半期の目標を達成しました。',
+          'プロジェクトの進捗状況を報告します。'
         ],
         'middle-school': [
           '私は毎日学校に行きます。',
           '今日は雨が降っています。',
           '彼女は本を読むのが好きです。',
           '私たちは昨日映画を見ました。',
-          '明日友達と会う予定です。'
+          '明日友達と会う予定です。',
+          '昨日は図書館で勉強しました。',
+          '母は美味しい夕食を作ってくれます。',
+          '兄は野球が上手です。',
+          '私は数学が好きです。',
+          '先生はとても親切です。',
+          '夏休みに海に行きました。',
+          '犬と散歩をしています。',
+          '友達と公園で遊びました。',
+          '宿題を忘れてしまいました。',
+          '電車で学校に通っています。'
         ],
         'high-school': [
           '環境問題について考えることは重要です。',
           '技術の進歩により、私たちの生活は便利になりました。',
           '彼は将来医者になりたいと言っています。',
           'この本を読み終えたら、感想を教えてください。',
-          'もし時間があれば、一緒に旅行に行きませんか。'
+          'もし時間があれば、一緒に旅行に行きませんか。',
+          '科学技術の発展は社会に大きな影響を与えています。',
+          '国際化が進む中で、英語の重要性が高まっています。',
+          '地球温暖化は深刻な問題となっています。',
+          '教育制度の改革が議論されています。',
+          '多様性を認め合うことが大切です。',
+          '持続可能な社会を目指すべきです。',
+          '文化の違いを理解することは重要です。',
+          '創造性を育むことが求められています。',
+          '情報社会における課題は多岐にわたります。',
+          '若者の価値観は変化しています。'
         ],
         'basic-verbs': [
           '彼は毎朝コーヒーを作ります。',
           '子供たちが公園で遊んでいます。',
           '母は料理を作っています。',
           '私は友達に手紙を書きました。',
-          '電車が駅に到着しました。'
+          '電車が駅に到着しました。',
+          '猫が魚を食べています。',
+          '父は新聞を読んでいます。',
+          '私は音楽を聞いています。',
+          '彼女は花を植えました。',
+          '鳥が空を飛んでいます。',
+          '学生が勉強しています。',
+          '医者が患者を診察します。',
+          '雨が降り始めました。',
+          '太陽が昇っています。',
+          '風が強く吹いています。'
         ],
         'business-email': [
           'お忙しい中、お時間をいただきありがとうございます。',
           '添付ファイルをご確認いただけますでしょうか。',
           '来週の会議の件でご連絡いたします。',
           'ご質問がございましたらお気軽にお声かけください。',
-          'お返事をお待ちしております。'
+          'お返事をお待ちしております。',
+          'ご検討のほど、よろしくお願いいたします。',
+          '資料を添付いたしましたのでご査収ください。',
+          '会議の日程を調整させていただきます。',
+          '提案書を提出させていただきます。',
+          'ご多忙の中恐れ入りますが、ご確認をお願いします。',
+          '詳細につきましては別途ご相談させてください。',
+          'お疲れ様でした。本日はありがとうございました。',
+          'ご指摘の点について修正いたします。',
+          '今後ともよろしくお願いいたします。',
+          'ご不明な点がございましたらお聞かせください。'
         ]
       };
 
-      const sentences = problemSets[difficultyLevel];
+      const allSentences = problemSets[difficultyLevel];
+      // Filter out previously attempted problems
+      const availableSentences = allSentences.filter(sentence => !attemptedSentences.has(sentence));
+      
+      // If all problems have been attempted, use all problems (allow reset)
+      const sentences = availableSentences.length > 0 ? availableSentences : allSentences;
+      
       const sessionId = getSessionId(req);
       const selectedSentence = getUnusedProblem(sessionId, sentences);
       

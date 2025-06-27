@@ -55,6 +55,9 @@ export interface IStorage {
   getDifficultyStats(): Promise<Array<{ difficulty: string; count: number; averageRating: number }>>;
   getMonthlyStats(year: number, month: number): Promise<{ totalProblems: number; averageRating: number }>;
   
+  // Problem tracking
+  getUserAttemptedProblems(difficultyLevel: string): Promise<Array<{ japaneseSentence: string }>>;
+  
   // User subscription
   getUserSubscription(userId?: string): Promise<UserSubscription | undefined>;
   updateUserSubscription(userId: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription>;
@@ -594,6 +597,16 @@ export class DatabaseStorage implements IStorage {
       return headers + rows;
     }
     throw new Error("Invalid export type");
+  }
+
+  async getUserAttemptedProblems(difficultyLevel: string): Promise<Array<{ japaneseSentence: string }>> {
+    const sessions = await db
+      .select({ japaneseSentence: trainingSessions.japaneseSentence })
+      .from(trainingSessions)
+      .where(eq(trainingSessions.difficultyLevel, difficultyLevel))
+      .groupBy(trainingSessions.japaneseSentence);
+    
+    return sessions;
   }
 }
 
