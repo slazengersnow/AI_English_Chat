@@ -625,7 +625,22 @@ export class DatabaseStorage implements IStorage {
         eq(problemProgress.difficultyLevel, difficultyLevel)
       ));
     
-    return progress?.currentProblemNumber || 1;
+    if (progress) {
+      return progress.currentProblemNumber;
+    }
+    
+    // If no progress record exists, initialize based on existing training sessions
+    const [sessionCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(trainingSessions)
+      .where(eq(trainingSessions.difficultyLevel, difficultyLevel));
+    
+    const nextProblemNumber = (sessionCount?.count || 0) + 1;
+    
+    // Initialize the progress record
+    await this.updateProblemProgress(userId, difficultyLevel, nextProblemNumber);
+    
+    return nextProblemNumber;
   }
 
   async updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void> {
