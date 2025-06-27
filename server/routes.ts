@@ -151,6 +151,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ]
       };
 
+      // Get current problem number for this user and difficulty
+      const userId = "default_user"; // For now using default user
+      const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
+      
       const allSentences = problemSets[difficultyLevel];
       // Filter out previously attempted problems
       const availableSentences = allSentences.filter(sentence => !attemptedSentences.has(sentence));
@@ -167,9 +171,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       markProblemAsUsed(sessionId, selectedSentence);
       
+      // Update problem progress number for next time
+      await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
+      
       const response: ProblemResponse = {
         japaneseSentence: selectedSentence,
-        hints: []
+        hints: [`問題${currentProblemNumber}`]
       };
 
       res.json(response);

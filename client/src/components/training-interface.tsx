@@ -34,6 +34,7 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
   const [currentProblem, setCurrentProblem] = useState<string>("");
   const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
   const [problemNumber, setProblemNumber] = useState(1);
+  const [hasInitializedProblemNumber, setHasInitializedProblemNumber] = useState(false);
   const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -94,16 +95,29 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
     },
     onSuccess: (data) => {
       setCurrentProblem(data.japaneseSentence);
+      
+      // Extract problem number from hints if provided
+      let currentProblemNum = problemNumber;
+      if (data.hints && data.hints.length > 0) {
+        const problemHint = data.hints.find(hint => hint.startsWith('問題'));
+        if (problemHint) {
+          const match = problemHint.match(/問題(\d+)/);
+          if (match) {
+            currentProblemNum = parseInt(match[1]);
+            setProblemNumber(currentProblemNum);
+          }
+        }
+      }
+      
       const problemMessage: TrainingMessage = {
         type: 'problem',
         content: data.japaneseSentence,
         timestamp: new Date().toISOString(),
-        problemNumber: problemNumber,
+        problemNumber: currentProblemNum,
         isBookmarked: bookmarkedProblems.has(data.japaneseSentence),
       };
       setMessages(prev => [...prev, problemMessage]);
       setIsWaitingForTranslation(true);
-      setProblemNumber(prev => prev + 1);
     },
     onError: (error: any) => {
       if (error.message?.includes('429') || error.message?.includes('最大出題数')) {

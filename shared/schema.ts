@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -67,12 +67,24 @@ export const customScenarios = pgTable("custom_scenarios", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Problem progress table - tracks current problem number for each difficulty
+export const problemProgress = pgTable("problem_progress", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").default("default_user").notNull(),
+  difficultyLevel: varchar("difficulty_level").notNull(),
+  currentProblemNumber: integer("current_problem_number").default(1).notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
+}));
+
 // Insert schemas
 export const insertTrainingSessionSchema = createInsertSchema(trainingSessions).omit({ id: true, createdAt: true });
 export const insertUserGoalSchema = createInsertSchema(userGoals).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({ id: true, createdAt: true });
 export const insertCustomScenarioSchema = createInsertSchema(customScenarios).omit({ id: true, createdAt: true });
 export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertProblemProgressSchema = createInsertSchema(problemProgress).omit({ id: true, updatedAt: true });
 
 // Zod Schemas  
 export const trainingSessionSchema = z.object({
@@ -123,17 +135,27 @@ export const userSubscriptionSchema = z.object({
   updatedAt: z.date(),
 });
 
+export const problemProgressSchema = z.object({
+  id: z.number(),
+  userId: z.string(),
+  difficultyLevel: z.string(),
+  currentProblemNumber: z.number(),
+  updatedAt: z.date(),
+});
+
 // Types
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = z.infer<typeof userGoalSchema>;
 export type DailyProgress = z.infer<typeof dailyProgressSchema>;
 export type CustomScenario = z.infer<typeof customScenarioSchema>;
 export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
+export type ProblemProgress = z.infer<typeof problemProgressSchema>;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
 export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
 export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
 export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
 
 // API request/response schemas
 export const translateRequestSchema = z.object({

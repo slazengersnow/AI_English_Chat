@@ -4,16 +4,19 @@ import {
   dailyProgress,
   customScenarios,
   userSubscriptions,
+  problemProgress,
   type TrainingSession,
   type UserGoal,
   type DailyProgress,
   type CustomScenario,
   type UserSubscription,
+  type ProblemProgress,
   type InsertTrainingSession,
   type InsertUserGoal,
   type InsertDailyProgress,
   type InsertCustomScenario,
   type InsertUserSubscription,
+  type InsertProblemProgress,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
@@ -57,6 +60,10 @@ export interface IStorage {
   
   // Problem tracking
   getUserAttemptedProblems(difficultyLevel: string): Promise<Array<{ japaneseSentence: string }>>;
+  
+  // Problem progress tracking
+  getCurrentProblemNumber(userId: string, difficultyLevel: string): Promise<number>;
+  updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void>;
   
   // User subscription
   getUserSubscription(userId?: string): Promise<UserSubscription | undefined>;
@@ -607,6 +614,35 @@ export class DatabaseStorage implements IStorage {
       .groupBy(trainingSessions.japaneseSentence);
     
     return sessions;
+  }
+
+  async getCurrentProblemNumber(userId: string, difficultyLevel: string): Promise<number> {
+    const [progress] = await db
+      .select({ currentProblemNumber: problemProgress.currentProblemNumber })
+      .from(problemProgress)
+      .where(and(
+        eq(problemProgress.userId, userId),
+        eq(problemProgress.difficultyLevel, difficultyLevel)
+      ));
+    
+    return progress?.currentProblemNumber || 1;
+  }
+
+  async updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void> {
+    await db
+      .insert(problemProgress)
+      .values({
+        userId,
+        difficultyLevel,
+        currentProblemNumber: problemNumber,
+      })
+      .onConflictDoUpdate({
+        target: [problemProgress.userId, problemProgress.difficultyLevel],
+        set: {
+          currentProblemNumber: problemNumber,
+          updatedAt: new Date(),
+        },
+      });
   }
 }
 
