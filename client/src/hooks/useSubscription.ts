@@ -9,6 +9,8 @@ interface UserSubscription {
 export function useSubscription() {
   const { data: subscription, isLoading } = useQuery<UserSubscription>({
     queryKey: ["/api/user-subscription"],
+    staleTime: 0, // Always consider data stale
+    gcTime: 0, // Don't cache data
   });
 
   const canAccessPremiumFeatures = subscription?.subscriptionType === "premium" || subscription?.isAdmin;

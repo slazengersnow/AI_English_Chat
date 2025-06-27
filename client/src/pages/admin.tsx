@@ -117,8 +117,11 @@ export default function Admin() {
       });
       // Invalidate admin users data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      // Invalidate user subscription cache for the top page
-      queryClient.invalidateQueries({ queryKey: ["/api/user-subscription"] });
+      // Force refetch user subscription cache for the top page after a small delay
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/user-subscription"] });
+        queryClient.refetchQueries({ queryKey: ["/api/user-subscription"] });
+      }, 100);
     },
     onError: () => {
       toast({
