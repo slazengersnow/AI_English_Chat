@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { X, Check, Crown } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { X, Check, Crown, Star } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useState } from "react";
 import type { CheckoutSessionResponse } from "@shared/schema";
 
 interface PaymentModalProps {
@@ -9,11 +10,33 @@ interface PaymentModalProps {
   onClose: () => void;
 }
 
+interface SubscriptionPlan {
+  priceId: string;
+  name: string;
+  price: string;
+  features: string[];
+}
+
+interface SubscriptionPlans {
+  standard_monthly: SubscriptionPlan;
+  standard_yearly: SubscriptionPlan;
+  premium_monthly: SubscriptionPlan;
+  premium_yearly: SubscriptionPlan;
+  upgrade_to_premium: SubscriptionPlan;
+}
+
 export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
+  const [selectedPlan, setSelectedPlan] = useState<string>("premium_monthly");
+
+  const { data: plans, isLoading: plansLoading } = useQuery({
+    queryKey: ["/api/subscription-plans"],
+    enabled: isOpen,
+  });
+
   const createCheckoutSessionMutation = useMutation({
-    mutationFn: async (): Promise<CheckoutSessionResponse> => {
+    mutationFn: async (priceId: string): Promise<CheckoutSessionResponse> => {
       const response = await apiRequest("POST", "/api/create-checkout-session", {
-        priceId: import.meta.env.VITE_STRIPE_PRICE_ID || "price_1QXYZabc123", // Replace with your actual Stripe price ID
+        priceId,
         successUrl: window.location.origin + "/success",
         cancelUrl: window.location.origin + "/cancel",
       });
@@ -24,15 +47,40 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     },
   });
 
+  const handleUpgrade = () => {
+    if (plans && selectedPlan) {
+      const plan = (plans as SubscriptionPlans)[selectedPlan as keyof SubscriptionPlans];
+      if (plan) {
+        createCheckoutSessionMutation.mutate(plan.priceId);
+      }
+    }
+  };
+
   if (!isOpen) return null;
+
+  if (plansLoading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl max-w-md w-full p-6">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-600">プランを読み込み中...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const plansData = plans as SubscriptionPlans;
+  const selectedPlanData = plansData?.[selectedPlan as keyof SubscriptionPlans];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl max-w-sm w-full p-6 animate-bounce-in">
-        <div className="flex justify-between items-center mb-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 animate-bounce-in max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-2">
             <Crown className="w-6 h-6 text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-900">プレミアム</h3>
+            <h3 className="text-xl font-bold text-gray-900">プレミアムプラン</h3>
           </div>
           <Button
             variant="ghost"
@@ -44,49 +92,86 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
           </Button>
         </div>
 
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <Crown className="w-8 h-8 text-white" />
-          </div>
-          <p className="text-gray-600 text-sm">
-            AIによる詳細な添削とフィードバックで、英作文スキルを効率的に向上させましょう。
-          </p>
-        </div>
-
-        {/* Features */}
+        {/* Plan Selection */}
         <div className="space-y-3 mb-6">
-          <div className="flex items-center space-x-3">
-            <Check className="w-5 h-5 text-green-500" />
-            <span className="text-sm text-gray-700">無制限の練習問題</span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Check className="w-5 h-5 text-green-500" />
-            <span className="text-sm text-gray-700">詳細な添削フィードバック</span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Check className="w-5 h-5 text-green-500" />
-            <span className="text-sm text-gray-700">進捗レポート機能</span>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Check className="w-5 h-5 text-green-500" />
-            <span className="text-sm text-gray-700">すべての難易度レベル</span>
-          </div>
+          {plansData && Object.entries(plansData).map(([key, plan]) => {
+            const isPremium = key.includes('premium');
+            const isYearly = key.includes('yearly');
+            const isUpgrade = key.includes('upgrade');
+            
+            if (isUpgrade) return null; // Hide upgrade option for now
+            
+            return (
+              <div
+                key={key}
+                className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  selectedPlan === key
+                    ? 'border-purple-600 bg-purple-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setSelectedPlan(key)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      selectedPlan === key 
+                        ? 'border-purple-600 bg-purple-600' 
+                        : 'border-gray-300'
+                    }`}>
+                      {selectedPlan === key && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        {isPremium ? (
+                          <Crown className="w-4 h-4 text-purple-600" />
+                        ) : (
+                          <Star className="w-4 h-4 text-blue-600" />
+                        )}
+                        <h4 className="font-semibold text-gray-900">{plan.name}</h4>
+                        {isYearly && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                            お得
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">{plan.price}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 pl-8">
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-center space-x-2">
+                        <Check className="w-3 h-3 text-green-500" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Pricing */}
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">¥980</div>
-            <div className="text-sm text-gray-600">月額</div>
-            <div className="text-xs text-purple-600 mt-1">7日間無料トライアル</div>
-          </div>
+        <div className="text-center mb-6">
+          <p className="text-gray-600 text-sm">
+            選択したプランでAI英作文学習を始めましょう
+          </p>
+          {selectedPlanData && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-xl">
+              <h4 className="font-semibold text-gray-900 mb-2">選択中のプラン</h4>
+              <p className="text-lg font-bold text-purple-600">{selectedPlanData.name}</p>
+              <p className="text-sm text-gray-600">{selectedPlanData.price}</p>
+              <div className="text-xs text-purple-600 mt-2">7日間無料トライアル付き</div>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
         <div className="space-y-3">
           <Button 
-            onClick={() => createCheckoutSessionMutation.mutate()}
-            disabled={createCheckoutSessionMutation.isPending}
+            onClick={handleUpgrade}
+            disabled={createCheckoutSessionMutation.isPending || !selectedPlanData}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-xl font-medium"
           >
             {createCheckoutSessionMutation.isPending ? (

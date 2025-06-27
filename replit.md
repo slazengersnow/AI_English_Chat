@@ -66,6 +66,18 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### June 27, 2025 - Stripe Price ID Configuration
+- Configured specific Stripe Price IDs for AI英作文チャット subscription plans:
+  - Standard Monthly: prod_SZgeMcEAMDMlDe (¥1,980/月)
+  - Standard Yearly: prod_SZglW626p1IFsh (¥19,800/年)
+  - Premium Monthly: prod_SZgm74ZfQCQMSP (¥3,980/月)
+  - Premium Yearly: prod_SZgnjreCBit2Bj (¥39,800/年)
+  - Premium Upgrade: prod_SZhAV32kC3oSlf (¥2,000/月差額)
+- Added `/api/subscription-plans` endpoint to serve plan details with features and pricing
+- Enhanced PaymentModal with multi-plan selection interface and visual plan comparison
+- Implemented environment variable fallbacks for flexible Price ID configuration
+- Added plan validation in checkout session creation for security
+
 ### June 26, 2025 - AI Provider: Reverted to OpenAI GPT-4
 - Attempted migration to Anthropic Claude 3 Haiku but reverted due to insufficient API credits
 - Currently using OpenAI GPT-4o for translation evaluation with JSON response format
