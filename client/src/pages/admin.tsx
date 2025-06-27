@@ -115,8 +115,10 @@ export default function Admin() {
         title: "更新完了",
         description: "ユーザーのサブスクリプションタイプを更新しました。",
       });
-      // Invalidate and refetch users data
+      // Invalidate admin users data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      // Invalidate user subscription cache for the top page
+      queryClient.invalidateQueries({ queryKey: ["/api/user-subscription"] });
     },
     onError: () => {
       toast({
@@ -267,35 +269,26 @@ export default function Admin() {
                   <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="font-medium">{user.email}</div>
-                      <div className="text-sm text-gray-500">登録日: {new Date(user.createdAt).toLocaleDateString('ja-JP')}</div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={user.subscriptionType === "premium" ? "default" : "secondary"}>
-                          {user.subscriptionType}
-                        </Badge>
-                        {user.isAdmin && <Badge variant="destructive">Admin</Badge>}
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <Label htmlFor={`subscription-${user.id}`} className="text-sm text-gray-600">
-                          Standard
-                        </Label>
-                        <Switch
-                          id={`subscription-${user.id}`}
-                          checked={user.subscriptionType === "premium"}
-                          onCheckedChange={(checked) => {
-                            const newSubscriptionType = checked ? "premium" : "standard";
-                            updateSubscriptionMutation.mutate({ 
-                              userId: user.id, 
-                              subscriptionType: newSubscriptionType 
-                            });
-                          }}
-                          disabled={updateSubscriptionMutation.isPending}
-                        />
-                        <Label htmlFor={`subscription-${user.id}`} className="text-sm text-gray-600">
-                          Premium
-                        </Label>
-                      </div>
+                      <Label htmlFor={`subscription-${user.id}`} className="text-sm">
+                        Standard
+                      </Label>
+                      <Switch
+                        id={`subscription-${user.id}`}
+                        checked={user.subscriptionType === "premium"}
+                        onCheckedChange={(checked) => {
+                          const newSubscriptionType = checked ? "premium" : "standard";
+                          updateSubscriptionMutation.mutate({ 
+                            userId: user.id, 
+                            subscriptionType: newSubscriptionType 
+                          });
+                        }}
+                        disabled={updateSubscriptionMutation.isPending}
+                      />
+                      <Label htmlFor={`subscription-${user.id}`} className="text-sm">
+                        Premium
+                      </Label>
                     </div>
                   </div>
                 )) || <div className="text-center py-8 text-gray-500">ユーザーデータを読み込み中...</div>}
