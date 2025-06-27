@@ -202,21 +202,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "OpenAI API key not configured" });
       }
 
-      const systemPrompt = `あなたは英語教師です。ユーザーの日本語から英語への翻訳を評価し、以下のJSON形式で返答してください：
+      const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。ユーザーの日本語から英語への翻訳を評価し、以下のJSON形式で返答してください。
+
+重要：すべての説明とフィードバックは必ず日本語で書いてください。
 
 {
   "correctTranslation": "正しい英訳（ネイティブが自然に使う表現）",
-  "feedback": "具体的なフィードバック（良い点と改善点）",
+  "feedback": "具体的なフィードバック（良い点と改善点を日本語で）",
   "rating": 評価（1=要改善、5=完璧の数値）,
-  "improvements": ["改善提案1", "改善提案2"],
-  "explanation": "文法や語彙の詳しい解説（日本語で）",
+  "improvements": ["改善提案1（日本語で）", "改善提案2（日本語で）"],
+  "explanation": "文法や語彙の詳しい解説（必ず日本語で）",
   "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
 }
 
 評価基準：
 - 英文はシンプルで実用的（TOEIC700〜800レベル）
 - 直訳ではなく自然な英語
-- 中学生や高校生にも分かりやすい解説`;
+- feedback、improvements、explanationはすべて日本語で説明
+- 中学生や高校生にも分かりやすい日本語の解説`;
 
       const userPrompt = `日本語文: ${japaneseSentence}
 ユーザーの英訳: ${userTranslation}
