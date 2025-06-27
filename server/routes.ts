@@ -171,9 +171,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       markProblemAsUsed(sessionId, selectedSentence);
       
-      // Update problem progress number for next time
-      await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
-      
       const response: ProblemResponse = {
         japaneseSentence: selectedSentence,
         hints: [`問題${currentProblemNumber}`]
@@ -262,6 +259,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           feedback: response.feedback,
           rating: response.rating,
         });
+
+        // Update problem progress number after successful translation
+        const userId = "default_user"; // For now using default user
+        const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
+        await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
 
         // Include session ID in response for bookmark functionality
         const responseWithSessionId = {

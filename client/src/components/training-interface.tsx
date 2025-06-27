@@ -41,12 +41,16 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Load bookmarks from localStorage
+  // Load bookmarks from localStorage and initialize problem number
   useEffect(() => {
     const saved = localStorage.getItem(`bookmarks-${difficulty}`);
     if (saved) {
       setBookmarkedProblems(new Set(JSON.parse(saved)));
     }
+    
+    // Reset problem number when difficulty changes
+    setProblemNumber(1);
+    setHasInitializedProblemNumber(false);
   }, [difficulty]);
 
   // Store training session IDs to enable database bookmark updates
