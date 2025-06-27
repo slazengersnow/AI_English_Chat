@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -318,7 +319,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         success_url: successUrl || `${req.get('origin')}/success`,
         cancel_url: cancelUrl || `${req.get('origin')}/cancel`,
-        trial_period_days: 7
+        trial_period_days: 7,
+        metadata: {
+          userId: "default_user" // In real app, get from authenticated user
+        }
       });
 
       const response: CheckoutSessionResponse = {
@@ -332,6 +336,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "決済セッションの作成に失敗しました" });
     }
   });
+
+  // Stripe webhook endpoint
+  app.post("/api/stripe-webhook", (req, res, next) => {
+    // Parse raw body for Stripe webhook
+    req.setEncoding('utf8');
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', async () => {
+      req.body = data;
+      await handleStripeWebhook(req, res);
+    });
+  });
+
+  async function handleStripeWebhook(req: any, res: any) {
+    const sig = req.headers['stripe-signature'];
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
+    if (!stripeSecretKey || !webhookSecret) {
+      return res.status(400).send(`Webhook Error: Missing configuration`);
+    }
+
+    const stripe = require("stripe")(stripeSecretKey);
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.log(`Webhook signature verification failed.`, errorMessage);
+      return res.status(400).send(`Webhook Error: ${errorMessage}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const session = event.data.object;
+        // Update user subscription to premium
+        try {
+          await storage.updateUserSubscription("default_user", {
+            subscriptionType: "premium"
+          });
+          console.log(`User subscription updated to premium for session: ${session.id}`);
+        } catch (error) {
+          console.error('Error updating subscription:', error);
+        }
+        break;
+      case 'customer.subscription.deleted':
+        // Handle subscription cancellation
+        try {
+          await storage.updateUserSubscription("default_user", {
+            subscriptionType: "standard"
+          });
+          console.log(`User subscription downgraded to standard`);
+        } catch (error) {
+          console.error('Error downgrading subscription:', error);
+        }
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
+  }
 
   // Get training history
   app.get("/api/sessions", async (req, res) => {

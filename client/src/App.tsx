@@ -8,6 +8,8 @@ import MyPage from "@/pages/my-page";
 import SimulationSelection from "@/pages/simulation-selection";
 import SimulationPractice from "@/pages/simulation-practice";
 import Admin from "@/pages/admin";
+import Success from "@/pages/success";
+import Cancel from "@/pages/cancel";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +21,8 @@ function Router() {
       <Route path="/simulation/:id" component={SimulationPractice} />
       <Route path="/simulation-practice" component={SimulationPractice} />
       <Route path="/admin" component={Admin} />
+      <Route path="/success" component={Success} />
+      <Route path="/cancel" component={Cancel} />
       {/* Add routes for direct difficulty access */}
       <Route path="/chat/:difficulty" component={Home} />
       <Route path="/practice/:difficulty" component={Home} />

@@ -13,7 +13,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const createCheckoutSessionMutation = useMutation({
     mutationFn: async (): Promise<CheckoutSessionResponse> => {
       const response = await apiRequest("POST", "/api/create-checkout-session", {
-        priceId: "price_placeholder", // This would be your actual Stripe price ID
+        priceId: import.meta.env.VITE_STRIPE_PRICE_ID || "price_1QXYZabc123", // Replace with your actual Stripe price ID
         successUrl: window.location.origin + "/success",
         cancelUrl: window.location.origin + "/cancel",
       });
