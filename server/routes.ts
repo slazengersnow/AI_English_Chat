@@ -405,6 +405,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return "standard";
   }
 
+  // Create Stripe Customer Portal session
+  app.post("/api/create-customer-portal", async (req, res) => {
+    try {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+
+      const stripe = require("stripe")(stripeSecretKey);
+      
+      // In a real app, get customer ID from authenticated user
+      const customerId = "cus_example123"; // This should come from user's subscription data
+      
+      const session = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${req.get('origin')}/my-page?tab=account`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Stripe Customer Portal error:", error);
+      res.status(500).json({ message: "カスタマーポータルの作成に失敗しました" });
+    }
+  });
+
+  // Get subscription details
+  app.get("/api/subscription-details", async (req, res) => {
+    try {
+      const userId = "default_user"; // In real app, get from authenticated user
+      const subscription = await storage.getUserSubscription(userId);
+      
+      if (!subscription) {
+        return res.status(404).json({ message: "Subscription not found" });
+      }
+
+      // Calculate trial days remaining (mock data for now)
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 5); // 5 days remaining
+      
+      const subscriptionDetails = {
+        ...subscription,
+        isTrialActive: true,
+        trialDaysRemaining: 5,
+        trialEndDate: trialEndDate.toISOString(),
+        nextBillingDate: "2025-07-27",
+        currentPeriodStart: "2025-06-27",
+        currentPeriodEnd: "2025-07-27",
+        planType: subscription.subscriptionType === 'premium' ? 'monthly' : 'monthly', // monthly/yearly
+        amount: subscription.subscriptionType === 'premium' ? 3980 : 1980,
+      };
+
+      res.json(subscriptionDetails);
+    } catch (error) {
+      console.error("Get subscription details error:", error);
+      res.status(500).json({ message: "サブスクリプション詳細の取得に失敗しました" });
+    }
+  });
+
   // Stripe webhook endpoint
   app.post("/api/stripe-webhook", (req, res, next) => {
     // Parse raw body for Stripe webhook

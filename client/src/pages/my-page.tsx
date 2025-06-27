@@ -33,7 +33,11 @@ import {
   ArrowLeft,
   ArrowRight,
   Home,
-  RefreshCw
+  RefreshCw,
+  Settings,
+  Crown,
+  CreditCard,
+  ExternalLink
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -73,13 +77,18 @@ interface CustomScenario {
 }
 
 export default function MyPage() {
-  const [activeTab, setActiveTab] = useState("progress");
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  // Check URL for tab parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabFromUrl = urlParams.get('tab');
+  
+  const [activeTab, setActiveTab] = useState(tabFromUrl || "progress");
   const [selectedPeriod, setSelectedPeriod] = useState("week");
 
   const [newScenario, setNewScenario] = useState({ title: "", description: "" });
   const [editingScenario, setEditingScenario] = useState<CustomScenario | null>(null);
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
   const { subscription, canAccessPremiumFeatures } = useSubscription();
 
   // API queries
@@ -107,6 +116,12 @@ export default function MyPage() {
   // Recent sessions (past week)
   const { data: recentSessions = [] } = useQuery<TrainingSession[]>({
     queryKey: ["/api/recent-sessions"],
+  });
+
+  // Subscription details for account tab
+  const { data: subscriptionDetails } = useQuery({
+    queryKey: ["/api/subscription-details"],
+    enabled: activeTab === "account",
   });
 
   const { data: rechallengeList = [] } = useQuery<TrainingSession[]>({
@@ -176,6 +191,23 @@ export default function MyPage() {
     onSuccess: () => {
       toast({ title: "シナリオを削除しました" });
       queryClient.invalidateQueries({ queryKey: ["/api/custom-scenarios"] });
+    }
+  });
+
+  const createCustomerPortalMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/create-customer-portal", {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      window.location.href = data.url;
+    },
+    onError: () => {
+      toast({ 
+        title: "エラー", 
+        description: "カスタマーポータルの起動に失敗しました",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -278,11 +310,12 @@ export default function MyPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="progress">進捗レポート</TabsTrigger>
             <TabsTrigger value="bookmarks">ブックマーク</TabsTrigger>
             <TabsTrigger value="review">振り返り機能</TabsTrigger>
             <TabsTrigger value="scenarios">シミュレーション作成</TabsTrigger>
+            <TabsTrigger value="account">アカウント情報</TabsTrigger>
           </TabsList>
 
           {/* 進捗レポート */}
@@ -733,6 +766,205 @@ export default function MyPage() {
             </Card>
               </>
             )}
+          </TabsContent>
+
+          {/* アカウント情報タブ */}
+          <TabsContent value="account" className="space-y-6">
+            {/* 現在のプラン情報 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-blue-500" />
+                  現在のプラン
+                </CardTitle>
+                <CardDescription>
+                  ご利用中のサブスクリプションプランの詳細情報
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {subscription?.subscriptionType === 'premium' ? (
+                        <Crown className="w-6 h-6 text-purple-600" />
+                      ) : (
+                        <User className="w-6 h-6 text-blue-600" />
+                      )}
+                      <div>
+                        <h3 className="font-semibold text-lg">
+                          {subscription?.subscriptionType === 'premium' ? 'プレミアムプラン' : 'スタンダードプラン'}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {subscription?.subscriptionType === 'premium' 
+                            ? '全機能・無制限アクセス' 
+                            : '基本機能・100問/日'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant={subscription?.subscriptionType === 'premium' ? 'default' : 'secondary'}>
+                        {subscription?.subscriptionType === 'premium' ? 'プレミアム' : 'スタンダード'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* トライアル情報（該当する場合） */}
+                  {subscriptionDetails?.isTrialActive && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-green-800">7日間無料トライアル中</span>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        残り{subscriptionDetails.trialDaysRemaining}日間でトライアルが終了します。継続してご利用いただく場合は自動的に課金が開始されます。
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* プラン変更 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-green-500" />
+                  プラン変更
+                </CardTitle>
+                <CardDescription>
+                  サブスクリプションプランのアップグレード・ダウングレード
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {subscription?.subscriptionType === 'standard' ? (
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">プレミアムプランにアップグレード</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            無制限問題、カスタムシナリオ、詳細分析機能
+                          </p>
+                        </div>
+                        <Button 
+                          className="bg-purple-600 hover:bg-purple-700"
+                          onClick={() => createCustomerPortalMutation.mutate()}
+                          disabled={createCustomerPortalMutation.isPending}
+                        >
+                          <Crown className="w-4 h-4 mr-2" />
+                          {createCustomerPortalMutation.isPending ? "処理中..." : "アップグレード"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">スタンダードプランにダウングレード</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            基本機能のみ利用（次回請求時から適用）
+                          </p>
+                        </div>
+                        <Button 
+                          variant="outline"
+                          onClick={() => createCustomerPortalMutation.mutate()}
+                          disabled={createCustomerPortalMutation.isPending}
+                        >
+                          {createCustomerPortalMutation.isPending ? "処理中..." : "ダウングレード"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">年会費プランに変更</h4>
+                        <p className="text-sm text-gray-600 mt-1">
+                          月額プランより2ヶ月分お得
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline"
+                        onClick={() => createCustomerPortalMutation.mutate()}
+                        disabled={createCustomerPortalMutation.isPending}
+                      >
+                        {createCustomerPortalMutation.isPending ? "処理中..." : "年会費に変更"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 支払い管理 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-orange-500" />
+                  支払い管理
+                </CardTitle>
+                <CardDescription>
+                  請求情報の確認とサブスクリプションの管理
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-medium">次回請求日</h4>
+                      <span className="text-sm text-gray-600">
+                        {subscriptionDetails?.nextBillingDate ? 
+                          new Date(subscriptionDetails.nextBillingDate).toLocaleDateString('ja-JP') : 
+                          '2025年7月27日'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">請求金額</h4>
+                      <span className="text-lg font-bold">
+                        ¥{subscriptionDetails?.amount?.toLocaleString() || 
+                          (subscription?.subscriptionType === 'premium' ? '3,980' : '1,980')}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => createCustomerPortalMutation.mutate()}
+                      disabled={createCustomerPortalMutation.isPending}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      {createCustomerPortalMutation.isPending ? "処理中..." : "請求履歴を確認"}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => createCustomerPortalMutation.mutate()}
+                      disabled={createCustomerPortalMutation.isPending}
+                    >
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      {createCustomerPortalMutation.isPending ? "処理中..." : "支払い方法を変更"}
+                    </Button>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button 
+                      variant="destructive" 
+                      className="w-full"
+                      onClick={() => createCustomerPortalMutation.mutate()}
+                      disabled={createCustomerPortalMutation.isPending}
+                    >
+                      {createCustomerPortalMutation.isPending ? "処理中..." : "サブスクリプションを解約"}
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      解約後も現在の請求期間終了まではご利用いただけます
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
