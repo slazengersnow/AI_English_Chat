@@ -13,7 +13,8 @@ export function useSubscription() {
     gcTime: 0, // Don't cache data
   });
 
-  const canAccessPremiumFeatures = subscription?.subscriptionType === "premium" || subscription?.isAdmin;
+  // For testing purposes: if subscription is explicitly set to "standard", show standard experience even for admins
+  const canAccessPremiumFeatures = subscription?.subscriptionType === "premium";
 
   return {
     subscription,
