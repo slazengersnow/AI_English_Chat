@@ -45,8 +45,67 @@ function getUnusedProblem(sessionId: string, problems: string[]): string | null 
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Generate Japanese problem for translation
-  app.post("/api/problem", async (req, res) => {
+  // Authentication middleware to check subscription status
+  const requireActiveSubscription = async (req: any, res: any, next: any) => {
+    try {
+      const subscription = await storage.getUserSubscription();
+      if (!subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+        return res.status(403).json({ 
+          message: "アクティブなサブスクリプションが必要です",
+          needsSubscription: true 
+        });
+      }
+      next();
+    } catch (error) {
+      console.error("Subscription check error:", error);
+      res.status(500).json({ message: "サブスクリプション確認中にエラーが発生しました" });
+    }
+  };
+
+  // Authentication endpoints
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // In a real app, you would hash the password and store in database
+      // For now, we'll create a user subscription record
+      await storage.updateUserSubscription("default_user", {
+        subscriptionStatus: "inactive",
+        userId: "default_user"
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "アカウントが作成されました",
+        needsSubscription: true 
+      });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(400).json({ message: "アカウント作成に失敗しました" });
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // In a real app, you would verify credentials
+      const subscription = await storage.getUserSubscription();
+      const needsSubscription = !subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || '');
+      
+      res.json({ 
+        success: true, 
+        message: "ログインしました",
+        needsSubscription 
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(400).json({ message: "ログインに失敗しました" });
+    }
+  });
+
+  // Generate Japanese problem for translation (protected)
+  app.post("/api/problem", requireActiveSubscription, async (req, res) => {
     try {
       // Check daily limit first
       const canProceed = await storage.incrementDailyCount();
