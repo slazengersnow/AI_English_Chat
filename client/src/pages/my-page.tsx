@@ -80,7 +80,7 @@ export default function MyPage() {
   const [editingScenario, setEditingScenario] = useState<CustomScenario | null>(null);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
-  const { subscription } = useSubscription();
+  const { subscription, canAccessPremiumFeatures } = useSubscription();
 
   // API queries
 
@@ -602,8 +602,24 @@ export default function MyPage() {
 
           {/* シミュレーション作成 */}
           <TabsContent value="scenarios" className="space-y-6">
-            {/* 新しいシナリオ作成 */}
-            <Card>
+            {!canAccessPremiumFeatures ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    シミュレーション作成
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <div className="text-gray-500 text-lg mb-4">この機能はプレミアム会員向けです。</div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* 新しいシナリオ作成 */}
+                <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Plus className="w-5 h-5" />
@@ -715,6 +731,8 @@ export default function MyPage() {
                 </div>
               </CardContent>
             </Card>
+              </>
+            )}
           </TabsContent>
         </Tabs>
       </div>
