@@ -135,6 +135,11 @@ export const userSubscriptionSchema = z.object({
   id: z.number(),
   userId: z.string(),
   subscriptionType: z.enum(["standard", "premium"]),
+  subscriptionStatus: z.string().optional(),
+  planName: z.string().optional(),
+  stripeCustomerId: z.string().optional(),
+  stripeSubscriptionId: z.string().optional(),
+  validUntil: z.date().optional(),
   isAdmin: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -153,7 +158,7 @@ export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = z.infer<typeof userGoalSchema>;
 export type DailyProgress = z.infer<typeof dailyProgressSchema>;
 export type CustomScenario = z.infer<typeof customScenarioSchema>;
-export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type ProblemProgress = z.infer<typeof problemProgressSchema>;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;

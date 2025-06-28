@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SubscriptionGuard } from "@/components/subscription-guard";
 import Home from "@/pages/home";
 import MyPage from "@/pages/my-page";
 import SimulationSelection from "@/pages/simulation-selection";
@@ -16,24 +17,36 @@ import Terms from "@/pages/terms";
 import SubscriptionSelect from "@/pages/subscription-select";
 import NotFound from "@/pages/not-found";
 
+// Protected routes that require active subscription
+function ProtectedRoute({ component: Component }: { component: any }) {
+  return (
+    <SubscriptionGuard>
+      <Component />
+    </SubscriptionGuard>
+  );
+}
+
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      {/* Public routes */}
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/terms" component={Terms} />
       <Route path="/subscription/select" component={SubscriptionSelect} />
-      <Route path="/my-page" component={MyPage} />
-      <Route path="/simulation" component={SimulationSelection} />
-      <Route path="/simulation/:id" component={SimulationPractice} />
-      <Route path="/simulation-practice" component={SimulationPractice} />
-      <Route path="/admin" component={Admin} />
       <Route path="/success" component={Success} />
       <Route path="/cancel" component={Cancel} />
-      {/* Add routes for direct difficulty access */}
-      <Route path="/chat/:difficulty" component={Home} />
-      <Route path="/practice/:difficulty" component={Home} />
+      
+      {/* Protected routes */}
+      <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+      <Route path="/my-page" component={() => <ProtectedRoute component={MyPage} />} />
+      <Route path="/simulation" component={() => <ProtectedRoute component={SimulationSelection} />} />
+      <Route path="/simulation/:id" component={() => <ProtectedRoute component={SimulationPractice} />} />
+      <Route path="/simulation-practice" component={() => <ProtectedRoute component={SimulationPractice} />} />
+      <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/chat/:difficulty" component={() => <ProtectedRoute component={Home} />} />
+      <Route path="/practice/:difficulty" component={() => <ProtectedRoute component={Home} />} />
+      
       <Route component={NotFound} />
     </Switch>
   );
