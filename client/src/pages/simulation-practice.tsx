@@ -258,7 +258,7 @@ function SimulationPracticeContent() {
           
           {/* Right section - buttons */}
           <div className="flex items-center">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 sm:gap-2">
+            <div className="flex gap-1 sm:gap-2 flex-wrap items-center">
               <Button
                 variant="outline"
                 size="sm"
@@ -277,12 +277,13 @@ function SimulationPracticeContent() {
                 title="トップページ"
               >
                 <Home className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline ml-1">トップページ</span>
               </Button>
               {(userSubscription as any)?.isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 whitespace-nowrap col-span-2 sm:col-span-1"
+                  className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 whitespace-nowrap"
                   onClick={() => setLocation('/admin')}
                 >
                   <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
