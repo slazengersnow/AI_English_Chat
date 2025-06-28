@@ -251,36 +251,39 @@ function SimulationPracticeContent() {
           <h3 className="font-semibold text-gray-900 truncate">シミュレーション練習</h3>
           <p className="text-xs text-gray-600 truncate">{scenario?.title || "読み込み中..."}</p>
         </div>
-        <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0 overflow-hidden">
+        <div className="flex items-center justify-end flex-shrink-0 space-x-2">
           <Button
             variant="outline"
             size="sm"
-            className="text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
+            className="text-xs px-2 sm:px-3 py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 mx-2"
             onClick={() => setLocation('/my-page')}
+            style={{ marginLeft: '8px', marginRight: '8px' }}
           >
-            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
-            <span className="hidden lg:inline">マイページ</span>
-            <span className="lg:hidden text-xs">MY</span>
+            <User className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">マイページ</span>
+            <span className="sm:hidden text-xs">MY</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="p-1.5 sm:p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
+            className="p-1.5 sm:p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0 mx-2"
             onClick={() => setLocation('/')}
             title="トップページ"
+            style={{ marginLeft: '8px', marginRight: '8px' }}
           >
-            <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Home className="w-4 h-4" />
           </Button>
           {(userSubscription as any)?.isAdmin && (
             <Button
               variant="outline"
               size="sm"
-              className="text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
+              className="text-xs px-2 sm:px-3 py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 mx-2"
               onClick={() => setLocation('/admin')}
+              style={{ marginLeft: '8px', marginRight: '8px' }}
             >
-              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
-              <span className="hidden lg:inline">管理者</span>
-              <span className="lg:hidden text-xs">管理</span>
+              <Settings className="w-4 h-4 mr-1" />
+              <span className="hidden sm:inline">管理者</span>
+              <span className="sm:hidden text-xs">管理</span>
             </Button>
           )}
         </div>
