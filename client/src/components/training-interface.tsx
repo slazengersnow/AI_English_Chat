@@ -345,36 +345,36 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <h3 className="font-semibold text-gray-900 truncate">AI英作文チャット</h3>
           <p className="text-xs text-gray-600 truncate">{DIFFICULTY_LEVELS[difficulty].name}</p>
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        <div className="flex items-center gap-0.5 sm:gap-2 flex-shrink-0 overflow-hidden">
           <Button
             variant="outline"
             size="sm"
-            className="p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0"
+            className="p-1.5 sm:p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
             onClick={() => setLocation('/')}
             title="トップページ"
           >
-            <Home className="w-4 h-4" />
+            <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="text-xs px-2 sm:px-3 py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0"
+            className="text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
             onClick={() => setLocation('/my-page')}
           >
-            <User className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">マイページ</span>
-            <span className="sm:hidden">MY</span>
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+            <span className="hidden lg:inline">マイページ</span>
+            <span className="lg:hidden text-xs">MY</span>
           </Button>
           {userSubscription?.isAdmin && (
             <Button
               variant="outline"
               size="sm"
-              className="text-xs px-2 sm:px-3 py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0"
+              className="text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
               onClick={() => setLocation('/admin')}
             >
-              <Settings className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">管理者</span>
-              <span className="sm:hidden">管理</span>
+              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
+              <span className="hidden lg:inline">管理者</span>
+              <span className="lg:hidden text-xs">管理</span>
             </Button>
           )}
         </div>
