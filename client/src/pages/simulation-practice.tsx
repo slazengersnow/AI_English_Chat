@@ -235,7 +235,7 @@ function SimulationPracticeContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center space-x-3">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center space-x-3 min-w-0">
         <Button 
           variant="ghost" 
           size="sm"
@@ -247,11 +247,11 @@ function SimulationPracticeContent() {
         <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-white" />
         </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
-          <p className="text-xs text-gray-600">{scenario?.title || "読み込み中..."}</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 truncate">シミュレーション練習</h3>
+          <p className="text-xs text-gray-600 truncate">{scenario?.title || "読み込み中..."}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button
             variant="outline"
             size="sm"
