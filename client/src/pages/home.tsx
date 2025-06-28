@@ -15,7 +15,13 @@ export default function Home() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Check admin status
-  const { data: userSubscription } = useQuery({
+  const { data: userSubscription } = useQuery<{
+    id: number;
+    userId: string;
+    subscriptionType: "standard" | "premium";
+    subscriptionStatus: string;
+    isAdmin: boolean;
+  }>({
     queryKey: ["/api/user-subscription"],
   });
 
@@ -83,6 +89,7 @@ export default function Home() {
             マイページ
           </Button>
         </Link>
+
       </div>
 
       {currentView === 'difficulty' && (

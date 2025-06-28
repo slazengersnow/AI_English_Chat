@@ -28,6 +28,20 @@ interface AdminStats {
   monthlyActiveUsers: number;
 }
 
+interface UserSubscription {
+  id: number;
+  userId: string;
+  subscriptionType: "standard" | "premium";
+  subscriptionStatus: string;
+  planName?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  validUntil?: Date;
+  isAdmin: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface UserData {
   id: string;
   email: string;
@@ -57,7 +71,7 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState("overview");
 
   // Check admin access
-  const { data: userSubscription, isLoading: isLoadingAuth } = useQuery({
+  const { data: userSubscription, isLoading: isLoadingAuth } = useQuery<UserSubscription>({
     queryKey: ["/api/user-subscription"],
   });
 

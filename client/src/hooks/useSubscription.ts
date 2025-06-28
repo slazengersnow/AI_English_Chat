@@ -1,9 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 
 interface UserSubscription {
-  subscriptionType: "standard" | "premium";
-  isAdmin: boolean;
+  id: number;
   userId: string;
+  subscriptionType: "standard" | "premium";
+  subscriptionStatus: string;
+  planName?: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  validUntil?: Date;
+  isAdmin: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export function useSubscription() {
