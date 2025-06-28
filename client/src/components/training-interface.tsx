@@ -349,11 +349,11 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           <Button
             variant="outline"
             size="sm"
-            className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
+            className="p-2 border-gray-300 hover:bg-gray-50"
             onClick={() => setLocation('/')}
+            title="トップページ"
           >
-            <Home className="w-4 h-4 mr-1" />
-            トップページ
+            <Home className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
