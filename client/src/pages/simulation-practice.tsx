@@ -9,7 +9,8 @@ import {
   Star, 
   Sparkles,
   User,
-  Home
+  Home,
+  Settings
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -72,6 +73,11 @@ function SimulationPracticeContent() {
   const [problemNumber, setProblemNumber] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Get user subscription to check admin status
+  const { data: userSubscription } = useQuery({
+    queryKey: ["/api/user-subscription"],
+  });
 
   // Get scenario details
   const { data: scenario } = useQuery<CustomScenario>({
@@ -245,23 +251,37 @@ function SimulationPracticeContent() {
           <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
           <p className="text-xs text-gray-600">{scenario?.title || "読み込み中..."}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-2 rounded-full hover:bg-gray-100"
-          onClick={() => setLocation('/')}
-        >
-          <Home className="w-5 h-5 text-gray-600" />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs"
-          onClick={() => setLocation('/my-page')}
-        >
-          <User className="w-4 h-4 mr-1" />
-          マイページ
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
+            onClick={() => setLocation('/')}
+          >
+            <Home className="w-4 h-4 mr-1" />
+            トップページ
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
+            onClick={() => setLocation('/my-page')}
+          >
+            <User className="w-4 h-4 mr-1" />
+            マイページ
+          </Button>
+          {(userSubscription as any)?.isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
+              onClick={() => setLocation('/admin')}
+            >
+              <Settings className="w-4 h-4 mr-1" />
+              管理者
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Messages Container */}

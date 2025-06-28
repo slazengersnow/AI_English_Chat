@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck, User, Home } from "lucide-react";
+import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck, User, Home, Settings } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
-import type { TranslateResponse, ProblemResponse } from "@shared/schema";
+import type { TranslateResponse, ProblemResponse, UserSubscription } from "@shared/schema";
 import { useLocation } from "wouter";
 import { SpeechButton } from "@/components/speech-button";
 
@@ -41,6 +41,11 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Get user subscription to check admin status
+  const { data: userSubscription } = useQuery<UserSubscription>({
+    queryKey: ["/api/user-subscription"],
+  });
 
   // Load bookmarks from localStorage and initialize problem number
   useEffect(() => {
@@ -348,7 +353,7 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
             onClick={() => setLocation('/')}
           >
             <Home className="w-4 h-4 mr-1" />
-            Home
+            トップページ
           </Button>
           <Button
             variant="outline"
@@ -359,6 +364,17 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
             <User className="w-4 h-4 mr-1" />
             マイページ
           </Button>
+          {userSubscription?.isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs px-3 py-1.5 border-gray-300 hover:bg-gray-50"
+              onClick={() => setLocation('/admin')}
+            >
+              <Settings className="w-4 h-4 mr-1" />
+              管理者
+            </Button>
+          )}
         </div>
       </div>
 
