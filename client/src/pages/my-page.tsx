@@ -314,8 +314,8 @@ export default function MyPage() {
             <TabsTrigger value="progress">進捗レポート</TabsTrigger>
             <TabsTrigger value="bookmarks">ブックマーク</TabsTrigger>
             <TabsTrigger value="review">振り返り機能</TabsTrigger>
-            <TabsTrigger value="scenarios">シミュレーション作成</TabsTrigger>
-            <TabsTrigger value="account">アカウント情報</TabsTrigger>
+            <TabsTrigger value="scenarios">シミュレーション</TabsTrigger>
+            <TabsTrigger value="account">アカウント</TabsTrigger>
           </TabsList>
 
           {/* 進捗レポート */}
