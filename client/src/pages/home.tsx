@@ -76,12 +76,6 @@ export default function Home() {
       {/* Navigation header - only show on difficulty selection */}
       {currentView === 'difficulty' && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-          <Link href="/my-page">
-            <Button variant="outline" size="sm" className="px-4 py-2 bg-white shadow-md rounded border-gray-300 hover:bg-gray-50 flex items-center">
-              <User className="w-4 h-4 mr-2" />
-              マイページ
-            </Button>
-          </Link>
           {userSubscription?.isAdmin && (
             <Link href="/admin">
               <Button variant="outline" size="sm" className="px-4 py-2 bg-white shadow-md rounded border-gray-300 hover:bg-gray-50 flex items-center">
@@ -90,6 +84,12 @@ export default function Home() {
               </Button>
             </Link>
           )}
+          <Link href="/my-page">
+            <Button variant="outline" size="sm" className="px-4 py-2 bg-white shadow-md rounded border-gray-300 hover:bg-gray-50 flex items-center">
+              <User className="w-4 h-4 mr-2" />
+              マイページ
+            </Button>
+          </Link>
         </div>
       )}
 
