@@ -235,57 +235,63 @@ function SimulationPracticeContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center space-x-3 min-w-0">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          className="p-2 -ml-2 rounded-full hover:bg-gray-100"
-          onClick={() => setLocation('/simulation')}
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </Button>
-        <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate">シミュレーション練習</h3>
-          <p className="text-xs text-gray-600 truncate">{scenario?.title || "読み込み中..."}</p>
-        </div>
-        <div className="flex items-center justify-end flex-shrink-0 space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs px-2 sm:px-3 py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 mx-2"
-            onClick={() => setLocation('/my-page')}
-            style={{ marginLeft: '8px', marginRight: '8px' }}
-          >
-            <User className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">マイページ</span>
-            <span className="sm:hidden text-xs">MY</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="p-1.5 sm:p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0 mx-2"
-            onClick={() => setLocation('/')}
-            title="トップページ"
-            style={{ marginLeft: '8px', marginRight: '8px' }}
-          >
-            <Home className="w-4 h-4" />
-          </Button>
-          {(userSubscription as any)?.isAdmin && (
-            <Button
-              variant="outline"
+      <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-3">
+        <div className="flex items-center justify-between w-full">
+          {/* Left section */}
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            <Button 
+              variant="ghost" 
               size="sm"
-              className="text-xs px-2 sm:px-3 py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 mx-2"
-              onClick={() => setLocation('/admin')}
-              style={{ marginLeft: '8px', marginRight: '8px' }}
+              className="p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setLocation('/simulation')}
             >
-              <Settings className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">管理者</span>
-              <span className="sm:hidden text-xs">管理</span>
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
             </Button>
-          )}
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </div>
+            <div className="hidden sm:block">
+              <h3 className="font-semibold text-gray-900 text-sm">シミュレーション練習</h3>
+              <p className="text-xs text-gray-600">{scenario?.title || "読み込み中..."}</p>
+            </div>
+          </div>
+          
+          {/* Right section - buttons */}
+          <div className="flex items-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 sm:gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                onClick={() => setLocation('/my-page')}
+              >
+                <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline ml-1">マイページ</span>
+                <span className="sm:hidden ml-1">MY</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-2 border-gray-300 hover:bg-gray-50"
+                onClick={() => setLocation('/')}
+                title="トップページ"
+              >
+                <Home className="w-3 h-3 sm:w-4 sm:h-4" />
+              </Button>
+              {(userSubscription as any)?.isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 whitespace-nowrap col-span-2 sm:col-span-1"
+                  onClick={() => setLocation('/admin')}
+                >
+                  <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline ml-1">管理者</span>
+                  <span className="sm:hidden ml-1">管理</span>
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
