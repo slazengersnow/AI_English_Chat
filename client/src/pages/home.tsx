@@ -73,24 +73,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation header */}
-      <div className="fixed top-4 right-4 z-50 flex items-center space-x-2">
-        {userSubscription?.isAdmin && (
-          <Link href="/admin">
-            <Button variant="outline" size="sm" className="bg-white shadow-md">
-              <Shield className="w-4 h-4 mr-2" />
-              管理者
+      {/* Navigation header - only show on difficulty selection */}
+      {currentView === 'difficulty' && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+          <Link href="/my-page">
+            <Button variant="outline" size="sm" className="px-4 py-2 bg-white shadow-md rounded border-gray-300 hover:bg-gray-50 flex items-center">
+              <User className="w-4 h-4 mr-2" />
+              マイページ
             </Button>
           </Link>
-        )}
-        <Link href="/my-page">
-          <Button variant="outline" size="sm" className="bg-white shadow-md">
-            <User className="w-4 h-4 mr-2" />
-            マイページ
-          </Button>
-        </Link>
-
-      </div>
+          {userSubscription?.isAdmin && (
+            <Link href="/admin">
+              <Button variant="outline" size="sm" className="px-4 py-2 bg-white shadow-md rounded border-gray-300 hover:bg-gray-50 flex items-center">
+                <Shield className="w-4 h-4 mr-2" />
+                管理者
+              </Button>
+            </Link>
+          )}
+        </div>
+      )}
 
       {currentView === 'difficulty' && (
         <DifficultySelection onDifficultySelect={handleDifficultySelect} />

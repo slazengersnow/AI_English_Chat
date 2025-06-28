@@ -352,37 +352,34 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           
           {/* Right section - buttons */}
           <div className="flex items-center">
-            <div className="flex gap-1 sm:gap-2 flex-wrap items-center">
+            <div className="flex gap-2 flex-wrap items-center">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
                 onClick={() => setLocation('/my-page')}
               >
-                <User className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline ml-1">マイページ</span>
-                <span className="sm:hidden ml-1">MY</span>
+                <User className="w-4 h-4 mr-2" />
+                マイページ
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 px-2 border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
                 onClick={() => setLocation('/')}
-                title="トップページ"
               >
-                <Home className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline ml-1">トップページ</span>
+                <Home className="w-4 h-4 mr-2" />
+                トップページ
               </Button>
               {userSubscription?.isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs border-gray-300 hover:bg-gray-50 whitespace-nowrap"
+                  className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
                   onClick={() => setLocation('/admin')}
                 >
-                  <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline ml-1">管理者</span>
-                  <span className="sm:hidden ml-1">管理</span>
+                  <Settings className="w-4 h-4 mr-2" />
+                  管理者
                 </Button>
               )}
             </div>

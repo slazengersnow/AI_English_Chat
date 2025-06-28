@@ -66,6 +66,16 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### June 28, 2025 - ヘッダーナビゲーション最適化
+- **ボタン重複問題の解決**: homeページの固定ナビゲーションとTrainingInterfaceヘッダーのボタン重複を修正
+  - TrainingInterface表示時にhomeページの固定ナビゲーション（右上）を非表示に変更
+  - 「マイページ」ボタンが2つ表示される問題を解決
+- **ボタン配置順序の統一**: 全ページで「マイページ」「トップページ」「管理者」の順序に統一
+  - TrainingInterfaceとSimulationPracticeのヘッダーボタン順序を修正
+  - flex-wrapで画面幅に応じた自動折り返し対応
+  - px-4 py-2のスタイル統一でボタンデザインを整理
+- **レイアウト安定性の向上**: gap-2でボタン間隔を統一し、画面サイズ変更時の崩れを防止
+
 ### June 28, 2025 - 音声出力機能実装
 - **SpeechSynthesis音声読み上げ機能**: AIの模範解答を英語で読み上げる機能を追加
   - 新しいSpeechButtonコンポーネントでWeb Speech API統合
