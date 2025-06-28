@@ -255,21 +255,21 @@ function SimulationPracticeContent() {
           <Button
             variant="outline"
             size="sm"
-            className="p-1.5 sm:p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
-            onClick={() => setLocation('/')}
-            title="トップページ"
-          >
-            <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
             className="text-xs px-1.5 sm:px-3 py-1 sm:py-1.5 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
             onClick={() => setLocation('/my-page')}
           >
             <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-0.5 sm:mr-1" />
             <span className="hidden lg:inline">マイページ</span>
             <span className="lg:hidden text-xs">MY</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="p-1.5 sm:p-2 border-gray-300 hover:bg-gray-50 flex-shrink-0 min-w-0"
+            onClick={() => setLocation('/')}
+            title="トップページ"
+          >
+            <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </Button>
           {(userSubscription as any)?.isAdmin && (
             <Button
