@@ -14,6 +14,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PremiumGate } from "@/components/premium-gate";
+import { SpeechButton } from "@/components/speech-button";
 
 interface CustomScenario {
   id: number;
@@ -318,7 +319,16 @@ function SimulationPracticeContent() {
 
                   {/* Model Answer */}
                   <div className="bg-green-50 p-3 rounded-lg">
-                    <h4 className="font-medium text-sm text-green-800 mb-2">模範解答</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-sm text-green-800">模範解答</h4>
+                      {message.correctTranslation && (
+                        <SpeechButton 
+                          text={message.correctTranslation}
+                          language="en-US"
+                          className="text-green-600 border-green-300 hover:bg-green-100"
+                        />
+                      )}
+                    </div>
                     <p className="text-base leading-relaxed text-gray-900 font-medium">
                       {message.correctTranslation}
                     </p>
@@ -338,11 +348,18 @@ function SimulationPracticeContent() {
                   {message.similarPhrases && message.similarPhrases.length > 0 && (
                     <div className="bg-purple-50 p-3 rounded-lg">
                       <h4 className="font-medium text-sm text-purple-800 mb-2">類似フレーズ</h4>
-                      <ul className="text-sm text-gray-700 space-y-1">
+                      <div className="space-y-2">
                         {message.similarPhrases.map((phrase, i) => (
-                          <li key={i}>• {phrase}</li>
+                          <div key={i} className="flex items-center justify-between">
+                            <span className="text-sm text-gray-700 flex-1">• {phrase}</span>
+                            <SpeechButton 
+                              text={phrase}
+                              language="en-US"
+                              className="text-purple-600 border-purple-300 hover:bg-purple-100 ml-2"
+                            />
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
 

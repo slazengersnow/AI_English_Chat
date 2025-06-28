@@ -66,6 +66,20 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### June 28, 2025 - 音声出力機能実装
+- **SpeechSynthesis音声読み上げ機能**: AIの模範解答を英語で読み上げる機能を追加
+  - 新しいSpeechButtonコンポーネントでWeb Speech API統合
+  - 模範解答部分に再生ボタンを配置し、英語音声(en-US)で読み上げ
+  - 類似フレーズの各項目にも個別の音声読み上げボタンを追加
+  - 学習向けに音声速度を0.8倍に調整し、理解しやすい発音速度を実現
+  - TrainingInterfaceとSimulationPracticeの両方で音声機能利用可能
+- **ユーザー登録・支払い・利用制限動線**: 完全なユーザー認証フローを実装
+  - サインアップページで利用規約・プライバシーポリシー同意チェック実装
+  - サインアップ後の自動プラン選択ページ遷移機能
+  - Stripe Checkout連携による決済処理とサブスクリプション管理
+  - SubscriptionGuardによる「active」「trialing」ユーザーのみアクセス制限
+  - 非アクティブユーザーの適切なリダイレクト処理
+
 ### June 27, 2025 - Stripe Price ID Configuration
 - Configured specific Stripe Price IDs for AI英作文チャット subscription plans:
   - Standard Monthly: prod_SZgeMcEAMDMlDe (¥1,980/月)

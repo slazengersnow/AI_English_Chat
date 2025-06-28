@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import type { TranslateResponse, ProblemResponse } from "@shared/schema";
 import { useLocation } from "wouter";
+import { SpeechButton } from "@/components/speech-button";
 
 interface TrainingInterfaceProps {
   difficulty: DifficultyKey;
@@ -422,7 +423,14 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
                   {/* Correct Translation - Large Font */}
                   {message.correctTranslation && (
                     <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                      <p className="text-sm font-medium text-green-700 mb-2">模範解答</p>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium text-green-700">模範解答</p>
+                        <SpeechButton 
+                          text={message.correctTranslation}
+                          language="en-US"
+                          className="text-green-600 border-green-300 hover:bg-green-100"
+                        />
+                      </div>
                       <p className="text-lg font-medium text-green-900 leading-relaxed">
                         {message.correctTranslation}
                       </p>
@@ -443,11 +451,18 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
                   {message.similarPhrases && message.similarPhrases.length > 0 && (
                     <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
                       <p className="text-sm font-medium text-purple-700 mb-2">類似フレーズ</p>
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {message.similarPhrases.map((phrase, idx) => (
-                          <p key={idx} className="text-sm text-purple-800">
-                            • {phrase}
-                          </p>
+                          <div key={idx} className="flex items-center justify-between">
+                            <p className="text-sm text-purple-800 flex-1">
+                              • {phrase}
+                            </p>
+                            <SpeechButton 
+                              text={phrase}
+                              language="en-US"
+                              className="text-purple-600 border-purple-300 hover:bg-purple-100 ml-2"
+                            />
+                          </div>
                         ))}
                       </div>
                     </div>
