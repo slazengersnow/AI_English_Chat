@@ -103,6 +103,7 @@ This is a mobile-first English composition training application that helps users
   - あなた専用の進捗レポート機能を紹介
   - 中学生英語レベル〜TOEIC対策まで対応を説明
   - 「今すぐ本登録する」CTAボタンでサブスクリプション選択ページへ遷移
+  - トライアルユーザーにも同じバナーを表示し、シミュレーション練習の下に配置
 
 ### June 29, 2025 - Supabase認証システム実装
 - **認証システム移行**: Replit認証からSupabase認証へ完全移行
