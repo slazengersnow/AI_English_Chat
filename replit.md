@@ -66,6 +66,21 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### June 29, 2025 - Supabase認証システム実装
+- **認証システム移行**: Replit認証からSupabase認証へ完全移行
+  - メールアドレス+パスワード新規登録機能（メール認証付き）
+  - Google OAuth ソーシャルログイン対応
+  - ログアウト機能をマイページのアカウントタブに統合
+  - 管理者アカウント事前登録（slazengersnow@gmail.com）
+- **認証フロー**: 初回はメール認証、2回目以降はGoogle/パスワードログイン可能
+  - 新規登録時の利用規約・プライバシーポリシー同意チェック
+  - パスワード要件：8文字以上、英字と数字両方含む
+  - メール認証完了ページ（/confirm）での認証状態確認
+- **認証コンテキスト**: AuthProviderとuseAuthフックで全アプリに認証状態提供
+  - isAuthenticated状態に基づくルート保護
+  - 管理者判定ロジック（email === 'slazengersnow@gmail.com'）
+  - ログアウト時のセッション破棄とトップページリダイレクト
+
 ### June 28, 2025 - ヘッダーナビゲーション最適化
 - **ボタン重複問題の解決**: homeページの固定ナビゲーションとTrainingInterfaceヘッダーのボタン重複を修正
   - TrainingInterface表示時にhomeページの固定ナビゲーション（右上）を非表示に変更

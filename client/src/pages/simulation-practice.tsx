@@ -10,12 +10,13 @@ import {
   Sparkles,
   User,
   Home,
-  Settings
+  Shield
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { PremiumGate } from "@/components/premium-gate";
 import { SpeechButton } from "@/components/speech-button";
+import { useAuth } from "@/components/auth-provider";
 
 interface CustomScenario {
   id: number;
@@ -63,6 +64,7 @@ function SimulationPracticeContent() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   const scenarioId = parseInt(id || "1");
   
   const [messages, setMessages] = useState<SimulationMessage[]>([]);
@@ -74,7 +76,7 @@ function SimulationPracticeContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Get user subscription to check admin status
+  // Get user subscription status
   const { data: userSubscription } = useQuery({
     queryKey: ["/api/user-subscription"],
   });
@@ -259,14 +261,14 @@ function SimulationPracticeContent() {
           {/* Right section - buttons */}
           <div className="flex items-center">
             <div className="flex gap-2 flex-wrap items-center">
-              {(userSubscription as any)?.isAdmin && (
+              {isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
                   onClick={() => setLocation('/admin')}
                 >
-                  <Settings className="w-4 h-4 mr-2" />
+                  <Shield className="w-4 h-4 mr-2" />
                   管理者
                 </Button>
               )}

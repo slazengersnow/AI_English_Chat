@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck, User, Home, Settings } from "lucide-react";
+import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck, User, Home, Settings, Shield } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import type { TranslateResponse, ProblemResponse, UserSubscription } from "@shared/schema";
 import { useLocation } from "wouter";
 import { SpeechButton } from "@/components/speech-button";
+import { useAuth } from "@/components/auth-provider";
 
 interface TrainingInterfaceProps {
   difficulty: DifficultyKey;
@@ -41,8 +42,9 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  const { isAdmin } = useAuth();
 
-  // Get user subscription to check admin status
+  // Get user subscription status
   const { data: userSubscription } = useQuery<UserSubscription>({
     queryKey: ["/api/user-subscription"],
   });
@@ -353,14 +355,14 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
           {/* Right section - buttons */}
           <div className="flex items-center">
             <div className="flex gap-2 flex-wrap items-center">
-              {userSubscription?.isAdmin && (
+              {isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
                   onClick={() => setLocation('/admin')}
                 >
-                  <Settings className="w-4 h-4 mr-2" />
+                  <Shield className="w-4 h-4 mr-2" />
                   管理者
                 </Button>
               )}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/components/auth-provider";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,10 @@ import {
   Settings,
   Crown,
   CreditCard,
-  ExternalLink
+  ExternalLink,
+  LogOut,
+  Shield,
+  Mail
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -79,6 +83,8 @@ interface CustomScenario {
 export default function MyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, isAdmin, signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Check URL for tab parameter
   const urlParams = new URLSearchParams(window.location.search);
@@ -275,6 +281,26 @@ export default function MyPage() {
       setLocation(`/simulation-practice?scenario=${scenarioId}`);
     } else {
       setLocation(`/practice/${firstSession.difficultyLevel}`);
+    }
+  };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+      toast({
+        title: "ログアウト完了",
+        description: "正常にログアウトしました",
+      });
+      setLocation('/');
+    } catch (error) {
+      toast({
+        title: "ログアウトエラー",
+        description: "ログアウト中にエラーが発生しました",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -960,6 +986,58 @@ export default function MyPage() {
                     </Button>
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       解約後も現在の請求期間終了まではご利用いただけます
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ユーザープロファイル */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5 text-green-500" />
+                  アカウント情報
+                </CardTitle>
+                <CardDescription>
+                  ログイン情報とアカウント管理
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{user?.email}</h3>
+                          {isAdmin && <Shield className="w-4 h-4 text-orange-500" />}
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {isAdmin ? '管理者アカウント' : 'ユーザーアカウント'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-gray-600">
+                      <p>登録日</p>
+                      <p>{user?.created_at ? new Date(user.created_at).toLocaleDateString('ja-JP') : '-'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-red-200 text-red-600 hover:bg-red-50"
+                      onClick={handleLogout}
+                      disabled={isLoggingOut}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {isLoggingOut ? 'ログアウト中...' : 'ログアウト'}
+                    </Button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      セッションを終了してトップページに戻ります
                     </p>
                   </div>
                 </div>

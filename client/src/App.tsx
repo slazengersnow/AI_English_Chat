@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider, useAuth } from "@/components/auth-provider";
 import { SubscriptionGuard } from "@/components/subscription-guard";
 import Home from "@/pages/home";
 import MyPage from "@/pages/my-page";
@@ -13,6 +14,7 @@ import Success from "@/pages/success";
 import Cancel from "@/pages/cancel";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
+import Confirm from "@/pages/confirm";
 import Terms from "@/pages/terms";
 import SubscriptionSelect from "@/pages/subscription-select";
 import NotFound from "@/pages/not-found";
@@ -27,25 +29,45 @@ function ProtectedRoute({ component: Component }: { component: any }) {
 }
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
   return (
     <Switch>
       {/* Public routes */}
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
+      <Route path="/confirm" component={Confirm} />
       <Route path="/terms" component={Terms} />
-      <Route path="/subscription/select" component={SubscriptionSelect} />
-      <Route path="/success" component={Success} />
-      <Route path="/cancel" component={Cancel} />
       
-      {/* Protected routes */}
-      <Route path="/" component={() => <ProtectedRoute component={Home} />} />
-      <Route path="/my-page" component={() => <ProtectedRoute component={MyPage} />} />
-      <Route path="/simulation" component={() => <ProtectedRoute component={SimulationSelection} />} />
-      <Route path="/simulation/:id" component={() => <ProtectedRoute component={SimulationPractice} />} />
-      <Route path="/simulation-practice" component={() => <ProtectedRoute component={SimulationPractice} />} />
-      <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
-      <Route path="/chat/:difficulty" component={() => <ProtectedRoute component={Home} />} />
-      <Route path="/practice/:difficulty" component={() => <ProtectedRoute component={Home} />} />
+      {isAuthenticated ? (
+        <>
+          {/* Protected routes for authenticated users */}
+          <Route path="/" component={() => <ProtectedRoute component={Home} />} />
+          <Route path="/my-page" component={() => <ProtectedRoute component={MyPage} />} />
+          <Route path="/simulation" component={() => <ProtectedRoute component={SimulationSelection} />} />
+          <Route path="/simulation/:id" component={() => <ProtectedRoute component={SimulationPractice} />} />
+          <Route path="/simulation-practice" component={() => <ProtectedRoute component={SimulationPractice} />} />
+          <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
+          <Route path="/chat/:difficulty" component={() => <ProtectedRoute component={Home} />} />
+          <Route path="/practice/:difficulty" component={() => <ProtectedRoute component={Home} />} />
+          <Route path="/subscription/select" component={SubscriptionSelect} />
+          <Route path="/success" component={Success} />
+          <Route path="/cancel" component={Cancel} />
+        </>
+      ) : (
+        <>
+          {/* Redirect unauthenticated users to login */}
+          <Route path="/" component={Login} />
+        </>
+      )}
       
       <Route component={NotFound} />
     </Switch>
@@ -55,10 +77,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
