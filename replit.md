@@ -66,6 +66,21 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### June 29, 2025 - トライアル機能完全実装
+- **トライアルユーザーのプレミアム機能アクセス**: トライアル期間中はプレミアム機能フル利用可能
+  - useSubscriptionフックでtrialingユーザーもcanAccessPremiumFeatures=trueに設定
+  - SubscriptionGuardでtrialingステータスユーザーの完全アクセス許可
+  - 7日間無料トライアル期間の残り日数表示機能（マイページ）
+- **bizmowa.comアカウント設定**: 新規ユーザー状態で7日間トライアル開始
+  - 既存データ完全クリア（トレーニングセッション・カスタムシナリオ・進捗）
+  - trialStartフィールドでトライアル開始日記録
+  - validUntilフィールドで7日後の期限設定
+- **トップページUI最適化**: プレミアム機能案内を「最短で英語力アップ」メッセージに変更
+  - ネイティブ水準の添削フィードバック案内
+  - 専用進捗レポート機能紹介
+  - 中学生〜TOEIC対策レベル対応説明
+  - 「今すぐ本登録する」CTA設置
+
 ### June 29, 2025 - Supabase認証システム実装
 - **認証システム移行**: Replit認証からSupabase認証へ完全移行
   - メールアドレス+パスワード新規登録機能（メール認証付き）

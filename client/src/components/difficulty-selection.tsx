@@ -114,15 +114,25 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
 
       {/* Premium Features - Only show for standard users */}
       {!canAccessPremiumFeatures && (
-        <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white">
+        <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
           <div className="text-center">
-            <h3 className="font-semibold mb-2">プレミアム機能</h3>
-            <p className="text-sm opacity-90 mb-3">
-              • 繰り返し練習<br/>
-              • シミュレーション練習
-            </p>
-            <button className="bg-white text-purple-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
-              プレミアムにアップグレード
+            <h3 className="font-semibold mb-3">最短で英語力アップ</h3>
+            <div className="text-sm opacity-90 mb-4 text-left space-y-1">
+              <div className="flex items-center gap-2">
+                <span>•</span>
+                <span>ネイティブ水準の添削フィードバック</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>•</span>
+                <span>あなた専用の進捗レポートで実力が見える</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>•</span>
+                <span>中学生英語レベル〜TOEIC対策まで対応</span>
+              </div>
+            </div>
+            <button className="bg-white text-blue-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
+              今すぐ本登録する
             </button>
           </div>
         </div>

@@ -22,8 +22,8 @@ export function useSubscription() {
     gcTime: 0, // Don't cache data
   });
 
-  // For testing purposes: if subscription is explicitly set to "standard", show standard experience even for admins
-  const canAccessPremiumFeatures = subscription?.subscriptionType === "premium";
+  // Trial users and premium users can access premium features
+  const canAccessPremiumFeatures = subscription?.subscriptionType === "premium" || subscription?.subscriptionStatus === "trialing";
 
   return {
     subscription,
