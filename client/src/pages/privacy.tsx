@@ -68,7 +68,7 @@ export default function Privacy() {
                 主な委託先：<br/>
                 ・Stripe（決済処理）<br/>
                 ・Supabase（認証・データベース）<br/>
-                ・OpenAI（AI機能）
+                ・Anthropic（AI機能）
               </p>
             </section>
 
