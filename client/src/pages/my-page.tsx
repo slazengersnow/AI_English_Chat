@@ -956,6 +956,16 @@ export default function MyPage() {
                     </thead>
                     <tbody>
                       <tr>
+                        <td className="border border-gray-200 px-4 py-3 font-medium">月額料金</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">980円</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">1,300円</td>
+                      </tr>
+                      <tr className="bg-gray-50/50">
+                        <td className="border border-gray-200 px-4 py-3 font-medium">年会費</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">9,800円</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">13,000円</td>
+                      </tr>
+                      <tr>
                         <td className="border border-gray-200 px-4 py-3 font-medium">基本練習機能</td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
