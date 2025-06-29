@@ -24,6 +24,8 @@ const plans: SubscriptionPlan[] = [
     price: "1,980",
     period: "月",
     features: [
+      "月額1,980円",
+      "基本練習機能（全レベル対応）",
       "1日100問まで",
       "基本的な評価機能",
       "進捗記録",
@@ -36,6 +38,8 @@ const plans: SubscriptionPlan[] = [
     price: "19,800",
     period: "年",
     features: [
+      "年会費19,800円（2ヶ月分お得）",
+      "基本練習機能（全レベル対応）",
       "1日100問まで",
       "基本的な評価機能", 
       "進捗記録",
@@ -49,6 +53,8 @@ const plans: SubscriptionPlan[] = [
     price: "3,980",
     period: "月",
     features: [
+      "月額3,980円",
+      "基本練習機能（全レベル対応）",
       "無制限問題",
       "カスタムシナリオ作成",
       "詳細な分析機能",
@@ -63,6 +69,8 @@ const plans: SubscriptionPlan[] = [
     price: "39,800",
     period: "年",
     features: [
+      "年会費39,800円（2ヶ月分お得）",
+      "基本練習機能（全レベル対応）",
       "無制限問題",
       "カスタムシナリオ作成",
       "詳細な分析機能",

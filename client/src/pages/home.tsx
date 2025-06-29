@@ -95,28 +95,7 @@ export default function Home() {
       )}
 
       {currentView === 'difficulty' && (
-        <>
-          {/* プレミアム機能バナー（トライアル期間中のみ表示） */}
-          {userSubscription?.subscriptionType === 'trialing' && (
-            <div className="mx-4 mb-6">
-              <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-6 text-white text-center">
-                <h2 className="text-xl font-bold mb-4">プレミアム機能</h2>
-                <ul className="space-y-2 text-sm mb-4">
-                  <li>• 繰り返し練習</li>
-                  <li>• シミュレーション練習</li>
-                  <li>• 1日100問まで練習可能</li>
-                </ul>
-                <Button 
-                  onClick={() => setShowPaymentModal(true)}
-                  className="bg-white text-purple-600 hover:bg-gray-100 font-semibold px-6 py-2 rounded-full"
-                >
-                  7日間無料で試す
-                </Button>
-              </div>
-            </div>
-          )}
-          <DifficultySelection onDifficultySelect={handleDifficultySelect} />
-        </>
+        <DifficultySelection onDifficultySelect={handleDifficultySelect} />
       )}
       
       {currentView === 'training' && selectedDifficulty && (
