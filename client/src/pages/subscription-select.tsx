@@ -21,10 +21,10 @@ const plans: SubscriptionPlan[] = [
   {
     priceId: "prod_SZgeMcEAMDMlDe",
     name: "スタンダード",
-    price: "1,980",
+    price: "980",
     period: "月",
     features: [
-      "月額1,980円",
+      "月額980円",
       "基本練習機能（全レベル対応）",
       "1日100問まで",
       "基本的な評価機能",
@@ -35,10 +35,10 @@ const plans: SubscriptionPlan[] = [
   {
     priceId: "prod_SZglW626p1IFsh",
     name: "スタンダード",
-    price: "19,800",
+    price: "9,800",
     period: "年",
     features: [
-      "年会費19,800円（2ヶ月分お得）",
+      "年会費9,800円（2ヶ月分お得）",
       "基本練習機能（全レベル対応）",
       "1日100問まで",
       "基本的な評価機能", 
@@ -50,10 +50,10 @@ const plans: SubscriptionPlan[] = [
   {
     priceId: "prod_SZgm74ZfQCQMSP",
     name: "プレミアム",
-    price: "3,980",
+    price: "1,300",
     period: "月",
     features: [
-      "月額3,980円",
+      "月額1,300円",
       "基本練習機能（全レベル対応）",
       "無制限問題",
       "カスタムシナリオ作成",
@@ -66,10 +66,10 @@ const plans: SubscriptionPlan[] = [
   {
     priceId: "prod_SZgnjreCBit2Bj",
     name: "プレミアム",
-    price: "39,800",
+    price: "13,000",
     period: "年",
     features: [
-      "年会費39,800円（2ヶ月分お得）",
+      "年会費13,000円（2ヶ月分お得）",
       "基本練習機能（全レベル対応）",
       "無制限問題",
       "カスタムシナリオ作成",
