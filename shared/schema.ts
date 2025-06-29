@@ -17,6 +17,7 @@ export const sessions = pgTable(
 // Training sessions table
 export const trainingSessions = pgTable("training_sessions", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id").default("default_user").notNull(),
   difficultyLevel: varchar("difficulty_level").notNull(),
   japaneseSentence: text("japanese_sentence").notNull(),
   userTranslation: text("user_translation").notNull(),

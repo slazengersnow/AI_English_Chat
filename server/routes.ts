@@ -118,8 +118,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { difficultyLevel } = problemRequestSchema.parse(req.body);
       
-      // Get previously attempted problems from database
-      const previousProblems = await storage.getUserAttemptedProblems(difficultyLevel);
+      // Get previously attempted problems from database  
+      const userId = "bizmowa.com"; // Use bizmowa.com user for trial
+      const previousProblems = await storage.getUserAttemptedProblems(difficultyLevel, userId);
       const attemptedSentences = new Set(previousProblems.map(p => p.japaneseSentence));
 
       // Problem sentences by difficulty level (expanded sets)
@@ -222,7 +223,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // Get current problem number for this user and difficulty
-      const userId = "default_user"; // For now using default user
       const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
       
       const allSentences = problemSets[difficultyLevel];
@@ -323,8 +323,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           similarPhrases: parsedResult.similarPhrases || []
         };
 
-        // Save training session and get the session ID
+        // Save training session and get the session ID  
+        const userId = "bizmowa.com"; // Use bizmowa.com user for trial
         const trainingSession = await storage.addTrainingSession({
+          userId,
           difficultyLevel,
           japaneseSentence,
           userTranslation,
@@ -334,7 +336,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Update problem progress number after successful translation
-        const userId = "default_user"; // For now using default user
         const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
         await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
 

@@ -86,6 +86,7 @@ export class DatabaseStorage implements IStorage {
       .insert(trainingSessions)
       .values({
         ...sessionData,
+        userId: sessionData.userId || "default_user",
         createdAt: new Date(),
       })
       .returning();
@@ -609,11 +610,14 @@ export class DatabaseStorage implements IStorage {
     throw new Error("Invalid export type");
   }
 
-  async getUserAttemptedProblems(difficultyLevel: string): Promise<Array<{ japaneseSentence: string }>> {
+  async getUserAttemptedProblems(difficultyLevel: string, userId: string = "bizmowa.com"): Promise<Array<{ japaneseSentence: string }>> {
     const sessions = await db
       .select({ japaneseSentence: trainingSessions.japaneseSentence })
       .from(trainingSessions)
-      .where(eq(trainingSessions.difficultyLevel, difficultyLevel))
+      .where(and(
+        eq(trainingSessions.difficultyLevel, difficultyLevel),
+        eq(trainingSessions.userId, userId)
+      ))
       .groupBy(trainingSessions.japaneseSentence);
     
     return sessions;
@@ -632,11 +636,14 @@ export class DatabaseStorage implements IStorage {
       return progress.currentProblemNumber;
     }
     
-    // If no progress record exists, initialize based on existing training sessions
+    // If no progress record exists, initialize based on user's existing training sessions
     const [sessionCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(trainingSessions)
-      .where(eq(trainingSessions.difficultyLevel, difficultyLevel));
+      .where(and(
+        eq(trainingSessions.difficultyLevel, difficultyLevel),
+        eq(trainingSessions.userId, userId)
+      ));
     
     const nextProblemNumber = (sessionCount?.count || 0) + 1;
     
