@@ -74,6 +74,9 @@ export interface IStorage {
   getAllUsers(): Promise<Array<{ id: string; email: string; subscriptionType: string; isAdmin: boolean; createdAt: string; lastActive: string }>>;
   getLearningAnalytics(): Promise<{ totalLearningTime: number; totalLearningCount: number; categoryStats: Array<{ category: string; correctRate: number; totalAttempts: number }>; monthlyStats: Array<{ month: string; sessions: number; averageRating: number }> }>;
   exportData(type: string): Promise<string>;
+  
+  // User data management
+  resetUserData(userId?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -658,6 +661,26 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date(),
         },
       });
+  }
+
+  async resetUserData(userId: string = "default_user"): Promise<void> {
+    // Reset all user data to initial state
+    await db.delete(trainingSessions);
+    await db.delete(dailyProgress);
+    await db.delete(userGoals);
+    await db.delete(customScenarios);
+    await db.delete(problemProgress);
+    
+    // Reset user subscription to trial state
+    await db
+      .update(userSubscriptions)
+      .set({
+        subscriptionType: 'trialing',
+        trialStart: new Date(),
+        trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        updatedAt: new Date(),
+      })
+      .where(eq(userSubscriptions.userId, userId));
   }
 }
 

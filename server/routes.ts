@@ -858,6 +858,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reset user data for new accounts
+  app.post("/api/reset-user-data", async (req, res) => {
+    try {
+      await storage.resetUserData();
+      res.json({ success: true, message: "ユーザーデータをリセットしました" });
+    } catch (error) {
+      console.error("Reset user data error:", error);
+      res.status(500).json({ message: "データのリセットに失敗しました" });
+    }
+  });
+
   app.post("/api/custom-scenarios", async (req, res) => {
     try {
       const { title, description } = req.body;

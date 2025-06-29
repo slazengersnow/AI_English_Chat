@@ -923,6 +923,69 @@ export default function MyPage() {
               </CardContent>
             </Card>
 
+            {/* プラン比較表 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart2 className="w-5 h-5 text-purple-500" />
+                  プラン比較
+                </CardTitle>
+                <CardDescription>
+                  スタンダードプランとプレミアムプランの機能比較
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-200 rounded-lg">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-gray-200 px-4 py-3 text-left font-medium text-gray-900">機能</th>
+                        <th className="border border-gray-200 px-4 py-3 text-center font-medium text-gray-900">スタンダードプラン</th>
+                        <th className="border border-gray-200 px-4 py-3 text-center font-medium text-gray-900">プレミアムプラン</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-gray-200 px-4 py-3 font-medium">基本練習機能</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                      </tr>
+                      <tr className="bg-gray-50/50">
+                        <td className="border border-gray-200 px-4 py-3 font-medium">1日の練習問題上限</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center">50問</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center">100問</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-200 px-4 py-3 font-medium">繰り返し練習</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-red-500">✗</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                      </tr>
+                      <tr className="bg-gray-50/50">
+                        <td className="border border-gray-200 px-4 py-3 font-medium">シミュレーション練習</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-red-500">✗</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-200 px-4 py-3 font-medium">進捗レポート</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                      </tr>
+                      <tr className="bg-gray-50/50">
+                        <td className="border border-gray-200 px-4 py-3 font-medium">ブックマーク機能</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-200 px-4 py-3 font-medium">音声読み上げ</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">✓</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* 支払い管理 */}
             <Card>
               <CardHeader>
@@ -940,16 +1003,17 @@ export default function MyPage() {
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium">次回請求日</h4>
                       <span className="text-sm text-gray-600">
-                        {subscriptionDetails?.nextBillingDate ? 
-                          new Date(subscriptionDetails.nextBillingDate).toLocaleDateString('ja-JP') : 
-                          '2025年7月27日'}
+                        {(() => {
+                          const trialEndDate = new Date();
+                          trialEndDate.setDate(trialEndDate.getDate() + 7); // 7日間のトライアル
+                          return trialEndDate.toLocaleDateString('ja-JP');
+                        })()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">請求金額</h4>
                       <span className="text-lg font-bold">
-                        ¥{subscriptionDetails?.amount?.toLocaleString() || 
-                          (subscription?.subscriptionType === 'premium' ? '3,980' : '1,980')}
+                        月額1,300円
                       </span>
                     </div>
                   </div>
