@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 interface UserSubscription {
   id: number;
   userId: string;
-  subscriptionType: "standard" | "premium";
+  subscriptionType: "standard" | "premium" | "trialing";
   subscriptionStatus: string;
   planName?: string;
   stripeCustomerId?: string;

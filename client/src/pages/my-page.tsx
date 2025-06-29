@@ -80,6 +80,13 @@ interface CustomScenario {
   createdAt: string;
 }
 
+interface UserSubscription {
+  id: number;
+  userId: string;
+  subscriptionType: "standard" | "premium" | "trialing";
+  subscriptionStatus: string;
+}
+
 export default function MyPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -835,14 +842,14 @@ export default function MyPage() {
                   </div>
 
                   {/* トライアル情報（該当する場合） */}
-                  {subscriptionDetails?.isTrialActive && (
+                  {subscription?.subscriptionType === 'trialing' && (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-green-600" />
                         <span className="font-medium text-green-800">7日間無料トライアル中</span>
                       </div>
                       <p className="text-sm text-green-700">
-                        残り{subscriptionDetails.trialDaysRemaining}日間でトライアルが終了します。継続してご利用いただく場合は自動的に課金が開始されます。
+                        トライアル期間中です。7日後に自動的にプレミアムプラン（月額1,300円）に移行されます。
                       </p>
                     </div>
                   )}
@@ -927,7 +934,7 @@ export default function MyPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <BarChart2 className="w-5 h-5 text-purple-500" />
+                  <TrendingUp className="w-5 h-5 text-purple-500" />
                   プラン比較
                 </CardTitle>
                 <CardDescription>
