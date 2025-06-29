@@ -46,6 +46,7 @@ export default function Privacy() {
                 ・ユーザーに本サービスに関する通知を送付するため<br/>
                 ・本サービスの品質向上・改善のため<br/>
                 ・利用料金の決済のため<br/>
+                ・サービスの利用状況を分析し、利便性向上のための統計情報を取得するため（Firebase Analytics 等）<br/>
                 ・上記の利用目的に付随する目的
               </p>
             </section>
@@ -68,7 +69,9 @@ export default function Privacy() {
                 主な委託先：<br/>
                 ・Stripe（決済処理）<br/>
                 ・Supabase（認証・データベース）<br/>
-                ・Anthropic（AI機能）
+                ・Anthropic（AI機能）<br/>
+                ・Firebase（分析・通知・認証など）<br/>
+                ・Vercel（アプリケーションのホスティング・アクセスログ管理）
               </p>
             </section>
 
@@ -120,7 +123,17 @@ export default function Privacy() {
               <p className="text-gray-700 leading-relaxed">
                 本サービスは、ユーザーの利便性向上のためにCookieを使用しています。Cookieは、ユーザーのブラウザに保存される小さなテキストファイルです。<br/>
                 Cookieを無効にした場合、本サービスの一部機能が正常に動作しない可能性があります。<br/>
-                Cookieの設定は、お使いのブラウザの設定から変更することができます。
+                Cookieの設定は、お使いのブラウザの設定から変更することができます。<br/>
+                <br/>
+                また、当社はサービスの改善および利用状況の把握を目的として、Google Analyticsなどの第三者のアクセス解析ツールを使用することがあります。<br/>
+                これらのツールは、匿名のアクセス情報を収集するためにCookieを使用しています。
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-lg font-semibold mb-3">準拠法および管轄裁判所</h2>
+              <p className="text-gray-700 leading-relaxed">
+                本ポリシーの解釈・適用については、日本法を準拠法とし、東京地方裁判所を第一審の専属的合意管轄裁判所とします。
               </p>
             </section>
 
