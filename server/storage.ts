@@ -489,7 +489,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getUserSubscription(userId: string = "default_user"): Promise<UserSubscription | undefined> {
+  async getUserSubscription(userId: string = "bizmowa.com"): Promise<UserSubscription | undefined> {
     const [subscription] = await db
       .select()
       .from(userSubscriptions)
@@ -677,7 +677,7 @@ export class DatabaseStorage implements IStorage {
       .set({
         subscriptionType: 'trialing',
         trialStart: new Date(),
-        trialEnd: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.userId, userId));

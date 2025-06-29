@@ -85,6 +85,7 @@ interface UserSubscription {
   userId: string;
   subscriptionType: "standard" | "premium" | "trialing";
   subscriptionStatus: string;
+  trialStart?: string;
 }
 
 export default function MyPage() {
@@ -842,14 +843,16 @@ export default function MyPage() {
                   </div>
 
                   {/* トライアル情報（該当する場合） */}
-                  {subscription?.subscriptionType === 'trialing' && (
+                  {subscription?.subscriptionStatus === 'trialing' && subscription?.trialStart && (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <Calendar className="w-4 h-4 text-green-600" />
-                        <span className="font-medium text-green-800">7日間無料トライアル中</span>
+                        <span className="font-medium text-green-800">
+                          無料トライアル中（残り{Math.max(0, 7 - Math.floor((Date.now() - new Date(subscription.trialStart).getTime()) / (1000 * 60 * 60 * 24)))}日）
+                        </span>
                       </div>
                       <p className="text-sm text-green-700">
-                        トライアル期間中です。7日後に自動的にプレミアムプラン（月額1,300円）に移行されます。
+                        トライアル期間終了後、自動的にプレミアムプラン（月額1,300円）に移行されます。
                       </p>
                     </div>
                   )}

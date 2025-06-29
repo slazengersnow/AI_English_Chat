@@ -48,6 +48,7 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
   validUntil: timestamp("valid_until"),
+  trialStart: timestamp("trial_start"),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

@@ -9,6 +9,7 @@ interface UserSubscription {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   validUntil?: Date;
+  trialStart?: Date;
   isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
