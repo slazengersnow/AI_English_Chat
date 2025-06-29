@@ -217,7 +217,7 @@ export default function Signup() {
                   onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
                 />
                 <Label htmlFor="terms" className="text-sm">
-                  <a href="#" className="text-blue-600 hover:underline">利用規約</a>に同意します
+                  <a href="/terms" target="_blank" className="text-blue-600 hover:underline">利用規約</a>に同意します
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
@@ -227,7 +227,7 @@ export default function Signup() {
                   onCheckedChange={(checked) => setAgreedToPrivacy(checked as boolean)}
                 />
                 <Label htmlFor="privacy" className="text-sm">
-                  <a href="#" className="text-blue-600 hover:underline">プライバシーポリシー</a>に同意します
+                  <a href="/privacy" target="_blank" className="text-blue-600 hover:underline">プライバシーポリシー</a>に同意します
                 </Label>
               </div>
             </div>

@@ -16,6 +16,7 @@ import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Confirm from "@/pages/confirm";
 import Terms from "@/pages/terms";
+import Privacy from "@/pages/privacy";
 import SubscriptionSelect from "@/pages/subscription-select";
 import NotFound from "@/pages/not-found";
 
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/signup" component={Signup} />
       <Route path="/confirm" component={Confirm} />
       <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
       
       {isAuthenticated ? (
         <>

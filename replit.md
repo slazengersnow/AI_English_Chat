@@ -80,6 +80,11 @@ This is a mobile-first English composition training application that helps users
   - isAuthenticated状態に基づくルート保護
   - 管理者判定ロジック（email === 'slazengersnow@gmail.com'）
   - ログアウト時のセッション破棄とトップページリダイレクト
+- **利用規約・プライバシーポリシー**: 完全な法的文書ページを実装
+  - /terms ルートで利用規約表示（10条構成、日本法準拠）
+  - /privacy ルートでプライバシーポリシー表示（個人情報保護法対応）
+  - サインアップページからのリンク修正（target="_blank"で新タブ表示）
+  - 戻るボタン付きでサインアップページに戻る動線を確保
 
 ### June 28, 2025 - ヘッダーナビゲーション最適化
 - **ボタン重複問題の解決**: homeページの固定ナビゲーションとTrainingInterfaceヘッダーのボタン重複を修正
