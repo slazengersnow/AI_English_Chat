@@ -116,16 +116,16 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
       <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
         <div className="text-center">
           <h3 className="font-semibold mb-3">最短で英語力アップ</h3>
-          <div className="text-sm opacity-90 mb-4 text-left space-y-1">
-            <div className="flex items-center gap-2">
+          <div className="text-sm opacity-90 mb-4 text-center space-y-1">
+            <div className="flex items-center justify-center gap-2">
               <span>•</span>
               <span>ネイティブ水準の添削フィードバック</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <span>•</span>
               <span>あなた専用の進捗レポートで実力が見える</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <span>•</span>
               <span>中学生英語レベル〜TOEIC対策まで対応</span>
             </div>
