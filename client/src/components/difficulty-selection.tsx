@@ -131,9 +131,11 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
                 <span>中学生英語レベル〜TOEIC対策まで対応</span>
               </div>
             </div>
-            <button className="bg-white text-blue-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
-              今すぐ本登録する
-            </button>
+            <Link href="/subscription-select">
+              <button className="bg-white text-blue-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
+                今すぐ本登録する
+              </button>
+            </Link>
           </div>
         </div>
       )}
