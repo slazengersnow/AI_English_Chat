@@ -28,7 +28,7 @@ export default function Privacy() {
             <section>
               <h2 className="text-lg font-semibold mb-3">個人情報の取得</h2>
               <p className="text-gray-700 leading-relaxed">
-                当社は、AI英作文チャット（以下「本サービス」）を提供するにあたり、ユーザーから以下の個人情報を取得いたします。<br/>
+                当社は、AI瞬間英作文チャット（以下「本サービス」）を提供するにあたり、ユーザーから以下の個人情報を取得いたします。<br/>
                 ・メールアドレス<br/>
                 ・パスワード（暗号化して保存）<br/>
                 ・学習履歴および進捗データ<br/>
@@ -113,7 +113,7 @@ export default function Privacy() {
               <h2 className="text-lg font-semibold mb-3">お問い合わせ窓口</h2>
               <p className="text-gray-700 leading-relaxed">
                 本ポリシーに関するお問い合わせは、以下の窓口までお願いいたします。<br/>
-                AI英作文チャット サポート窓口<br/>
+                AI瞬間英作文チャット サポート窓口<br/>
                 メールアドレス：support@ai-english-chat.com
               </p>
             </section>

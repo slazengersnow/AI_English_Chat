@@ -347,7 +347,7 @@ export function TrainingInterface({ difficulty, onBack, onShowPayment }: Trainin
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <h3 className="font-semibold text-gray-900 text-sm">AI英作文チャット</h3>
+              <h3 className="font-semibold text-gray-900 text-sm">AI瞬間英作文チャット</h3>
               <p className="text-xs text-gray-600">{DIFFICULTY_LEVELS[difficulty].name}</p>
             </div>
           </div>

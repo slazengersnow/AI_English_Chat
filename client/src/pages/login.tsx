@@ -87,7 +87,7 @@ export default function Login() {
           <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-white text-2xl font-bold">AI</span>
           </div>
-          <CardTitle className="text-2xl">AI英作文チャット</CardTitle>
+          <CardTitle className="text-2xl">AI瞬間英作文チャット</CardTitle>
           <CardDescription>
             アカウントにログインしてください
           </CardDescription>

@@ -1,4 +1,4 @@
-# AI英作文チャット (AI English Composition Chat)
+# AI瞬間英作文チャット (AI English Composition Chat)
 
 ## Overview
 
@@ -85,6 +85,11 @@ This is a mobile-first English composition training application that helps users
   - /privacy ルートでプライバシーポリシー表示（個人情報保護法対応）
   - サインアップページからのリンク修正（target="_blank"で新タブ表示）
   - 戻るボタン付きでサインアップページに戻る動線を確保
+- **アプリ名変更**: AI英作文チャットからAI瞬間英作文チャットに名称統一
+  - 利用規約・プライバシーポリシー内のサービス名を更新
+  - ログイン・サインアップ・認証確認ページのタイトル変更
+  - Training Interfaceヘッダーの表示名更新
+  - ドキュメント内のアプリ名を全て統一変更
 
 ### June 28, 2025 - ヘッダーナビゲーション最適化
 - **ボタン重複問題の解決**: homeページの固定ナビゲーションとTrainingInterfaceヘッダーのボタン重複を修正
@@ -111,7 +116,7 @@ This is a mobile-first English composition training application that helps users
   - 非アクティブユーザーの適切なリダイレクト処理
 
 ### June 27, 2025 - Stripe Price ID Configuration
-- Configured specific Stripe Price IDs for AI英作文チャット subscription plans:
+- Configured specific Stripe Price IDs for AI瞬間英作文チャット subscription plans:
   - Standard Monthly: prod_SZgeMcEAMDMlDe (¥1,980/月)
   - Standard Yearly: prod_SZglW626p1IFsh (¥19,800/年)
   - Premium Monthly: prod_SZgm74ZfQCQMSP (¥3,980/月)
@@ -157,7 +162,7 @@ This is a mobile-first English composition training application that helps users
 - Removed simulation navigation from header to consolidate access through difficulty selection
 
 ### June 26, 2025 - App Title Update and Premium Restrictions
-- **App Title Change**: Updated application title to "AI英作文チャット" (AI English Composition Chat)
+- **App Title Change**: Updated application title to "AI瞬間英作文チャット" (AI English Composition Chat)
   - Modified training interface header to display new title
   - Updated main documentation to reflect new branding
   - Emphasizes AI-powered chat-based learning approach
