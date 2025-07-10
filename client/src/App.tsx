@@ -18,6 +18,7 @@ import Confirm from "@/pages/confirm";
 import Terms from "@/pages/terms";
 import Privacy from "@/pages/privacy";
 import SubscriptionSelect from "@/pages/subscription-select";
+import AuthCallback from "@/pages/auth-callback";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/confirm" component={Confirm} />
+      <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
