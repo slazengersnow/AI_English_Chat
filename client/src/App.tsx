@@ -24,6 +24,7 @@ import DebugAuth from "@/pages/debug-auth";
 import AdminSetup from "@/pages/admin-setup";
 import PasswordReset from "@/pages/password-reset";
 import ResetPassword from "@/pages/reset-password";
+import RedirectHandler from "@/pages/redirect-handler";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -39,25 +40,32 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Handle password reset redirect from hash fragment
+  // Handle redirects based on hash fragments
   useEffect(() => {
-    const handlePasswordReset = () => {
+    const handleRedirect = () => {
       const hash = window.location.hash
       const currentPath = window.location.pathname
       
       console.log('Router - Current path:', currentPath)
       console.log('Router - Hash:', hash)
       
-      if (hash && hash.includes('type=recovery') && currentPath === '/') {
-        console.log('Redirecting to reset-password due to recovery hash')
-        // Use setTimeout to ensure the redirect happens after React has processed
-        setTimeout(() => {
-          setLocation('/reset-password')
-        }, 100)
+      // Only handle redirects if we're on the root path
+      if (currentPath === '/') {
+        if (hash && hash.includes('type=recovery')) {
+          console.log('Redirecting to reset-password due to recovery hash')
+          setTimeout(() => {
+            setLocation('/reset-password')
+          }, 100)
+        } else if (hash && hash.includes('access_token=')) {
+          console.log('Redirecting to redirect-handler for token processing')
+          setTimeout(() => {
+            setLocation('/redirect-handler')
+          }, 100)
+        }
       }
     }
     
-    handlePasswordReset()
+    handleRedirect()
   }, [setLocation])
 
   if (isLoading) {
@@ -79,6 +87,7 @@ function Router() {
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/password-reset" component={PasswordReset} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/redirect-handler" component={RedirectHandler} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
