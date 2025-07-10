@@ -21,6 +21,7 @@ import SubscriptionSelect from "@/pages/subscription-select";
 import AuthCallback from "@/pages/auth-callback";
 import DebugAuth from "@/pages/debug-auth";
 import AdminSetup from "@/pages/admin-setup";
+import PasswordReset from "@/pages/password-reset";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -52,6 +53,7 @@ function Router() {
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/debug-auth" component={DebugAuth} />
       <Route path="/admin-setup" component={AdminSetup} />
+      <Route path="/password-reset" component={PasswordReset} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
