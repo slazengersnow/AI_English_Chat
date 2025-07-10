@@ -1,21 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Environment variables appear to be swapped - fix this
-const urlVar = import.meta.env.VITE_SUPABASE_URL
-const keyVar = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xcjplyhqxgrbdhixmzse.supabase.co'
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo'
 
-// Detect which is the URL and which is the key based on content
-const isUrlJWT = urlVar?.startsWith('eyJ')
-const isKeyJWT = keyVar?.startsWith('eyJ')
-
-const supabaseUrl = isUrlJWT ? 'https://xcjplyhqxgrbdhixmzse.supabase.co' : urlVar
-const supabaseKey = isKeyJWT ? keyVar : urlVar
+console.log('Supabase config:', { 
+  url: supabaseUrl?.slice(0, 30) + '...', 
+  keyLength: supabaseKey?.length,
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseKey
+})
 
 if (!supabaseUrl || !supabaseKey) {
   console.error('Missing Supabase environment variables')
+  throw new Error('supabaseUrl is required')
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseKey || '')
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 export type User = {
   id: string
