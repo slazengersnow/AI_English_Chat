@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -36,6 +37,28 @@ function ProtectedRoute({ component: Component }: { component: any }) {
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth()
+  const [, setLocation] = useLocation()
+
+  // Handle password reset redirect from hash fragment
+  useEffect(() => {
+    const handlePasswordReset = () => {
+      const hash = window.location.hash
+      const currentPath = window.location.pathname
+      
+      console.log('Router - Current path:', currentPath)
+      console.log('Router - Hash:', hash)
+      
+      if (hash && hash.includes('type=recovery') && currentPath === '/') {
+        console.log('Redirecting to reset-password due to recovery hash')
+        // Use setTimeout to ensure the redirect happens after React has processed
+        setTimeout(() => {
+          setLocation('/reset-password')
+        }, 100)
+      }
+    }
+    
+    handlePasswordReset()
+  }, [setLocation])
 
   if (isLoading) {
     return (

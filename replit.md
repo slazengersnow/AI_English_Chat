@@ -81,6 +81,13 @@ This is a mobile-first English composition training application that helps users
   - VITE_SUPABASE_URLとVITE_SUPABASE_ANON_KEYの正しい設定
   - 環境変数の読み込み確認とフォールバック値設定
   - supabase.tsファイルの設定簡素化とデバッグ情報追加
+- **パスワードリセット機能の実装**: 包括的なパスワードリセット機能を実装
+  - 専用のパスワードリセットページ（/reset-password）を作成
+  - URLハッシュフラグメントとクエリパラメータ両方に対応
+  - 管理者アカウント設定ページ（/admin-setup）での統合機能
+  - ハッシュフラグメント自動検出とリダイレクト機能
+  - 詳細なデバッグ情報表示でトラブルシューティング対応
+  - 開発環境でのGoogle OAuth制限に対する代替手段提供
 
 ### June 29, 2025 - トライアル機能完全実装
 - **トライアルユーザーのプレミアム機能アクセス**: トライアル期間中はプレミアム機能フル利用可能
