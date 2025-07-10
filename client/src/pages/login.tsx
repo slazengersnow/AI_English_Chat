@@ -57,14 +57,23 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Starting Google OAuth with redirect to:', `${window.location.origin}/auth/callback`)
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
 
+      console.log('OAuth response:', { data, error })
+
       if (error) {
+        console.error('Google OAuth error:', error)
         toast({
           title: "Googleログインエラー",
           description: error.message,
@@ -72,6 +81,7 @@ export default function Login() {
         })
       }
     } catch (error) {
+      console.error('Google OAuth exception:', error)
       toast({
         title: "エラー",
         description: "Googleログイン中にエラーが発生しました",

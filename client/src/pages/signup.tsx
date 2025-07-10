@@ -110,14 +110,23 @@ export default function Signup() {
 
   const handleGoogleSignup = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Starting Google OAuth signup with redirect to:', `${window.location.origin}/auth/callback`)
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
 
+      console.log('OAuth signup response:', { data, error })
+
       if (error) {
+        console.error('Google OAuth signup error:', error)
         toast({
           title: "Google登録エラー",
           description: error.message,
@@ -125,6 +134,7 @@ export default function Signup() {
         })
       }
     } catch (error) {
+      console.error('Google OAuth signup exception:', error)
       toast({
         title: "エラー",
         description: "Google登録中にエラーが発生しました",
