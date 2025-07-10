@@ -22,6 +22,7 @@ import AuthCallback from "@/pages/auth-callback";
 import DebugAuth from "@/pages/debug-auth";
 import AdminSetup from "@/pages/admin-setup";
 import PasswordReset from "@/pages/password-reset";
+import ResetPassword from "@/pages/reset-password";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/debug-auth" component={DebugAuth} />
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/password-reset" component={PasswordReset} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       

@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@shared/supabase'
-import { Lock, Eye, EyeOff } from 'lucide-react'
+import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
-export default function PasswordReset() {
+export default function ResetPassword() {
   const [, setLocation] = useLocation()
   const { toast } = useToast()
   const [password, setPassword] = useState('')
@@ -17,22 +17,32 @@ export default function PasswordReset() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isValidToken, setIsValidToken] = useState(false)
+  const [debugInfo, setDebugInfo] = useState('')
 
   useEffect(() => {
     const checkToken = async () => {
-      console.log('Current URL:', window.location.href)
-      console.log('Search params:', window.location.search)
-      console.log('Hash:', window.location.hash)
-      
-      // Check both query parameters and hash fragments
-      const urlParams = new URLSearchParams(window.location.search)
+      const url = window.location.href
+      const searchParams = new URLSearchParams(window.location.search)
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
       
-      let accessToken = urlParams.get('access_token') || hashParams.get('access_token')
-      let refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token')
-      let type = urlParams.get('type') || hashParams.get('type')
-
-      console.log('Extracted tokens:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type })
+      // Debug information
+      const debug = `
+        URL: ${url}
+        Search: ${window.location.search}
+        Hash: ${window.location.hash}
+        Access Token (search): ${searchParams.get('access_token') ? 'present' : 'missing'}
+        Access Token (hash): ${hashParams.get('access_token') ? 'present' : 'missing'}
+        Refresh Token (search): ${searchParams.get('refresh_token') ? 'present' : 'missing'}
+        Refresh Token (hash): ${hashParams.get('refresh_token') ? 'present' : 'missing'}
+        Type (search): ${searchParams.get('type')}
+        Type (hash): ${hashParams.get('type')}
+      `
+      setDebugInfo(debug)
+      console.log('Debug info:', debug)
+      
+      let accessToken = searchParams.get('access_token') || hashParams.get('access_token')
+      let refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token')
+      let type = searchParams.get('type') || hashParams.get('type')
 
       if (accessToken && refreshToken && type === 'recovery') {
         try {
@@ -41,8 +51,6 @@ export default function PasswordReset() {
             refresh_token: refreshToken,
           })
 
-          console.log('Session set result:', { data: !!data, error })
-
           if (error) {
             console.error('Session error:', error)
             toast({
@@ -50,7 +58,6 @@ export default function PasswordReset() {
               description: `パスワードリセットのリンクが無効です: ${error.message}`,
               variant: "destructive",
             })
-            setLocation('/login')
           } else {
             console.log('Valid session established')
             setIsValidToken(true)
@@ -62,7 +69,6 @@ export default function PasswordReset() {
             description: "パスワードリセットの処理中にエラーが発生しました",
             variant: "destructive",
           })
-          setLocation('/login')
         }
       } else {
         console.log('Missing tokens or invalid type')
@@ -71,12 +77,11 @@ export default function PasswordReset() {
           description: "パスワードリセットのリンクが無効です。再度パスワードリセットを実行してください。",
           variant: "destructive",
         })
-        setTimeout(() => setLocation('/login'), 3000)
       }
     }
 
     checkToken()
-  }, [toast, setLocation])
+  }, [toast])
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -131,10 +136,45 @@ export default function PasswordReset() {
     }
   }
 
+  const handleReturnToLogin = () => {
+    setLocation('/login')
+  }
+
   if (!isValidToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="text-red-500 w-8 h-8" />
+            </div>
+            <CardTitle className="text-2xl">リンクが無効です</CardTitle>
+            <CardDescription>
+              パスワードリセットのリンクが無効または期限切れです
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-gray-600">
+              <p>以下の理由が考えられます：</p>
+              <ul className="list-disc pl-5 mt-2 space-y-1">
+                <li>リンクの有効期限が切れている</li>
+                <li>既にパスワードが変更されている</li>
+                <li>リンクが正しくコピーされていない</li>
+              </ul>
+            </div>
+            
+            <Button onClick={handleReturnToLogin} className="w-full">
+              ログインページに戻る
+            </Button>
+            
+            <details className="text-xs">
+              <summary className="cursor-pointer text-gray-500">デバッグ情報</summary>
+              <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
+                {debugInfo}
+              </pre>
+            </details>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -208,7 +248,7 @@ export default function PasswordReset() {
             <Button
               variant="link"
               className="text-gray-600 hover:text-gray-800"
-              onClick={() => setLocation('/login')}
+              onClick={handleReturnToLogin}
             >
               ログインページに戻る
             </Button>
