@@ -66,6 +66,22 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 10, 2025 - Replit移行完了とGoogle認証復旧
+- **Replit環境への完全移行**: ReployからReplit環境に移行完了
+  - PostgreSQLデータベースの作成と接続設定
+  - 全依存関係の正常インストール確認
+  - 必要なAPI KEY（Supabase、OpenAI、Stripe）の設定
+  - データベーススキーマの自動適用（drizzle-kit push）
+  - 開発サーバーの正常起動確認（ポート5000）
+- **Google認証の復旧**: SupabaseでのGoogle OAuth設定完了に対応
+  - 一時的に無効化していたGoogleログイン・登録ボタンを再有効化
+  - メールアドレス+パスワード認証とGoogle OAuth認証の両方が利用可能
+  - 認証システムの動作確認とエラーハンドリング最適化
+- **環境変数の適切な設定**: フロントエンドでのSupabase接続修正
+  - VITE_SUPABASE_URLとVITE_SUPABASE_ANON_KEYの正しい設定
+  - 環境変数の読み込み確認とフォールバック値設定
+  - supabase.tsファイルの設定簡素化とデバッグ情報追加
+
 ### June 29, 2025 - トライアル機能完全実装
 - **トライアルユーザーのプレミアム機能アクセス**: トライアル期間中はプレミアム機能フル利用可能
   - useSubscriptionフックでtrialingユーザーもcanAccessPremiumFeatures=trueに設定
