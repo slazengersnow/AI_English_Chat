@@ -91,6 +91,42 @@ export default function Login() {
     }
   }
 
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast({
+        title: "メールアドレスが必要です",
+        description: "パスワードリセットにはメールアドレスを入力してください",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/confirm`,
+      })
+
+      if (error) {
+        toast({
+          title: "パスワードリセットエラー",
+          description: error.message,
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "パスワードリセットメール送信完了",
+          description: "パスワードリセットの手順をメールで送信しました",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "パスワードリセット中にエラーが発生しました",
+        variant: "destructive",
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -148,6 +184,16 @@ export default function Login() {
               {isLoading ? "ログイン中..." : "ログイン"}
             </Button>
           </form>
+          
+          <div className="mt-2 text-center">
+            <Button
+              variant="link"
+              className="text-sm text-gray-600 hover:text-gray-800"
+              onClick={() => handlePasswordReset()}
+            >
+              パスワードをお忘れですか？
+            </Button>
+          </div>
 
           <div className="mt-4">
             <div className="relative">
