@@ -20,6 +20,7 @@ import Privacy from "@/pages/privacy";
 import SubscriptionSelect from "@/pages/subscription-select";
 import AuthCallback from "@/pages/auth-callback";
 import DebugAuth from "@/pages/debug-auth";
+import AdminSetup from "@/pages/admin-setup";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/confirm" component={Confirm} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/debug-auth" component={DebugAuth} />
+      <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
