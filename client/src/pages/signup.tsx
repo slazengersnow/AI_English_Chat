@@ -110,12 +110,13 @@ export default function Signup() {
 
   const handleGoogleSignup = async () => {
     try {
-      console.log('Starting Google OAuth signup with redirect to:', `${window.location.origin}/auth/callback`)
+      const replitUrl = `https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/auth/callback`
+      console.log('Starting Google OAuth signup with redirect to:', replitUrl)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: replitUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
