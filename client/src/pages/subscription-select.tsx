@@ -38,6 +38,7 @@ const plans: SubscriptionPlan[] = [
 
 export default function SubscriptionSelect() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [checkoutOpened, setCheckoutOpened] = useState(false);
   const { toast } = useToast();
 
   const createCheckoutMutation = useMutation({
@@ -57,6 +58,9 @@ export default function SubscriptionSelect() {
       if (!newWindow) {
         // ポップアップがブロックされた場合は現在のウィンドウで開く
         window.location.href = data.url;
+      } else {
+        // 新しいタブで開いた場合は確認画面を表示
+        setCheckoutOpened(true);
       }
     },
     onError: (error) => {
@@ -73,6 +77,66 @@ export default function SubscriptionSelect() {
     setSelectedPlan(priceId);
     createCheckoutMutation.mutate(priceId);
   };
+
+  // Show checkout opened confirmation
+  if (checkoutOpened) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 flex items-center justify-center">
+        <div className="bg-white rounded-2xl max-w-lg w-full p-8 text-center shadow-xl">
+          <div className="mb-6">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-10 h-10 text-green-600" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              決済画面を開きました
+            </h2>
+            <p className="text-gray-600 mb-6">
+              新しいタブでStripe決済画面が開きました。<br />
+              決済を完了してこちらのページにお戻りください。
+            </p>
+          </div>
+          
+          <div className="space-y-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800 mb-2 font-semibold">
+                決済完了後の流れ：
+              </p>
+              <p className="text-sm text-blue-700">
+                決済が完了すると自動的に成功ページに移動し、<br />
+                すぐにプレミアム機能をご利用いただけます。
+              </p>
+            </div>
+            
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800 mb-2 font-semibold">
+                新しいタブが開かない場合：
+              </p>
+              <p className="text-sm text-yellow-700">
+                ブラウザのポップアップブロックが有効になっている可能性があります。<br />
+                ポップアップを許可してから再度お試しください。
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setCheckoutOpened(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              プラン選択に戻る
+            </Button>
+            <Button
+              onClick={() => window.location.href = '/'}
+              className="flex-1"
+            >
+              トップページに戻る
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">

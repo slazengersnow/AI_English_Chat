@@ -66,6 +66,24 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 12, 2025 - 価格ID設定システムと決済UX改善
+- **包括的な価格ID管理システム**: 全プラン対応の価格ID設定機能を実装
+  - /plan-configuration ページでプラン別設定画面を作成
+  - 4つのプラン（スタンダード月額/年額、プレミアム月額/年額）用の個別設定カード
+  - 価格ID確認・検証機能でStripe価格情報をリアルタイム確認
+  - 「Stripe価格一覧を取得」機能で現在のアカウントの全価格ID表示
+  - ワンクリック価格ID割り当て機能でプランに直接設定可能
+  - 設定保存機能でサーバーサイドAPI連携による一括更新
+- **決済UX改善**: 新しいタブでStripe Checkout開く際のユーザー体験を向上
+  - 新しいタブでStripe決済画面が開かれた際の確認画面を実装
+  - 決済完了後の流れを明確に説明するユーザーガイダンス
+  - ポップアップブロック対策の案内とフォールバック機能
+  - PaymentModalとSubscriptionSelectページ両方で統一された体験を提供
+- **価格ID問題の解決**: `price_1ReXPnHridtc6DvMQaW7NC6w` が¥13,000として設定されている問題を特定
+  - 正しい価格での表示修正（¥13,000と明示）
+  - 価格ID確認ツールと診断ツールの統合
+  - 管理画面からの簡単な価格ID修正フローを確立
+
 ### July 11, 2025 - パスワードリセットメール送信問題の包括的調査と修正
 - **メール送信問題の詳細分析**: Supabaseパスワードリセットメールが送信されない問題を多角的に調査
   - 複数のテストページを作成（/debug-email、/comprehensive-debug、/email-test、/supabase-config-check）

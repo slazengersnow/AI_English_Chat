@@ -27,6 +27,7 @@ interface SubscriptionPlans {
 
 export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<string>("premium_monthly");
+  const [checkoutOpened, setCheckoutOpened] = useState(false);
 
   const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ["/api/subscription-plans"],
@@ -43,7 +44,9 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
       return response.json();
     },
     onSuccess: (data) => {
-      window.location.href = data.url;
+      // Open Stripe Checkout in new tab
+      window.open(data.url, '_blank');
+      setCheckoutOpened(true);
     },
   });
 
@@ -73,6 +76,66 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
 
   const plansData = plans as SubscriptionPlans;
   const selectedPlanData = plansData?.[selectedPlan as keyof SubscriptionPlans];
+
+  // Show checkout opened confirmation
+  if (checkoutOpened) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center">
+          <div className="mb-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Check className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              決済画面を開きました
+            </h2>
+            <p className="text-gray-600 mb-4">
+              新しいタブでStripe決済画面が開きました。<br />
+              決済を完了してこちらのページにお戻りください。
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800 mb-1">
+                <strong>決済完了後の流れ：</strong>
+              </p>
+              <p className="text-sm text-blue-700">
+                決済が完了すると自動的にこちらのページに戻り、<br />
+                すぐにプレミアム機能をご利用いただけます。
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <p className="text-sm text-gray-600 mb-1">
+                <strong>新しいタブが開かない場合：</strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                ブラウザのポップアップブロックを解除してから<br />
+                再度お試しください。
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <Button
+              onClick={() => setCheckoutOpened(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              戻る
+            </Button>
+            <Button
+              onClick={onClose}
+              className="flex-1"
+            >
+              閉じる
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
