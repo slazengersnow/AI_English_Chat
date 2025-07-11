@@ -2,6 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import Stripe from "stripe";
 import { 
   translateRequestSchema, 
   problemRequestSchema, 
@@ -417,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "無効なプライスIDです" });
       }
 
-      const stripe = require("stripe")(stripeSecretKey);
+      const stripe = new Stripe(stripeSecretKey);
       
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -521,7 +522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Stripe not configured" });
       }
 
-      const stripe = require("stripe")(stripeSecretKey);
+      const stripe = new Stripe(stripeSecretKey);
       
       // In a real app, get customer ID from authenticated user
       const customerId = "cus_example123"; // This should come from user's subscription data
@@ -594,7 +595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).send(`Webhook Error: Missing configuration`);
     }
 
-    const stripe = require("stripe")(stripeSecretKey);
+    const stripe = new Stripe(stripeSecretKey);
     let event;
 
     try {
