@@ -25,6 +25,7 @@ import AdminSetup from "@/pages/admin-setup";
 import PasswordReset from "@/pages/password-reset";
 import ResetPassword from "@/pages/reset-password";
 import RedirectHandler from "@/pages/redirect-handler";
+import { HashHandler } from "@/components/hash-handler";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -40,32 +41,37 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Handle redirects based on hash fragments
+  // Handle global redirects based on hash fragments
   useEffect(() => {
-    const handleRedirect = () => {
+    const handleGlobalRedirect = () => {
       const hash = window.location.hash
       const currentPath = window.location.pathname
       
       console.log('Router - Current path:', currentPath)
       console.log('Router - Hash:', hash)
       
-      // Only handle redirects if we're on the root path
-      if (currentPath === '/') {
-        if (hash && hash.includes('type=recovery')) {
-          console.log('Redirecting to reset-password due to recovery hash')
-          setTimeout(() => {
-            setLocation('/reset-password')
-          }, 100)
-        } else if (hash && hash.includes('access_token=')) {
-          console.log('Redirecting to redirect-handler for token processing')
-          setTimeout(() => {
-            setLocation('/redirect-handler')
-          }, 100)
-        }
+      // Handle password reset globally
+      if (hash && hash.includes('type=recovery')) {
+        console.log('Redirecting to reset-password due to recovery hash')
+        setTimeout(() => {
+          setLocation('/reset-password')
+        }, 100)
       }
     }
     
-    handleRedirect()
+    handleGlobalRedirect()
+    
+    // Listen for hash changes globally
+    const handleHashChange = () => {
+      console.log('Global hash changed:', window.location.hash)
+      handleGlobalRedirect()
+    }
+
+    window.addEventListener('hashchange', handleHashChange)
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange)
+    }
   }, [setLocation])
 
   if (isLoading) {
@@ -108,8 +114,8 @@ function Router() {
         </>
       ) : (
         <>
-          {/* Redirect unauthenticated users to login */}
-          <Route path="/" component={Login} />
+          {/* Handle unauthenticated routes */}
+          <Route path="/" component={RedirectHandler} />
         </>
       )}
       
@@ -124,6 +130,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
+          <HashHandler />
           <Router />
         </TooltipProvider>
       </AuthProvider>

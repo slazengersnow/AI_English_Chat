@@ -1,8 +1,11 @@
 import { useEffect } from 'react'
 import { useLocation } from 'wouter'
+import { useAuth } from '@/components/auth-provider'
+import Login from '@/pages/login'
 
 export default function RedirectHandler() {
   const [, setLocation] = useLocation()
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     const handleRedirect = () => {
@@ -18,13 +21,21 @@ export default function RedirectHandler() {
         console.log('Detected password reset link, redirecting to /reset-password')
         // Redirect to reset password page while preserving the hash
         setLocation('/reset-password')
+        return
       } else if (hash && hash.includes('access_token=')) {
         console.log('Detected access token in hash, checking for other auth flows')
         // Could be other auth flows like email confirmation
         if (hash.includes('type=signup')) {
           console.log('Detected signup confirmation, redirecting to /confirm')
           setLocation('/confirm')
+          return
         }
+      }
+      
+      // If authenticated and no special hash, go to home
+      if (isAuthenticated && !isLoading) {
+        console.log('User is authenticated, redirecting to home')
+        setLocation('/home')
       }
     }
 
@@ -42,13 +53,31 @@ export default function RedirectHandler() {
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
     }
-  }, [setLocation])
+  }, [setLocation, isAuthenticated, isLoading])
 
+  // If we have a hash with auth tokens, show loading
+  if (window.location.hash && window.location.hash.includes('access_token=')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">リダイレクト中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If not authenticated and no special hash, show login
+  if (!isAuthenticated && !isLoading) {
+    return <Login />
+  }
+
+  // Loading state
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="text-center">
         <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-        <p className="text-gray-600">リダイレクト中...</p>
+        <p className="text-gray-600">読み込み中...</p>
       </div>
     </div>
   )
