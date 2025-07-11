@@ -109,9 +109,10 @@ export default function StripeTest() {
   }
 
   const testPriceIds = [
+    'price_1ReXPnHridtc6DvMQaW7NC6w', // 実際のプレミアム月額価格ID
     'price_1OXXXXXXXXXXXXXXXXXXXXXX', // 実際のStripe価格ID例
-    'prod_SZgm74ZfQCQMSP', // 現在のプレミアム月額
-    'prod_SZgeMcEAMDMlDe', // 現在のスタンダード月額
+    'prod_SZgm74ZfQCQMSP', // 古い価格ID（存在しない）
+    'prod_SZgeMcEAMDMlDe', // 古い価格ID（存在しない）
   ]
 
   return (

@@ -406,9 +406,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         features: ["基本機能", "100問/日", "進捗追跡"]
       },
       premium_monthly: {
-        priceId: process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "prod_SZgm74ZfQCQMSP",
+        priceId: process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_1ReXPnHridtc6DvMQaW7NC6w",
         name: "プレミアム月額", 
-        price: "¥3,980/月",
+        price: "¥1,300/月",
         features: ["全機能", "無制限問題", "カスタムシナリオ", "詳細分析"]
       },
       premium_yearly: {
