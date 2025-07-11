@@ -36,6 +36,7 @@ import FixEmail from "@/pages/fix-email";
 import DirectAccess from "@/pages/direct-access";
 import TestActualLink from "@/pages/test-actual-link";
 import StripeTest from "@/pages/stripe-test";
+import PriceCheck from "@/pages/price-check";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -93,6 +94,7 @@ function Router() {
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/test-actual-link" component={TestActualLink} />
       <Route path="/stripe-test" component={StripeTest} />
+      <Route path="/price-check" component={PriceCheck} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
