@@ -48,7 +48,7 @@ const plans: SubscriptionPlan[] = [
     savings: "2ヶ月分お得"
   },
   {
-    priceId: "prod_SZgm74ZfQCQMSP",
+    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
     name: "プレミアム",
     price: "1,300",
     period: "月",

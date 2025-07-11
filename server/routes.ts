@@ -494,7 +494,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   function getPlanTypeFromPriceId(priceId: string): string {
     const standardMonthly = process.env.STRIPE_PRICE_STANDARD_MONTHLY || "prod_SZgeMcEAMDMlDe";
     const standardYearly = process.env.STRIPE_PRICE_STANDARD_YEARLY || "prod_SZglW626p1IFsh";
-    const premiumMonthly = process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "prod_SZgm74ZfQCQMSP";  
+    const premiumMonthly = process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_1ReXPnHridtc6DvMQaW7NC6w";  
     const premiumYearly = process.env.STRIPE_PRICE_PREMIUM_YEARLY || "prod_SZgnjreCBit2Bj";
     const upgradePremium = process.env.STRIPE_PRICE_UPGRADE_PREMIUM || "prod_SZhAV32kC3oSlf";
 
