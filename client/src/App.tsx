@@ -29,6 +29,9 @@ import { HashHandler } from "@/components/hash-handler";
 import TestHash from "@/pages/test-hash";
 import AuthRedirect from "@/pages/auth-redirect";
 import DebugEmail from "@/pages/debug-email";
+import ComprehensiveDebug from "@/pages/comprehensive-debug";
+import EmailTest from "@/pages/email-test";
+import SupabaseConfigCheck from "@/pages/supabase-config-check";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -77,6 +80,9 @@ function Router() {
       <Route path="/auth-redirect" component={AuthRedirect} />
       <Route path="/test-hash" component={TestHash} />
       <Route path="/debug-email" component={DebugEmail} />
+      <Route path="/comprehensive-debug" component={ComprehensiveDebug} />
+      <Route path="/email-test" component={EmailTest} />
+      <Route path="/supabase-config-check" component={SupabaseConfigCheck} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       

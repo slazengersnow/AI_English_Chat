@@ -102,27 +102,61 @@ export default function Login() {
     }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      // Try different configurations to identify the issue
+      const configurations = [
+        {
+          name: "標準設定",
+          config: {
+            redirectTo: `${window.location.origin}/reset-password`,
+          }
+        },
+        {
+          name: "captchaオプション無し",
+          config: {
+            redirectTo: `${window.location.origin}/reset-password`,
+            options: {
+              captchaToken: null
+            }
+          }
+        },
+        {
+          name: "HTTPSリダイレクト",
+          config: {
+            redirectTo: `https://${window.location.host}/reset-password`,
+          }
+        }
+      ]
+
+      console.log('Starting password reset attempts for:', email)
+      
+      for (const { name, config } of configurations) {
+        console.log(`Attempting ${name} configuration:`, config)
+        
+        const { data, error } = await supabase.auth.resetPasswordForEmail(email, config)
+        
+        console.log(`${name} result:`, { data, error })
+        
+        if (!error) {
+          toast({
+            title: "パスワードリセットメール送信完了",
+            description: `${name}での送信が成功しました。メールをご確認ください。`,
+          })
+          return // Success, stop trying other configurations
+        }
+        
+        // Wait a bit to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+
+      // If we get here, all configurations failed
+      toast({
+        title: "パスワードリセットエラー",
+        description: "すべての設定で送信に失敗しました。詳細はコンソールをご確認ください。",
+        variant: "destructive",
       })
       
-      console.log('Password reset email sent for:', email)
-      console.log('Password reset error:', error)
-
-      if (error) {
-        console.error('Password reset error details:', error)
-        toast({
-          title: "パスワードリセットエラー",
-          description: `エラー: ${error.message || '不明なエラーが発生しました'}`,
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "パスワードリセットメール送信完了",
-          description: "パスワードリセットの手順をメールで送信しました。メールをご確認ください。",
-        })
-      }
     } catch (error) {
+      console.error('Password reset exception:', error)
       toast({
         title: "エラー",
         description: "パスワードリセット中にエラーが発生しました",

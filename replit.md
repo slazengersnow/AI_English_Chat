@@ -66,6 +66,23 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 11, 2025 - パスワードリセットメール送信問題の包括的調査と修正
+- **メール送信問題の詳細分析**: Supabaseパスワードリセットメールが送信されない問題を多角的に調査
+  - 複数のテストページを作成（/debug-email、/comprehensive-debug、/email-test、/supabase-config-check）
+  - リダイレクトURL修正（/password-reset → /reset-password）
+  - 複数の設定パターンでのテスト実装
+  - 詳細なエラーログとデバッグ情報の追加
+- **認証フロー改善**: パスワードリセットのハッシュフラグメント処理を強化
+  - AuthRedirectページでの包括的なハッシュ処理
+  - HashHandlerコンポーネントの改善
+  - sessionStorageを使用した確実なハッシュ情報保存
+  - URLクリーンアップ機能でリダイレクトループを防止
+- **包括的診断機能**: メール送信問題の根本原因特定のための詳細なテスト環境構築
+  - 環境変数とSupabaseクライアント初期化の検証
+  - 複数のメールアドレスでのパスワードリセットテスト
+  - ネットワーク情報とHTTPS状態の確認
+  - サインアップ、パスワードリセット、確認メール再送の統合テスト
+
 ### July 10, 2025 - Replit移行完了とGoogle認証復旧
 - **Replit環境への完全移行**: ReployからReplit環境に移行完了
   - PostgreSQLデータベースの作成と接続設定
