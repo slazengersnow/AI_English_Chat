@@ -9,10 +9,11 @@ export function HashHandler() {
     const checkHash = () => {
       const hash = window.location.hash
       const url = window.location.href
+      const pathname = window.location.pathname
       
       console.log('HashHandler - Full URL:', url)
       console.log('HashHandler - Hash:', hash)
-      console.log('HashHandler - Pathname:', window.location.pathname)
+      console.log('HashHandler - Pathname:', pathname)
       
       if (!hash) {
         console.log('HashHandler - No hash found')
@@ -35,10 +36,14 @@ export function HashHandler() {
         console.log('HashHandler - Detected password recovery, redirecting to reset-password')
         // Store the hash for the reset-password page to use
         sessionStorage.setItem('supabase_recovery_hash', hash)
+        // Clear the hash from URL to prevent loops
+        window.history.replaceState({}, '', pathname)
         // Redirect to reset-password page
         setLocation('/reset-password')
       } else if (type === 'signup' && accessToken) {
         console.log('HashHandler - Detected signup confirmation, redirecting to confirm')
+        sessionStorage.setItem('supabase_signup_hash', hash)
+        window.history.replaceState({}, '', pathname)
         setLocation('/confirm')
       } else if (accessToken) {
         console.log('HashHandler - Detected access token but unknown type:', type)

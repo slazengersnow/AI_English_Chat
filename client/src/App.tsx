@@ -26,6 +26,8 @@ import PasswordReset from "@/pages/password-reset";
 import ResetPassword from "@/pages/reset-password";
 import RedirectHandler from "@/pages/redirect-handler";
 import { HashHandler } from "@/components/hash-handler";
+import TestHash from "@/pages/test-hash";
+import AuthRedirect from "@/pages/auth-redirect";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -71,6 +73,8 @@ function Router() {
       <Route path="/password-reset" component={PasswordReset} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/redirect-handler" component={RedirectHandler} />
+      <Route path="/auth-redirect" component={AuthRedirect} />
+      <Route path="/test-hash" component={TestHash} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
@@ -92,7 +96,7 @@ function Router() {
       ) : (
         <>
           {/* Handle unauthenticated routes */}
-          <Route path="/" component={RedirectHandler} />
+          <Route path="/" component={AuthRedirect} />
         </>
       )}
       
