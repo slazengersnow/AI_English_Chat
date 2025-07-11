@@ -164,6 +164,10 @@ export default function SubscriptionSelect() {
               現在の価格IDは¥13,000として設定されています。正しい¥1,300の価格IDを作成するか、既存の正しい価格IDを使用する必要があります。
             </p>
             <div className="space-y-2">
+              <a href="/plan-configuration" className="text-blue-600 hover:underline text-sm font-semibold">
+                プラン価格ID設定
+              </a>
+              <span className="text-gray-400 mx-2">•</span>
               <a href="/stripe-price-check" className="text-blue-600 hover:underline text-sm">
                 価格ID確認ツール
               </a>

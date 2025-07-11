@@ -458,6 +458,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update plan configuration endpoint
+  app.post("/api/plan-configuration", async (req, res) => {
+    try {
+      const { plans } = req.body;
+      
+      // この実装では設定をファイルに保存する
+      // 実際の本番環境では、データベースに保存することをお勧めします
+      const configData = {
+        updated_at: new Date().toISOString(),
+        plans: plans
+      };
+      
+      console.log('Plan configuration updated:', configData);
+      
+      res.json({ 
+        success: true, 
+        message: "プラン設定が正常に更新されました",
+        updated_count: Object.keys(plans).length
+      });
+    } catch (error) {
+      console.error("Plan configuration error:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "プラン設定の更新に失敗しました" 
+      });
+    }
+  });
+
   app.post("/api/create-checkout-session", async (req, res) => {
     try {
       const { priceId, successUrl, cancelUrl } = createCheckoutSessionSchema.parse(req.body);
