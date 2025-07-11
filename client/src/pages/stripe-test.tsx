@@ -11,6 +11,8 @@ export default function StripeTest() {
   const [priceId, setPriceId] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [testResults, setTestResults] = useState<any[]>([])
+  const [availablePrices, setAvailablePrices] = useState<any[]>([])
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false)
 
   const addResult = (step: string, success: boolean, message: string, details?: any) => {
     setTestResults(prev => [...prev, {
@@ -87,6 +89,25 @@ export default function StripeTest() {
     }
   }
 
+  const fetchAvailablePrices = async () => {
+    setIsLoadingPrices(true)
+    try {
+      const response = await fetch('/api/stripe-prices')
+      const data = await response.json()
+      
+      if (response.ok) {
+        setAvailablePrices(data.prices || [])
+        addResult('価格ID取得', true, `${data.account_type}環境から${data.total_prices}個の価格IDを取得しました`, data)
+      } else {
+        addResult('価格ID取得', false, `エラー: ${data.message}`, data)
+      }
+    } catch (error) {
+      addResult('価格ID取得', false, `価格ID取得エラー: ${error.message}`)
+    } finally {
+      setIsLoadingPrices(false)
+    }
+  }
+
   const testPriceIds = [
     'price_1OXXXXXXXXXXXXXXXXXXXXXX', // 実際のStripe価格ID例
     'prod_SZgm74ZfQCQMSP', // 現在のプレミアム月額
@@ -137,14 +158,51 @@ export default function StripeTest() {
               </div>
             </div>
 
-            <Button 
-              onClick={testCreateCheckoutSession}
-              disabled={isLoading}
-              className="w-full"
-            >
-              {isLoading ? "テスト中..." : "チェックアウトセッションをテスト"}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={fetchAvailablePrices}
+                disabled={isLoadingPrices}
+                variant="outline"
+                className="flex-1"
+              >
+                {isLoadingPrices ? "取得中..." : "利用可能な価格IDを取得"}
+              </Button>
+              <Button 
+                onClick={testCreateCheckoutSession}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                {isLoading ? "テスト中..." : "チェックアウトセッションをテスト"}
+              </Button>
+            </div>
           </div>
+
+          {availablePrices.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-semibold">利用可能な価格ID一覧:</h3>
+              <div className="bg-white border rounded-lg p-4 max-h-60 overflow-auto">
+                {availablePrices.map((price, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                    <div>
+                      <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{price.id}</code>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {price.unit_amount ? `¥${price.unit_amount / 100}` : '無料'} 
+                        {price.recurring && ` / ${price.recurring.interval}`}
+                        {price.active ? ' (有効)' : ' (無効)'}
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPriceId(price.id)}
+                    >
+                      使用
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {testResults.length > 0 && (
             <div className="space-y-2">

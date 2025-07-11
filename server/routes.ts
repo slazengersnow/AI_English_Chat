@@ -357,6 +357,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get available Stripe prices from actual account
+  app.get("/api/stripe-prices", async (req, res) => {
+    try {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+
+      const stripe = new Stripe(stripeSecretKey);
+      const prices = await stripe.prices.list({ limit: 50 });
+      
+      const formattedPrices = prices.data.map(price => ({
+        id: price.id,
+        product: price.product,
+        active: price.active,
+        currency: price.currency,
+        unit_amount: price.unit_amount,
+        recurring: price.recurring,
+        type: price.type
+      }));
+
+      res.json({
+        account_type: stripeSecretKey.startsWith('sk_test_') ? 'TEST' : stripeSecretKey.startsWith('sk_live_') ? 'LIVE' : 'UNKNOWN',
+        total_prices: prices.data.length,
+        prices: formattedPrices
+      });
+    } catch (error) {
+      console.error('Error fetching Stripe prices:', error);
+      res.status(500).json({ message: "Stripe価格の取得に失敗しました", error: error.message });
+    }
+  });
+
   // Create Stripe checkout session
   // Get available subscription plans
   app.get("/api/subscription-plans", (req, res) => {
@@ -407,10 +439,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 一時的に価格ID検証を無効化（実際のStripe価格IDが必要）
       console.log('Attempting to create checkout session for priceId:', priceId);
+      console.log('Stripe Secret Key type:', stripeSecretKey.startsWith('sk_test_') ? 'TEST' : stripeSecretKey.startsWith('sk_live_') ? 'LIVE' : 'UNKNOWN');
 
       // 価格ID検証を一時的に無効化
 
       const stripe = new Stripe(stripeSecretKey);
+      
+      // まず価格IDが存在するか確認
+      try {
+        const price = await stripe.prices.retrieve(priceId);
+        console.log('Price found:', price.id, 'Amount:', price.unit_amount, 'Currency:', price.currency);
+      } catch (priceError) {
+        console.error('Price not found:', priceError.message);
+        return res.status(400).json({ 
+          message: `価格ID "${priceId}" が見つかりません。Stripeダッシュボードで正しい価格IDを確認してください。`,
+          details: priceError.message
+        });
+      }
       
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
