@@ -103,21 +103,23 @@ export default function Login() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/password-reset`,
+        redirectTo: `${window.location.origin}/reset-password`,
       })
       
       console.log('Password reset email sent for:', email)
+      console.log('Password reset error:', error)
 
       if (error) {
+        console.error('Password reset error details:', error)
         toast({
           title: "パスワードリセットエラー",
-          description: error.message,
+          description: `エラー: ${error.message || '不明なエラーが発生しました'}`,
           variant: "destructive",
         })
       } else {
         toast({
           title: "パスワードリセットメール送信完了",
-          description: "パスワードリセットの手順をメールで送信しました",
+          description: "パスワードリセットの手順をメールで送信しました。メールをご確認ください。",
         })
       }
     } catch (error) {

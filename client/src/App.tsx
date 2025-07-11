@@ -28,6 +28,7 @@ import RedirectHandler from "@/pages/redirect-handler";
 import { HashHandler } from "@/components/hash-handler";
 import TestHash from "@/pages/test-hash";
 import AuthRedirect from "@/pages/auth-redirect";
+import DebugEmail from "@/pages/debug-email";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/redirect-handler" component={RedirectHandler} />
       <Route path="/auth-redirect" component={AuthRedirect} />
       <Route path="/test-hash" component={TestHash} />
+      <Route path="/debug-email" component={DebugEmail} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
