@@ -25,27 +25,40 @@ export default function ResetPassword() {
       const searchParams = new URLSearchParams(window.location.search)
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
       
+      // Check if we have stored hash from HashHandler
+      const storedHash = sessionStorage.getItem('supabase_recovery_hash')
+      let storedHashParams = new URLSearchParams()
+      if (storedHash) {
+        storedHashParams = new URLSearchParams(storedHash.substring(1))
+        console.log('Found stored recovery hash:', storedHash)
+      }
+      
       // Debug information
       const debug = `
         URL: ${url}
         Search: ${window.location.search}
         Hash: ${window.location.hash}
+        Stored Hash: ${storedHash || 'none'}
         Access Token (search): ${searchParams.get('access_token') ? 'present' : 'missing'}
         Access Token (hash): ${hashParams.get('access_token') ? 'present' : 'missing'}
+        Access Token (stored): ${storedHashParams.get('access_token') ? 'present' : 'missing'}
         Refresh Token (search): ${searchParams.get('refresh_token') ? 'present' : 'missing'}
         Refresh Token (hash): ${hashParams.get('refresh_token') ? 'present' : 'missing'}
+        Refresh Token (stored): ${storedHashParams.get('refresh_token') ? 'present' : 'missing'}
         Type (search): ${searchParams.get('type')}
         Type (hash): ${hashParams.get('type')}
+        Type (stored): ${storedHashParams.get('type')}
       `
       setDebugInfo(debug)
       console.log('Debug info:', debug)
       
-      let accessToken = searchParams.get('access_token') || hashParams.get('access_token')
-      let refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token')
-      let type = searchParams.get('type') || hashParams.get('type')
+      let accessToken = searchParams.get('access_token') || hashParams.get('access_token') || storedHashParams.get('access_token')
+      let refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token') || storedHashParams.get('refresh_token')
+      let type = searchParams.get('type') || hashParams.get('type') || storedHashParams.get('type')
 
       if (accessToken && refreshToken && type === 'recovery') {
         try {
+          console.log('Setting session with tokens...')
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
@@ -61,6 +74,8 @@ export default function ResetPassword() {
           } else {
             console.log('Valid session established')
             setIsValidToken(true)
+            // Clear stored hash after successful use
+            sessionStorage.removeItem('supabase_recovery_hash')
           }
         } catch (error) {
           console.error('Token verification error:', error)

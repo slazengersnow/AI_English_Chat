@@ -41,38 +41,15 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Handle global redirects based on hash fragments
+  // Let HashHandler component handle all hash fragment processing
   useEffect(() => {
-    const handleGlobalRedirect = () => {
-      const hash = window.location.hash
-      const currentPath = window.location.pathname
-      
-      console.log('Router - Current path:', currentPath)
-      console.log('Router - Hash:', hash)
-      
-      // Handle password reset globally
-      if (hash && hash.includes('type=recovery')) {
-        console.log('Redirecting to reset-password due to recovery hash')
-        setTimeout(() => {
-          setLocation('/reset-password')
-        }, 100)
-      }
-    }
+    const currentPath = window.location.pathname
+    const hash = window.location.hash
     
-    handleGlobalRedirect()
-    
-    // Listen for hash changes globally
-    const handleHashChange = () => {
-      console.log('Global hash changed:', window.location.hash)
-      handleGlobalRedirect()
-    }
-
-    window.addEventListener('hashchange', handleHashChange)
-    
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange)
-    }
-  }, [setLocation])
+    console.log('Router - Current path:', currentPath)
+    console.log('Router - Hash:', hash)
+    console.log('Router - Initialized')
+  }, [])
 
   if (isLoading) {
     return (
