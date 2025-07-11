@@ -32,6 +32,8 @@ import DebugEmail from "@/pages/debug-email";
 import ComprehensiveDebug from "@/pages/comprehensive-debug";
 import EmailTest from "@/pages/email-test";
 import SupabaseConfigCheck from "@/pages/supabase-config-check";
+import FixEmail from "@/pages/fix-email";
+import DirectAccess from "@/pages/direct-access";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -83,6 +85,8 @@ function Router() {
       <Route path="/comprehensive-debug" component={ComprehensiveDebug} />
       <Route path="/email-test" component={EmailTest} />
       <Route path="/supabase-config-check" component={SupabaseConfigCheck} />
+      <Route path="/fix-email" component={FixEmail} />
+      <Route path="/direct-access" component={DirectAccess} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
