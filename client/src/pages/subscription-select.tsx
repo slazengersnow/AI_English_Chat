@@ -96,13 +96,19 @@ export default function SubscriptionSelect() {
       return response.json();
     },
     onSuccess: (data) => {
-      window.location.href = data.url;
+      console.log('Checkout session created:', data);
+      // 新しいタブでチェックアウトページを開く（推奨）
+      const newWindow = window.open(data.url, '_blank', 'noopener,noreferrer');
+      if (!newWindow) {
+        // ポップアップがブロックされた場合は現在のウィンドウで開く
+        window.location.href = data.url;
+      }
     },
     onError: (error) => {
       console.error('Checkout error:', error);
       toast({
         title: "エラー",
-        description: "決済画面の作成に失敗しました",
+        description: "決済画面の作成に失敗しました。ページを再読み込みして再度お試しください。",
         variant: "destructive"
       });
     }
@@ -200,13 +206,23 @@ export default function SubscriptionSelect() {
           <p className="text-sm text-gray-600 mb-4">
             ※ 7日間のトライアル期間中はいつでもキャンセル可能です
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 mb-4">
             ご利用には
             <a href="/terms" className="text-blue-600 hover:underline mx-1">
               利用規約
             </a>
             への同意が必要です
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+            <p className="text-blue-800 font-semibold mb-2">決済画面について</p>
+            <p className="text-blue-700">
+              決済画面は新しいタブで開きます。ポップアップがブロックされている場合は、
+              <a href="/stripe-checkout-debug" className="text-blue-600 hover:underline mx-1">
+                こちらの診断ページ
+              </a>
+              をご利用ください。
+            </p>
+          </div>
         </div>
       </div>
     </div>
