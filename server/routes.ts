@@ -437,11 +437,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: "Stripe not configured" });
       }
 
-      // 一時的に価格ID検証を無効化（実際のStripe価格IDが必要）
       console.log('Attempting to create checkout session for priceId:', priceId);
       console.log('Stripe Secret Key type:', stripeSecretKey.startsWith('sk_test_') ? 'TEST' : stripeSecretKey.startsWith('sk_live_') ? 'LIVE' : 'UNKNOWN');
-
-      // 価格ID検証を一時的に無効化
 
       const stripe = new Stripe(stripeSecretKey);
       
@@ -466,8 +463,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             quantity: 1,
           },
         ],
-        success_url: successUrl || `${req.get('origin')}/success`,
-        cancel_url: cancelUrl || `${req.get('origin')}/cancel`,
+        success_url: successUrl || `${req.get('origin')}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: cancelUrl || `${req.get('origin')}/payment-cancelled`,
         allow_promotion_codes: true,
         subscription_data: {
           trial_period_days: 7,
@@ -487,6 +484,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Stripe error:", error);
       res.status(500).json({ message: "決済セッションの作成に失敗しました" });
+    }
+  });
+
+  app.get("/api/stripe-prices", async (req, res) => {
+    try {
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+
+      const stripe = new Stripe(stripeSecretKey);
+      const prices = await stripe.prices.list({ 
+        active: true, 
+        limit: 100 
+      });
+
+      const account = await stripe.accounts.retrieve();
+      
+      res.json({
+        account_type: account.type,
+        total_prices: prices.data.length,
+        prices: prices.data.map(price => ({
+          id: price.id,
+          active: price.active,
+          currency: price.currency,
+          unit_amount: price.unit_amount,
+          type: price.type,
+          recurring: price.recurring,
+          product: price.product
+        }))
+      });
+    } catch (error) {
+      console.error("Stripe prices error:", error);
+      res.status(500).json({ message: "価格情報の取得に失敗しました" });
     }
   });
 

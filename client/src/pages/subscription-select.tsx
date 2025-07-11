@@ -87,13 +87,19 @@ export default function SubscriptionSelect() {
 
   const createCheckoutMutation = useMutation({
     mutationFn: async (priceId: string) => {
-      const response = await apiRequest("POST", "/api/create-checkout-session", { priceId });
+      const origin = window.location.origin;
+      const response = await apiRequest("POST", "/api/create-checkout-session", { 
+        priceId,
+        successUrl: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${origin}/payment-cancelled`
+      });
       return response.json();
     },
     onSuccess: (data) => {
       window.location.href = data.url;
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Checkout error:', error);
       toast({
         title: "エラー",
         description: "決済画面の作成に失敗しました",

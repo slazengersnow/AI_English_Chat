@@ -37,6 +37,8 @@ import DirectAccess from "@/pages/direct-access";
 import TestActualLink from "@/pages/test-actual-link";
 import StripeTest from "@/pages/stripe-test";
 import PriceCheck from "@/pages/price-check";
+import PaymentSuccess from "@/pages/payment-success";
+import PaymentCancelled from "@/pages/payment-cancelled";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -95,6 +97,10 @@ function Router() {
       <Route path="/test-actual-link" component={TestActualLink} />
       <Route path="/stripe-test" component={StripeTest} />
       <Route path="/price-check" component={PriceCheck} />
+      <Route path="/payment-success" component={PaymentSuccess} />
+      <Route path="/payment-cancelled" component={PaymentCancelled} />
+      <Route path="/success" component={PaymentSuccess} />
+      <Route path="/cancel" component={PaymentCancelled} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
       
