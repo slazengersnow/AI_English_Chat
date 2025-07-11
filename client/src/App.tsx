@@ -41,6 +41,7 @@ import PaymentSuccess from "@/pages/payment-success";
 import PaymentCancelled from "@/pages/payment-cancelled";
 import DebugPayment from "@/pages/debug-payment";
 import StripeCheckoutDebug from "@/pages/stripe-checkout-debug";
+import StripePriceCheck from "@/pages/stripe-price-check";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -101,6 +102,7 @@ function Router() {
       <Route path="/price-check" component={PriceCheck} />
       <Route path="/debug-payment" component={DebugPayment} />
       <Route path="/stripe-checkout-debug" component={StripeCheckoutDebug} />
+      <Route path="/stripe-price-check" component={StripePriceCheck} />
       <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/payment-cancelled" component={PaymentCancelled} />
       <Route path="/success" component={PaymentSuccess} />

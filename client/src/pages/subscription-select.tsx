@@ -19,41 +19,12 @@ interface SubscriptionPlan {
 
 const plans: SubscriptionPlan[] = [
   {
-    priceId: "prod_SZgeMcEAMDMlDe",
-    name: "スタンダード",
-    price: "980",
-    period: "月",
-    features: [
-      "月額980円",
-      "基本練習機能（全レベル対応）",
-      "1日100問まで",
-      "基本的な評価機能",
-      "進捗記録",
-      "ブックマーク機能"
-    ]
-  },
-  {
-    priceId: "prod_SZglW626p1IFsh",
-    name: "スタンダード",
-    price: "9,800",
-    period: "年",
-    features: [
-      "年会費9,800円（2ヶ月分お得）",
-      "基本練習機能（全レベル対応）",
-      "1日100問まで",
-      "基本的な評価機能", 
-      "進捗記録",
-      "ブックマーク機能"
-    ],
-    savings: "2ヶ月分お得"
-  },
-  {
     priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
-    name: "プレミアム",
-    price: "1,300",
+    name: "プレミアム（テスト中）",
+    price: "13,000",
     period: "月",
     features: [
-      "月額1,300円",
+      "月額13,000円（テスト価格）",
       "基本練習機能（全レベル対応）",
       "無制限問題",
       "カスタムシナリオ作成",
@@ -62,22 +33,6 @@ const plans: SubscriptionPlan[] = [
       "優先サポート"
     ],
     popular: true
-  },
-  {
-    priceId: "prod_SZgnjreCBit2Bj",
-    name: "プレミアム",
-    price: "13,000",
-    period: "年",
-    features: [
-      "年会費13,000円（2ヶ月分お得）",
-      "基本練習機能（全レベル対応）",
-      "無制限問題",
-      "カスタムシナリオ作成",
-      "詳細な分析機能",
-      "復習機能",
-      "優先サポート"
-    ],
-    savings: "2ヶ月分お得"
   }
 ];
 
@@ -203,6 +158,21 @@ export default function SubscriptionSelect() {
         </div>
 
         <div className="text-center mt-12">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p className="text-yellow-800 font-semibold mb-2">⚠️ 価格ID設定について</p>
+            <p className="text-yellow-700 text-sm mb-2">
+              現在の価格IDは¥13,000として設定されています。正しい¥1,300の価格IDを作成するか、既存の正しい価格IDを使用する必要があります。
+            </p>
+            <div className="space-y-2">
+              <a href="/stripe-price-check" className="text-blue-600 hover:underline text-sm">
+                価格ID確認ツール
+              </a>
+              <span className="text-gray-400 mx-2">•</span>
+              <a href="/stripe-checkout-debug" className="text-blue-600 hover:underline text-sm">
+                決済診断ツール
+              </a>
+            </div>
+          </div>
           <p className="text-sm text-gray-600 mb-4">
             ※ 7日間のトライアル期間中はいつでもキャンセル可能です
           </p>

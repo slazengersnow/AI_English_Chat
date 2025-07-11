@@ -428,6 +428,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(plans);
   });
 
+  // Price information endpoint
+  app.post("/api/stripe/price-info", async (req, res) => {
+    try {
+      const { priceId } = req.body;
+      
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+
+      const stripe = new Stripe(stripeSecretKey);
+      const price = await stripe.prices.retrieve(priceId);
+      
+      res.json({
+        id: price.id,
+        unit_amount: price.unit_amount,
+        currency: price.currency,
+        type: price.type,
+        product: price.product,
+        active: price.active,
+        recurring: price.recurring
+      });
+    } catch (error) {
+      console.error("Price info error:", error);
+      res.status(400).json({ 
+        message: error instanceof Error ? error.message : "価格情報の取得に失敗しました" 
+      });
+    }
+  });
+
   app.post("/api/create-checkout-session", async (req, res) => {
     try {
       const { priceId, successUrl, cancelUrl } = createCheckoutSessionSchema.parse(req.body);
