@@ -41,12 +41,74 @@ export function HashHandler() {
         // Redirect to reset-password page
         setLocation('/reset-password')
       } else if (type === 'signup' && accessToken) {
-        console.log('HashHandler - Detected signup confirmation, redirecting to confirm')
+        console.log('HashHandler - Detected signup confirmation, processing authentication')
+        // For signup confirmation, we need to set the session directly
         sessionStorage.setItem('supabase_signup_hash', hash)
+        // Clear the hash from URL
         window.history.replaceState({}, '', pathname)
-        setLocation('/confirm')
+        
+        // Set the session with the tokens
+        const expiresAt = params.get('expires_at')
+        const tokenType = params.get('token_type')
+        
+        if (expiresAt && tokenType) {
+          // Create session object
+          const session = {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expires_at: parseInt(expiresAt),
+            token_type: tokenType,
+            user: null // Will be populated by Supabase
+          }
+          
+          // Set session in Supabase
+          import('@shared/supabase').then(({ supabase }) => {
+            supabase.auth.setSession(session).then((result) => {
+              console.log('Session set result:', result)
+              if (result.error) {
+                console.error('Session set error:', result.error)
+                setLocation('/login')
+              } else {
+                console.log('Session set successfully, redirecting to home')
+                setLocation('/')
+              }
+            })
+          })
+        } else {
+          setLocation('/confirm')
+        }
       } else if (accessToken) {
-        console.log('HashHandler - Detected access token but unknown type:', type)
+        console.log('HashHandler - Detected access token, processing authentication')
+        // General case: any access token should authenticate the user
+        const expiresAt = params.get('expires_at')
+        const tokenType = params.get('token_type') || 'bearer'
+        
+        if (expiresAt) {
+          const session = {
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expires_at: parseInt(expiresAt),
+            token_type: tokenType,
+            user: null
+          }
+          
+          // Clear the hash from URL
+          window.history.replaceState({}, '', pathname)
+          
+          // Set session in Supabase
+          import('@shared/supabase').then(({ supabase }) => {
+            supabase.auth.setSession(session).then((result) => {
+              console.log('General session set result:', result)
+              if (result.error) {
+                console.error('General session set error:', result.error)
+                setLocation('/login')
+              } else {
+                console.log('General session set successfully, redirecting to home')
+                setLocation('/')
+              }
+            })
+          })
+        }
       }
     }
 

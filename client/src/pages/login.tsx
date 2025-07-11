@@ -42,7 +42,10 @@ export default function Login() {
           title: "ログイン成功",
           description: "AI英作文チャットへようこそ！",
         })
-        setLocation('/')
+        // Add a small delay to ensure the toast is visible before redirect
+        setTimeout(() => {
+          setLocation('/')
+        }, 1000)
       }
     } catch (error) {
       toast({

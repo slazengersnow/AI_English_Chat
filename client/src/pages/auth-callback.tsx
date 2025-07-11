@@ -9,36 +9,82 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession()
+      const hash = window.location.hash
+      const search = window.location.search
+      
+      console.log('AuthCallback - Hash:', hash)
+      console.log('AuthCallback - Search:', search)
+      
+      if (hash) {
+        // Parse hash parameters
+        const params = new URLSearchParams(hash.substring(1))
+        const accessToken = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+        const expiresAt = params.get('expires_at')
+        const tokenType = params.get('token_type')
+        const type = params.get('type')
         
-        if (error) {
-          console.error('Auth callback error:', error)
+        console.log('AuthCallback - Parsed params:', {
+          type,
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          expiresAt,
+          tokenType
+        })
+        
+        if (accessToken && expiresAt) {
+          try {
+            // Set the session using Supabase
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+              expires_at: parseInt(expiresAt),
+              token_type: tokenType || 'bearer',
+              user: null
+            })
+            
+            if (error) {
+              console.error('Session set error:', error)
+              toast({
+                title: "認証エラー",
+                description: `認証に失敗しました: ${error.message}`,
+                variant: "destructive",
+              })
+              setLocation('/login')
+            } else {
+              console.log('Session set successfully:', data)
+              
+              // Clear the hash from URL
+              window.history.replaceState({}, '', window.location.pathname)
+              
+              toast({
+                title: "認証成功",
+                description: "ログインが完了しました！",
+              })
+              
+              // Redirect to home
+              setLocation('/')
+            }
+          } catch (error) {
+            console.error('Auth callback error:', error)
+            toast({
+              title: "認証エラー",
+              description: "認証処理中にエラーが発生しました",
+              variant: "destructive",
+            })
+            setLocation('/login')
+          }
+        } else {
+          console.log('Missing required auth parameters')
           toast({
             title: "認証エラー",
-            description: "認証処理中にエラーが発生しました",
+            description: "認証パラメータが不足しています",
             variant: "destructive",
           })
           setLocation('/login')
-          return
         }
-
-        if (data.session) {
-          toast({
-            title: "ログイン成功",
-            description: "AI瞬間英作文チャットへようこそ！",
-          })
-          setLocation('/')
-        } else {
-          setLocation('/login')
-        }
-      } catch (error) {
-        console.error('Auth callback error:', error)
-        toast({
-          title: "エラー",
-          description: "認証処理中にエラーが発生しました",
-          variant: "destructive",
-        })
+      } else {
+        console.log('No hash found in auth callback')
         setLocation('/login')
       }
     }
@@ -47,8 +93,11 @@ export default function AuthCallback() {
   }, [setLocation, toast])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">認証を処理中...</p>
+      </div>
     </div>
   )
 }
