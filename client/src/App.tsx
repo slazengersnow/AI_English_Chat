@@ -39,6 +39,7 @@ import StripeTest from "@/pages/stripe-test";
 import PriceCheck from "@/pages/price-check";
 import PaymentSuccess from "@/pages/payment-success";
 import PaymentCancelled from "@/pages/payment-cancelled";
+import DebugPayment from "@/pages/debug-payment";
 import NotFound from "@/pages/not-found";
 
 // Protected routes that require active subscription
@@ -97,6 +98,7 @@ function Router() {
       <Route path="/test-actual-link" component={TestActualLink} />
       <Route path="/stripe-test" component={StripeTest} />
       <Route path="/price-check" component={PriceCheck} />
+      <Route path="/debug-payment" component={DebugPayment} />
       <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/payment-cancelled" component={PaymentCancelled} />
       <Route path="/success" component={PaymentSuccess} />
@@ -116,8 +118,10 @@ function Router() {
           <Route path="/chat/:difficulty" component={() => <ProtectedRoute component={Home} />} />
           <Route path="/practice/:difficulty" component={() => <ProtectedRoute component={Home} />} />
           <Route path="/subscription/select" component={SubscriptionSelect} />
-          <Route path="/success" component={Success} />
-          <Route path="/cancel" component={Cancel} />
+          <Route path="/payment-success" component={PaymentSuccess} />
+          <Route path="/payment-cancelled" component={PaymentCancelled} />
+          <Route path="/success" component={PaymentSuccess} />
+          <Route path="/cancel" component={PaymentCancelled} />
         </>
       ) : (
         <>

@@ -9,8 +9,14 @@ export default function PaymentSuccess() {
   const [sessionId, setSessionId] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('PaymentSuccess component mounted')
+    console.log('Current URL:', window.location.href)
+    console.log('Search params:', window.location.search)
+    
     const urlParams = new URLSearchParams(window.location.search)
     const sessionId = urlParams.get('session_id')
+    console.log('Extracted session ID:', sessionId)
+    
     setSessionId(sessionId)
   }, [])
 
