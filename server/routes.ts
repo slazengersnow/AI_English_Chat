@@ -431,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ],
         success_url: successUrl || `${req.get('origin')}/success`,
         cancel_url: cancelUrl || `${req.get('origin')}/cancel`,
-        trial_period_days: 7,
+        allow_promotion_codes: true,
         metadata: {
           userId: "default_user", // In real app, get from authenticated user
           planType: getPlanTypeFromPriceId(priceId)
