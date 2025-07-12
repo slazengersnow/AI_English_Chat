@@ -50,12 +50,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware to check subscription status
   const requireActiveSubscription = async (req: any, res: any, next: any) => {
     try {
-      // Get user ID from headers
-      const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+      // Get user ID from Authorization header (Supabase JWT token)
+      const authHeader = req.headers.authorization;
       let userId = "bizmowa.com"; // Default fallback
       
-      if (userEmail) {
-        userId = userEmail as string;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        
+        try {
+          // Simple JWT parsing to get user email (not verifying signature in development)
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          if (payload.email) {
+            userId = payload.email;
+          }
+        } catch (jwtError) {
+          console.log("JWT parsing failed in middleware, using fallback:", jwtError);
+          // Try to get user email from custom header as fallback
+          const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+          if (userEmail) {
+            userId = userEmail as string;
+          }
+        }
       }
       
       console.log("requireActiveSubscription - Checking subscription for user:", userId);
@@ -1280,14 +1295,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        // In a real implementation, you'd decode the JWT token to get user ID
-        // For now, we'll extract from the request or use a different approach
         console.log("Auth token received:", token.substring(0, 20) + "...");
         
-        // Try to get user email from custom header or other source
-        const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
-        if (userEmail) {
-          userId = userEmail as string;
+        try {
+          // Simple JWT parsing to get user email (not verifying signature in development)
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          if (payload.email) {
+            userId = payload.email;
+            console.log("Extracted user email from JWT:", userId);
+          }
+        } catch (jwtError) {
+          console.log("JWT parsing failed, using fallback:", jwtError);
+          // Try to get user email from custom header as fallback
+          const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+          if (userEmail) {
+            userId = userEmail as string;
+          }
         }
       }
       
