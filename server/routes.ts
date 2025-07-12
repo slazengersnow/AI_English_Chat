@@ -341,10 +341,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           apiKey: anthropicApiKey,
         });
 
-        console.log("Creating message with model: claude-sonnet-4-20250514");
+        console.log("Creating message with model: claude-3-haiku-20240307");
         
         const message = await anthropic.messages.create({
-          model: "claude-sonnet-4-20250514", // Use the newest model
+          model: "claude-3-haiku-20240307", // Use Claude 3 Haiku for low cost and high performance
           max_tokens: 1000,
           temperature: 0.7,
           system: systemPrompt,
@@ -451,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               "anthropic-version": "2023-06-01"
             },
             body: JSON.stringify({
-              model: "claude-sonnet-4-20250514", // Use the newest model
+              model: "claude-3-haiku-20240307", // Use Claude 3 Haiku for low cost and high performance
               max_tokens: 1000,
               temperature: 0.7,
               system: systemPrompt,
