@@ -581,7 +581,7 @@ export default function MyPage() {
                               <strong>この機能はプレミアムプラン限定です。</strong>
                             </p>
                             <p className="text-sm text-yellow-700">
-                              リアルなビジネスシーンを想定したシミュレーション練習を体験したい方は、プレミアムプランをご検討ください。繰り返すだけで、確実に話せる英語が増えていきます。
+                              繰り返すだけで、フレーズが定着し、確実に話せる英語が増えていきます。
                             </p>
                           </div>
                         </div>
@@ -679,7 +679,14 @@ export default function MyPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-center py-12">
-                    <div className="text-gray-500 text-lg mb-4">この機能はプレミアム会員向けです。</div>
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 mb-2">
+                        <strong>この機能はプレミアムプラン限定です。</strong>
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        リアルなビジネスシーンを想定したシミュレーション練習を体験したい方は、プレミアムプランをご検討ください。
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
