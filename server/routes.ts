@@ -1110,6 +1110,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Upgrade subscription to premium
+  app.post("/api/upgrade-subscription", async (req, res) => {
+    try {
+      const { planType } = req.body; // 'monthly' or 'yearly'
+      
+      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecretKey) {
+        return res.status(500).json({ message: "Stripe not configured" });
+      }
+
+      const stripe = new Stripe(stripeSecretKey);
+      
+      // Get current subscription
+      const subscription = await storage.getUserSubscription();
+      if (!subscription || !subscription.stripeSubscriptionId) {
+        return res.status(400).json({ message: "アクティブなサブスクリプションが見つかりません" });
+      }
+
+      // Premium price IDs
+      const premiumPriceIds = {
+        monthly: "price_1ReXP9Hridtc6DvMpgawL58K",
+        yearly: "price_1ReXPnHridtc6DvMQaW7NC6w"
+      };
+
+      const targetPriceId = premiumPriceIds[planType as keyof typeof premiumPriceIds];
+      if (!targetPriceId) {
+        return res.status(400).json({ message: "無効なプランタイプです" });
+      }
+
+      // Get current subscription from Stripe
+      const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+      
+      if (!stripeSubscription.items.data[0]) {
+        return res.status(400).json({ message: "サブスクリプションアイテムが見つかりません" });
+      }
+
+      const subscriptionItemId = stripeSubscription.items.data[0].id;
+
+      // Update subscription with prorated billing
+      const updatedSubscription = await stripe.subscriptions.update(
+        subscription.stripeSubscriptionId,
+        {
+          items: [{
+            id: subscriptionItemId,
+            price: targetPriceId,
+          }],
+          proration_behavior: 'create_prorations', // 日割り計算を有効化
+        }
+      );
+
+      // Update database
+      await storage.updateUserSubscription(subscription.userId, {
+        subscriptionType: 'premium',
+        stripeSubscriptionItemId: subscriptionItemId,
+        planName: planType === 'monthly' ? 'premium_monthly' : 'premium_yearly'
+      });
+
+      res.json({ 
+        success: true, 
+        message: `プレミアム${planType === 'monthly' ? '月額' : '年間'}プランにアップグレードしました（日割り計算適用）`,
+        subscriptionId: updatedSubscription.id
+      });
+    } catch (error) {
+      console.error("Upgrade subscription error:", error);
+      res.status(500).json({ message: "アップグレードに失敗しました" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     try {

@@ -225,7 +225,32 @@ export default function MyPage() {
     }
   });
 
+  const upgradeSubscriptionMutation = useMutation({
+    mutationFn: (planType: 'monthly' | 'yearly') => 
+      apiRequest("/api/upgrade-subscription", "POST", { planType }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-subscription'] });
+      toast({
+        title: "アップグレード完了",
+        description: data.message,
+        variant: "default",
+      });
+    },
+    onError: (error) => {
+      console.error("Upgrade subscription error:", error);
+      toast({
+        title: "エラー",
+        description: "アップグレードに失敗しました",
+        variant: "destructive",
+      });
+    },
+  });
 
+
+
+  const handleUpgradeSubscription = (planType: 'monthly' | 'yearly') => {
+    upgradeSubscriptionMutation.mutate(planType);
+  };
 
   const handleCreateScenario = () => {
     if (newScenario.title && newScenario.description) {
@@ -881,22 +906,43 @@ export default function MyPage() {
               <CardContent>
                 <div className="space-y-4">
                   {subscription?.subscriptionType === 'standard' ? (
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">プレミアムプランにアップグレード</h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            無制限問題、カスタムシナリオ、詳細分析機能
-                          </p>
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">プレミアム月額プランにアップグレード</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              無制限問題、カスタムシナリオ、詳細分析機能（日割り計算でアップグレード）
+                            </p>
+                          </div>
+                          <Button 
+                            className="bg-purple-600 hover:bg-purple-700"
+                            onClick={() => handleUpgradeSubscription('monthly')}
+                            disabled={upgradeSubscriptionMutation.isPending}
+                          >
+                            <Crown className="w-4 h-4 mr-2" />
+                            {upgradeSubscriptionMutation.isPending ? "処理中..." : "月額にアップグレード"}
+                          </Button>
                         </div>
-                        <Button 
-                          className="bg-purple-600 hover:bg-purple-700"
-                          onClick={() => createCustomerPortalMutation.mutate()}
-                          disabled={createCustomerPortalMutation.isPending}
-                        >
-                          <Crown className="w-4 h-4 mr-2" />
-                          {createCustomerPortalMutation.isPending ? "処理中..." : "アップグレード"}
-                        </Button>
+                      </div>
+                      
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">プレミアム年間プランにアップグレード</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              2ヶ月分お得、無制限問題、カスタムシナリオ（日割り計算でアップグレード）
+                            </p>
+                          </div>
+                          <Button 
+                            className="bg-purple-600 hover:bg-purple-700"
+                            onClick={() => handleUpgradeSubscription('yearly')}
+                            disabled={upgradeSubscriptionMutation.isPending}
+                          >
+                            <Crown className="w-4 h-4 mr-2" />
+                            {upgradeSubscriptionMutation.isPending ? "処理中..." : "年間にアップグレード"}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (

@@ -48,6 +48,7 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   planName: varchar("plan_name"), // standard_monthly, premium_yearly, etc.
   stripeCustomerId: varchar("stripe_customer_id"),
   stripeSubscriptionId: varchar("stripe_subscription_id"),
+  stripeSubscriptionItemId: varchar("stripe_subscription_item_id"), // For subscription upgrades
   validUntil: timestamp("valid_until"),
   trialStart: timestamp("trial_start"),
   isAdmin: boolean("is_admin").default(false).notNull(),
