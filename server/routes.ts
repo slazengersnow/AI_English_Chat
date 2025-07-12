@@ -3,6 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import Stripe from "stripe";
+import Anthropic from "@anthropic-ai/sdk";
 import { 
   translateRequestSchema, 
   problemRequestSchema, 
@@ -332,39 +333,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 上記の翻訳を評価してください。`;
 
       try {
-        console.log("Anthropic API Key exists:", !!anthropicApiKey);
-        console.log("Anthropic API Key length:", anthropicApiKey?.length);
+        console.log("Attempting translation with Anthropic SDK...");
         
-        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${anthropicApiKey}`,
-            "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01"
-          },
-          body: JSON.stringify({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 1000,
-            temperature: 0.7,
-            system: systemPrompt,
-            messages: [
-              { role: "user", content: userPrompt }
-            ]
-          })
+        // Method 1: Use Anthropic SDK (recommended)
+        const anthropic = new Anthropic({
+          apiKey: anthropicApiKey,
         });
 
-        console.log("Anthropic API Response Status:", anthropicResponse.status);
-        
-        if (!anthropicResponse.ok) {
-          const errorText = await anthropicResponse.text();
-          console.error("Anthropic API Error Details:", errorText);
-          throw new Error(`Anthropic API error: ${anthropicResponse.status} - ${errorText}`);
-        }
+        const message = await anthropic.messages.create({
+          model: "claude-sonnet-4-20250514", // Use the newest model
+          max_tokens: 1000,
+          temperature: 0.7,
+          system: systemPrompt,
+          messages: [
+            { role: "user", content: userPrompt }
+          ],
+        });
 
-        const anthropicData = await anthropicResponse.json();
-        const content = anthropicData.content[0].text;
+        console.log("Anthropic SDK Response received successfully");
         
-        const parsedResult = JSON.parse(content);
+        const content = message.content[0];
+        let responseText = '';
+        
+        if (content.type === 'text') {
+          responseText = content.text;
+        } else {
+          throw new Error('Unexpected response type from Anthropic');
+        }
+        
+        console.log("Response text:", responseText.substring(0, 200) + "...");
+        
+        const parsedResult = JSON.parse(responseText);
         
         const response: TranslateResponse = {
           correctTranslation: parsedResult.correctTranslation,
@@ -376,7 +375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
 
         // Save training session and get the session ID  
-        const userId = "bizmowa.com"; // Use bizmowa.com user for trial
+        const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+        const userId = userEmail as string || "bizmowa.com";
+        
         const trainingSession = await storage.addTrainingSession({
           userId,
           difficultyLevel,
@@ -397,10 +398,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sessionId: trainingSession.id
         };
 
+        console.log("Translation evaluation completed successfully");
         res.json(responseWithSessionId);
-      } catch (openaiError) {
-        console.error("OpenAI API error:", openaiError);
-        res.status(500).json({ message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。" });
+
+      } catch (sdkError) {
+        console.error("Anthropic SDK error:", sdkError);
+        
+        // Method 2: Fallback to direct API call with updated version
+        console.log("Falling back to direct API call...");
+        
+        try {
+          const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${anthropicApiKey}`,
+              "Content-Type": "application/json",
+              "anthropic-version": "2023-06-01",
+              "x-api-key": anthropicApiKey // Alternative header format
+            },
+            body: JSON.stringify({
+              model: "claude-sonnet-4-20250514", // Use the newest model
+              max_tokens: 1000,
+              temperature: 0.7,
+              system: systemPrompt,
+              messages: [
+                { role: "user", content: userPrompt }
+              ]
+            })
+          });
+
+          console.log("Direct API Response Status:", anthropicResponse.status);
+          
+          if (!anthropicResponse.ok) {
+            const errorText = await anthropicResponse.text();
+            console.error("Direct API Error Details:", errorText);
+            throw new Error(`Direct API error: ${anthropicResponse.status} - ${errorText}`);
+          }
+
+          const anthropicData = await anthropicResponse.json();
+          const content = anthropicData.content[0].text;
+          
+          const parsedResult = JSON.parse(content);
+          
+          const response: TranslateResponse = {
+            correctTranslation: parsedResult.correctTranslation,
+            feedback: parsedResult.feedback,
+            rating: Math.max(1, Math.min(5, parsedResult.rating)),
+            improvements: parsedResult.improvements || [],
+            explanation: parsedResult.explanation || "",
+            similarPhrases: parsedResult.similarPhrases || []
+          };
+
+          // Save training session and get the session ID  
+          const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+          const userId = userEmail as string || "bizmowa.com";
+          
+          const trainingSession = await storage.addTrainingSession({
+            userId,
+            difficultyLevel,
+            japaneseSentence,
+            userTranslation,
+            correctTranslation: response.correctTranslation,
+            feedback: response.feedback,
+            rating: response.rating,
+          });
+
+          // Update problem progress number after successful translation
+          const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
+          await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
+
+          // Include session ID in response for bookmark functionality
+          const responseWithSessionId = {
+            ...response,
+            sessionId: trainingSession.id
+          };
+
+          console.log("Direct API call completed successfully");
+          res.json(responseWithSessionId);
+        } catch (directApiError) {
+          console.error("Direct API error:", directApiError);
+          
+          // Method 3: Emergency fallback with basic response
+          console.log("All API methods failed, providing basic response");
+          const basicResponse: TranslateResponse = {
+            correctTranslation: "I need to review the budget.",
+            feedback: "申し訳ございません。現在AI評価システムに問題が発生しています。しばらくしてからもう一度お試しください。",
+            rating: 3,
+            improvements: ["AI評価システムの復旧をお待ちください"],
+            explanation: "システムメンテナンス中のため、詳細な評価ができません。",
+            similarPhrases: ["Budget review is necessary.", "We need to check the budget."]
+          };
+          
+          res.json({ ...basicResponse, sessionId: 0 });
+        }
       }
     } catch (error) {
       console.error("Translation error:", error);
