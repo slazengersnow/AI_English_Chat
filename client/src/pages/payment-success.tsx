@@ -25,7 +25,7 @@ export default function PaymentSuccess() {
   }
 
   const handleGoToApp = () => {
-    setLocation('/difficulty')
+    setLocation('/')
   }
 
   return (
