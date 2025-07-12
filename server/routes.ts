@@ -63,6 +63,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  const requirePremiumSubscription = async (req: any, res: any, next: any) => {
+    try {
+      const subscription = await storage.getUserSubscription();
+      if (!subscription || 
+          subscription.subscriptionType !== 'premium' || 
+          !['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+        return res.status(403).json({ 
+          message: "プレミアムプランが必要です",
+          needsPremium: true 
+        });
+      }
+      next();
+    } catch (error) {
+      console.error("Premium subscription check error:", error);
+      res.status(500).json({ message: "プレミアムサブスクリプションの確認に失敗しました" });
+    }
+  };
+
   // Authentication endpoints
   app.post("/api/auth/signup", async (req, res) => {
     try {
@@ -1190,7 +1208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/custom-scenarios", async (req, res) => {
+  app.post("/api/custom-scenarios", requirePremiumSubscription, async (req, res) => {
     try {
       const { title, description } = req.body;
       const scenario = await storage.addCustomScenario({ title, description });
@@ -1200,7 +1218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/custom-scenarios/:id", async (req, res) => {
+  app.put("/api/custom-scenarios/:id", requirePremiumSubscription, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { title, description } = req.body;
@@ -1211,7 +1229,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/custom-scenarios/:id", async (req, res) => {
+  app.delete("/api/custom-scenarios/:id", requirePremiumSubscription, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await storage.deleteCustomScenario(id);
@@ -1236,7 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate simulation problem
-  app.get("/api/simulation-problem/:scenarioId", async (req, res) => {
+  app.get("/api/simulation-problem/:scenarioId", requirePremiumSubscription, async (req, res) => {
     try {
       const scenarioId = parseInt(req.params.scenarioId);
       const scenario = await storage.getCustomScenario(scenarioId);
@@ -1346,7 +1364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Evaluate simulation translation
-  app.post("/api/simulation-translate", async (req, res) => {
+  app.post("/api/simulation-translate", requirePremiumSubscription, async (req, res) => {
     try {
       const { scenarioId, japaneseSentence, userTranslation, context } = req.body;
       
