@@ -20,14 +20,15 @@ interface PlanPriceConfig {
 }
 
 export default function SimplePriceSetup() {
+  const [currentMode, setCurrentMode] = useState<'test' | 'production'>('test')
   const [plans, setPlans] = useState<PlanPriceConfig[]>([
     {
       id: 'standard_monthly',
       name: 'スタンダード月額',
       displayPrice: '¥980',
       description: '1日50問まで、基本練習機能',
-      currentPriceId: 'price_1ReXHSHridtc6DvMOjCbo2VK',
-      newPriceId: 'price_1ReXHSHridtc6DvMOjCbo2VK',
+      currentPriceId: 'price_1RjslTHridtc6DvMCNUU778G',
+      newPriceId: 'price_1RjslTHridtc6DvMCNUU778G',
       verified: false
     },
     {
@@ -35,8 +36,8 @@ export default function SimplePriceSetup() {
       name: 'スタンダード年間',
       displayPrice: '¥9,800',
       description: '1日50問まで、基本練習機能（2ヶ月分お得）',
-      currentPriceId: 'price_1ReXOGHridtc6DvM8L2KO7KO',
-      newPriceId: 'price_1ReXOGHridtc6DvM8L2KO7KO',
+      currentPriceId: 'price_1RjsmiHridtc6DvMWQXBcaJ1',
+      newPriceId: 'price_1RjsmiHridtc6DvMWQXBcaJ1',
       verified: false
     },
     {
@@ -44,8 +45,8 @@ export default function SimplePriceSetup() {
       name: 'プレミアム月額',
       displayPrice: '¥1,300',
       description: '1日100問まで、カスタムシナリオ・復習機能',
-      currentPriceId: 'price_1ReXP9Hridtc6DvMpgawL58K',
-      newPriceId: 'price_1ReXP9Hridtc6DvMpgawL58K',
+      currentPriceId: 'price_1RjslwHridtc6DvMshQinr44',
+      newPriceId: 'price_1RjslwHridtc6DvMshQinr44',
       verified: false
     },
     {
@@ -53,8 +54,8 @@ export default function SimplePriceSetup() {
       name: 'プレミアム年間',
       displayPrice: '¥13,000',
       description: '1日100問まで、全機能（2ヶ月分お得）',
-      currentPriceId: 'price_1ReXPnHridtc6DvMQaW7NC6w',
-      newPriceId: 'price_1ReXPnHridtc6DvMQaW7NC6w',
+      currentPriceId: 'price_1Rjsn6Hridtc6DvMGQJaqBid',
+      newPriceId: 'price_1Rjsn6Hridtc6DvMGQJaqBid',
       verified: false
     }
   ])
@@ -63,6 +64,21 @@ export default function SimplePriceSetup() {
   const [availablePrices, setAvailablePrices] = useState<any[]>([])
   const [isLoadingPrices, setIsLoadingPrices] = useState(false)
   const { toast } = useToast()
+
+  // Price configurations for easy switching
+  const testPrices = {
+    standard_monthly: 'price_1RjslTHridtc6DvMCNUU778G',
+    standard_yearly: 'price_1RjsmiHridtc6DvMWQXBcaJ1',
+    premium_monthly: 'price_1RjslwHridtc6DvMshQinr44',
+    premium_yearly: 'price_1Rjsn6Hridtc6DvMGQJaqBid'
+  }
+
+  const productionPrices = {
+    standard_monthly: 'price_1ReXHSHridtc6DvMOjCbo2VK',
+    standard_yearly: 'price_1ReXOGHridtc6DvM8L2KO7KO',
+    premium_monthly: 'price_1ReXP9Hridtc6DvMpgawL58K',
+    premium_yearly: 'price_1ReXPnHridtc6DvMQaW7NC6w'
+  }
 
   // Load current configuration
   useEffect(() => {
@@ -175,6 +191,59 @@ export default function SimplePriceSetup() {
     })
   }
 
+  const switchMode = async (mode: 'test' | 'production') => {
+    setIsUpdating(true)
+    
+    try {
+      const priceIds = mode === 'test' ? testPrices : productionPrices
+      
+      const response = await fetch('/api/save-price-configuration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          mode,
+          ...priceIds
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        setCurrentMode(mode)
+        
+        // Update plans with new price IDs
+        setPlans(prev => prev.map(plan => ({
+          ...plan,
+          currentPriceId: priceIds[plan.id as keyof typeof priceIds],
+          newPriceId: priceIds[plan.id as keyof typeof priceIds]
+        })))
+        
+        toast({
+          title: `${mode === 'test' ? 'テスト' : '本番'}モードに切り替えました`,
+          description: `${mode === 'test' ? '¥0のテスト価格' : '実際の料金'}で決済されます`,
+          duration: 3000,
+        })
+      } else {
+        toast({
+          title: "切り替え失敗",
+          description: data.message,
+          variant: "destructive",
+          duration: 3000,
+        })
+      }
+    } catch (error) {
+      console.error('Mode switch error:', error)
+      toast({
+        title: "切り替え失敗",
+        description: "モードの切り替え中にエラーが発生しました",
+        variant: "destructive",
+        duration: 3000,
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   const saveConfiguration = async () => {
     setIsUpdating(true)
     
@@ -240,6 +309,43 @@ export default function SimplePriceSetup() {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">価格ID設定</h1>
           <p className="text-gray-600">各プランの価格IDを設定してください</p>
+        </div>
+
+        {/* Mode Switch Card */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">モード切り替え</h2>
+          
+          <div className="flex items-center space-x-4 mb-6">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${currentMode === 'test' ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+              <span className={`text-sm font-medium ${currentMode === 'test' ? 'text-green-700' : 'text-gray-500'}`}>
+                テストモード（¥0）
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${currentMode === 'production' ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+              <span className={`text-sm font-medium ${currentMode === 'production' ? 'text-blue-700' : 'text-gray-500'}`}>
+                本番モード（実際の料金）
+              </span>
+            </div>
+          </div>
+          
+          <div className="flex space-x-4">
+            <Button
+              onClick={() => switchMode('test')}
+              disabled={isUpdating || currentMode === 'test'}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isUpdating ? 'switching...' : 'テストモードに切り替え'}
+            </Button>
+            <Button
+              onClick={() => switchMode('production')}
+              disabled={isUpdating || currentMode === 'production'}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {isUpdating ? 'switching...' : '本番モードに切り替え'}
+            </Button>
+          </div>
         </div>
 
         <Alert className="mb-6">
