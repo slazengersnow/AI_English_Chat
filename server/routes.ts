@@ -49,13 +49,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware to check subscription status
   const requireActiveSubscription = async (req: any, res: any, next: any) => {
     try {
-      const subscription = await storage.getUserSubscription();
+      // Get user ID from headers
+      const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+      let userId = "bizmowa.com"; // Default fallback
+      
+      if (userEmail) {
+        userId = userEmail as string;
+      }
+      
+      console.log("requireActiveSubscription - Checking subscription for user:", userId);
+      const subscription = await storage.getUserSubscription(userId);
+      
       if (!subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+        console.log("requireActiveSubscription - No valid subscription found for user:", userId);
         return res.status(403).json({ 
           message: "アクティブなサブスクリプションが必要です",
           needsSubscription: true 
         });
       }
+      
+      console.log("requireActiveSubscription - Valid subscription found:", subscription);
       next();
     } catch (error) {
       console.error("Subscription check error:", error);
@@ -65,15 +78,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const requirePremiumSubscription = async (req: any, res: any, next: any) => {
     try {
-      const subscription = await storage.getUserSubscription();
+      // Get user ID from headers
+      const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+      let userId = "bizmowa.com"; // Default fallback
+      
+      if (userEmail) {
+        userId = userEmail as string;
+      }
+      
+      console.log("requirePremiumSubscription - Checking premium subscription for user:", userId);
+      const subscription = await storage.getUserSubscription(userId);
+      
       if (!subscription || 
           subscription.subscriptionType !== 'premium' || 
           !['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+        console.log("requirePremiumSubscription - No valid premium subscription found for user:", userId);
         return res.status(403).json({ 
           message: "プレミアムプランが必要です",
           needsPremium: true 
         });
       }
+      
+      console.log("requirePremiumSubscription - Valid premium subscription found:", subscription);
       next();
     } catch (error) {
       console.error("Premium subscription check error:", error);
