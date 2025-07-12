@@ -276,9 +276,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { japaneseSentence, userTranslation, difficultyLevel } = translateRequestSchema.parse(req.body);
       
-      const openaiApiKey = process.env.OPENAI_API_KEY;
-      if (!openaiApiKey) {
-        return res.status(500).json({ message: "OpenAI API key not configured" });
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+      if (!anthropicApiKey) {
+        return res.status(500).json({ message: "Anthropic API key not configured" });
       }
 
       const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。ユーザーの日本語から英語への翻訳を評価し、以下のJSON形式で返答してください。
@@ -306,30 +306,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 上記の翻訳を評価してください。`;
 
       try {
-        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${openaiApiKey}`,
-            "Content-Type": "application/json"
+            "Authorization": `Bearer ${anthropicApiKey}`,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
           },
           body: JSON.stringify({
-            model: "gpt-4o",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt }
-            ],
+            model: "claude-3-haiku-20240307",
             max_tokens: 1000,
             temperature: 0.7,
-            response_format: { type: "json_object" }
+            system: systemPrompt,
+            messages: [
+              { role: "user", content: userPrompt }
+            ]
           })
         });
 
-        if (!openaiResponse.ok) {
-          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        if (!anthropicResponse.ok) {
+          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
         }
 
-        const openaiData = await openaiResponse.json();
-        const content = openaiData.choices[0].message.content;
+        const anthropicData = await anthropicResponse.json();
+        const content = anthropicData.content[0].text;
         
         const parsedResult = JSON.parse(content);
         
@@ -1331,9 +1331,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "シナリオが見つかりません" });
       }
 
-      const openaiApiKey = process.env.OPENAI_API_KEY;
-      if (!openaiApiKey) {
-        return res.status(500).json({ message: "OpenAI API key not configured" });
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+      if (!anthropicApiKey) {
+        return res.status(500).json({ message: "Anthropic API key not configured" });
       }
 
       const prompt = `以下のシミュレーション設定に基づいて、実践的な日本語文を1つ生成してください。
@@ -1350,29 +1350,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 実際の場面で使われそうな自然な日本語文を生成してください。`;
 
       try {
-        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${openaiApiKey}`,
-            "Content-Type": "application/json"
+            "Authorization": `Bearer ${anthropicApiKey}`,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
           },
           body: JSON.stringify({
-            model: "gpt-4o",
-            messages: [
-              { role: "user", content: prompt }
-            ],
+            model: "claude-3-haiku-20240307",
             max_tokens: 500,
             temperature: 0.8,
-            response_format: { type: "json_object" }
+            messages: [
+              { role: "user", content: prompt }
+            ]
           })
         });
 
-        if (!openaiResponse.ok) {
-          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        if (!anthropicResponse.ok) {
+          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
         }
 
-        const openaiData = await openaiResponse.json();
-        const result = JSON.parse(openaiData.choices[0].message.content);
+        const anthropicData = await anthropicResponse.json();
+        const result = JSON.parse(anthropicData.content[0].text);
         
         // Track simulation problems to prevent duplicates
         const sessionId = `${getSessionId(req)}-simulation-${scenarioId}`;
@@ -1383,26 +1383,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const variationPrompt = `${prompt}\n\n既に使用された問題: ${Array.from(usedProblems).join(', ')}\n\n上記とは異なる新しい問題を生成してください。`;
           
           try {
-            const retryResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+            const retryResponse = await fetch("https://api.anthropic.com/v1/messages", {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${openaiApiKey}`,
-                "Content-Type": "application/json"
+                "Authorization": `Bearer ${anthropicApiKey}`,
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
               },
               body: JSON.stringify({
-                model: "gpt-4o",
-                messages: [
-                  { role: "user", content: variationPrompt }
-                ],
+                model: "claude-3-haiku-20240307",
                 max_tokens: 500,
                 temperature: 0.9,
-                response_format: { type: "json_object" }
+                messages: [
+                  { role: "user", content: variationPrompt }
+                ]
               })
             });
             
             if (retryResponse.ok) {
               const retryData = await retryResponse.json();
-              const retryResult = JSON.parse(retryData.choices[0].message.content);
+              const retryResult = JSON.parse(retryData.content[0].text);
               markProblemAsUsed(sessionId, retryResult.japaneseSentence);
               
               return res.json({
@@ -1421,8 +1421,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           japaneseSentence: result.japaneseSentence,
           context: result.context || scenario.description
         });
-      } catch (openaiError) {
-        console.error("OpenAI API error:", openaiError);
+      } catch (anthropicError) {
+        console.error("Anthropic API error:", anthropicError);
         res.status(500).json({ message: "問題生成に失敗しました" });
       }
     } catch (error) {
@@ -1436,9 +1436,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { scenarioId, japaneseSentence, userTranslation, context } = req.body;
       
-      const openaiApiKey = process.env.OPENAI_API_KEY;
-      if (!openaiApiKey) {
-        return res.status(500).json({ message: "OpenAI API key not configured" });
+      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+      if (!anthropicApiKey) {
+        return res.status(500).json({ message: "Anthropic API key not configured" });
       }
 
       const scenario = await storage.getCustomScenario(scenarioId);
@@ -1465,29 +1465,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }`;
 
       try {
-        const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${openaiApiKey}`,
-            "Content-Type": "application/json"
+            "Authorization": `Bearer ${anthropicApiKey}`,
+            "Content-Type": "application/json",
+            "anthropic-version": "2023-06-01"
           },
           body: JSON.stringify({
-            model: "gpt-4o",
-            messages: [
-              { role: "user", content: prompt }
-            ],
+            model: "claude-3-haiku-20240307",
             max_tokens: 1000,
             temperature: 0.7,
-            response_format: { type: "json_object" }
+            messages: [
+              { role: "user", content: prompt }
+            ]
           })
         });
 
-        if (!openaiResponse.ok) {
-          throw new Error(`OpenAI API error: ${openaiResponse.status}`);
+        if (!anthropicResponse.ok) {
+          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
         }
 
-        const openaiData = await openaiResponse.json();
-        const parsedResult = JSON.parse(openaiData.choices[0].message.content);
+        const anthropicData = await anthropicResponse.json();
+        const parsedResult = JSON.parse(anthropicData.content[0].text);
         
         const response = {
           correctTranslation: parsedResult.correctTranslation,
@@ -1509,8 +1509,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         res.json(response);
-      } catch (openaiError) {
-        console.error("OpenAI API error:", openaiError);
+      } catch (anthropicError) {
+        console.error("Anthropic API error:", anthropicError);
         res.status(500).json({ message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。" });
       }
     } catch (error) {

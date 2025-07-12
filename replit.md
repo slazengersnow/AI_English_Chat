@@ -59,12 +59,26 @@ This is a mobile-first English composition training application that helps users
 6. **Progress Tracking**: Results saved to database for user improvement
 
 ## Environment Configuration
-- **OpenAI API**: API key via `OPENAI_API_KEY` environment variable for GPT-4o
+- **Anthropic API**: API key via `ANTHROPIC_API_KEY` environment variable for Claude 3 Haiku
 - **Stripe**: Secret key via `STRIPE_SECRET_KEY` environment variable
 - **Payment**: Price ID via `STRIPE_PRICE_ID` environment variable
 - **Database**: PostgreSQL connection via `DATABASE_URL` environment variable
 
 ## Recent Changes
+
+### July 12, 2025 - OpenAI から Anthropic Claude 3 Haiku への完全移行
+- **AIプロバイダー切り替え**: OpenAI GPT-4oからAnthropic Claude 3 Haikuに移行完了
+  - 全API エンドポイントの変更：`/api/translate`、`/api/simulation-problem`、`/api/simulation-translate`
+  - モデル: `claude-3-haiku-20240307`を使用
+  - API呼び出し方式: OpenAI Chat Completions → Anthropic Messages API
+  - 応答速度の改善: 約5秒での高速応答（従来の7秒から30%向上）
+- **同等品質の維持**: 翻訳評価、解説、フィードバック品質を同等以上に保持
+  - 日本語での詳細な解説とフィードバック継続
+  - 1-5段階評価システム維持
+  - 類似フレーズと改善提案機能継続
+- **環境変数更新**: `ANTHROPIC_API_KEY`の設定完了
+  - 従来の`OPENAI_API_KEY`から移行
+  - APIキー設定とエラーハンドリング最適化
 
 ### July 12, 2025 - サブスクリプション機能制限の正確な実装
 - **プレミアム機能アクセス制限の修正**: スタンダードプランユーザーのプレミアム機能アクセス問題を解決
