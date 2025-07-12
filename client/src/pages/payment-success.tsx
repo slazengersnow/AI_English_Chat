@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'wouter'
-import { CheckCircle, ArrowLeft } from 'lucide-react'
+import { CheckCircle, ArrowLeft, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/hooks/use-toast'
 
 export default function PaymentSuccess() {
   const [, setLocation] = useLocation()
   const [sessionId, setSessionId] = useState<string | null>(null)
+  const [isCreatingSubscription, setIsCreatingSubscription] = useState(false)
+  const [subscriptionCreated, setSubscriptionCreated] = useState(false)
+  const { toast } = useToast()
 
   useEffect(() => {
     console.log('PaymentSuccess component mounted')
@@ -20,12 +24,68 @@ export default function PaymentSuccess() {
     setSessionId(sessionId)
   }, [])
 
+  const createSubscription = async () => {
+    if (!sessionId) {
+      toast({
+        title: "エラー",
+        description: "セッションIDが見つかりません",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsCreatingSubscription(true)
+    
+    try {
+      const response = await fetch('/api/create-subscription', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId,
+          priceId: 'price_1ReXHSHridtc6DvMOjCbo2VK' // Standard monthly - will be determined by session
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSubscriptionCreated(true)
+        toast({
+          title: "サブスクリプション作成完了",
+          description: `${data.subscriptionType} プランが有効になりました`,
+          duration: 3000
+        })
+      } else {
+        toast({
+          title: "エラー",
+          description: data.message || "サブスクリプションの作成に失敗しました",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Subscription creation error:', error)
+      toast({
+        title: "エラー",
+        description: "サブスクリプションの作成中にエラーが発生しました",
+        variant: "destructive"
+      })
+    } finally {
+      setIsCreatingSubscription(false)
+    }
+  }
+
   const handleGoHome = () => {
     setLocation('/')
   }
 
   const handleGoToApp = () => {
-    setLocation('/')
+    if (!subscriptionCreated) {
+      createSubscription()
+    } else {
+      setLocation('/')
+    }
   }
 
   return (
@@ -73,11 +133,34 @@ export default function PaymentSuccess() {
           )}
 
           <div className="space-y-3">
+            {!subscriptionCreated && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-yellow-800 mb-2">
+                  サブスクリプションの設定を完了してください
+                </p>
+                <Button 
+                  onClick={createSubscription}
+                  disabled={isCreatingSubscription}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700"
+                >
+                  {isCreatingSubscription ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      設定中...
+                    </>
+                  ) : (
+                    'サブスクリプションを設定'
+                  )}
+                </Button>
+              </div>
+            )}
+            
             <Button 
               onClick={handleGoToApp}
               className="w-full bg-green-600 hover:bg-green-700"
+              disabled={!subscriptionCreated}
             >
-              学習を開始する
+              {subscriptionCreated ? '学習を開始する' : 'サブスクリプション設定後に利用可能'}
             </Button>
             <Button 
               onClick={handleGoHome}

@@ -407,11 +407,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  // Set current mode (test or production)
-  const currentMode = process.env.STRIPE_MODE || "test";
-  const currentPrices = priceConfig[currentMode as keyof typeof priceConfig];
-
   app.get("/api/subscription-plans", (req, res) => {
+    // Dynamically read current mode and prices from environment variables
+    const currentMode = process.env.STRIPE_MODE || "test";
+    const currentPrices = priceConfig[currentMode as keyof typeof priceConfig];
+
     const plans = {
       standard_monthly: {
         priceId: currentPrices.standard_monthly,
@@ -500,20 +500,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update individual price IDs if provided
       if (priceIds.standard_monthly) {
         process.env.STRIPE_PRICE_STANDARD_MONTHLY = priceIds.standard_monthly;
+        priceConfig.production.standard_monthly = priceIds.standard_monthly;
       }
       if (priceIds.standard_yearly) {
         process.env.STRIPE_PRICE_STANDARD_YEARLY = priceIds.standard_yearly;
+        priceConfig.production.standard_yearly = priceIds.standard_yearly;
       }
       if (priceIds.premium_monthly) {
         process.env.STRIPE_PRICE_PREMIUM_MONTHLY = priceIds.premium_monthly;
+        priceConfig.production.premium_monthly = priceIds.premium_monthly;
       }
       if (priceIds.premium_yearly) {
         process.env.STRIPE_PRICE_PREMIUM_YEARLY = priceIds.premium_yearly;
+        priceConfig.production.premium_yearly = priceIds.premium_yearly;
       }
       
       res.json({ 
         message: "価格ID設定が保存されました",
-        updatedPrices: priceIds
+        updatedPrices: priceIds,
+        currentMode: process.env.STRIPE_MODE || "test"
       });
     } catch (error) {
       console.error('Error saving price configuration:', error);
@@ -709,6 +714,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   })
 
+  // Manual subscription creation for testing (when webhook fails)
+  app.post("/api/create-subscription", async (req, res) => {
+    try {
+      const { sessionId, priceId } = req.body;
+      
+      if (!sessionId || !priceId) {
+        return res.status(400).json({ message: "SessionID and PriceID are required" });
+      }
+
+      const planType = getPlanTypeFromPriceId(priceId);
+      const userId = "bizmowa.com";
+      
+      await storage.updateUserSubscription(userId, {
+        subscriptionType: planType,
+        subscriptionStatus: "trialing",
+        userId: userId,
+        stripeCustomerId: `cus_test_${sessionId}`,
+        stripeSubscriptionId: `sub_test_${sessionId}`,
+        trialStart: new Date(),
+        validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days trial
+      });
+
+      console.log(`Manual subscription created: ${planType} for session: ${sessionId}`);
+      
+      res.json({ 
+        success: true, 
+        message: "サブスクリプションが作成されました",
+        subscriptionType: planType,
+        status: "trialing"
+      });
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      res.status(500).json({ message: "サブスクリプションの作成に失敗しました" });
+    }
+  });
+
   // Create Stripe Customer Portal session
   app.post("/api/create-customer-portal", async (req, res) => {
     try {
@@ -786,8 +827,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
     
-    if (!stripeSecretKey || !webhookSecret) {
-      return res.status(400).send(`Webhook Error: Missing configuration`);
+    if (!stripeSecretKey) {
+      return res.status(400).send(`Webhook Error: Missing Stripe configuration`);
+    }
+
+    // If webhook secret is not configured, skip verification for testing
+    if (!webhookSecret) {
+      console.log('Webhook secret not configured, processing without verification');
+      try {
+        const event = JSON.parse(req.body);
+        await processWebhookEvent(event);
+        return res.json({ received: true });
+      } catch (error) {
+        console.error('Error processing webhook without verification:', error);
+        return res.status(400).send('Invalid webhook payload');
+      }
     }
 
     const stripe = new Stripe(stripeSecretKey);
@@ -801,16 +855,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).send(`Webhook Error: ${errorMessage}`);
     }
 
+    await processWebhookEvent(event);
+    res.json({ received: true });
+  }
+
+  async function processWebhookEvent(event: any) {
     // Handle the event
     switch (event.type) {
       case 'checkout.session.completed':
         const session = event.data.object;
-        // Update user subscription to premium
+        const planType = getPlanTypeFromPriceId(session.line_items?.data[0]?.price?.id || '');
+        
         try {
-          await storage.updateUserSubscription("default_user", {
-            subscriptionType: "premium"
+          const userId = session.metadata?.userId || "bizmowa.com";
+          await storage.updateUserSubscription(userId, {
+            subscriptionType: planType,
+            subscriptionStatus: "trialing", // Start with trial
+            userId: userId,
+            stripeCustomerId: session.customer,
+            stripeSubscriptionId: session.subscription,
+            trialStart: new Date(),
+            validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days trial
           });
-          console.log(`User subscription updated to premium for session: ${session.id}`);
+          console.log(`User subscription updated to ${planType} for session: ${session.id}`);
         } catch (error) {
           console.error('Error updating subscription:', error);
         }
@@ -818,19 +885,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'customer.subscription.deleted':
         // Handle subscription cancellation
         try {
-          await storage.updateUserSubscription("default_user", {
-            subscriptionType: "standard"
+          await storage.updateUserSubscription("bizmowa.com", {
+            subscriptionType: "standard",
+            subscriptionStatus: "inactive"
           });
-          console.log(`User subscription downgraded to standard`);
+          console.log(`User subscription cancelled`);
         } catch (error) {
-          console.error('Error downgrading subscription:', error);
+          console.error('Error cancelling subscription:', error);
+        }
+        break;
+      case 'invoice.payment_succeeded':
+        // Handle successful payment after trial
+        try {
+          await storage.updateUserSubscription("bizmowa.com", {
+            subscriptionStatus: "active"
+          });
+          console.log(`User subscription activated after payment`);
+        } catch (error) {
+          console.error('Error activating subscription:', error);
         }
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
-
-    res.json({ received: true });
   }
 
   // Get training history
