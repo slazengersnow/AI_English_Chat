@@ -458,6 +458,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Save price configuration endpoint
+  app.post("/api/save-price-configuration", async (req, res) => {
+    try {
+      const { priceIds } = req.body;
+      
+      if (!priceIds || typeof priceIds !== 'object') {
+        return res.status(400).json({ message: "価格ID情報が不正です" });
+      }
+      
+      // Save to environment variables (in production, this would be saved to a database or config file)
+      // For this demo, we'll just return success
+      console.log('Saving price configuration:', priceIds);
+      
+      // Update the environment variables dynamically
+      if (priceIds.standard_monthly) {
+        process.env.STRIPE_PRICE_STANDARD_MONTHLY = priceIds.standard_monthly;
+      }
+      if (priceIds.standard_yearly) {
+        process.env.STRIPE_PRICE_STANDARD_YEARLY = priceIds.standard_yearly;
+      }
+      if (priceIds.premium_monthly) {
+        process.env.STRIPE_PRICE_PREMIUM_MONTHLY = priceIds.premium_monthly;
+      }
+      if (priceIds.premium_yearly) {
+        process.env.STRIPE_PRICE_PREMIUM_YEARLY = priceIds.premium_yearly;
+      }
+      
+      res.json({ 
+        message: "価格ID設定が保存されました",
+        updatedPrices: priceIds
+      });
+    } catch (error) {
+      console.error('Error saving price configuration:', error);
+      res.status(500).json({ message: "価格ID設定の保存に失敗しました" });
+    }
+  });
+
   // Update plan configuration endpoint
   app.post("/api/plan-configuration", async (req, res) => {
     try {

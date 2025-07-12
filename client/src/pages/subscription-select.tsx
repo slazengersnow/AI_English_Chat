@@ -301,6 +301,19 @@ export default function SubscriptionSelect() {
         </div>
 
         <div className="text-center mt-12">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-blue-800 font-semibold mb-2">⚙️ 価格設定について</p>
+            <p className="text-blue-700 text-sm mb-2">
+              価格IDの設定や確認は
+              <a href="/price-setup" className="text-blue-600 hover:underline mx-1 font-semibold">
+                価格設定ページ
+              </a>
+              から行えます。
+            </p>
+            <p className="text-blue-700 text-xs">
+              price_で始まる正しい価格IDを設定してください。
+            </p>
+          </div>
           <p className="text-sm text-gray-600 mb-2">
             ※ 7日間のトライアル期間中はいつでもキャンセル可能です
           </p>
