@@ -41,13 +41,13 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
         }
       }
     } else if (!isLoading && !subscription) {
-      // If no subscription at all, redirect to subscription selection
+      // If no subscription at all, redirect to login instead of subscription selection
       if (window.location.pathname !== '/subscription/select' && 
           window.location.pathname !== '/login' && 
           window.location.pathname !== '/signup' &&
           window.location.pathname !== '/terms') {
-        console.log('SubscriptionGuard - No subscription, redirecting to subscription select');
-        setLocation('/subscription/select');
+        console.log('SubscriptionGuard - No subscription, redirecting to login');
+        setLocation('/login');
       }
     }
   }, [subscription, isLoading, setLocation]);
@@ -74,18 +74,18 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
             </p>
             <div className="space-y-2">
               <Button
-                onClick={() => setLocation('/subscription/select')}
-                className="w-full"
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                プランを選択
-              </Button>
-              <Button
                 variant="outline"
                 onClick={() => setLocation('/login')}
                 className="w-full"
               >
                 ログイン
+              </Button>
+              <Button
+                onClick={() => setLocation('/subscription/select')}
+                className="w-full"
+              >
+                <CreditCard className="w-4 h-4 mr-2" />
+                プランを選択
               </Button>
             </div>
           </CardContent>

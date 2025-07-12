@@ -66,6 +66,16 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 12, 2025 - 管理者アカウント設定とログイン画面デフォルト表示
+- **管理者アカウント作成**: slazengersnow@gmail.com を管理者として設定
+  - パスワード: s05936623
+  - 管理者権限: is_admin: true, role: admin を設定
+  - ADMIN_SETUP.mdファイルを最新パスワードで更新
+- **ログイン画面デフォルト表示**: 未認証ユーザーの初期画面を変更
+  - 従来: プラン選択画面 → 現在: ログイン画面
+  - SubscriptionGuardのリダイレクト先を /login に変更
+  - サブスクリプション必要画面でログインボタンを最優先表示
+
 ### July 12, 2025 - OpenAI から Anthropic Claude 3 Haiku への完全移行
 - **AIプロバイダー切り替え**: OpenAI GPT-4oからAnthropic Claude 3 Haikuに移行完了
   - 全API エンドポイントの変更：`/api/translate`、`/api/simulation-problem`、`/api/simulation-translate`
