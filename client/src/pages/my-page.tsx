@@ -851,25 +851,31 @@ export default function MyPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      {subscription?.subscriptionType === 'premium' || subscription?.subscriptionStatus === 'trialing' ? (
+                      {subscription?.subscriptionType === 'premium' ? (
                         <Crown className="w-6 h-6 text-purple-600" />
                       ) : (
                         <User className="w-6 h-6 text-blue-600" />
                       )}
                       <div>
                         <h3 className="font-semibold text-lg">
-                          {subscription?.subscriptionType === 'premium' || subscription?.subscriptionStatus === 'trialing' ? 'プレミアムプラン' : 'スタンダードプラン'}
+                          {subscription?.subscriptionStatus === 'trialing' 
+                            ? `${subscription?.subscriptionType === 'premium' ? 'プレミアム' : 'スタンダード'}プラン（トライアル中）`
+                            : subscription?.subscriptionType === 'premium' ? 'プレミアムプラン' : 'スタンダードプラン'}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {subscription?.subscriptionType === 'premium' || subscription?.subscriptionStatus === 'trialing'
-                            ? '全機能・無制限アクセス' 
-                            : '基本機能・100問/日'}
+                          {subscription?.subscriptionType === 'premium' && subscription?.subscriptionStatus === 'trialing'
+                            ? '全機能・無制限アクセス（トライアル中）' 
+                            : subscription?.subscriptionType === 'premium' 
+                            ? '全機能・無制限アクセス'
+                            : subscription?.subscriptionStatus === 'trialing'
+                            ? '基本機能・50問/日（トライアル中）'
+                            : '基本機能・50問/日'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant={subscription?.subscriptionType === 'premium' || subscription?.subscriptionStatus === 'trialing' ? 'default' : 'secondary'}>
-                        {subscription?.subscriptionType === 'premium' || subscription?.subscriptionStatus === 'trialing' ? 'プレミアム' : 'スタンダード'}
+                      <Badge variant={subscription?.subscriptionType === 'premium' ? 'default' : 'secondary'}>
+                        {subscription?.subscriptionType === 'premium' ? 'プレミアム' : 'スタンダード'}
                       </Badge>
                     </div>
                   </div>
@@ -884,7 +890,7 @@ export default function MyPage() {
                         </span>
                       </div>
                       <p className="text-sm text-green-700">
-                        トライアル期間終了後、自動的にプレミアムプラン（月額1,300円）に移行されます。
+                        トライアル期間終了後、自動的に{subscription?.subscriptionType === 'premium' ? 'プレミアムプラン（月額1,300円）' : 'スタンダードプラン（月額980円）'}に移行されます。
                       </p>
                     </div>
                   )}
