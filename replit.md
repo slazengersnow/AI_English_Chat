@@ -66,6 +66,23 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
+- **本番デプロイ構成**: Renderでの本番運用に最適化した設定を実装
+  - render.yaml設定ファイルでサービス定義
+  - Dockerfile作成（Node.js 20 Alpine使用）
+  - 本番用ポート設定（PORT環境変数対応）
+  - ヘルスチェックエンドポイント（/health）追加
+- **CI/CDパイプライン**: GitHub Actionsによる自動デプロイ設定
+  - main/masterブランチへのpushで自動デプロイ
+  - ビルドテスト・デプロイフロー実装
+  - Render API連携による自動デプロイ
+- **環境設定**: 本番・開発環境の適切な分離
+  - .env.example作成（必要な環境変数明記）
+  - .gitignore追加（機密情報保護）
+  - build.shスクリプト（デプロイ用）
+  - 包括的なREADME.mdとRENDER_DEPLOY_GUIDE.md作成
+- **開発継続性**: Replit開発環境を維持しながらRender本番運用可能
+
 ### July 12, 2025 - トライアル期間表示とプラン継続設定の実装
 - **トライアル期間表示**: スタンダードプランのトライアル中ユーザーに適切な表示を実装
   - 現在のプランでトライアル期間の残り日数を表示
