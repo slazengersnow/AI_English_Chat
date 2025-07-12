@@ -33,7 +33,7 @@ export function useAuthState() {
   }
 
   const isAuthenticated = !!user
-  const isAdmin = user?.email === 'slazengersnow@gmail.com'
+  const isAdmin = user?.email === 'slazengersnow1@gmail.com'
 
   return {
     user,

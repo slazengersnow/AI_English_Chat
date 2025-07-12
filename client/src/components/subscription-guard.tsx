@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock, CreditCard } from "lucide-react";
 import { UserSubscription } from "@shared/schema";
+import { useAuth } from "@/components/auth-provider";
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
@@ -12,11 +13,17 @@ interface SubscriptionGuardProps {
 
 export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
   const [, setLocation] = useLocation();
+  const { isAdmin } = useAuth();
   
   const { data: subscription, isLoading, error } = useQuery<UserSubscription>({
     queryKey: ["/api/user-subscription"],
     retry: false,
   });
+
+  // Admin users bypass subscription checks
+  if (isAdmin) {
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     if (!isLoading && subscription) {
