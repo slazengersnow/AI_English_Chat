@@ -332,6 +332,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 上記の翻訳を評価してください。`;
 
       try {
+        console.log("Anthropic API Key exists:", !!anthropicApiKey);
+        console.log("Anthropic API Key length:", anthropicApiKey?.length);
+        
         const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: {
@@ -350,8 +353,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
         });
 
+        console.log("Anthropic API Response Status:", anthropicResponse.status);
+        
         if (!anthropicResponse.ok) {
-          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
+          const errorText = await anthropicResponse.text();
+          console.error("Anthropic API Error Details:", errorText);
+          throw new Error(`Anthropic API error: ${anthropicResponse.status} - ${errorText}`);
         }
 
         const anthropicData = await anthropicResponse.json();
