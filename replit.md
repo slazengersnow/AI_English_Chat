@@ -81,6 +81,21 @@ This is a mobile-first English composition training application that helps users
   - ホームページをスキップしてプラン比較ページに直接遷移
   - サブスクリプション未存在時のnull返却でリダイレクト実装
 
+### July 12, 2025 - プラン価格ID設定完了と決済修正
+- **正しい価格ID設定**: 各プランに正しいStripe価格IDを設定
+  - スタンダード月額（¥980）: price_1ReXHSHridtc6DvMOjCbo2VK
+  - スタンダード年間（¥9,800）: price_1ReXOGHridtc6DvM8L2KO7KO
+  - プレミアム月額（¥1,300）: price_1ReXP9Hridtc6DvMpgawL58K
+  - プレミアム年間（¥13,000）: price_1ReXPnHridtc6DvMQaW7NC6w
+- **価格設定システム**: 新しい価格設定ページ（/price-setup）を実装
+  - 各プランの価格IDを個別に設定可能
+  - 価格ID確認機能でprice_で始まる正しいIDかチェック
+  - Stripe価格一覧取得機能とワンクリック割り当て
+  - 設定保存機能でサーバーサイドAPI連携
+- **決済問題の解決**: ProductID（prod_）を価格ID（price_）に正しく修正
+  - 以前はどのプランを選んでも¥13,000で決済される問題があった
+  - 各プランで正しい料金での決済が可能に
+
 ### July 12, 2025 - 価格ID設定システムと決済UX改善
 - **包括的な価格ID管理システム**: 全プラン対応の価格ID設定機能を実装
   - /plan-configuration ページでプラン別設定画面を作成

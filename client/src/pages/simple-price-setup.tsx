@@ -26,8 +26,8 @@ export default function SimplePriceSetup() {
       name: 'スタンダード月額',
       displayPrice: '¥980',
       description: '1日50問まで、基本練習機能',
-      currentPriceId: '',
-      newPriceId: '',
+      currentPriceId: 'price_1ReXHSHridtc6DvMOjCbo2VK',
+      newPriceId: 'price_1ReXHSHridtc6DvMOjCbo2VK',
       verified: false
     },
     {
@@ -35,8 +35,8 @@ export default function SimplePriceSetup() {
       name: 'スタンダード年間',
       displayPrice: '¥9,800',
       description: '1日50問まで、基本練習機能（2ヶ月分お得）',
-      currentPriceId: '',
-      newPriceId: '',
+      currentPriceId: 'price_1ReXOGHridtc6DvM8L2KO7KO',
+      newPriceId: 'price_1ReXOGHridtc6DvM8L2KO7KO',
       verified: false
     },
     {
@@ -44,8 +44,8 @@ export default function SimplePriceSetup() {
       name: 'プレミアム月額',
       displayPrice: '¥1,300',
       description: '1日100問まで、カスタムシナリオ・復習機能',
-      currentPriceId: '',
-      newPriceId: '',
+      currentPriceId: 'price_1ReXP9Hridtc6DvMpgawL58K',
+      newPriceId: 'price_1ReXP9Hridtc6DvMpgawL58K',
       verified: false
     },
     {
@@ -53,8 +53,8 @@ export default function SimplePriceSetup() {
       name: 'プレミアム年間',
       displayPrice: '¥13,000',
       description: '1日100問まで、全機能（2ヶ月分お得）',
-      currentPriceId: '',
-      newPriceId: '',
+      currentPriceId: 'price_1ReXPnHridtc6DvMQaW7NC6w',
+      newPriceId: 'price_1ReXPnHridtc6DvMQaW7NC6w',
       verified: false
     }
   ])

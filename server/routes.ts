@@ -394,28 +394,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/subscription-plans", (req, res) => {
     const plans = {
       standard_monthly: {
-        priceId: process.env.STRIPE_PRICE_STANDARD_MONTHLY || "prod_SZgeMcEAMDMlDe",
+        priceId: process.env.STRIPE_PRICE_STANDARD_MONTHLY || "price_1ReXHSHridtc6DvMOjCbo2VK",
         name: "スタンダード月額",
-        price: "¥1,980/月",
-        features: ["基本機能", "100問/日", "進捗追跡"]
+        price: "¥980/月",
+        features: ["基本機能", "1日50問まで", "進捗追跡"]
       },
       standard_yearly: {
-        priceId: process.env.STRIPE_PRICE_STANDARD_YEARLY || "prod_SZglW626p1IFsh", 
+        priceId: process.env.STRIPE_PRICE_STANDARD_YEARLY || "price_1ReXOGHridtc6DvM8L2KO7KO", 
         name: "スタンダード年会費",
-        price: "¥19,800/年 (2ヶ月分お得)",
-        features: ["基本機能", "100問/日", "進捗追跡"]
+        price: "¥9,800/年 (2ヶ月分お得)",
+        features: ["基本機能", "1日50問まで", "進捗追跡"]
       },
       premium_monthly: {
-        priceId: process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_1ReXPnHridtc6DvMQaW7NC6w",
+        priceId: process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_1ReXP9Hridtc6DvMpgawL58K",
         name: "プレミアム月額", 
         price: "¥1,300/月",
-        features: ["全機能", "無制限問題", "カスタムシナリオ", "詳細分析"]
+        features: ["全機能", "1日100問まで", "カスタムシナリオ", "詳細分析"]
       },
       premium_yearly: {
-        priceId: process.env.STRIPE_PRICE_PREMIUM_YEARLY || "prod_SZgnjreCBit2Bj",
+        priceId: process.env.STRIPE_PRICE_PREMIUM_YEARLY || "price_1ReXPnHridtc6DvMQaW7NC6w",
         name: "プレミアム年会費",
-        price: "¥39,800/年 (2ヶ月分お得)", 
-        features: ["全機能", "無制限問題", "カスタムシナリオ", "詳細分析"]
+        price: "¥13,000/年 (2ヶ月分お得)", 
+        features: ["全機能", "1日100問まで", "カスタムシナリオ", "詳細分析"]
       },
       upgrade_to_premium: {
         priceId: process.env.STRIPE_PRICE_UPGRADE_PREMIUM || "prod_SZhAV32kC3oSlf",
@@ -471,7 +471,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For this demo, we'll just return success
       console.log('Saving price configuration:', priceIds);
       
-      // Update the environment variables dynamically
+      // Set the correct price IDs immediately
+      process.env.STRIPE_PRICE_STANDARD_MONTHLY = "price_1ReXHSHridtc6DvMOjCbo2VK";
+      process.env.STRIPE_PRICE_STANDARD_YEARLY = "price_1ReXOGHridtc6DvM8L2KO7KO";
+      process.env.STRIPE_PRICE_PREMIUM_MONTHLY = "price_1ReXP9Hridtc6DvMpgawL58K";
+      process.env.STRIPE_PRICE_PREMIUM_YEARLY = "price_1ReXPnHridtc6DvMQaW7NC6w";
+      
+      // Update the environment variables dynamically if provided
       if (priceIds.standard_monthly) {
         process.env.STRIPE_PRICE_STANDARD_MONTHLY = priceIds.standard_monthly;
       }
@@ -617,10 +623,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Helper function to determine plan type from price ID
   function getPlanTypeFromPriceId(priceId: string): string {
-    const standardMonthly = process.env.STRIPE_PRICE_STANDARD_MONTHLY || "prod_SZgeMcEAMDMlDe";
-    const standardYearly = process.env.STRIPE_PRICE_STANDARD_YEARLY || "prod_SZglW626p1IFsh";
-    const premiumMonthly = process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_1ReXPnHridtc6DvMQaW7NC6w";  
-    const premiumYearly = process.env.STRIPE_PRICE_PREMIUM_YEARLY || "prod_SZgnjreCBit2Bj";
+    const standardMonthly = process.env.STRIPE_PRICE_STANDARD_MONTHLY || "price_1ReXHSHridtc6DvMOjCbo2VK";
+    const standardYearly = process.env.STRIPE_PRICE_STANDARD_YEARLY || "price_1ReXOGHridtc6DvM8L2KO7KO";
+    const premiumMonthly = process.env.STRIPE_PRICE_PREMIUM_MONTHLY || "price_1ReXP9Hridtc6DvMpgawL58K";  
+    const premiumYearly = process.env.STRIPE_PRICE_PREMIUM_YEARLY || "price_1ReXPnHridtc6DvMQaW7NC6w";
     const upgradePremium = process.env.STRIPE_PRICE_UPGRADE_PREMIUM || "prod_SZhAV32kC3oSlf";
 
     if (priceId === standardMonthly || priceId === standardYearly) {
