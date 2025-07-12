@@ -937,13 +937,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user-subscription", async (req, res) => {
     try {
       const subscription = await storage.getUserSubscription();
-      // Default to admin premium for the current user with active status
-      res.json(subscription || { 
-        subscriptionType: "premium", 
-        subscriptionStatus: "active",
-        isAdmin: true,
-        userId: "default_user"
-      });
+      // If no subscription exists, return null to trigger redirect to subscription select
+      if (!subscription) {
+        return res.json(null);
+      }
+      res.json(subscription);
     } catch (error) {
       console.error("Subscription error:", error);
       res.status(500).json({ message: "サブスクリプション情報の取得に失敗しました" });

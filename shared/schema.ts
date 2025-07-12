@@ -53,7 +53,9 @@ export const userSubscriptions = pgTable("user_subscriptions", {
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  uniqueUserId: unique().on(table.userId),
+}));
 
 // Daily progress table
 export const dailyProgress = pgTable("daily_progress", {

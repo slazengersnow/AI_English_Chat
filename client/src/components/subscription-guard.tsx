@@ -33,6 +33,15 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
           setLocation('/subscription/select');
         }
       }
+    } else if (!isLoading && !subscription) {
+      // If no subscription at all, redirect to subscription selection
+      if (window.location.pathname !== '/subscription/select' && 
+          window.location.pathname !== '/login' && 
+          window.location.pathname !== '/signup' &&
+          window.location.pathname !== '/terms') {
+        console.log('SubscriptionGuard - No subscription, redirecting to subscription select');
+        setLocation('/subscription/select');
+      }
     }
   }, [subscription, isLoading, setLocation]);
 

@@ -20,11 +20,24 @@ interface SubscriptionPlan {
 const plans: SubscriptionPlan[] = [
   {
     priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
-    name: "プレミアム（テスト中）",
-    price: "13,000",
+    name: "スタンダード",
+    price: "980",
     period: "月",
     features: [
-      "月額13,000円（テスト価格）",
+      "月額980円",
+      "基本練習機能（全レベル対応）",
+      "1日100問まで",
+      "基本的な進捗管理",
+      "基本サポート"
+    ]
+  },
+  {
+    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
+    name: "プレミアム",
+    price: "1,300",
+    period: "月",
+    features: [
+      "月額1,300円",
       "基本練習機能（全レベル対応）",
       "無制限問題",
       "カスタムシナリオ作成",
@@ -33,6 +46,36 @@ const plans: SubscriptionPlan[] = [
       "優先サポート"
     ],
     popular: true
+  },
+  {
+    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
+    name: "スタンダード年間",
+    price: "9,800",
+    period: "年",
+    features: [
+      "年会費9,800円（2ヶ月無料）",
+      "基本練習機能（全レベル対応）",
+      "1日100問まで",
+      "基本的な進捗管理",
+      "基本サポート"
+    ],
+    savings: "月額比較で2ヶ月分お得"
+  },
+  {
+    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
+    name: "プレミアム年間",
+    price: "13,000",
+    period: "年",
+    features: [
+      "年会費13,000円（2ヶ月無料）",
+      "基本練習機能（全レベル対応）",
+      "無制限問題",
+      "カスタムシナリオ作成",
+      "詳細な分析機能",
+      "復習機能",
+      "優先サポート"
+    ],
+    savings: "月額比較で2ヶ月分お得"
   }
 ];
 
