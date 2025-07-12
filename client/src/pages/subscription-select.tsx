@@ -20,48 +20,6 @@ interface SubscriptionPlan {
 const plans: SubscriptionPlan[] = [
   {
     priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
-    name: "スタンダード",
-    price: "980",
-    period: "月",
-    features: [
-      "月額980円",
-      "基本練習機能（全レベル対応）",
-      "1日50問まで",
-      "詳しい解説・類似フレーズ",
-      "基本的な進捗管理"
-    ]
-  },
-  {
-    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
-    name: "プレミアム",
-    price: "1,300",
-    period: "月",
-    features: [
-      "月額1,300円",
-      "基本練習機能（全レベル対応）",
-      "1日100問まで",
-      "詳しい解説・類似フレーズ",
-      "カスタムシナリオ作成",
-      "復習機能"
-    ],
-    popular: true
-  },
-  {
-    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
-    name: "スタンダード年間",
-    price: "9,800",
-    period: "年",
-    features: [
-      "年会費9,800円（2ヶ月無料）",
-      "基本練習機能（全レベル対応）",
-      "1日50問まで",
-      "詳しい解説・類似フレーズ",
-      "基本的な進捗管理"
-    ],
-    savings: "月額比較で2ヶ月分お得"
-  },
-  {
-    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
     name: "プレミアム年間",
     price: "13,000",
     period: "年",
@@ -73,6 +31,7 @@ const plans: SubscriptionPlan[] = [
       "カスタムシナリオ作成",
       "復習機能"
     ],
+    popular: true,
     savings: "月額比較で2ヶ月分お得"
   }
 ];
@@ -265,6 +224,19 @@ export default function SubscriptionSelect() {
         </div>
 
         <div className="text-center mt-12">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-blue-800 font-semibold mb-2">📝 その他のプランについて</p>
+            <p className="text-blue-700 text-sm mb-2">
+              ¥980のスタンダードプランや¥1,300のプレミアムプランなど、他の料金プランも準備中です。
+            </p>
+            <p className="text-blue-700 text-sm">
+              価格IDの設定は
+              <a href="/plan-configuration" className="text-blue-600 hover:underline mx-1 font-semibold">
+                プラン設定ページ
+              </a>
+              から行えます。
+            </p>
+          </div>
           <p className="text-sm text-gray-600 mb-2">
             ※ 7日間のトライアル期間中はいつでもキャンセル可能です
           </p>
