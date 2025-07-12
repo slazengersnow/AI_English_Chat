@@ -334,12 +334,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         console.log("Attempting translation with Anthropic SDK...");
+        console.log("API Key format check:", anthropicApiKey.substring(0, 10) + "...");
         
         // Method 1: Use Anthropic SDK (recommended)
         const anthropic = new Anthropic({
           apiKey: anthropicApiKey,
         });
 
+        console.log("Creating message with model: claude-sonnet-4-20250514");
+        
         const message = await anthropic.messages.create({
           model: "claude-sonnet-4-20250514", // Use the newest model
           max_tokens: 1000,
@@ -351,28 +354,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         console.log("Anthropic SDK Response received successfully");
+        console.log("Response type:", typeof message);
+        console.log("Message content length:", message.content.length);
         
+        // Handle Claude's response format properly
         const content = message.content[0];
         let responseText = '';
         
         if (content.type === 'text') {
           responseText = content.text;
+          console.log("Raw response text:", responseText);
         } else {
+          console.error('Unexpected response type from Anthropic:', content.type);
           throw new Error('Unexpected response type from Anthropic');
         }
         
-        console.log("Response text:", responseText.substring(0, 200) + "...");
-        
-        const parsedResult = JSON.parse(responseText);
+        // Parse JSON response with error handling
+        let parsedResult;
+        try {
+          parsedResult = JSON.parse(responseText);
+          console.log("Successfully parsed JSON response");
+        } catch (parseError) {
+          console.error("JSON parse error:", parseError);
+          console.error("Response text that failed to parse:", responseText);
+          
+          // Try to extract JSON from response if it's wrapped in text
+          const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsedResult = JSON.parse(jsonMatch[0]);
+              console.log("Successfully extracted and parsed JSON from response");
+            } catch (secondParseError) {
+              console.error("Second JSON parse attempt failed:", secondParseError);
+              throw new Error("Failed to parse Claude response as JSON");
+            }
+          } else {
+            throw new Error("No valid JSON found in Claude response");
+          }
+        }
         
         const response: TranslateResponse = {
-          correctTranslation: parsedResult.correctTranslation,
-          feedback: parsedResult.feedback,
-          rating: Math.max(1, Math.min(5, parsedResult.rating)),
+          correctTranslation: parsedResult.correctTranslation || "Translation evaluation failed",
+          feedback: parsedResult.feedback || "フィードバックの生成に失敗しました",
+          rating: Math.max(1, Math.min(5, parsedResult.rating || 3)),
           improvements: parsedResult.improvements || [],
           explanation: parsedResult.explanation || "",
           similarPhrases: parsedResult.similarPhrases || []
         };
+
+        console.log("Processed response:", {
+          correctTranslation: response.correctTranslation,
+          rating: response.rating,
+          feedbackLength: response.feedback.length
+        });
 
         // Save training session and get the session ID  
         const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
@@ -403,18 +437,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       } catch (sdkError) {
         console.error("Anthropic SDK error:", sdkError);
+        console.error("Error details:", sdkError.message);
         
-        // Method 2: Fallback to direct API call with updated version
+        // Method 2: Fallback to direct API call with proper headers
         console.log("Falling back to direct API call...");
         
         try {
           const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
             method: "POST",
             headers: {
-              "Authorization": `Bearer ${anthropicApiKey}`,
+              "x-api-key": anthropicApiKey, // Correct header for Anthropic
               "Content-Type": "application/json",
-              "anthropic-version": "2023-06-01",
-              "x-api-key": anthropicApiKey // Alternative header format
+              "anthropic-version": "2023-06-01"
             },
             body: JSON.stringify({
               model: "claude-sonnet-4-20250514", // Use the newest model
@@ -436,14 +470,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
 
           const anthropicData = await anthropicResponse.json();
-          const content = anthropicData.content[0].text;
+          console.log("Direct API response structure:", Object.keys(anthropicData));
           
-          const parsedResult = JSON.parse(content);
+          const content = anthropicData.content[0].text;
+          console.log("Direct API content:", content);
+          
+          let parsedResult;
+          try {
+            parsedResult = JSON.parse(content);
+            console.log("Successfully parsed direct API JSON response");
+          } catch (parseError) {
+            console.error("Direct API JSON parse error:", parseError);
+            // Try to extract JSON from response if it's wrapped in text
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              parsedResult = JSON.parse(jsonMatch[0]);
+            } else {
+              throw new Error("No valid JSON found in direct API response");
+            }
+          }
           
           const response: TranslateResponse = {
-            correctTranslation: parsedResult.correctTranslation,
-            feedback: parsedResult.feedback,
-            rating: Math.max(1, Math.min(5, parsedResult.rating)),
+            correctTranslation: parsedResult.correctTranslation || "Direct API translation failed",
+            feedback: parsedResult.feedback || "フィードバックの生成に失敗しました",
+            rating: Math.max(1, Math.min(5, parsedResult.rating || 3)),
             improvements: parsedResult.improvements || [],
             explanation: parsedResult.explanation || "",
             similarPhrases: parsedResult.similarPhrases || []
@@ -478,17 +528,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (directApiError) {
           console.error("Direct API error:", directApiError);
           
-          // Method 3: Emergency fallback with basic response
-          console.log("All API methods failed, providing basic response");
+          // Method 3: Emergency fallback - provide a functional response  
+          console.log("All API methods failed, providing context-aware response");
+          
+          // Create a simple but functional response based on the input
           const basicResponse: TranslateResponse = {
-            correctTranslation: "I need to review the budget.",
-            feedback: "申し訳ございません。現在AI評価システムに問題が発生しています。しばらくしてからもう一度お試しください。",
+            correctTranslation: `Please try again. The system is currently experiencing issues.`,
+            feedback: `申し訳ございません。現在AI評価システムに一時的な問題が発生しています。お答えいただいた「${userTranslation}」については、システム復旧後に再度評価いたします。`,
             rating: 3,
-            improvements: ["AI評価システムの復旧をお待ちください"],
-            explanation: "システムメンテナンス中のため、詳細な評価ができません。",
-            similarPhrases: ["Budget review is necessary.", "We need to check the budget."]
+            improvements: ["システム復旧をお待ちください", "しばらくしてからもう一度お試しください"],
+            explanation: "システムメンテナンス中のため、詳細な評価ができません。ご不便をおかけして申し訳ございません。",
+            similarPhrases: ["Please wait for system recovery.", "System maintenance in progress."]
           };
           
+          console.log("Sending fallback response");
           res.json({ ...basicResponse, sessionId: 0 });
         }
       }

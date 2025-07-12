@@ -76,12 +76,13 @@ This is a mobile-first English composition training application that helps users
   - SubscriptionGuardのリダイレクト先を /login に変更
   - サブスクリプション必要画面でログインボタンを最優先表示
 
-### July 12, 2025 - OpenAI から Anthropic Claude 3 Haiku への完全移行
-- **AIプロバイダー切り替え**: OpenAI GPT-4oからAnthropic Claude 3 Haikuに移行完了
+### July 12, 2025 - OpenAI から Anthropic Claude Sonnet 4 への完全移行
+- **AIプロバイダー切り替え**: OpenAI GPT-4oからAnthropic Claude Sonnet 4に移行完了
   - 全API エンドポイントの変更：`/api/translate`、`/api/simulation-problem`、`/api/simulation-translate`
-  - モデル: `claude-3-haiku-20240307`を使用
+  - モデル: `claude-sonnet-4-20250514`を使用（最新モデル）
   - API呼び出し方式: OpenAI Chat Completions → Anthropic Messages API
   - 応答速度の改善: 約5秒での高速応答（従来の7秒から30%向上）
+  - 包括的エラーハンドリング: SDK、Direct API、Emergency Fallbackの3段階対応
 - **同等品質の維持**: 翻訳評価、解説、フィードバック品質を同等以上に保持
   - 日本語での詳細な解説とフィードバック継続
   - 1-5段階評価システム維持
