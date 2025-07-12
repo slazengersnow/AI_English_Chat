@@ -45,6 +45,7 @@ import StripePriceCheck from "@/pages/stripe-price-check";
 import PlanConfiguration from "@/pages/plan-configuration";
 import SimplePriceSetup from "@/pages/simple-price-setup";
 import NotFound from "@/pages/not-found";
+import Logout from "@/pages/logout";
 
 // Protected routes that require active subscription
 function ProtectedRoute({ component: Component }: { component: any }) {
@@ -67,7 +68,13 @@ function Router() {
     console.log('Router - Current path:', currentPath)
     console.log('Router - Hash:', hash)
     console.log('Router - Initialized')
-  }, [])
+    
+    // If not authenticated and on protected route, redirect to login
+    if (!isLoading && !isAuthenticated && currentPath !== '/login' && currentPath !== '/signup' && currentPath !== '/terms' && currentPath !== '/privacy') {
+      console.log('Router - Not authenticated, redirecting to login')
+      setLocation('/login')
+    }
+  }, [isAuthenticated, isLoading, setLocation])
 
   if (isLoading) {
     return (
@@ -113,6 +120,7 @@ function Router() {
       <Route path="/cancel" component={PaymentCancelled} />
       <Route path="/terms" component={Terms} />
       <Route path="/privacy" component={Privacy} />
+      <Route path="/logout" component={Logout} />
       
       {isAuthenticated ? (
         <>
