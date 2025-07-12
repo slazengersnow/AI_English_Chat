@@ -134,7 +134,7 @@ function Router() {
       ) : (
         <>
           {/* Handle unauthenticated routes */}
-          <Route path="/" component={AuthRedirect} />
+          <Route path="/" component={Login} />
         </>
       )}
       
