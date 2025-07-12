@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Crown, Star } from "lucide-react";
+import { Check, Crown, Star, RefreshCw } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,29 +17,95 @@ interface SubscriptionPlan {
   savings?: string;
 }
 
-const plans: SubscriptionPlan[] = [
-  {
-    priceId: "price_1ReXPnHridtc6DvMQaW7NC6w",
-    name: "プレミアム年間",
-    price: "13,000",
-    period: "年",
-    features: [
-      "年会費13,000円（2ヶ月無料）",
-      "基本練習機能（全レベル対応）",
-      "1日100問まで",
-      "詳しい解説・類似フレーズ",
-      "カスタムシナリオ作成",
-      "復習機能"
-    ],
-    popular: true,
-    savings: "月額比較で2ヶ月分お得"
-  }
-];
-
 export default function SubscriptionSelect() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [checkoutOpened, setCheckoutOpened] = useState(false);
   const { toast } = useToast();
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [isLoadingPlans, setIsLoadingPlans] = useState(true);
+
+  // Load subscription plans from server
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        const response = await fetch('/api/subscription-plans');
+        const planData = await response.json();
+        
+        const formattedPlans: SubscriptionPlan[] = [
+          {
+            priceId: planData.standard_monthly.priceId,
+            name: "スタンダード",
+            price: "980",
+            period: "月",
+            features: [
+              "月額980円",
+              "基本練習機能（全レベル対応）",
+              "1日50問まで",
+              "詳しい解説・類似フレーズ",
+              "基本的な進捗管理"
+            ]
+          },
+          {
+            priceId: planData.premium_monthly.priceId,
+            name: "プレミアム",
+            price: "1,300",
+            period: "月",
+            features: [
+              "月額1,300円",
+              "基本練習機能（全レベル対応）",
+              "1日100問まで",
+              "詳しい解説・類似フレーズ",
+              "カスタムシナリオ作成",
+              "復習機能"
+            ],
+            popular: true
+          },
+          {
+            priceId: planData.standard_yearly.priceId,
+            name: "スタンダード年間",
+            price: "9,800",
+            period: "年",
+            features: [
+              "年会費9,800円（2ヶ月無料）",
+              "基本練習機能（全レベル対応）",
+              "1日50問まで",
+              "詳しい解説・類似フレーズ",
+              "基本的な進捗管理"
+            ],
+            savings: "月額比較で2ヶ月分お得"
+          },
+          {
+            priceId: planData.premium_yearly.priceId,
+            name: "プレミアム年間",
+            price: "13,000",
+            period: "年",
+            features: [
+              "年会費13,000円（2ヶ月無料）",
+              "基本練習機能（全レベル対応）",
+              "1日100問まで",
+              "詳しい解説・類似フレーズ",
+              "カスタムシナリオ作成",
+              "復習機能"
+            ],
+            savings: "月額比較で2ヶ月分お得"
+          }
+        ];
+        
+        setPlans(formattedPlans);
+      } catch (error) {
+        console.error('Failed to load plans:', error);
+        toast({
+          title: "エラー",
+          description: "プラン情報の取得に失敗しました。",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoadingPlans(false);
+      }
+    };
+    
+    loadPlans();
+  }, [toast]);
 
   const createCheckoutMutation = useMutation({
     mutationFn: async (priceId: string) => {
@@ -138,6 +204,17 @@ export default function SubscriptionSelect() {
     );
   }
 
+  if (isLoadingPlans) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">プラン情報を読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
       <div className="max-w-6xl mx-auto">
@@ -224,19 +301,6 @@ export default function SubscriptionSelect() {
         </div>
 
         <div className="text-center mt-12">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-blue-800 font-semibold mb-2">📝 その他のプランについて</p>
-            <p className="text-blue-700 text-sm mb-2">
-              ¥980のスタンダードプランや¥1,300のプレミアムプランなど、他の料金プランも準備中です。
-            </p>
-            <p className="text-blue-700 text-sm">
-              価格IDの設定は
-              <a href="/plan-configuration" className="text-blue-600 hover:underline mx-1 font-semibold">
-                プラン設定ページ
-              </a>
-              から行えます。
-            </p>
-          </div>
           <p className="text-sm text-gray-600 mb-2">
             ※ 7日間のトライアル期間中はいつでもキャンセル可能です
           </p>
