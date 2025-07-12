@@ -8,7 +8,7 @@
 3. "Add user" ボタンをクリック
 4. 以下の情報を入力:
    - **Email**: slazengersnow@gmail.com
-   - **Password**: s25124535
+   - **Password**: s05936623
    - **Auto Confirm User**: Yes（チェックを入れる）
 5. ユーザー作成後、作成されたユーザーをクリックして編集
 6. "Raw User Meta Data" セクションに以下のJSONを追加:
