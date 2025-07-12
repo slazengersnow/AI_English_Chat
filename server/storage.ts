@@ -495,6 +495,21 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(userSubscriptions)
       .where(eq(userSubscriptions.userId, userId));
+    
+    // If no subscription found, create default premium subscription
+    if (!subscription) {
+      const defaultSubscription = await this.updateUserSubscription(userId, {
+        subscriptionType: "premium",
+        subscriptionStatus: "active",
+        isAdmin: true,
+        trialStart: new Date(),
+        validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+      });
+      return defaultSubscription;
+    }
+    
     return subscription;
   }
 

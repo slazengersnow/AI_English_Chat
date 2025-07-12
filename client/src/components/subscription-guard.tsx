@@ -19,13 +19,19 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
   });
 
   useEffect(() => {
-    if (!isLoading && (!subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || ''))) {
-      // If no subscription or inactive, redirect to subscription selection
-      if (window.location.pathname !== '/subscription/select' && 
-          window.location.pathname !== '/login' && 
-          window.location.pathname !== '/signup' &&
-          window.location.pathname !== '/terms') {
-        setLocation('/subscription/select');
+    if (!isLoading && subscription) {
+      console.log('SubscriptionGuard - Subscription data:', subscription);
+      console.log('SubscriptionGuard - Status:', subscription.subscriptionStatus);
+      
+      if (!['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+        // If no subscription or inactive, redirect to subscription selection
+        if (window.location.pathname !== '/subscription/select' && 
+            window.location.pathname !== '/login' && 
+            window.location.pathname !== '/signup' &&
+            window.location.pathname !== '/terms') {
+          console.log('SubscriptionGuard - Redirecting to subscription select');
+          setLocation('/subscription/select');
+        }
       }
     }
   }, [subscription, isLoading, setLocation]);
@@ -38,7 +44,7 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
     );
   }
 
-  if (error || !subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+  if (error || (!subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || ''))) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">

@@ -937,9 +937,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user-subscription", async (req, res) => {
     try {
       const subscription = await storage.getUserSubscription();
-      // Default to admin premium for the current user
+      // Default to admin premium for the current user with active status
       res.json(subscription || { 
         subscriptionType: "premium", 
+        subscriptionStatus: "active",
         isAdmin: true,
         userId: "default_user"
       });
