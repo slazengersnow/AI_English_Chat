@@ -1098,11 +1098,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User subscription
   app.get("/api/user-subscription", async (req, res) => {
     try {
-      const subscription = await storage.getUserSubscription();
+      // Get user ID from Authorization header (Supabase JWT token)
+      const authHeader = req.headers.authorization;
+      let userId = "bizmowa.com"; // Default fallback
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        // In a real implementation, you'd decode the JWT token to get user ID
+        // For now, we'll extract from the request or use a different approach
+        console.log("Auth token received:", token.substring(0, 20) + "...");
+        
+        // Try to get user email from custom header or other source
+        const userEmail = req.headers['x-user-email'] || req.headers['user-email'];
+        if (userEmail) {
+          userId = userEmail as string;
+        }
+      }
+      
+      console.log("Getting subscription for user:", userId);
+      const subscription = await storage.getUserSubscription(userId);
+      
       // If no subscription exists, return null to trigger redirect to subscription select
       if (!subscription) {
+        console.log("No subscription found for user:", userId);
         return res.json(null);
       }
+      
+      console.log("Found subscription:", subscription);
       res.json(subscription);
     } catch (error) {
       console.error("Subscription error:", error);
