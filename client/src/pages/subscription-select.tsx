@@ -26,9 +26,9 @@ const plans: SubscriptionPlan[] = [
     features: [
       "月額980円",
       "基本練習機能（全レベル対応）",
-      "1日100問まで",
-      "基本的な進捗管理",
-      "基本サポート"
+      "1日50問まで",
+      "詳しい解説・類似フレーズ",
+      "基本的な進捗管理"
     ]
   },
   {
@@ -39,11 +39,10 @@ const plans: SubscriptionPlan[] = [
     features: [
       "月額1,300円",
       "基本練習機能（全レベル対応）",
-      "無制限問題",
+      "1日100問まで",
+      "詳しい解説・類似フレーズ",
       "カスタムシナリオ作成",
-      "詳細な分析機能",
-      "復習機能",
-      "優先サポート"
+      "復習機能"
     ],
     popular: true
   },
@@ -55,9 +54,9 @@ const plans: SubscriptionPlan[] = [
     features: [
       "年会費9,800円（2ヶ月無料）",
       "基本練習機能（全レベル対応）",
-      "1日100問まで",
-      "基本的な進捗管理",
-      "基本サポート"
+      "1日50問まで",
+      "詳しい解説・類似フレーズ",
+      "基本的な進捗管理"
     ],
     savings: "月額比較で2ヶ月分お得"
   },
@@ -69,11 +68,10 @@ const plans: SubscriptionPlan[] = [
     features: [
       "年会費13,000円（2ヶ月無料）",
       "基本練習機能（全レベル対応）",
-      "無制限問題",
+      "1日100問まで",
+      "詳しい解説・類似フレーズ",
       "カスタムシナリオ作成",
-      "詳細な分析機能",
-      "復習機能",
-      "優先サポート"
+      "復習機能"
     ],
     savings: "月額比較で2ヶ月分お得"
   }
@@ -230,9 +228,11 @@ export default function SubscriptionSelect() {
                 </div>
                 
                 {plan.savings && (
-                  <Badge variant="outline" className="mt-2">
-                    {plan.savings}
-                  </Badge>
+                  <div className="mt-2">
+                    <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm px-3 py-1">
+                      {plan.savings}
+                    </Badge>
+                  </div>
                 )}
               </CardHeader>
 
@@ -265,27 +265,11 @@ export default function SubscriptionSelect() {
         </div>
 
         <div className="text-center mt-12">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <p className="text-yellow-800 font-semibold mb-2">⚠️ 価格ID設定について</p>
-            <p className="text-yellow-700 text-sm mb-2">
-              現在の価格IDは¥13,000として設定されています。正しい¥1,300の価格IDを作成するか、既存の正しい価格IDを使用する必要があります。
-            </p>
-            <div className="space-y-2">
-              <a href="/plan-configuration" className="text-blue-600 hover:underline text-sm font-semibold">
-                プラン価格ID設定
-              </a>
-              <span className="text-gray-400 mx-2">•</span>
-              <a href="/stripe-price-check" className="text-blue-600 hover:underline text-sm">
-                価格ID確認ツール
-              </a>
-              <span className="text-gray-400 mx-2">•</span>
-              <a href="/stripe-checkout-debug" className="text-blue-600 hover:underline text-sm">
-                決済診断ツール
-              </a>
-            </div>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 mb-2">
             ※ 7日間のトライアル期間中はいつでもキャンセル可能です
+          </p>
+          <p className="text-xs text-gray-500 mb-4">
+            ※ 消費税込み
           </p>
           <p className="text-xs text-gray-500 mb-4">
             ご利用には
@@ -294,16 +278,6 @@ export default function SubscriptionSelect() {
             </a>
             への同意が必要です
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-            <p className="text-blue-800 font-semibold mb-2">決済画面について</p>
-            <p className="text-blue-700">
-              決済画面は新しいタブで開きます。ポップアップがブロックされている場合は、
-              <a href="/stripe-checkout-debug" className="text-blue-600 hover:underline mx-1">
-                こちらの診断ページ
-              </a>
-              をご利用ください。
-            </p>
-          </div>
         </div>
       </div>
     </div>
