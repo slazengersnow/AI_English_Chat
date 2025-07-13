@@ -76,6 +76,13 @@ This is a mobile-first English composition training application that helps users
   - typescript: devDependencies → dependencies に移動
   - railway.jsonでビルド設定: npm install && npm run build
   - package.jsonのbuildスクリプト: vite build && esbuild server/index.ts...
+- **PostCSS/TailwindCSS修正**: @tailwindcss/postcssプラグインを追加
+  - postcss.config.jsで@tailwindcss/postcssを使用
+  - TailwindCSS PostCSSプラグインエラーを解決
+  - tailwindcssを3.4.17に固定（4.x系の互換性問題を回避）
+- **Replitプラグイン対応**: production環境でREPL_ID環境変数を無効化
+  - railway.jsonでunset REPL_IDを設定
+  - vite.config.tsの条件付きプラグイン読み込みでReplitプラグインを無効化
 - **GitHubプッシュ準備完了**: Railwayデプロイ用の最終構成が完成
 
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定

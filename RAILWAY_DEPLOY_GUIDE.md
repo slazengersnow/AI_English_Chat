@@ -19,13 +19,28 @@ Railway環境での"Cannot find package"エラーを解決するため、すべ�
 ```json
 {
   "build": {
-    "command": "npm install && npm run build"
+    "command": "unset REPL_ID && NODE_ENV=production npm install && NODE_ENV=production npm run build"
   },
   "deploy": {
     "startCommand": "npm start"
   }
 }
 ```
+
+### 3. PostCSS設定修正
+**postcss.config.js**:
+```javascript
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### 4. 削除したパッケージ
+- @tailwindcss/vite: TailwindCSS 4.0の新しいViteプラグインが互換性問題を起こすため削除
+- @tailwindcss/postcss: 標準のtailwindcssプラグインを使用
 
 ### 3. package.jsonスクリプト
 ```json

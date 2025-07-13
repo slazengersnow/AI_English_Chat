@@ -1,6 +1,6 @@
 {
   "build": {
-    "command": "npm install && npm run build"
+    "command": "unset REPL_ID && NODE_ENV=production npm install && NODE_ENV=production npm run build"
   },
   "deploy": {
     "startCommand": "npm start"
