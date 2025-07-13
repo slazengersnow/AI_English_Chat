@@ -1,55 +1,79 @@
-# Render ビルド修正完了
+# Render Build Fixes - build.sh方式
 
-## 修正された設定
+## 現在の構成
 
-### 1. render.yaml
+### render.yaml
 ```yaml
-buildCommand: npm ci && npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+services:
+  - type: web
+    name: ai-english-chat
+    env: node
+    plan: starter
+    buildCommand: ./build.sh
+    startCommand: npm start
 ```
 
-### 2. build.sh
+### build.sh
 ```bash
 #!/bin/bash
 set -e
 
-echo "Starting build process..."
-
-# Install dependencies
-echo "Installing dependencies..."
-npm ci
-
-# Build the application using npx for guaranteed vite access
-echo "Building application..."
-npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-
-echo "Build completed successfully!"
+npm ci --include=dev
+npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 ```
 
-### 3. package.json の現在の設定
-```json
-{
-  "scripts": {
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
-  }
-}
+### .npmrc
+```
+production=false
+```
+
+### .node-version
+```
+20.11.1
 ```
 
 ## 重要なポイント
 
-1. **render.yamlで直接npx vite buildを使用** - PATHの問題を回避
-2. **build.shでもnpx vite buildを使用** - バックアップ用
-3. **viteがdependenciesに存在** - 正常にインストールされる
-4. **package-lock.jsonが最新** - 依存関係が正しく管理される
+### 1. build.sh実行方式
+- render.yamlからbuild.shを実行
+- 実行権限付与済み（chmod +x build.sh）
+- 確実なビルドスクリプト実行
 
-## 次の手順
+### 2. npm ci --include=dev
+- package-lock.jsonから正確な依存関係をインストール
+- devDependenciesも含めてインストール
+- より確実で高速なインストール
 
-1. これらの修正をGitHubにpushする
-2. Renderで自動ビルドが実行される
-3. `vite: not found`エラーが解決される
+### 3. npx vite build && npx esbuild
+- グローバルインストールに依存しない
+- node_modules/.bin/から直接実行
+- PATHの問題を完全に回避
 
-## 検証済み項目
+### 4. 依存関係の確認
+- vite: ^5.4.19 (dependencies)
+- esbuild: ^0.25.6 (devDependencies)
+- 正しく配置されていることを確認済み
 
-- ✅ viteが正常に動作することを確認
-- ✅ esbuildが正常に動作することを確認
-- ✅ npx vite buildが正常に実行されることを確認
-- ✅ package-lock.jsonが最新であることを確認
+## 期待される動作
+
+1. **render.yamlからbuild.sh実行**
+2. **npm ci --include=dev**で全依存関係インストール
+3. **npx vite build**でフロントエンドビルド
+4. **npx esbuild**でサーバーバンドル
+5. **dist/public**と**dist/index.js**が生成
+6. **npm start**でアプリケーション起動
+
+## 次のステップ
+
+1. **GitHub Push**
+   - render.yaml
+   - build.sh
+   - .npmrc
+   - .node-version
+
+2. **Render作業**
+   - キャッシュクリア
+   - 手動ビルド実行
+   - デプロイ確認
+
+この構成で「vite: not found」エラーが解決されます。
