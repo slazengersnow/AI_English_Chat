@@ -67,14 +67,14 @@ This is a mobile-first English composition training application that helps users
 ## Recent Changes
 
 ### July 13, 2025 - Render Viteビルドエラー最終修正
-- **npm run buildを使用**: 最も確実なビルド方式を採用
-  - render.yamlでbuildCommand: npm install && npm run build
-  - package.jsonのbuildスクリプト: vite build && esbuild server/index.ts...
+- **npx vite build直接実行**: package.json編集制限を回避
+  - render.yamlでbuildCommand: npm install && npx vite build && npx esbuild...
+  - build.shでもnpx vite build && npx esbuildを使用
   - .node-versionファイル作成 (20.11.1)
 - **依存関係配置確認**: viteがdependenciesに正しく配置
   - vite: ^5.4.19 (dependencies)
   - esbuild: ^0.25.6 (devDependencies)  
-  - vite.config.tsでREPL_ID条件分岐済み（本番でReplit専用プラグイン無効化）
+  - npx vite --version, npx esbuild --version 動作確認済み
 - **GitHub Push準備完了**: 全修正内容がpush準備完了
 
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
