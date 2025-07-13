@@ -66,6 +66,14 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 13, 2025 - Render本番デプロイ対応完了
+- **vite/esbuild依存関係修正**: Renderビルド環境での"vite: not found"エラーを解決
+  - vite: devDependencies → dependencies に移動
+  - esbuild: devDependencies → dependencies に移動
+  - render.yamlでbuildCommand: npm install && npm run build
+  - package.jsonのbuildスクリプト: vite build && esbuild server/index.ts...
+- **GitHubプッシュ準備完了**: Renderデプロイ用の最終構成が完成
+
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
 - **本番デプロイ構成**: Renderでの本番運用に最適化した設定を実装
   - render.yaml設定ファイルでサービス定義

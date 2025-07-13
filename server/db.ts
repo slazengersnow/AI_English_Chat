@@ -2,8 +2,18 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from "@shared/schema";
 
-// Skip WebSocket setup for now - it's causing module resolution issues
-// neonConfig.webSocketConstructor is optional and not required for basic functionality
+// WebSocket setup for better performance in production
+if (typeof WebSocket !== 'undefined') {
+  neonConfig.webSocketConstructor = WebSocket;
+} else {
+  // Fallback for environments without WebSocket
+  try {
+    const ws = require('ws');
+    neonConfig.webSocketConstructor = ws;
+  } catch (e) {
+    console.warn("WebSocket setup failed, using HTTP fallback:", e.message);
+  }
+}
 
 // Use DATABASE_URL for now since SUPABASE_DATABASE_URL appears to be a JWT token
 const databaseUrl = process.env.DATABASE_URL;
