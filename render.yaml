@@ -3,7 +3,7 @@ services:
     name: ai-english-chat
     env: node
     plan: starter
-    buildCommand: ./build.sh
+    buildCommand: npm install && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
