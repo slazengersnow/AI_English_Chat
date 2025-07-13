@@ -66,13 +66,17 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
-### July 13, 2025 - Render本番デプロイ対応完了
-- **vite/esbuild依存関係修正**: Renderビルド環境での"vite: not found"エラーを解決
+### July 13, 2025 - Railway本番デプロイ対応完了
+- **全ビルド依存関係修正**: Railwayビルド環境での"Cannot find package"エラーを解決
   - vite: devDependencies → dependencies に移動
   - esbuild: devDependencies → dependencies に移動
-  - render.yamlでbuildCommand: npm install && npm run build
+  - @vitejs/plugin-react: devDependencies → dependencies に移動
+  - @tailwindcss/vite: devDependencies → dependencies に移動
+  - autoprefixer, postcss, tailwindcss: devDependencies → dependencies に移動
+  - typescript: devDependencies → dependencies に移動
+  - railway.jsonでビルド設定: npm install && npm run build
   - package.jsonのbuildスクリプト: vite build && esbuild server/index.ts...
-- **GitHubプッシュ準備完了**: Renderデプロイ用の最終構成が完成
+- **GitHubプッシュ準備完了**: Railwayデプロイ用の最終構成が完成
 
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
 - **本番デプロイ構成**: Renderでの本番運用に最適化した設定を実装
