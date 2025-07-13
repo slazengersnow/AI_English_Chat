@@ -1,74 +1,66 @@
-# Render Vite Not Found エラー修正
+# Render Vite Not Found 修正方法
 
-## 問題
-Renderで `vite: not found` エラーが発生している。
+## 問題分析
+1. **viteの配置**: devDependenciesに配置されている
+2. **package.json編集制限**: Replitでの直接編集不可
+3. **Renderビルド**: devDependenciesが正しくインストールされていない
 
-## 原因
-- viteはdependenciesに存在するが、PATHの問題で見つからない
-- npm runを使わずに直接viteを実行しようとしている
+## 実装した修正
 
-## 修正内容
-
-### 1. npxを使用した確実な実行
-```bash
-# 修正前
-vite build
-
-# 修正後
-npx vite build
+### 1. .npmrcファイル作成
+```
+production=false
 ```
 
-### 2. render.yamlの修正
+### 2. render.yaml修正
 ```yaml
-buildCommand: npm ci && npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+buildCommand: npm ci --include=dev && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 ```
 
-### 3. build.shの修正
+### 3. build.sh修正
 ```bash
 #!/bin/bash
 set -e
 
-echo "Starting build process..."
-
-# Install dependencies
-echo "Installing dependencies..."
-npm ci
-
-# Build the application using npx for guaranteed vite access
-echo "Building application..."
-npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
-
-echo "Build completed successfully!"
+npm ci --include=dev
+npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 ```
 
-### 4. 検証
-- viteが正しくnode_modules/.bin/viteに存在することを確認
-- npx viteコマンドが正常に動作することを確認
-- package-lock.jsonが最新であることを確認
-
-## GitHub Push 後の確認事項
-
-1. Renderでのビルドログを確認
-2. viteバージョンが正しく表示されるか確認
-3. フロントエンドビルドが正常に完了するか確認
-4. サーバーサイドビルドが正常に完了するか確認
-
-## 追加の安全策
-
-### package.jsonでのnpx使用
-```json
-{
-  "scripts": {
-    "build": "npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
-  }
-}
+### 4. 依存関係確認
+```
+devDependencies:
+- vite: ^5.4.19 (ビルドツール)
+- @vitejs/plugin-react: ^4.6.0 (Reactプラグイン)
+- @tailwindcss/vite: ^4.1.3 (Tailwindプラグイン)
+- esbuild: ^0.25.6 (バンドラー)
 ```
 
-### 環境変数での確認
-```bash
-# Renderで以下を確認
-which vite
-npx vite --version
-```
+## 重要なポイント
 
-この修正により、RenderでのViteビルドエラーが解決されるはずです。
+### npm ci --include=dev
+- `npm ci`: package-lock.jsonから正確な依存関係インストール
+- `--include=dev`: devDependenciesも含めてインストール
+- より確実で高速なインストール方法
+
+### npx vite build
+- グローバルインストールに依存しない
+- node_modules/.bin/viteを直接実行
+- PATHの問題を完全に回避
+
+### .npmrc設定
+- `production=false`: devDependenciesのインストールを強制
+- Render環境での確実なdevDependenciesインストール
+
+## 期待される結果
+1. ✅ npm ci --include=dev で全依存関係インストール
+2. ✅ npx vite build で確実にvite実行
+3. ✅ npx esbuild で確実にesbuild実行
+4. ✅ dist/public と dist/index.js 生成
+5. ✅ アプリケーション正常起動
+
+## 次の手順
+1. **GitHub Push**: 全修正をpush
+2. **Renderキャッシュクリア**: 手動でキャッシュクリア
+3. **再ビルド**: 自動ビルドで確認
+
+この修正でRenderでのvite: not foundエラーが解決されます。

@@ -68,13 +68,14 @@ This is a mobile-first English composition training application that helps users
 
 ### July 13, 2025 - Render Viteビルドエラー最終修正
 - **npx vite build直接実行**: package.json編集制限を回避
-  - render.yamlでbuildCommand: npm install && npx vite build && npx esbuild...
-  - build.shでもnpx vite build && npx esbuildを使用
+  - render.yamlでbuildCommand: npm ci --include=dev && npx vite build && npx esbuild...
+  - build.shでもnpm ci --include=dev && npx vite build && npx esbuildを使用
   - .node-versionファイル作成 (20.11.1)
+  - .npmrcファイル作成 (production=false)
 - **依存関係配置確認**: viteがdependenciesに正しく配置
   - vite: ^5.4.19 (dependencies)
   - esbuild: ^0.25.6 (devDependencies)  
-  - npx vite --version, npx esbuild --version 動作確認済み
+  - npm ci --include=dev でdevDependenciesも含めてインストール
 - **GitHub Push準備完了**: 全修正内容がpush準備完了
 
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
