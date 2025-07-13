@@ -71,7 +71,7 @@ This is a mobile-first English composition training application that helps users
   - vite: devDependencies → dependencies に移動
   - esbuild: devDependencies → dependencies に移動
   - @vitejs/plugin-react: devDependencies → dependencies に移動
-  - @tailwindcss/vite: devDependencies → dependencies に移動
+  - @tailwindcss/typography: devDependencies → dependencies に移動
   - autoprefixer, postcss, tailwindcss: devDependencies → dependencies に移動
   - typescript: devDependencies → dependencies に移動
   - railway.jsonでビルド設定: npm install && npm run build

@@ -8,7 +8,7 @@ Railway環境での"Cannot find package"エラーを解決するため、すべ�
 - **vite**: devDependencies → dependencies
 - **esbuild**: devDependencies → dependencies  
 - **@vitejs/plugin-react**: devDependencies → dependencies
-- **@tailwindcss/vite**: devDependencies → dependencies
+- **@tailwindcss/typography**: devDependencies → dependencies
 - **autoprefixer**: devDependencies → dependencies
 - **postcss**: devDependencies → dependencies
 - **tailwindcss**: devDependencies → dependencies
