@@ -1,9 +1,9 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+// Skip WebSocket setup for now - it's causing module resolution issues
+// neonConfig.webSocketConstructor is optional and not required for basic functionality
 
 // Use DATABASE_URL for now since SUPABASE_DATABASE_URL appears to be a JWT token
 const databaseUrl = process.env.DATABASE_URL;
