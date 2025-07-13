@@ -3,7 +3,7 @@ services:
     name: ai-english-chat
     env: node
     plan: starter
-    buildCommand: npm install && npm run build
+    buildCommand: npm ci && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -22,8 +22,6 @@ services:
         sync: false
       - key: VITE_SUPABASE_ANON_KEY
         sync: false
-    domains:
-      - ai-english-chat.onrender.com
 
 databases:
   - name: ai-english-chat-db
