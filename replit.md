@@ -66,6 +66,17 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 12, 2025 - Render Viteビルドエラー修正
+- **npxを使用した確実なビルド**: `vite: not found` エラーの根本的解決
+  - render.yamlでnpx vite buildを使用
+  - build.shでnpx vite buildを使用
+  - PATHの問題を回避してviteを確実に実行
+- **ビルドプロセス最適化**: Renderでの確実なビルドを実現
+  - npm ci && npx vite build && esbuild のビルドコマンド統一
+  - viteとesbuildの正常動作をテスト確認済み
+  - package-lock.jsonが最新であることを確認
+- **デプロイ設定完了**: GitHubへのpush準備完了
+
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
 - **本番デプロイ構成**: Renderでの本番運用に最適化した設定を実装
   - render.yaml設定ファイルでサービス定義

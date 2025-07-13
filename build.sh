@@ -7,8 +7,8 @@ echo "Starting build process..."
 echo "Installing dependencies..."
 npm ci
 
-# Build the application
+# Build the application using npx for guaranteed vite access
 echo "Building application..."
-npm run build
+npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
 echo "Build completed successfully!"
