@@ -1,18 +1,24 @@
 #!/bin/bash
-set -e
+# テスト用：Renderビルドの動作確認
 
-echo "Testing build process for Render compatibility..."
+echo "=== Render Build Test ==="
+echo "Node.js version: $(node --version)"
+echo "npm version: $(npm --version)"
+echo ""
 
-# Test vite availability
-echo "Testing vite availability..."
-npx vite --version
+echo "=== npm install ==="
+npm install
 
-# Test esbuild availability
-echo "Testing esbuild availability..."
-npx esbuild --version
+echo ""
+echo "=== npm run build ==="
+npm run build
 
-# Test full build process
-echo "Testing full build process..."
-npx vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+echo ""
+echo "=== Build results ==="
+ls -la dist/
+echo ""
+echo "=== dist/public ==="
+ls -la dist/public/
 
-echo "Build test completed successfully!"
+echo ""
+echo "=== Test complete ==="
