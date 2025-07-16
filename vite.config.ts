@@ -4,6 +4,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
+  base: "/", // ✅ 相対パスの解決に必要！
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -23,9 +24,9 @@ export default defineConfig({
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  root: path.resolve(import.meta.dirname, "client"), // ✅ ソースは client にある
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(import.meta.dirname, "dist/public"), // ✅ Railway の static 配信用
     emptyOutDir: true,
   },
   server: {
