@@ -9,6 +9,14 @@ import { registerRoutes } from "./routes";
 // Load environment variables
 dotenv.config();
 
+// Fix WebSocket for ESM environment
+try {
+  const { WebSocket } = await import('ws');
+  global.WebSocket = WebSocket;
+} catch (e) {
+  console.warn("WebSocket setup failed:", e.message);
+}
+
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 5000;

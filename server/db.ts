@@ -7,8 +7,8 @@ if (typeof WebSocket !== "undefined") {
   neonConfig.webSocketConstructor = WebSocket;
 } else {
   try {
-    const ws = require("ws");
-    neonConfig.webSocketConstructor = ws;
+    const { WebSocket: WSWebSocket } = await import('ws');
+    neonConfig.webSocketConstructor = WSWebSocket;
   } catch (e) {
     console.warn("WebSocket setup failed, using HTTP fallback:", e.message);
   }
