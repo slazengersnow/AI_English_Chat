@@ -66,7 +66,7 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
-### July 13, 2025 - Railway本番デプロイ対応完了
+### July 13, 2025 - Railway本番デプロイ対応完了とVite環境変数問題解決
 - **全ビルド依存関係修正**: Railwayビルド環境での"Cannot find package"エラーを解決
   - vite: devDependencies → dependencies に移動
   - esbuild: devDependencies → dependencies に移動
@@ -83,6 +83,11 @@ This is a mobile-first English composition training application that helps users
 - **Replitプラグイン対応**: production環境でREPL_ID環境変数を無効化
   - railway.jsonでunset REPL_IDを設定
   - vite.config.tsの条件付きプラグイン読み込みでReplitプラグインを無効化
+- **環境変数問題解決**: Vite環境変数がビルド時に正しく注入されるよう修正
+  - .envファイルを作成してVITE_SUPABASE_URLとVITE_SUPABASE_ANON_KEYを設定
+  - server/index.tsで静的ファイル配信パスをdistディレクトリに修正
+  - vite.config.tsのdefineセクションで環境変数をビルド時に注入
+  - 本番環境でのSupabase連携が正常動作するよう確認
 - **GitHubプッシュ準備完了**: Railwayデプロイ用の最終構成が完成
 
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定

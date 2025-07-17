@@ -1,22 +1,32 @@
 import express from "express";
+import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import { setupVite, serveStatic, log } from "./vite";
+import { registerRoutes } from "./routes";
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 5000;
 
-// __dirname の代替取得
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ publicディレクトリ（dist/public）を正しく指定
-const publicPath = path.join(__dirname, "../public");
-app.use(express.static(publicPath));
+// Register API routes
+registerRoutes(app);
 
-// ✅ すべてのルートに index.html を返す
-app.get("*", (req, res) => {
-  res.sendFile(path.join(publicPath, "index.html"));
-});
+// Setup Vite (development) or serve static files (production)
+if (process.env.NODE_ENV === "production") {
+  serveStatic(app);
+} else {
+  await setupVite(app, server);
+}
 
-app.listen(PORT, () => {
-  console.log(`[express] serving on port ${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  log(`serving on port ${PORT}`);
 });

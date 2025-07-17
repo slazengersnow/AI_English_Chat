@@ -18,7 +18,7 @@ if (typeof WebSocket !== "undefined") {
 const databaseUrl =
   process.env.NODE_ENV === "production"
     ? process.env.DATABASE_URL
-    : process.env.DEV_DATABASE_URL;
+    : process.env.DATABASE_URL || process.env.DEV_DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error(
@@ -26,7 +26,7 @@ if (!databaseUrl) {
   );
 }
 
-console.log("使用中のDB URL:", databaseUrl.substring(0, 20) + "...");
+console.log("Using database URL:", databaseUrl?.substring(0, 20) + "...");
 
 export const pool = new Pool({ connectionString: databaseUrl });
 export const db = drizzle({ client: pool, schema });
