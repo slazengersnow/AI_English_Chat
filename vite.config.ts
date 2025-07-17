@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import dotenv from "dotenv";
+dotenv.config();
 
 // ✅ .env.local を手動で読み込む
 dotenv.config({ path: ".env.local" });
