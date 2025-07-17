@@ -66,7 +66,7 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
-### July 13, 2025 - Railway本番デプロイ対応完了とVite環境変数問題解決
+### July 17, 2025 - Railway本番デプロイ対応完了とVite環境変数問題解決
 - **全ビルド依存関係修正**: Railwayビルド環境での"Cannot find package"エラーを解決
   - vite: devDependencies → dependencies に移動
   - esbuild: devDependencies → dependencies に移動
@@ -88,6 +88,10 @@ This is a mobile-first English composition training application that helps users
   - server/index.tsで静的ファイル配信パスをdistディレクトリに修正
   - vite.config.tsのdefineセクションで環境変数をビルド時に注入
   - 本番環境でのSupabase連携が正常動作するよう確認
+- **WebSocket ESM対応**: Railway本番環境でのWebSocketエラーを解決
+  - server/index.tsとserver/db.tsでESM環境用のWebSocket設定を追加
+  - import('ws')を使用してrequire()エラーを回避
+  - Supabase PostgreSQL接続URLを正しく設定
 - **GitHubプッシュ準備完了**: Railwayデプロイ用の最終構成が完成
 
 ### July 12, 2025 - Render本番デプロイ対応とCI/CD設定
