@@ -26,7 +26,7 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname, "client"), // ✅ ソースは client にある
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"), // ✅ Railway の static 配信用
+    outDir: path.resolve(import.meta.dirname, "dist"), // ✅ Railway の static 配信用
     emptyOutDir: true,
   },
   server: {
