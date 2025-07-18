@@ -4,8 +4,10 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist/server",
+    "dev": "ts-node server/index.ts",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build",
+    "build:server": "tsc --project tsconfig.server.json",
     "start": "NODE_ENV=production node dist/server/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push"
@@ -120,6 +122,7 @@
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.5.13",
     "drizzle-kit": "^0.30.4",
+    "ts-node": "^10.9.1",
     "tsx": "^4.20.3"
   },
   "optionalDependencies": {

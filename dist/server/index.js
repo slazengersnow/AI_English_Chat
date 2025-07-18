@@ -7,7 +7,7 @@ var __export = (target, all) => {
 // server/index.ts
 import express2 from "express";
 import { createServer as createServer2 } from "http";
-import { fileURLToPath as fileURLToPath2 } from "url";
+import { fileURLToPath } from "url";
 import path2 from "path";
 import dotenv from "dotenv";
 
@@ -16,13 +16,9 @@ import express from "express";
 import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { fileURLToPath } from "url";
 import { nanoid } from "nanoid";
-var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
 async function setupVite(app2, server2) {
   const vite = await createViteServer({
-    root: path.resolve(__dirname, "../client"),
     server: { middlewareMode: true },
     appType: "custom"
   });
@@ -48,12 +44,12 @@ function serveStatic(app2) {
   const distPath = path.resolve(__dirname, "../dist/client");
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Build directory not found: ${distPath}. Run \`npm run build\` before deploying.`
+      `Could not find the build directory: ${distPath}. Please run 'npm run build' before start.`
     );
   }
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
+    res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
 
@@ -304,7 +300,8 @@ if (typeof WebSocket !== "undefined") {
     const { WebSocket: WSWebSocket } = await import("ws");
     neonConfig.webSocketConstructor = WSWebSocket;
   } catch (e) {
-    console.warn("WebSocket setup failed, using HTTP fallback:", e.message);
+    const err = e;
+    console.warn("WebSocket setup failed, using HTTP fallback:", err.message);
   }
 }
 var databaseUrl = process.env.NODE_ENV === "production" ? process.env.DATABASE_URL : process.env.DATABASE_URL || process.env.DEV_DATABASE_URL;
@@ -761,28 +758,42 @@ async function registerRoutes(app2) {
       if (authHeader && authHeader.startsWith("Bearer ")) {
         const token = authHeader.substring(7);
         try {
-          const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+          const payload = JSON.parse(
+            Buffer.from(token.split(".")[1], "base64").toString()
+          );
           if (payload.email) {
             userId = payload.email;
           }
         } catch (jwtError) {
-          console.log("JWT parsing failed in middleware, using fallback:", jwtError);
+          console.log(
+            "JWT parsing failed in middleware, using fallback:",
+            jwtError
+          );
           const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
           if (userEmail) {
             userId = userEmail;
           }
         }
       }
-      console.log("requireActiveSubscription - Checking subscription for user:", userId);
+      console.log(
+        "requireActiveSubscription - Checking subscription for user:",
+        userId
+      );
       const subscription = await storage.getUserSubscription(userId);
       if (!subscription || !["active", "trialing"].includes(subscription.subscriptionStatus || "")) {
-        console.log("requireActiveSubscription - No valid subscription found for user:", userId);
+        console.log(
+          "requireActiveSubscription - No valid subscription found for user:",
+          userId
+        );
         return res.status(403).json({
           message: "\u30A2\u30AF\u30C6\u30A3\u30D6\u306A\u30B5\u30D6\u30B9\u30AF\u30EA\u30D7\u30B7\u30E7\u30F3\u304C\u5FC5\u8981\u3067\u3059",
           needsSubscription: true
         });
       }
-      console.log("requireActiveSubscription - Valid subscription found:", subscription);
+      console.log(
+        "requireActiveSubscription - Valid subscription found:",
+        subscription
+      );
       next();
     } catch (error) {
       console.error("Subscription check error:", error);
@@ -796,16 +807,25 @@ async function registerRoutes(app2) {
       if (userEmail) {
         userId = userEmail;
       }
-      console.log("requirePremiumSubscription - Checking premium subscription for user:", userId);
+      console.log(
+        "requirePremiumSubscription - Checking premium subscription for user:",
+        userId
+      );
       const subscription = await storage.getUserSubscription(userId);
       if (!subscription || subscription.subscriptionType !== "premium" || !["active", "trialing"].includes(subscription.subscriptionStatus || "")) {
-        console.log("requirePremiumSubscription - No valid premium subscription found for user:", userId);
+        console.log(
+          "requirePremiumSubscription - No valid premium subscription found for user:",
+          userId
+        );
         return res.status(403).json({
           message: "\u30D7\u30EC\u30DF\u30A2\u30E0\u30D7\u30E9\u30F3\u304C\u5FC5\u8981\u3067\u3059",
           needsPremium: true
         });
       }
-      console.log("requirePremiumSubscription - Valid premium subscription found:", subscription);
+      console.log(
+        "requirePremiumSubscription - Valid premium subscription found:",
+        subscription
+      );
       next();
     } catch (error) {
       console.error("Premium subscription check error:", error);
@@ -855,10 +875,15 @@ async function registerRoutes(app2) {
       }
       const { difficultyLevel } = problemRequestSchema.parse(req.body);
       const userId = "bizmowa.com";
-      const previousProblems = await storage.getUserAttemptedProblems(difficultyLevel, userId);
-      const attemptedSentences = new Set(previousProblems.map((p) => p.japaneseSentence));
+      const previousProblems = await storage.getUserAttemptedProblems(
+        difficultyLevel,
+        userId
+      );
+      const attemptedSentences = new Set(
+        previousProblems.map((p) => p.japaneseSentence)
+      );
       const problemSets = {
-        "toeic": [
+        toeic: [
           "\u4F1A\u8B70\u306E\u8CC7\u6599\u3092\u6E96\u5099\u3057\u3066\u304A\u3044\u3066\u304F\u3060\u3055\u3044\u3002",
           "\u58F2\u4E0A\u304C\u524D\u5E74\u6BD420%\u5897\u52A0\u3057\u307E\u3057\u305F\u3002",
           "\u65B0\u3057\u3044\u30D7\u30ED\u30B8\u30A7\u30AF\u30C8\u306E\u9032\u6357\u306F\u3044\u304B\u304C\u3067\u3059\u304B\u3002",
@@ -954,9 +979,14 @@ async function registerRoutes(app2) {
           "\u5F15\u304D\u7D9A\u304D\u3088\u308D\u3057\u304F\u304A\u9858\u3044\u3044\u305F\u3057\u307E\u3059\u3002"
         ]
       };
-      const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
+      const currentProblemNumber = await storage.getCurrentProblemNumber(
+        userId,
+        difficultyLevel
+      );
       const allSentences = problemSets[difficultyLevel];
-      const availableSentences = allSentences.filter((sentence) => !attemptedSentences.has(sentence));
+      const availableSentences = allSentences.filter(
+        (sentence) => !attemptedSentences.has(sentence)
+      );
       const sentences = availableSentences.length > 0 ? availableSentences : allSentences;
       const sessionId = getSessionId(req);
       const selectedSentence = getUnusedProblem(sessionId, sentences);
@@ -1004,7 +1034,10 @@ async function registerRoutes(app2) {
 \u4E0A\u8A18\u306E\u7FFB\u8A33\u3092\u8A55\u4FA1\u3057\u3066\u304F\u3060\u3055\u3044\u3002`;
       try {
         console.log("Attempting translation with Anthropic SDK...");
-        console.log("API Key format check:", anthropicApiKey.substring(0, 10) + "...");
+        console.log(
+          "API Key format check:",
+          anthropicApiKey.substring(0, 10) + "..."
+        );
         const anthropic = new Anthropic({
           apiKey: anthropicApiKey
         });
@@ -1015,9 +1048,7 @@ async function registerRoutes(app2) {
           max_tokens: 1e3,
           temperature: 0.7,
           system: systemPrompt,
-          messages: [
-            { role: "user", content: userPrompt }
-          ]
+          messages: [{ role: "user", content: userPrompt }]
         });
         console.log("Anthropic SDK Response received successfully");
         console.log("Response type:", typeof message);
@@ -1028,7 +1059,10 @@ async function registerRoutes(app2) {
           responseText = content.text;
           console.log("Raw response text:", responseText);
         } else {
-          console.error("Unexpected response type from Anthropic:", content.type);
+          console.error(
+            "Unexpected response type from Anthropic:",
+            content.type
+          );
           throw new Error("Unexpected response type from Anthropic");
         }
         let parsedResult;
@@ -1036,15 +1070,22 @@ async function registerRoutes(app2) {
           parsedResult = JSON.parse(responseText);
           console.log("Successfully parsed JSON response");
         } catch (parseError) {
-          console.error("JSON parse error:", parseError);
+          const err = parseError;
+          console.error("JSON parse error:", err.message);
           console.error("Response text that failed to parse:", responseText);
           const jsonMatch = responseText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             try {
               parsedResult = JSON.parse(jsonMatch[0]);
-              console.log("Successfully extracted and parsed JSON from response");
+              console.log(
+                "Successfully extracted and parsed JSON from response"
+              );
             } catch (secondParseError) {
-              console.error("Second JSON parse attempt failed:", secondParseError);
+              const err2 = secondParseError;
+              console.error(
+                "Second JSON parse attempt failed:",
+                err2.message
+              );
               throw new Error("Failed to parse Claude response as JSON");
             }
           } else {
@@ -1075,8 +1116,15 @@ async function registerRoutes(app2) {
           feedback: response.feedback,
           rating: response.rating
         });
-        const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
-        await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
+        const currentProblemNumber = await storage.getCurrentProblemNumber(
+          userId,
+          difficultyLevel
+        );
+        await storage.updateProblemProgress(
+          userId,
+          difficultyLevel,
+          currentProblemNumber + 1
+        );
         const responseWithSessionId = {
           ...response,
           sessionId: trainingSession.id
@@ -1088,33 +1136,39 @@ async function registerRoutes(app2) {
         console.error("Error details:", sdkError.message);
         console.log("Falling back to direct API call...");
         try {
-          const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
-            method: "POST",
-            headers: {
-              "x-api-key": anthropicApiKey,
-              // Correct header for Anthropic
-              "Content-Type": "application/json",
-              "anthropic-version": "2023-06-01"
-            },
-            body: JSON.stringify({
-              model: "claude-3-haiku-20240307",
-              // Use Claude 3 Haiku for low cost and high performance
-              max_tokens: 1e3,
-              temperature: 0.7,
-              system: systemPrompt,
-              messages: [
-                { role: "user", content: userPrompt }
-              ]
-            })
-          });
+          const anthropicResponse = await fetch(
+            "https://api.anthropic.com/v1/messages",
+            {
+              method: "POST",
+              headers: {
+                "x-api-key": anthropicApiKey,
+                // Correct header for Anthropic
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
+              },
+              body: JSON.stringify({
+                model: "claude-3-haiku-20240307",
+                // Use Claude 3 Haiku for low cost and high performance
+                max_tokens: 1e3,
+                temperature: 0.7,
+                system: systemPrompt,
+                messages: [{ role: "user", content: userPrompt }]
+              })
+            }
+          );
           console.log("Direct API Response Status:", anthropicResponse.status);
           if (!anthropicResponse.ok) {
             const errorText = await anthropicResponse.text();
             console.error("Direct API Error Details:", errorText);
-            throw new Error(`Direct API error: ${anthropicResponse.status} - ${errorText}`);
+            throw new Error(
+              `Direct API error: ${anthropicResponse.status} - ${errorText}`
+            );
           }
           const anthropicData = await anthropicResponse.json();
-          console.log("Direct API response structure:", Object.keys(anthropicData));
+          console.log(
+            "Direct API response structure:",
+            Object.keys(anthropicData)
+          );
           const content = anthropicData.content[0].text;
           console.log("Direct API content:", content);
           let parsedResult;
@@ -1122,7 +1176,8 @@ async function registerRoutes(app2) {
             parsedResult = JSON.parse(content);
             console.log("Successfully parsed direct API JSON response");
           } catch (parseError) {
-            console.error("Direct API JSON parse error:", parseError);
+            const err = parseError;
+            console.error("Direct API JSON parse error:", err.message);
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               parsedResult = JSON.parse(jsonMatch[0]);
@@ -1149,8 +1204,15 @@ async function registerRoutes(app2) {
             feedback: response.feedback,
             rating: response.rating
           });
-          const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
-          await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
+          const currentProblemNumber = await storage.getCurrentProblemNumber(
+            userId,
+            difficultyLevel
+          );
+          await storage.updateProblemProgress(
+            userId,
+            difficultyLevel,
+            currentProblemNumber + 1
+          );
           const responseWithSessionId = {
             ...response,
             sessionId: trainingSession.id
@@ -1158,22 +1220,32 @@ async function registerRoutes(app2) {
           console.log("Direct API call completed successfully");
           res.json(responseWithSessionId);
         } catch (directApiError) {
-          console.error("Direct API error:", directApiError);
-          console.log("All API methods failed, providing context-aware response");
+          const err = directApiError;
+          console.error("Direct API error:", err.message);
+          console.log(
+            "All API methods failed, providing context-aware response"
+          );
           const basicResponse = {
             correctTranslation: `Please try again. The system is currently experiencing issues.`,
             feedback: `\u7533\u3057\u8A33\u3054\u3056\u3044\u307E\u305B\u3093\u3002\u73FE\u5728AI\u8A55\u4FA1\u30B7\u30B9\u30C6\u30E0\u306B\u4E00\u6642\u7684\u306A\u554F\u984C\u304C\u767A\u751F\u3057\u3066\u3044\u307E\u3059\u3002\u304A\u7B54\u3048\u3044\u305F\u3060\u3044\u305F\u300C${userTranslation}\u300D\u306B\u3064\u3044\u3066\u306F\u3001\u30B7\u30B9\u30C6\u30E0\u5FA9\u65E7\u5F8C\u306B\u518D\u5EA6\u8A55\u4FA1\u3044\u305F\u3057\u307E\u3059\u3002`,
             rating: 3,
-            improvements: ["\u30B7\u30B9\u30C6\u30E0\u5FA9\u65E7\u3092\u304A\u5F85\u3061\u304F\u3060\u3055\u3044", "\u3057\u3070\u3089\u304F\u3057\u3066\u304B\u3089\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044"],
+            improvements: [
+              "\u30B7\u30B9\u30C6\u30E0\u5FA9\u65E7\u3092\u304A\u5F85\u3061\u304F\u3060\u3055\u3044",
+              "\u3057\u3070\u3089\u304F\u3057\u3066\u304B\u3089\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044"
+            ],
             explanation: "\u30B7\u30B9\u30C6\u30E0\u30E1\u30F3\u30C6\u30CA\u30F3\u30B9\u4E2D\u306E\u305F\u3081\u3001\u8A73\u7D30\u306A\u8A55\u4FA1\u304C\u3067\u304D\u307E\u305B\u3093\u3002\u3054\u4E0D\u4FBF\u3092\u304A\u304B\u3051\u3057\u3066\u7533\u3057\u8A33\u3054\u3056\u3044\u307E\u305B\u3093\u3002",
-            similarPhrases: ["Please wait for system recovery.", "System maintenance in progress."]
+            similarPhrases: [
+              "Please wait for system recovery.",
+              "System maintenance in progress."
+            ]
           };
           console.log("Sending fallback response");
           res.json({ ...basicResponse, sessionId: 0 });
         }
       }
     } catch (error) {
-      console.error("Translation error:", error);
+      const err = error;
+      console.error("Translation error:", err.message);
       res.status(400).json({ message: "Invalid request data" });
     }
   });
@@ -1200,8 +1272,12 @@ async function registerRoutes(app2) {
         prices: formattedPrices
       });
     } catch (error) {
-      console.error("Error fetching Stripe prices:", error);
-      res.status(500).json({ message: "Stripe\u4FA1\u683C\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F", error: error.message });
+      const err = error;
+      console.error("Error fetching Stripe prices:", err.message);
+      res.status(500).json({
+        message: "Stripe\u4FA1\u683C\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F",
+        error: err.message
+      });
     }
   });
   const priceConfig = {
@@ -1274,9 +1350,10 @@ async function registerRoutes(app2) {
         recurring: price.recurring
       });
     } catch (error) {
-      console.error("Price info error:", error);
+      const err = error;
+      console.error("Price info error:", err.message);
       res.status(400).json({
-        message: error instanceof Error ? error.message : "\u4FA1\u683C\u60C5\u5831\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F"
+        message: error instanceof Error ? err.message : "\u4FA1\u683C\u60C5\u5831\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F"
       });
     }
   });
@@ -1313,7 +1390,8 @@ async function registerRoutes(app2) {
         currentMode: process.env.STRIPE_MODE || "test"
       });
     } catch (error) {
-      console.error("Error saving price configuration:", error);
+      const err = error;
+      console.error("Error saving price configuration:", err.message);
       res.status(500).json({ message: "\u4FA1\u683CID\u8A2D\u5B9A\u306E\u4FDD\u5B58\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
     }
   });
@@ -1331,9 +1409,10 @@ async function registerRoutes(app2) {
         updated_count: Object.keys(plans).length
       });
     } catch (error) {
-      console.error("Plan configuration error:", error);
+      const err = error;
+      console.error("Plan configuration error:", err.message);
       res.status(400).json({
-        message: error instanceof Error ? error.message : "\u30D7\u30E9\u30F3\u8A2D\u5B9A\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F"
+        message: error instanceof Error ? err.message : "\u30D7\u30E9\u30F3\u8A2D\u5B9A\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F"
       });
     }
   });
@@ -1344,17 +1423,31 @@ async function registerRoutes(app2) {
       if (!stripeSecretKey) {
         return res.status(500).json({ message: "Stripe not configured" });
       }
-      console.log("Attempting to create checkout session for priceId:", priceId);
-      console.log("Stripe Secret Key type:", stripeSecretKey.startsWith("sk_test_") ? "TEST" : stripeSecretKey.startsWith("sk_live_") ? "LIVE" : "UNKNOWN");
+      console.log(
+        "Attempting to create checkout session for priceId:",
+        priceId
+      );
+      console.log(
+        "Stripe Secret Key type:",
+        stripeSecretKey.startsWith("sk_test_") ? "TEST" : stripeSecretKey.startsWith("sk_live_") ? "LIVE" : "UNKNOWN"
+      );
       const stripe = new Stripe(stripeSecretKey);
       try {
         const price = await stripe.prices.retrieve(priceId);
-        console.log("Price found:", price.id, "Amount:", price.unit_amount, "Currency:", price.currency);
+        console.log(
+          "Price found:",
+          price.id,
+          "Amount:",
+          price.unit_amount,
+          "Currency:",
+          price.currency
+        );
       } catch (priceError) {
-        console.error("Price not found:", priceError.message);
+        const err = priceError;
+        console.error("Price not found:", err.message);
         return res.status(400).json({
           message: `\u4FA1\u683CID "${priceId}" \u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002Stripe\u30C0\u30C3\u30B7\u30E5\u30DC\u30FC\u30C9\u3067\u6B63\u3057\u3044\u4FA1\u683CID\u3092\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002`,
-          details: priceError.message
+          details: err.message
         });
       }
       const session = await stripe.checkout.sessions.create({
@@ -1487,7 +1580,9 @@ async function registerRoutes(app2) {
         validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1e3)
         // 7 days trial
       });
-      console.log(`Manual subscription created: ${planType} for session: ${sessionId}`);
+      console.log(
+        `Manual subscription created: ${planType} for session: ${sessionId}`
+      );
       res.json({
         success: true,
         message: "\u30B5\u30D6\u30B9\u30AF\u30EA\u30D7\u30B7\u30E7\u30F3\u304C\u4F5C\u6210\u3055\u308C\u307E\u3057\u305F",
@@ -1563,7 +1658,9 @@ async function registerRoutes(app2) {
       return res.status(400).send(`Webhook Error: Missing Stripe configuration`);
     }
     if (!webhookSecret) {
-      console.log("Webhook secret not configured, processing without verification");
+      console.log(
+        "Webhook secret not configured, processing without verification"
+      );
       try {
         const event2 = JSON.parse(req.body);
         await processWebhookEvent(event2);
@@ -1589,7 +1686,9 @@ async function registerRoutes(app2) {
     switch (event.type) {
       case "checkout.session.completed":
         const session = event.data.object;
-        const planType = getPlanTypeFromPriceId(session.line_items?.data[0]?.price?.id || "");
+        const planType = getPlanTypeFromPriceId(
+          session.line_items?.data[0]?.price?.id || ""
+        );
         try {
           const userId = session.metadata?.userId || "bizmowa.com";
           await storage.updateUserSubscription(userId, {
@@ -1603,7 +1702,9 @@ async function registerRoutes(app2) {
             validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1e3)
             // 7 days trial
           });
-          console.log(`User subscription updated to ${planType} for session: ${session.id}`);
+          console.log(
+            `User subscription updated to ${planType} for session: ${session.id}`
+          );
         } catch (error) {
           console.error("Error updating subscription:", error);
         }
@@ -1776,7 +1877,9 @@ async function registerRoutes(app2) {
         const token = authHeader.substring(7);
         console.log("Auth token received:", token.substring(0, 20) + "...");
         try {
-          const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+          const payload = JSON.parse(
+            Buffer.from(token.split(".")[1], "base64").toString()
+          );
           if (payload.email) {
             userId = payload.email;
             console.log("Extracted user email from JWT:", userId);
@@ -1822,7 +1925,9 @@ async function registerRoutes(app2) {
       if (!targetPriceId) {
         return res.status(400).json({ message: "\u7121\u52B9\u306A\u30D7\u30E9\u30F3\u30BF\u30A4\u30D7\u3067\u3059" });
       }
-      const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+      const stripeSubscription = await stripe.subscriptions.retrieve(
+        subscription.stripeSubscriptionId
+      );
       if (!stripeSubscription.items.data[0]) {
         return res.status(400).json({ message: "\u30B5\u30D6\u30B9\u30AF\u30EA\u30D7\u30B7\u30E7\u30F3\u30A2\u30A4\u30C6\u30E0\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093" });
       }
@@ -1830,10 +1935,12 @@ async function registerRoutes(app2) {
       const updatedSubscription = await stripe.subscriptions.update(
         subscription.stripeSubscriptionId,
         {
-          items: [{
-            id: subscriptionItemId,
-            price: targetPriceId
-          }],
+          items: [
+            {
+              id: subscriptionItemId,
+              price: targetPriceId
+            }
+          ],
           proration_behavior: "create_prorations"
           // 日割り計算を有効化
         }
@@ -1901,7 +2008,10 @@ async function registerRoutes(app2) {
       const { type } = req.params;
       const csvData = await storage.exportData(type);
       res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="${type}-export.csv"`);
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${type}-export.csv"`
+      );
       res.send(csvData);
     } catch (error) {
       console.error("Export error:", error);
@@ -1917,9 +2027,13 @@ async function registerRoutes(app2) {
       const { userId } = req.params;
       const { subscriptionType } = req.body;
       if (!subscriptionType || !["standard", "premium"].includes(subscriptionType)) {
-        return res.status(400).json({ message: "\u6709\u52B9\u306A\u30B5\u30D6\u30B9\u30AF\u30EA\u30D7\u30B7\u30E7\u30F3\u30BF\u30A4\u30D7\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044" });
+        return res.status(400).json({
+          message: "\u6709\u52B9\u306A\u30B5\u30D6\u30B9\u30AF\u30EA\u30D7\u30B7\u30E7\u30F3\u30BF\u30A4\u30D7\u3092\u6307\u5B9A\u3057\u3066\u304F\u3060\u3055\u3044"
+        });
       }
-      const updatedSubscription = await storage.updateUserSubscription(userId, { subscriptionType });
+      const updatedSubscription = await storage.updateUserSubscription(userId, {
+        subscriptionType
+      });
       res.json(updatedSubscription);
     } catch (error) {
       console.error("Update subscription error:", error);
@@ -1935,34 +2049,52 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "\u30C7\u30FC\u30BF\u306E\u30EA\u30BB\u30C3\u30C8\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
     }
   });
-  app2.post("/api/custom-scenarios", requirePremiumSubscription, async (req, res) => {
-    try {
-      const { title, description } = req.body;
-      const scenario = await storage.addCustomScenario({ title, description });
-      res.json(scenario);
-    } catch (error) {
-      res.status(500).json({ message: "\u30AB\u30B9\u30BF\u30E0\u30B7\u30CA\u30EA\u30AA\u306E\u4F5C\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
+  app2.post(
+    "/api/custom-scenarios",
+    requirePremiumSubscription,
+    async (req, res) => {
+      try {
+        const { title, description } = req.body;
+        const scenario = await storage.addCustomScenario({
+          title,
+          description
+        });
+        res.json(scenario);
+      } catch (error) {
+        res.status(500).json({ message: "\u30AB\u30B9\u30BF\u30E0\u30B7\u30CA\u30EA\u30AA\u306E\u4F5C\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
+      }
     }
-  });
-  app2.put("/api/custom-scenarios/:id", requirePremiumSubscription, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { title, description } = req.body;
-      const scenario = await storage.updateCustomScenario(id, { title, description });
-      res.json(scenario);
-    } catch (error) {
-      res.status(500).json({ message: "\u30AB\u30B9\u30BF\u30E0\u30B7\u30CA\u30EA\u30AA\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
+  );
+  app2.put(
+    "/api/custom-scenarios/:id",
+    requirePremiumSubscription,
+    async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        const { title, description } = req.body;
+        const scenario = await storage.updateCustomScenario(id, {
+          title,
+          description
+        });
+        res.json(scenario);
+      } catch (error) {
+        res.status(500).json({ message: "\u30AB\u30B9\u30BF\u30E0\u30B7\u30CA\u30EA\u30AA\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
+      }
     }
-  });
-  app2.delete("/api/custom-scenarios/:id", requirePremiumSubscription, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteCustomScenario(id);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "\u30AB\u30B9\u30BF\u30E0\u30B7\u30CA\u30EA\u30AA\u306E\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
+  );
+  app2.delete(
+    "/api/custom-scenarios/:id",
+    requirePremiumSubscription,
+    async (req, res) => {
+      try {
+        const id = parseInt(req.params.id);
+        await storage.deleteCustomScenario(id);
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ message: "\u30AB\u30B9\u30BF\u30E0\u30B7\u30CA\u30EA\u30AA\u306E\u524A\u9664\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
+      }
     }
-  });
+  );
   app2.get("/api/custom-scenarios/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -1975,18 +2107,21 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "\u30B7\u30CA\u30EA\u30AA\u306E\u53D6\u5F97\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
     }
   });
-  app2.get("/api/simulation-problem/:scenarioId", requirePremiumSubscription, async (req, res) => {
-    try {
-      const scenarioId = parseInt(req.params.scenarioId);
-      const scenario = await storage.getCustomScenario(scenarioId);
-      if (!scenario) {
-        return res.status(404).json({ message: "\u30B7\u30CA\u30EA\u30AA\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093" });
-      }
-      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
-      if (!anthropicApiKey) {
-        return res.status(500).json({ message: "Anthropic API key not configured" });
-      }
-      const prompt = `\u4EE5\u4E0B\u306E\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u8A2D\u5B9A\u306B\u57FA\u3065\u3044\u3066\u3001\u5B9F\u8DF5\u7684\u306A\u65E5\u672C\u8A9E\u6587\u30921\u3064\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+  app2.get(
+    "/api/simulation-problem/:scenarioId",
+    requirePremiumSubscription,
+    async (req, res) => {
+      try {
+        const scenarioId = parseInt(req.params.scenarioId);
+        const scenario = await storage.getCustomScenario(scenarioId);
+        if (!scenario) {
+          return res.status(404).json({ message: "\u30B7\u30CA\u30EA\u30AA\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093" });
+        }
+        const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+        if (!anthropicApiKey) {
+          return res.status(500).json({ message: "Anthropic API key not configured" });
+        }
+        const prompt = `\u4EE5\u4E0B\u306E\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u8A2D\u5B9A\u306B\u57FA\u3065\u3044\u3066\u3001\u5B9F\u8DF5\u7684\u306A\u65E5\u672C\u8A9E\u6587\u30921\u3064\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002
 
 \u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3: ${scenario.title}
 \u8A73\u7D30: ${scenario.description}
@@ -1998,92 +2133,98 @@ async function registerRoutes(app2) {
 }
 
 \u5B9F\u969B\u306E\u5834\u9762\u3067\u4F7F\u308F\u308C\u305D\u3046\u306A\u81EA\u7136\u306A\u65E5\u672C\u8A9E\u6587\u3092\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002`;
-      try {
-        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${anthropicApiKey}`,
-            "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01"
-          },
-          body: JSON.stringify({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 500,
-            temperature: 0.8,
-            messages: [
-              { role: "user", content: prompt }
-            ]
-          })
-        });
-        if (!anthropicResponse.ok) {
-          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
-        }
-        const anthropicData = await anthropicResponse.json();
-        const result = JSON.parse(anthropicData.content[0].text);
-        const sessionId = `${getSessionId(req)}-simulation-${scenarioId}`;
-        const usedProblems = getUsedProblems(sessionId);
-        if (usedProblems.has(result.japaneseSentence)) {
-          const variationPrompt = `${prompt}
-
-\u65E2\u306B\u4F7F\u7528\u3055\u308C\u305F\u554F\u984C: ${Array.from(usedProblems).join(", ")}
-
-\u4E0A\u8A18\u3068\u306F\u7570\u306A\u308B\u65B0\u3057\u3044\u554F\u984C\u3092\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002`;
-          try {
-            const retryResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        try {
+          const anthropicResponse = await fetch(
+            "https://api.anthropic.com/v1/messages",
+            {
               method: "POST",
               headers: {
-                "Authorization": `Bearer ${anthropicApiKey}`,
+                Authorization: `Bearer ${anthropicApiKey}`,
                 "Content-Type": "application/json",
                 "anthropic-version": "2023-06-01"
               },
               body: JSON.stringify({
                 model: "claude-3-haiku-20240307",
                 max_tokens: 500,
-                temperature: 0.9,
-                messages: [
-                  { role: "user", content: variationPrompt }
-                ]
+                temperature: 0.8,
+                messages: [{ role: "user", content: prompt }]
               })
-            });
-            if (retryResponse.ok) {
-              const retryData = await retryResponse.json();
-              const retryResult = JSON.parse(retryData.content[0].text);
-              markProblemAsUsed(sessionId, retryResult.japaneseSentence);
-              return res.json({
-                japaneseSentence: retryResult.japaneseSentence,
-                context: retryResult.context || scenario.description
-              });
             }
-          } catch (retryError) {
-            console.log("Retry generation failed, using original");
+          );
+          if (!anthropicResponse.ok) {
+            throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
           }
+          const anthropicData = await anthropicResponse.json();
+          const result = JSON.parse(anthropicData.content[0].text);
+          const sessionId = `${getSessionId(req)}-simulation-${scenarioId}`;
+          const usedProblems = getUsedProblems(sessionId);
+          if (usedProblems.has(result.japaneseSentence)) {
+            const variationPrompt = `${prompt}
+
+\u65E2\u306B\u4F7F\u7528\u3055\u308C\u305F\u554F\u984C: ${Array.from(usedProblems).join(", ")}
+
+\u4E0A\u8A18\u3068\u306F\u7570\u306A\u308B\u65B0\u3057\u3044\u554F\u984C\u3092\u751F\u6210\u3057\u3066\u304F\u3060\u3055\u3044\u3002`;
+            try {
+              const retryResponse = await fetch(
+                "https://api.anthropic.com/v1/messages",
+                {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${anthropicApiKey}`,
+                    "Content-Type": "application/json",
+                    "anthropic-version": "2023-06-01"
+                  },
+                  body: JSON.stringify({
+                    model: "claude-3-haiku-20240307",
+                    max_tokens: 500,
+                    temperature: 0.9,
+                    messages: [{ role: "user", content: variationPrompt }]
+                  })
+                }
+              );
+              if (retryResponse.ok) {
+                const retryData = await retryResponse.json();
+                const retryResult = JSON.parse(retryData.content[0].text);
+                markProblemAsUsed(sessionId, retryResult.japaneseSentence);
+                return res.json({
+                  japaneseSentence: retryResult.japaneseSentence,
+                  context: retryResult.context || scenario.description
+                });
+              }
+            } catch (retryError) {
+              console.log("Retry generation failed, using original");
+            }
+          }
+          markProblemAsUsed(sessionId, result.japaneseSentence);
+          res.json({
+            japaneseSentence: result.japaneseSentence,
+            context: result.context || scenario.description
+          });
+        } catch (anthropicError) {
+          console.error("Anthropic API error:", anthropicError);
+          res.status(500).json({ message: "\u554F\u984C\u751F\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
         }
-        markProblemAsUsed(sessionId, result.japaneseSentence);
-        res.json({
-          japaneseSentence: result.japaneseSentence,
-          context: result.context || scenario.description
-        });
-      } catch (anthropicError) {
-        console.error("Anthropic API error:", anthropicError);
+      } catch (error) {
+        console.error("Simulation problem error:", error);
         res.status(500).json({ message: "\u554F\u984C\u751F\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
       }
-    } catch (error) {
-      console.error("Simulation problem error:", error);
-      res.status(500).json({ message: "\u554F\u984C\u751F\u6210\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
     }
-  });
-  app2.post("/api/simulation-translate", requirePremiumSubscription, async (req, res) => {
-    try {
-      const { scenarioId, japaneseSentence, userTranslation, context } = req.body;
-      const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
-      if (!anthropicApiKey) {
-        return res.status(500).json({ message: "Anthropic API key not configured" });
-      }
-      const scenario = await storage.getCustomScenario(scenarioId);
-      if (!scenario) {
-        return res.status(404).json({ message: "\u30B7\u30CA\u30EA\u30AA\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093" });
-      }
-      const prompt = `\u3042\u306A\u305F\u306F\u82F1\u8A9E\u6559\u5E2B\u3067\u3059\u3002\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u7DF4\u7FD2\u306E\u82F1\u8A33\u3092\u8A55\u4FA1\u3057\u3066\u304F\u3060\u3055\u3044\u3002
+  );
+  app2.post(
+    "/api/simulation-translate",
+    requirePremiumSubscription,
+    async (req, res) => {
+      try {
+        const { scenarioId, japaneseSentence, userTranslation, context } = req.body;
+        const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+        if (!anthropicApiKey) {
+          return res.status(500).json({ message: "Anthropic API key not configured" });
+        }
+        const scenario = await storage.getCustomScenario(scenarioId);
+        if (!scenario) {
+          return res.status(404).json({ message: "\u30B7\u30CA\u30EA\u30AA\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093" });
+        }
+        const prompt = `\u3042\u306A\u305F\u306F\u82F1\u8A9E\u6559\u5E2B\u3067\u3059\u3002\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u7DF4\u7FD2\u306E\u82F1\u8A33\u3092\u8A55\u4FA1\u3057\u3066\u304F\u3060\u3055\u3044\u3002
 
 \u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u8A2D\u5B9A: ${scenario.title}
 \u8A73\u7D30: ${scenario.description}
@@ -2100,54 +2241,58 @@ async function registerRoutes(app2) {
   "explanation": "\u305D\u306E\u30B7\u30C1\u30E5\u30A8\u30FC\u30B7\u30E7\u30F3\u3067\u306E\u8868\u73FE\u306E\u30DD\u30A4\u30F3\u30C8\uFF08\u65E5\u672C\u8A9E\u3067\uFF09",
   "similarPhrases": ["\u985E\u4F3C\u30D5\u30EC\u30FC\u30BA1", "\u985E\u4F3C\u30D5\u30EC\u30FC\u30BA2"]
 }`;
-      try {
-        const anthropicResponse = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${anthropicApiKey}`,
-            "Content-Type": "application/json",
-            "anthropic-version": "2023-06-01"
-          },
-          body: JSON.stringify({
-            model: "claude-3-haiku-20240307",
-            max_tokens: 1e3,
-            temperature: 0.7,
-            messages: [
-              { role: "user", content: prompt }
-            ]
-          })
-        });
-        if (!anthropicResponse.ok) {
-          throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
+        try {
+          const anthropicResponse = await fetch(
+            "https://api.anthropic.com/v1/messages",
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${anthropicApiKey}`,
+                "Content-Type": "application/json",
+                "anthropic-version": "2023-06-01"
+              },
+              body: JSON.stringify({
+                model: "claude-3-haiku-20240307",
+                max_tokens: 1e3,
+                temperature: 0.7,
+                messages: [{ role: "user", content: prompt }]
+              })
+            }
+          );
+          if (!anthropicResponse.ok) {
+            throw new Error(`Anthropic API error: ${anthropicResponse.status}`);
+          }
+          const anthropicData = await anthropicResponse.json();
+          const parsedResult = JSON.parse(anthropicData.content[0].text);
+          const response = {
+            correctTranslation: parsedResult.correctTranslation,
+            feedback: parsedResult.feedback,
+            rating: Math.max(1, Math.min(5, parsedResult.rating)),
+            improvements: parsedResult.improvements || [],
+            explanation: parsedResult.explanation || "",
+            similarPhrases: parsedResult.similarPhrases || []
+          };
+          await storage.addTrainingSession({
+            difficultyLevel: `simulation-${scenarioId}`,
+            japaneseSentence,
+            userTranslation,
+            correctTranslation: response.correctTranslation,
+            feedback: response.feedback,
+            rating: response.rating
+          });
+          res.json(response);
+        } catch (anthropicError) {
+          console.error("Anthropic API error:", anthropicError);
+          res.status(500).json({
+            message: "AI\u8A55\u4FA1\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u3057\u3070\u3089\u304F\u3057\u3066\u304B\u3089\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002"
+          });
         }
-        const anthropicData = await anthropicResponse.json();
-        const parsedResult = JSON.parse(anthropicData.content[0].text);
-        const response = {
-          correctTranslation: parsedResult.correctTranslation,
-          feedback: parsedResult.feedback,
-          rating: Math.max(1, Math.min(5, parsedResult.rating)),
-          improvements: parsedResult.improvements || [],
-          explanation: parsedResult.explanation || "",
-          similarPhrases: parsedResult.similarPhrases || []
-        };
-        await storage.addTrainingSession({
-          difficultyLevel: `simulation-${scenarioId}`,
-          japaneseSentence,
-          userTranslation,
-          correctTranslation: response.correctTranslation,
-          feedback: response.feedback,
-          rating: response.rating
-        });
-        res.json(response);
-      } catch (anthropicError) {
-        console.error("Anthropic API error:", anthropicError);
-        res.status(500).json({ message: "AI\u8A55\u4FA1\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u3057\u3070\u3089\u304F\u3057\u3066\u304B\u3089\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002" });
+      } catch (error) {
+        console.error("Simulation translation error:", error);
+        res.status(500).json({ message: "\u7FFB\u8A33\u8A55\u4FA1\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
       }
-    } catch (error) {
-      console.error("Simulation translation error:", error);
-      res.status(500).json({ message: "\u7FFB\u8A33\u8A55\u4FA1\u306B\u5931\u6557\u3057\u307E\u3057\u305F" });
     }
-  });
+  );
   app2.get("/api/daily-count", async (req, res) => {
     try {
       const count2 = await storage.getTodaysProblemCount();
@@ -2172,8 +2317,8 @@ async function registerRoutes(app2) {
 
 // server/index.ts
 dotenv.config();
-var __filename2 = fileURLToPath2(import.meta.url);
-var __dirname2 = path2.dirname(__filename2);
+var __filename = fileURLToPath(import.meta.url);
+var __dirname2 = path2.dirname(__filename);
 var app = express2();
 var server = createServer2(app);
 var PORT = process.env.PORT || 5e3;
@@ -2185,6 +2330,6 @@ if (process.env.NODE_ENV === "production") {
 } else {
   await setupVite(app, server);
 }
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

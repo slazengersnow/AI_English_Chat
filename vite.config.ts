@@ -8,15 +8,16 @@ dotenv.config({ path: ".env.local" });
 
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
+  base: "/",
+  plugins: [react()],
   build: {
-    outDir: path.resolve(__dirname, "dist/client"), // ✅ dist/client に揃える
+    outDir: path.resolve(__dirname, "dist/client"),
     emptyOutDir: true,
   },
-  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"),
+      "@shared": path.resolve(__dirname, "shared"), // 共有ディレクトリのエイリアス
     },
   },
   define: {

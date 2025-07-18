@@ -26,6 +26,6 @@ if (process.env.NODE_ENV === "production") {
   await setupVite(app, server);
 }
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

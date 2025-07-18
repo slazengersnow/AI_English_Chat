@@ -1,17 +1,11 @@
-import express, { type Express } from "express";
+import express from "express";
 import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { fileURLToPath } from "url";
 import { nanoid } from "nanoid";
-import type { Server } from "http";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export async function setupVite(app: Express, server: Server) {
+export async function setupVite(app: express.Express, server: any) {
   const vite = await createViteServer({
-    root: path.resolve(__dirname, "../client"),
     server: { middlewareMode: true },
     appType: "custom",
   });
@@ -23,10 +17,12 @@ export async function setupVite(app: Express, server: Server) {
       const url = req.originalUrl;
       const templatePath = path.resolve(__dirname, "../client/index.html");
       let template = await fs.promises.readFile(templatePath, "utf-8");
+
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
+
       const html = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
@@ -36,19 +32,17 @@ export async function setupVite(app: Express, server: Server) {
   });
 }
 
-export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "../dist/client"); // ✅ ← これが正解！
-
+export function serveStatic(app: express.Express) {
+  const distPath = path.resolve(__dirname, "../dist/client");
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to run 'npm run build' first`,
+      `Could not find the build directory: ${distPath}. Please run 'npm run build' before start.`,
     );
   }
 
   app.use(express.static(distPath));
 
-  // fallback to index.html for SPA
   app.use("*", (_req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
+    res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
