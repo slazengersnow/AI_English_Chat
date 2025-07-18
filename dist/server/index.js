@@ -7,116 +7,37 @@ var __export = (target, all) => {
 // server/index.ts
 import express2 from "express";
 import { createServer as createServer2 } from "http";
-import path3 from "path";
-import { fileURLToPath as fileURLToPath3 } from "url";
-import dotenv2 from "dotenv";
+import { fileURLToPath as fileURLToPath2 } from "url";
+import path2 from "path";
+import dotenv from "dotenv";
 
 // server/vite.ts
 import express from "express";
 import fs from "fs";
-import path2 from "path";
-import { createServer as createViteServer, createLogger } from "vite";
-
-// vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-import dotenv from "dotenv";
+import { createServer as createViteServer } from "vite";
 import { fileURLToPath } from "url";
-dotenv.config();
-dotenv.config({ path: ".env.local" });
+import { nanoid } from "nanoid";
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
-var vite_config_default = defineConfig(async () => {
-  const replPlugin = process.env.NODE_ENV !== "production" && process.env.REPL_ID ? [
-    await import("@replit/vite-plugin-cartographer").then(
-      (m) => m.cartographer()
-    )
-  ] : [];
-  return {
-    base: "/",
-    plugins: [react(), runtimeErrorOverlay(), ...replPlugin],
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "client", "src"),
-        "@shared": path.resolve(__dirname, "shared"),
-        "@assets": path.resolve(__dirname, "attached_assets")
-      }
-    },
-    root: path.resolve(__dirname, "client"),
-    build: {
-      outDir: path.resolve(__dirname, "client", "dist"),
-      emptyOutDir: true
-    },
-    server: {
-      fs: {
-        strict: true,
-        deny: ["**/.*"]
-      }
-    },
-    define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        process.env.VITE_SUPABASE_URL
-      ),
-      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-        process.env.VITE_SUPABASE_ANON_KEY
-      )
-    }
-  };
-});
-
-// server/vite.ts
-import { nanoid } from "nanoid";
-import { fileURLToPath as fileURLToPath2 } from "url";
-var viteLogger = createLogger();
-var __filename2 = fileURLToPath2(import.meta.url);
-var __dirname2 = path2.dirname(__filename2);
-function log(message, source = "express") {
-  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true
-  });
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
 async function setupVite(app2, server2) {
-  const serverOptions = {
-    middlewareMode: true,
-    hmr: { server: server2 },
-    allowedHosts: true
-  };
   const vite = await createViteServer({
-    ...vite_config_default,
-    configFile: false,
-    customLogger: {
-      ...viteLogger,
-      error: (msg, options) => {
-        viteLogger.error(msg, options);
-        process.exit(1);
-      }
-    },
-    server: serverOptions,
+    root: path.resolve(__dirname, "../client"),
+    server: { middlewareMode: true },
     appType: "custom"
   });
   app2.use(vite.middlewares);
   app2.use("*", async (req, res, next) => {
-    const url = req.originalUrl;
     try {
-      const clientTemplate = path2.resolve(
-        __dirname2,
-        "..",
-        "client",
-        "index.html"
-      );
-      let template = await fs.promises.readFile(clientTemplate, "utf-8");
+      const url = req.originalUrl;
+      const templatePath = path.resolve(__dirname, "../client/index.html");
+      let template = await fs.promises.readFile(templatePath, "utf-8");
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`
       );
-      const page = await vite.transformIndexHtml(url, template);
-      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+      const html = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
     } catch (e) {
       vite.ssrFixStacktrace(e);
       next(e);
@@ -124,15 +45,15 @@ async function setupVite(app2, server2) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path2.resolve(__dirname2, "..", "client", "dist");
+  const distPath = path.resolve(__dirname, "../dist/client");
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`
+      `Build directory not found: ${distPath}. Run \`npm run build\` before deploying.`
     );
   }
   app2.use(express.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path2.resolve(distPath, "index.html"));
+    res.sendFile(path.join(distPath, "index.html"));
   });
 }
 
@@ -2250,29 +2171,20 @@ async function registerRoutes(app2) {
 }
 
 // server/index.ts
-dotenv2.config();
-var __filename3 = fileURLToPath3(import.meta.url);
-var __dirname3 = path3.dirname(__filename3);
-try {
-  const { WebSocket: WebSocket2 } = await import("ws");
-  global.WebSocket = WebSocket2;
-} catch (e) {
-  console.warn("WebSocket setup failed:", e.message);
-}
+dotenv.config();
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = path2.dirname(__filename2);
 var app = express2();
 var server = createServer2(app);
 var PORT = process.env.PORT || 5e3;
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: true }));
 registerRoutes(app);
-var start = async () => {
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
-    await setupVite(app, server);
-  }
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`Server running on port ${PORT}`);
-  });
-};
-start();
+if (process.env.NODE_ENV === "production") {
+  serveStatic(app);
+} else {
+  await setupVite(app, server);
+}
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
