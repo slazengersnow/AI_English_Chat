@@ -100,31 +100,31 @@ var sessions = pgTable(
 );
 var trainingSessions = pgTable("training_sessions", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").default("default_user").notNull(),
+  userId: varchar("user_id").notNull().default("default_user"),
   difficultyLevel: varchar("difficulty_level").notNull(),
   japaneseSentence: text("japanese_sentence").notNull(),
   userTranslation: text("user_translation").notNull(),
   correctTranslation: text("correct_translation").notNull(),
   feedback: text("feedback").notNull(),
   rating: integer("rating").notNull(),
-  isBookmarked: boolean("is_bookmarked").default(false).notNull(),
-  reviewCount: integer("review_count").default(0).notNull(),
+  isBookmarked: boolean("is_bookmarked").notNull().default(false),
+  reviewCount: integer("review_count").notNull().default(0),
   lastReviewed: timestamp("last_reviewed"),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 var userGoals = pgTable("user_goals", {
   id: serial("id").primaryKey(),
-  dailyGoal: integer("daily_goal").default(30).notNull(),
-  monthlyGoal: integer("monthly_goal").default(900).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  dailyGoal: integer("daily_goal").notNull().default(30),
+  monthlyGoal: integer("monthly_goal").notNull().default(900),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
 var userSubscriptions = pgTable("user_subscriptions", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").default("default_user").notNull(),
-  subscriptionType: varchar("subscription_type").default("standard").notNull(),
+  userId: varchar("user_id").notNull().default("default_user"),
+  subscriptionType: varchar("subscription_type").notNull().default("standard"),
   // "standard" or "premium"
-  subscriptionStatus: varchar("subscription_status").default("inactive").notNull(),
+  subscriptionStatus: varchar("subscription_status").notNull().default("inactive"),
   // active, trialing, canceled, past_due, etc.
   planName: varchar("plan_name"),
   // standard_monthly, premium_yearly, etc.
@@ -134,34 +134,34 @@ var userSubscriptions = pgTable("user_subscriptions", {
   // For subscription upgrades
   validUntil: timestamp("valid_until"),
   trialStart: timestamp("trial_start"),
-  isAdmin: boolean("is_admin").default(false).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  isAdmin: boolean("is_admin").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 }, (table) => ({
   uniqueUserId: unique().on(table.userId)
 }));
 var dailyProgress = pgTable("daily_progress", {
   id: serial("id").primaryKey(),
   date: date("date").notNull().unique(),
-  problemsCompleted: integer("problems_completed").default(0).notNull(),
-  averageRating: integer("average_rating").default(0).notNull(),
-  dailyCount: integer("daily_count").default(0).notNull(),
+  problemsCompleted: integer("problems_completed").notNull().default(0),
+  averageRating: integer("average_rating").notNull().default(0),
+  dailyCount: integer("daily_count").notNull().default(0),
   // Track problems attempted today
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 var customScenarios = pgTable("custom_scenarios", {
   id: serial("id").primaryKey(),
   title: varchar("title").notNull(),
   description: text("description").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull()
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow()
 });
 var problemProgress = pgTable("problem_progress", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").default("default_user").notNull(),
+  userId: varchar("user_id").notNull().default("default_user"),
   difficultyLevel: varchar("difficulty_level").notNull(),
-  currentProblemNumber: integer("current_problem_number").default(1).notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull()
+  currentProblemNumber: integer("current_problem_number").notNull().default(1),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
 }, (table) => ({
   uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel)
 }));

@@ -66,6 +66,21 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 18, 2025 - TypeScript設定とschema.ts修正完了
+- **TypeScript設定最適化**: パス解決と型設定を改善
+  - @types/express パッケージを追加してExpress型定義を正しく設定
+  - tsconfig.server.json に baseUrl と paths 設定を追加（@shared/* → shared/*）
+  - strict: false に設定してTypeScript厳格性を緩和
+  - rootDir: "." に変更してsharedフォルダを正しく含める
+- **schema.ts修正**: Drizzle ORM型定義順序を正しく修正
+  - 全テーブルで .default().notNull() → .notNull().default() に順序変更
+  - trainingSessions, userGoals, userSubscriptions, dailyProgress, customScenarios, problemProgress 全テーブル修正
+  - vite-env.d.ts ファイルを追加（/// <reference types="vite/client" />）
+- **本番ビルド完了**: esbuildで最終本番ビルド作成
+  - クライアント: dist/index.html, dist/assets/index-*.css, dist/assets/index-*.js
+  - サーバー: dist/server/index.js (101KB)
+  - Railway本番デプロイ準備完了
+
 ### July 17, 2025 - Railway本番デプロイ対応完了とVite環境変数問題解決
 - **全ビルド依存関係修正**: Railwayビルド環境での"Cannot find package"エラーを解決
   - vite: devDependencies → dependencies に移動
