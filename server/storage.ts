@@ -85,9 +85,13 @@ export class DatabaseStorage implements IStorage {
     const [session] = await db
       .insert(trainingSessions)
       .values({
-        ...sessionData,
+        difficultyLevel: sessionData.difficultyLevel,
+        japaneseSentence: sessionData.japaneseSentence,
+        userTranslation: sessionData.userTranslation,
+        correctTranslation: sessionData.correctTranslation,
+        feedback: sessionData.feedback,
+        rating: sessionData.rating,
         userId: sessionData.userId || "default_user",
-        createdAt: new Date(),
       })
       .returning();
     
@@ -218,8 +222,8 @@ export class DatabaseStorage implements IStorage {
     const [goal] = await db
       .insert(userGoals)
       .values({
-        ...goalData,
-        updatedAt: new Date(),
+        dailyGoal: goalData.dailyGoal,
+        monthlyGoal: goalData.monthlyGoal,
       })
       .returning();
     
@@ -242,6 +246,7 @@ export class DatabaseStorage implements IStorage {
     return {
       ...progress,
       createdAt: progress.createdAt.toISOString(),
+      dailyCount: progress.dailyCount,
     };
   }
 
@@ -265,6 +270,7 @@ export class DatabaseStorage implements IStorage {
     return {
       ...progress,
       createdAt: progress.createdAt.toISOString(),
+      dailyCount: progress.dailyCount,
     };
   }
 
@@ -303,6 +309,7 @@ export class DatabaseStorage implements IStorage {
     return progress.map(p => ({
       ...p,
       createdAt: p.createdAt.toISOString(),
+      dailyCount: p.dailyCount,
     }));
   }
 
@@ -396,7 +403,7 @@ export class DatabaseStorage implements IStorage {
     return scenarios.map(scenario => ({
       ...scenario,
       createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
-      isActive: scenario.isActive || true,
+      isActive: scenario.isActive,
     }));
   }
 

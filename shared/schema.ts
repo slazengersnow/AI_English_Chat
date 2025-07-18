@@ -89,12 +89,34 @@ export const problemProgress = pgTable("problem_progress", {
 }));
 
 // Insert schemas
-export const insertTrainingSessionSchema = createInsertSchema(trainingSessions).omit({ id: true, createdAt: true });
-export const insertUserGoalSchema = createInsertSchema(userGoals).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({ id: true, createdAt: true });
-export const insertCustomScenarioSchema = createInsertSchema(customScenarios).omit({ id: true, createdAt: true });
-export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertProblemProgressSchema = createInsertSchema(problemProgress).omit({ id: true, updatedAt: true });
+export const insertTrainingSessionSchema = createInsertSchema(trainingSessions, {
+  createdAt: z.date().optional(),
+  lastReviewed: z.date().optional(),
+}).omit({ id: true });
+
+export const insertUserGoalSchema = createInsertSchema(userGoals, {
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+}).omit({ id: true });
+
+export const insertDailyProgressSchema = createInsertSchema(dailyProgress, {
+  createdAt: z.date().optional(),
+}).omit({ id: true });
+
+export const insertCustomScenarioSchema = createInsertSchema(customScenarios, {
+  createdAt: z.date().optional(),
+}).omit({ id: true });
+
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions, {
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  validUntil: z.date().optional(),
+  trialStart: z.date().optional(),
+}).omit({ id: true });
+
+export const insertProblemProgressSchema = createInsertSchema(problemProgress, {
+  updatedAt: z.date().optional(),
+}).omit({ id: true });
 
 // Zod Schemas  
 export const trainingSessionSchema = z.object({

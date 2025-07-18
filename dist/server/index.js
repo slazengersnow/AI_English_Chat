@@ -165,12 +165,29 @@ var problemProgress = pgTable("problem_progress", {
 }, (table) => ({
   uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel)
 }));
-var insertTrainingSessionSchema = createInsertSchema(trainingSessions).omit({ id: true, createdAt: true });
-var insertUserGoalSchema = createInsertSchema(userGoals).omit({ id: true, createdAt: true, updatedAt: true });
-var insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({ id: true, createdAt: true });
-var insertCustomScenarioSchema = createInsertSchema(customScenarios).omit({ id: true, createdAt: true });
-var insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
-var insertProblemProgressSchema = createInsertSchema(problemProgress).omit({ id: true, updatedAt: true });
+var insertTrainingSessionSchema = createInsertSchema(trainingSessions, {
+  createdAt: z.date().optional(),
+  lastReviewed: z.date().optional()
+}).omit({ id: true });
+var insertUserGoalSchema = createInsertSchema(userGoals, {
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional()
+}).omit({ id: true });
+var insertDailyProgressSchema = createInsertSchema(dailyProgress, {
+  createdAt: z.date().optional()
+}).omit({ id: true });
+var insertCustomScenarioSchema = createInsertSchema(customScenarios, {
+  createdAt: z.date().optional()
+}).omit({ id: true });
+var insertUserSubscriptionSchema = createInsertSchema(userSubscriptions, {
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  validUntil: z.date().optional(),
+  trialStart: z.date().optional()
+}).omit({ id: true });
+var insertProblemProgressSchema = createInsertSchema(problemProgress, {
+  updatedAt: z.date().optional()
+}).omit({ id: true });
 var trainingSessionSchema = z.object({
   id: z.number(),
   difficultyLevel: z.string(),
@@ -320,9 +337,13 @@ var DatabaseStorage = class {
   // Training sessions
   async addTrainingSession(sessionData) {
     const [session] = await db.insert(trainingSessions).values({
-      ...sessionData,
-      userId: sessionData.userId || "default_user",
-      createdAt: /* @__PURE__ */ new Date()
+      difficultyLevel: sessionData.difficultyLevel,
+      japaneseSentence: sessionData.japaneseSentence,
+      userTranslation: sessionData.userTranslation,
+      correctTranslation: sessionData.correctTranslation,
+      feedback: sessionData.feedback,
+      rating: sessionData.rating,
+      userId: sessionData.userId || "default_user"
     }).returning();
     const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
     await this.updateDailyProgressForDate(today);
@@ -400,8 +421,8 @@ var DatabaseStorage = class {
   }
   async updateUserGoals(goalData) {
     const [goal] = await db.insert(userGoals).values({
-      ...goalData,
-      updatedAt: /* @__PURE__ */ new Date()
+      dailyGoal: goalData.dailyGoal,
+      monthlyGoal: goalData.monthlyGoal
     }).returning();
     return {
       ...goal,
@@ -415,7 +436,8 @@ var DatabaseStorage = class {
     if (!progress) return void 0;
     return {
       ...progress,
-      createdAt: progress.createdAt.toISOString()
+      createdAt: progress.createdAt.toISOString(),
+      dailyCount: progress.dailyCount
     };
   }
   async updateDailyProgress(date2, problemsCompleted, averageRating) {
@@ -432,7 +454,8 @@ var DatabaseStorage = class {
     }).returning();
     return {
       ...progress,
-      createdAt: progress.createdAt.toISOString()
+      createdAt: progress.createdAt.toISOString(),
+      dailyCount: progress.dailyCount
     };
   }
   async updateDailyProgressForDate(date2) {
@@ -458,7 +481,8 @@ var DatabaseStorage = class {
     ).orderBy(dailyProgress.date);
     return progress.map((p) => ({
       ...p,
-      createdAt: p.createdAt.toISOString()
+      createdAt: p.createdAt.toISOString(),
+      dailyCount: p.dailyCount
     }));
   }
   async getStreakCount() {
@@ -522,7 +546,7 @@ var DatabaseStorage = class {
     return scenarios.map((scenario) => ({
       ...scenario,
       createdAt: scenario.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
-      isActive: scenario.isActive || true
+      isActive: scenario.isActive
     }));
   }
   async getCustomScenario(id) {
