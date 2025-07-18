@@ -7,6 +7,8 @@ var __export = (target, all) => {
 // server/index.ts
 import express2 from "express";
 import { createServer as createServer2 } from "http";
+import path3 from "path";
+import { fileURLToPath as fileURLToPath3 } from "url";
 import dotenv2 from "dotenv";
 
 // server/vite.ts
@@ -21,53 +23,55 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+dotenv.config();
 dotenv.config({ path: ".env.local" });
-var vite_config_default = defineConfig({
-  base: "/",
-  // ✅ 相対パス対応（必要）
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
-      await import("@replit/vite-plugin-cartographer").then(
-        (m) => m.cartographer()
-      )
-    ] : []
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets")
-    }
-  },
-  root: path.resolve(import.meta.dirname, "client"),
-  // ✅ client フォルダを root に指定
-  build: {
-    outDir: path.resolve(import.meta.dirname, "dist"),
-    // ✅ 出力先は dist/
-    emptyOutDir: true
-    // ✅ ビルド前に dist をクリーン
-  },
-  server: {
-    fs: {
-      strict: true,
-      deny: ["**/.*"]
-    }
-  },
-  define: {
-    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_SUPABASE_URL
-    ),
-    "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-      process.env.VITE_SUPABASE_ANON_KEY
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = path.dirname(__filename);
+var vite_config_default = defineConfig(async () => {
+  const replPlugin = process.env.NODE_ENV !== "production" && process.env.REPL_ID ? [
+    await import("@replit/vite-plugin-cartographer").then(
+      (m) => m.cartographer()
     )
-  }
+  ] : [];
+  return {
+    base: "/",
+    plugins: [react(), runtimeErrorOverlay(), ...replPlugin],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "client", "src"),
+        "@shared": path.resolve(__dirname, "shared"),
+        "@assets": path.resolve(__dirname, "attached_assets")
+      }
+    },
+    root: path.resolve(__dirname, "client"),
+    build: {
+      outDir: path.resolve(__dirname, "client", "dist"),
+      emptyOutDir: true
+    },
+    server: {
+      fs: {
+        strict: true,
+        deny: ["**/.*"]
+      }
+    },
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
+        process.env.VITE_SUPABASE_URL
+      ),
+      "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
+        process.env.VITE_SUPABASE_ANON_KEY
+      )
+    }
+  };
 });
 
 // server/vite.ts
 import { nanoid } from "nanoid";
+import { fileURLToPath as fileURLToPath2 } from "url";
 var viteLogger = createLogger();
+var __filename2 = fileURLToPath2(import.meta.url);
+var __dirname2 = path2.dirname(__filename2);
 function log(message, source = "express") {
   const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -101,7 +105,7 @@ async function setupVite(app2, server2) {
     const url = req.originalUrl;
     try {
       const clientTemplate = path2.resolve(
-        import.meta.dirname,
+        __dirname2,
         "..",
         "client",
         "index.html"
@@ -120,7 +124,7 @@ async function setupVite(app2, server2) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path2.resolve(import.meta.dirname, "public");
+  const distPath = path2.resolve(__dirname2, "..", "client", "dist");
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
@@ -2247,6 +2251,8 @@ async function registerRoutes(app2) {
 
 // server/index.ts
 dotenv2.config();
+var __filename3 = fileURLToPath3(import.meta.url);
+var __dirname3 = path3.dirname(__filename3);
 try {
   const { WebSocket: WebSocket2 } = await import("ws");
   global.WebSocket = WebSocket2;
@@ -2259,11 +2265,14 @@ var PORT = process.env.PORT || 5e3;
 app.use(express2.json());
 app.use(express2.urlencoded({ extended: true }));
 registerRoutes(app);
-if (process.env.NODE_ENV === "production") {
-  serveStatic(app);
-} else {
-  await setupVite(app, server);
-}
-server.listen(PORT, "0.0.0.0", () => {
-  log(`serving on port ${PORT}`);
-});
+var start = async () => {
+  if (process.env.NODE_ENV === "production") {
+    serveStatic(app);
+  } else {
+    await setupVite(app, server);
+  }
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`Server running on port ${PORT}`);
+  });
+};
+start();
