@@ -1,6 +1,6 @@
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
-import * as schema from "@shared/schema";
+import * as schema from "../shared/schema";
 
 // WebSocket setup for better performance in production
 if (typeof WebSocket !== "undefined") {

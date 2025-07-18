@@ -11,7 +11,7 @@ import {
   type TranslateResponse,
   type ProblemResponse,
   type CheckoutSessionResponse,
-} from "@shared/schema";
+} from "../shared/schema";
 
 // Session-based problem tracking to prevent duplicates
 const sessionProblems = new Map<string, Set<string>>();
