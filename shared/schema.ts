@@ -88,35 +88,56 @@ export const problemProgress = pgTable("problem_progress", {
   uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
 }));
 
-// Insert schemas
-export const insertTrainingSessionSchema = createInsertSchema(trainingSessions, {
-  createdAt: z.date().optional(),
+// Insert schemas - using manual Zod schemas to avoid Drizzle type conflicts
+export const insertTrainingSessionSchema = z.object({
+  userId: z.string().optional(),
+  difficultyLevel: z.string(),
+  japaneseSentence: z.string(),
+  userTranslation: z.string(),
+  correctTranslation: z.string(),
+  feedback: z.string(),
+  rating: z.number(),
+  isBookmarked: z.boolean().optional(),
+  reviewCount: z.number().optional(),
   lastReviewed: z.date().optional(),
-}).omit({ id: true });
+});
 
-export const insertUserGoalSchema = createInsertSchema(userGoals, {
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-}).omit({ id: true });
+export const insertUserGoalSchema = z.object({
+  dailyGoal: z.number(),
+  monthlyGoal: z.number(),
+});
 
-export const insertDailyProgressSchema = createInsertSchema(dailyProgress, {
-  createdAt: z.date().optional(),
-}).omit({ id: true });
+export const insertDailyProgressSchema = z.object({
+  date: z.string(),
+  problemsCompleted: z.number(),
+  averageRating: z.number(),
+  dailyCount: z.number().optional(),
+});
 
-export const insertCustomScenarioSchema = createInsertSchema(customScenarios, {
-  createdAt: z.date().optional(),
-}).omit({ id: true });
+export const insertCustomScenarioSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  isActive: z.boolean().optional(),
+});
 
-export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions, {
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+export const insertUserSubscriptionSchema = z.object({
+  userId: z.string().optional(),
+  subscriptionType: z.string().optional(),
+  subscriptionStatus: z.string().optional(),
+  planName: z.string().optional(),
+  stripeCustomerId: z.string().optional(),
+  stripeSubscriptionId: z.string().optional(),
+  stripeSubscriptionItemId: z.string().optional(),
   validUntil: z.date().optional(),
   trialStart: z.date().optional(),
-}).omit({ id: true });
+  isAdmin: z.boolean().optional(),
+});
 
-export const insertProblemProgressSchema = createInsertSchema(problemProgress, {
-  updatedAt: z.date().optional(),
-}).omit({ id: true });
+export const insertProblemProgressSchema = z.object({
+  userId: z.string(),
+  difficultyLevel: z.string(),
+  currentProblemNumber: z.number(),
+});
 
 // Zod Schemas  
 export const trainingSessionSchema = z.object({

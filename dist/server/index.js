@@ -87,7 +87,6 @@ __export(schema_exports, {
   userSubscriptions: () => userSubscriptions
 });
 import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 var sessions = pgTable(
   "sessions",
@@ -165,29 +164,50 @@ var problemProgress = pgTable("problem_progress", {
 }, (table) => ({
   uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel)
 }));
-var insertTrainingSessionSchema = createInsertSchema(trainingSessions, {
-  createdAt: z.date().optional(),
+var insertTrainingSessionSchema = z.object({
+  userId: z.string().optional(),
+  difficultyLevel: z.string(),
+  japaneseSentence: z.string(),
+  userTranslation: z.string(),
+  correctTranslation: z.string(),
+  feedback: z.string(),
+  rating: z.number(),
+  isBookmarked: z.boolean().optional(),
+  reviewCount: z.number().optional(),
   lastReviewed: z.date().optional()
-}).omit({ id: true });
-var insertUserGoalSchema = createInsertSchema(userGoals, {
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional()
-}).omit({ id: true });
-var insertDailyProgressSchema = createInsertSchema(dailyProgress, {
-  createdAt: z.date().optional()
-}).omit({ id: true });
-var insertCustomScenarioSchema = createInsertSchema(customScenarios, {
-  createdAt: z.date().optional()
-}).omit({ id: true });
-var insertUserSubscriptionSchema = createInsertSchema(userSubscriptions, {
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+});
+var insertUserGoalSchema = z.object({
+  dailyGoal: z.number(),
+  monthlyGoal: z.number()
+});
+var insertDailyProgressSchema = z.object({
+  date: z.string(),
+  problemsCompleted: z.number(),
+  averageRating: z.number(),
+  dailyCount: z.number().optional()
+});
+var insertCustomScenarioSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  isActive: z.boolean().optional()
+});
+var insertUserSubscriptionSchema = z.object({
+  userId: z.string().optional(),
+  subscriptionType: z.string().optional(),
+  subscriptionStatus: z.string().optional(),
+  planName: z.string().optional(),
+  stripeCustomerId: z.string().optional(),
+  stripeSubscriptionId: z.string().optional(),
+  stripeSubscriptionItemId: z.string().optional(),
   validUntil: z.date().optional(),
-  trialStart: z.date().optional()
-}).omit({ id: true });
-var insertProblemProgressSchema = createInsertSchema(problemProgress, {
-  updatedAt: z.date().optional()
-}).omit({ id: true });
+  trialStart: z.date().optional(),
+  isAdmin: z.boolean().optional()
+});
+var insertProblemProgressSchema = z.object({
+  userId: z.string(),
+  difficultyLevel: z.string(),
+  currentProblemNumber: z.number()
+});
 var trainingSessionSchema = z.object({
   id: z.number(),
   difficultyLevel: z.string(),
