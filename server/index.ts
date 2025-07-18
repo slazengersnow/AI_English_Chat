@@ -9,6 +9,10 @@ import { registerRoutes } from "./routes";
 // Load environment variables
 dotenv.config();
 
+// Fix __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Fix WebSocket for ESM environment
 try {
   const { WebSocket } = await import("ws");
@@ -20,8 +24,6 @@ try {
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 5000;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(express.json());
@@ -31,12 +33,16 @@ app.use(express.urlencoded({ extended: true }));
 registerRoutes(app);
 
 // Setup Vite (development) or serve static files (production)
-if (process.env.NODE_ENV === "production") {
-  serveStatic(app);
-} else {
-  await setupVite(app, server);
-}
+const start = async () => {
+  if (process.env.NODE_ENV === "production") {
+    serveStatic(app);
+  } else {
+    await setupVite(app, server);
+  }
 
-server.listen(PORT, "0.0.0.0", () => {
-  log(`serving on port ${PORT}`);
-});
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`Server running on port ${PORT}`);
+  });
+};
+
+start(); // ← await 使うために関数にした
