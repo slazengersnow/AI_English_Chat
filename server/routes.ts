@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -16,7 +16,7 @@ import {
 // Session-based problem tracking to prevent duplicates
 const sessionProblems = new Map<string, Set<string>>();
 
-function getSessionId(req: any): string {
+function getSessionId(req: Request): string {
   // Use session ID if available, otherwise use IP as fallback
   return req.sessionID || req.ip || "default";
 }
@@ -53,7 +53,7 @@ function getUnusedProblem(
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware to check subscription status
-  const requireActiveSubscription = async (req: any, res: any, next: any) => {
+  const requireActiveSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Get user ID from Authorization header (Supabase JWT token)
       const authHeader = req.headers.authorization;
@@ -117,7 +117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  const requirePremiumSubscription = async (req: any, res: any, next: any) => {
+  const requirePremiumSubscription = async (req: Request, res: Response, next: NextFunction) => {
     try {
       // Get user ID from headers
       const userEmail =
@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Authentication endpoints
-  app.post("/api/auth/signup", async (req, res) => {
+  app.post("/api/auth/signup", async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/login", async (req, res) => {
+  app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
@@ -207,7 +207,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate Japanese problem for translation (protected)
-  app.post("/api/problem", requireActiveSubscription, async (req, res) => {
+  app.post("/api/problem", requireActiveSubscription, async (req: Request, res: Response) => {
     try {
       // Check daily limit first
       const canProceed = await storage.incrementDailyCount();
@@ -367,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Evaluate user translation using Claude Haiku
-  app.post("/api/translate", async (req, res) => {
+  app.post("/api/translate", async (req: Request, res: Response) => {
     try {
       const { japaneseSentence, userTranslation, difficultyLevel } =
         translateRequestSchema.parse(req.body);
@@ -672,7 +672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get available Stripe prices from actual account
-  app.get("/api/stripe-prices", async (req, res) => {
+  app.get("/api/stripe-prices", async (req: Request, res: Response) => {
     try {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (!stripeSecretKey) {
@@ -731,7 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     },
   };
 
-  app.get("/api/subscription-plans", (req, res) => {
+  app.get("/api/subscription-plans", (req: Request, res: Response) => {
     // Dynamically read current mode and prices from environment variables
     const currentMode = process.env.STRIPE_MODE || "test";
     const currentPrices = priceConfig[currentMode as keyof typeof priceConfig];
@@ -778,7 +778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Price information endpoint
-  app.post("/api/stripe/price-info", async (req, res) => {
+  app.post("/api/stripe/price-info", async (req: Request, res: Response) => {
     try {
       const { priceId } = req.body;
 
@@ -812,7 +812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Save price configuration endpoint
-  app.post("/api/save-price-configuration", async (req, res) => {
+  app.post("/api/save-price-configuration", async (req: Request, res: Response) => {
     try {
       const { priceIds } = req.body;
 
@@ -861,7 +861,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update plan configuration endpoint
-  app.post("/api/plan-configuration", async (req, res) => {
+  app.post("/api/plan-configuration", async (req: Request, res: Response) => {
     try {
       const { plans } = req.body;
 
@@ -891,7 +891,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/create-checkout-session", async (req, res) => {
+  app.post("/api/create-checkout-session", async (req: Request, res: Response) => {
     try {
       const { priceId, successUrl, cancelUrl } =
         createCheckoutSessionSchema.parse(req.body);
@@ -971,7 +971,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/stripe-prices", async (req, res) => {
+  app.get("/api/stripe-prices", async (req: Request, res: Response) => {
     try {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (!stripeSecretKey) {
@@ -1031,7 +1031,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   // Emergency password reset endpoint
-  app.post("/api/emergency-reset", async (req, res) => {
+  app.post("/api/emergency-reset", async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
 
@@ -1079,7 +1079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Manual subscription creation for testing (when webhook fails)
-  app.post("/api/create-subscription", async (req, res) => {
+  app.post("/api/create-subscription", async (req: Request, res: Response) => {
     try {
       const { sessionId, priceId } = req.body;
 
@@ -1121,7 +1121,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create Stripe Customer Portal session
-  app.post("/api/create-customer-portal", async (req, res) => {
+  app.post("/api/create-customer-portal", async (req: Request, res: Response) => {
     try {
       const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
       if (!stripeSecretKey) {
@@ -1148,7 +1148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get subscription details
-  app.get("/api/subscription-details", async (req, res) => {
+  app.get("/api/subscription-details", async (req: Request, res: Response) => {
     try {
       const userId = "default_user"; // In real app, get from authenticated user
       const subscription = await storage.getUserSubscription(userId);
