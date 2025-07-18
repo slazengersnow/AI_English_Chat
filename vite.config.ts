@@ -9,7 +9,7 @@ dotenv.config({ path: ".env.local" });
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist/client"),
+    outDir: path.resolve(__dirname, "dist/client"), // ✅ dist/client に揃える
     emptyOutDir: true,
   },
   plugins: [react()],

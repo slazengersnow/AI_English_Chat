@@ -17,6 +17,7 @@ export async function setupVite(app: Express, server: Server) {
   });
 
   app.use(vite.middlewares);
+
   app.use("*", async (req, res, next) => {
     try {
       const url = req.originalUrl;
@@ -36,15 +37,17 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(__dirname, "../dist/client");
+  const distPath = path.resolve(__dirname, "../dist/client"); // ✅ ← これが正解！
 
   if (!fs.existsSync(distPath)) {
     throw new Error(
-      `Build directory not found: ${distPath}. Run \`npm run build\` before deploying.`,
+      `Could not find the build directory: ${distPath}, make sure to run 'npm run build' first`,
     );
   }
 
   app.use(express.static(distPath));
+
+  // fallback to index.html for SPA
   app.use("*", (_req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
