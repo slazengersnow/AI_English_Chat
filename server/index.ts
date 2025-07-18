@@ -11,7 +11,7 @@ dotenv.config();
 
 // Fix WebSocket for ESM environment
 try {
-  const { WebSocket } = await import('ws');
+  const { WebSocket } = await import("ws");
   global.WebSocket = WebSocket;
 } catch (e) {
   console.warn("WebSocket setup failed:", e.message);
@@ -20,6 +20,8 @@ try {
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 5000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(express.json());
