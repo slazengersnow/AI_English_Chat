@@ -10,6 +10,7 @@ import {
   date,
   index,
   unique,
+  real,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -29,7 +30,7 @@ export const sessions = pgTable(
 // Training sessions table
 export const trainingSessions = pgTable("training_sessions", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default_user"),
+  userId: varchar("user_id", { length: 36 }).notNull(),
   difficultyLevel: varchar("difficulty_level").notNull(),
   japaneseSentence: text("japanese_sentence").notNull(),
   userTranslation: text("user_translation").notNull(),
@@ -39,7 +40,7 @@ export const trainingSessions = pgTable("training_sessions", {
   isBookmarked: boolean("is_bookmarked").notNull().default(false),
   reviewCount: integer("review_count").notNull().default(0),
   lastReviewed: timestamp("last_reviewed"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // User goals table
@@ -78,36 +79,37 @@ export const userSubscriptions = pgTable(
   }),
 );
 
-// Daily progress table
+// Daily progress table - Updated
 export const dailyProgress = pgTable("daily_progress", {
   id: serial("id").primaryKey(),
-  date: date("date").notNull().unique(),
-  problemsCompleted: integer("problems_completed").notNull().default(0),
-  averageRating: integer("average_rating").notNull().default(0),
-  dailyCount: integer("daily_count").notNull().default(0), // Track problems attempted today
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  date: date("date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  dailyCount: integer("daily_count").default(0).notNull(),
+  problemsCompleted: integer("problems_completed").default(0).notNull(),
+  averageRating: real("average_rating").default(0).notNull(),
 });
 
-// Custom scenarios table
+// Custom scenarios table - Updated
 export const customScenarios = pgTable("custom_scenarios", {
   id: serial("id").primaryKey(),
-  title: varchar("title").notNull(),
+  title: text("title").notNull(),
   description: text("description").notNull(),
-  isActive: boolean("is_active").notNull().default(true),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  isActive: boolean("is_active").default(true).notNull(),
 });
 
-// Problem progress table - tracks current problem number for each difficulty
+// Problem progress table - Updated
 export const problemProgress = pgTable(
   "problem_progress",
   {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id").notNull().default("default_user"),
-    difficultyLevel: varchar("difficulty_level").notNull(),
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    difficultyLevel: text("difficulty_level").notNull(),
     currentProblemNumber: integer("current_problem_number")
-      .notNull()
-      .default(1),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+      .default(0)
+      .notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    isBookmarked: boolean("is_bookmarked").default(false).notNull(),
+    reviewCount: integer("review_count").default(0).notNull(),
   },
   (table) => ({
     uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
@@ -165,6 +167,8 @@ export const insertProblemProgressSchema = z.object({
   userId: z.string().optional(),
   difficultyLevel: z.string(),
   currentProblemNumber: z.number().optional(),
+  isBookmarked: z.boolean().optional(),
+  reviewCount: z.number().optional(),
 });
 
 // Type definitions
@@ -179,7 +183,9 @@ export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
 export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
 export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
-export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type InsertUserSubscription = z.infer<
+  typeof insertUserSubscriptionSchema
+>;
 export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
 
 // Zod Schemas - Date型に統一
@@ -196,8 +202,6 @@ export const trainingSessionSchema = z.object({
   lastReviewed: z.date().optional(),
   createdAt: z.date(),
 });
-
-// Remove duplicate type definitions - already defined above
 
 // API request/response schemas
 export const translateRequestSchema = z.object({

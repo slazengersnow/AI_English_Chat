@@ -17,7 +17,7 @@ import {
   type InsertCustomScenario,
   type InsertUserSubscription,
   type InsertProblemProgress,
-} from "../shared/schema";
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 
