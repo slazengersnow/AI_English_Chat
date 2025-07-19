@@ -67,6 +67,7 @@ export const customScenarios = pgTable("custom_scenarios", {
     title: text("title").notNull(),
     description: text("description").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 // Problem progress table - Updated
 export const problemProgress = pgTable("problem_progress", {

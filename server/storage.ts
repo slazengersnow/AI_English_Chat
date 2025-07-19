@@ -143,13 +143,13 @@ export class DatabaseStorage implements IStorage {
     const [session] = await db
       .insert(trainingSessions)
       .values({
+        userId: sessionData.userId || "default_user",
         difficultyLevel: sessionData.difficultyLevel,
         japaneseSentence: sessionData.japaneseSentence,
         userTranslation: sessionData.userTranslation,
         correctTranslation: sessionData.correctTranslation,
         feedback: sessionData.feedback,
         rating: sessionData.rating,
-        userId: sessionData.userId || "default_user",
         isBookmarked: sessionData.isBookmarked || false,
         reviewCount: sessionData.reviewCount || 0,
         lastReviewed: sessionData.lastReviewed || null,
@@ -505,31 +505,32 @@ export class DatabaseStorage implements IStorage {
   ): Promise<CustomScenario> {
     const [scenario] = await db
       .insert(customScenarios)
-      .values(scenarioData)
+      .values({
+        title: scenarioData.title,
+        description: scenarioData.description,
+        isActive: scenarioData.isActive ?? true,
+      })
       .returning();
 
-    return {
-      ...scenario,
-      createdAt: scenario.createdAt ?? new Date(),
-      isActive: scenario.isActive || true,
-    };
+    return scenario;
   }
 
   async updateCustomScenario(
     id: number,
     scenarioData: Partial<InsertCustomScenario>,
   ): Promise<CustomScenario> {
+    const updateData: any = {};
+    if (scenarioData.title !== undefined) updateData.title = scenarioData.title;
+    if (scenarioData.description !== undefined) updateData.description = scenarioData.description;
+    if (scenarioData.isActive !== undefined) updateData.isActive = scenarioData.isActive;
+    
     const [scenario] = await db
       .update(customScenarios)
-      .set(scenarioData)
+      .set(updateData)
       .where(eq(customScenarios.id, id))
       .returning();
 
-    return {
-      ...scenario,
-      createdAt: scenario.createdAt ?? new Date(),
-      isActive: scenario.isActive || true,
-    };
+    return scenario;
   }
 
   async deleteCustomScenario(id: number): Promise<void> {
