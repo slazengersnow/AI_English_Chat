@@ -64,7 +64,6 @@ __export(schema_exports, {
   createCheckoutSessionSchema: () => createCheckoutSessionSchema,
   customScenarios: () => customScenarios,
   dailyProgress: () => dailyProgress,
-  exampleTable: () => exampleTable,
   insertCustomScenarioSchema: () => insertCustomScenarioSchema,
   insertDailyProgressSchema: () => insertDailyProgressSchema,
   insertProblemProgressSchema: () => insertProblemProgressSchema,
@@ -180,12 +179,6 @@ var problemProgress = pgTable(
     uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel)
   })
 );
-var exampleTable = pgTable("example_table", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 36 }),
-  isActive: boolean("is_active").default(false),
-  createdAt: timestamp("created_at").defaultNow()
-});
 var insertTrainingSessionSchema = z.object({
   difficultyLevel: z.string(),
   japaneseSentence: z.string(),

@@ -114,13 +114,7 @@ export const problemProgress = pgTable(
   }),
 );
 
-// Example table with requested changes
-export const exampleTable = pgTable("example_table", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 36 }),
-  isActive: boolean("is_active").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// All tables defined above - schema complete
 
 // Insert schemas - using manual Zod schemas to match database types
 export const insertTrainingSessionSchema = z.object({
