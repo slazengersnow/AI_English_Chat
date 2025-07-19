@@ -343,7 +343,10 @@ var DatabaseStorage = class {
       correctTranslation: sessionData.correctTranslation,
       feedback: sessionData.feedback,
       rating: sessionData.rating,
-      userId: sessionData.userId || "default_user"
+      userId: sessionData.userId || "default_user",
+      isBookmarked: sessionData.isBookmarked || false,
+      reviewCount: sessionData.reviewCount || 0,
+      lastReviewed: sessionData.lastReviewed || null
     }).returning();
     const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
     await this.updateDailyProgressForDate(today);
@@ -647,8 +650,8 @@ var DatabaseStorage = class {
       // Placeholder email
       subscriptionType: user.subscriptionType,
       isAdmin: user.isAdmin,
-      createdAt: user.createdAt,
-      lastActive: user.updatedAt
+      createdAt: user.createdAt.toISOString(),
+      lastActive: user.updatedAt.toISOString()
     }));
   }
   async getLearningAnalytics() {

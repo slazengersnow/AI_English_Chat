@@ -150,6 +150,9 @@ export class DatabaseStorage implements IStorage {
         feedback: sessionData.feedback,
         rating: sessionData.rating,
         userId: sessionData.userId || "default_user",
+        isBookmarked: sessionData.isBookmarked || false,
+        reviewCount: sessionData.reviewCount || 0,
+        lastReviewed: sessionData.lastReviewed || null,
       })
       .returning();
 
@@ -658,8 +661,8 @@ export class DatabaseStorage implements IStorage {
       email: user.userId + "@example.com", // Placeholder email
       subscriptionType: user.subscriptionType,
       isAdmin: user.isAdmin,
-      createdAt: user.createdAt,
-      lastActive: user.updatedAt,
+      createdAt: user.createdAt.toISOString(),
+      lastActive: user.updatedAt.toISOString(),
     }));
   }
 
