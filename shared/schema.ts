@@ -1,4 +1,16 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  timestamp,
+  jsonb,
+  boolean,
+  varchar,
+  date,
+  index,
+  unique,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -40,23 +52,31 @@ export const userGoals = pgTable("user_goals", {
 });
 
 // User subscription table
-export const userSubscriptions = pgTable("user_subscriptions", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default_user"),
-  subscriptionType: varchar("subscription_type").notNull().default("standard"), // "standard" or "premium"
-  subscriptionStatus: varchar("subscription_status").notNull().default("inactive"), // active, trialing, canceled, past_due, etc.
-  planName: varchar("plan_name"), // standard_monthly, premium_yearly, etc.
-  stripeCustomerId: varchar("stripe_customer_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
-  stripeSubscriptionItemId: varchar("stripe_subscription_item_id"), // For subscription upgrades
-  validUntil: timestamp("valid_until"),
-  trialStart: timestamp("trial_start"),
-  isAdmin: boolean("is_admin").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (table) => ({
-  uniqueUserId: unique().on(table.userId),
-}));
+export const userSubscriptions = pgTable(
+  "user_subscriptions",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id").notNull().default("default_user"),
+    subscriptionType: varchar("subscription_type")
+      .notNull()
+      .default("standard"), // "standard" or "premium"
+    subscriptionStatus: varchar("subscription_status")
+      .notNull()
+      .default("inactive"), // active, trialing, canceled, past_due, etc.
+    planName: varchar("plan_name"), // standard_monthly, premium_yearly, etc.
+    stripeCustomerId: varchar("stripe_customer_id"),
+    stripeSubscriptionId: varchar("stripe_subscription_id"),
+    stripeSubscriptionItemId: varchar("stripe_subscription_item_id"), // For subscription upgrades
+    validUntil: timestamp("valid_until"),
+    trialStart: timestamp("trial_start"),
+    isAdmin: boolean("is_admin").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueUserId: unique().on(table.userId),
+  }),
+);
 
 // Daily progress table
 export const dailyProgress = pgTable("daily_progress", {
@@ -78,15 +98,29 @@ export const customScenarios = pgTable("custom_scenarios", {
 });
 
 // Problem progress table - tracks current problem number for each difficulty
-export const problemProgress = pgTable("problem_progress", {
+export const problemProgress = pgTable(
+  "problem_progress",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id").notNull().default("default_user"),
+    difficultyLevel: varchar("difficulty_level").notNull(),
+    currentProblemNumber: integer("current_problem_number")
+      .notNull()
+      .default(1),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
+  }),
+);
+
+// Example table with requested changes
+export const exampleTable = pgTable("example_table", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default_user"),
-  difficultyLevel: varchar("difficulty_level").notNull(),
-  currentProblemNumber: integer("current_problem_number").notNull().default(1),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-}, (table) => ({
-  uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
-}));
+  userId: varchar("user_id", { length: 36 }),
+  isActive: boolean("is_active").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
 
 // Insert schemas - using manual Zod schemas to avoid Drizzle type conflicts
 export const insertTrainingSessionSchema = z.object({
@@ -139,7 +173,12 @@ export const insertProblemProgressSchema = z.object({
   currentProblemNumber: z.number(),
 });
 
-// Zod Schemas  
+export const insertExampleSchema = z.object({
+  userId: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
+
+// Zod Schemas
 export const trainingSessionSchema = z.object({
   id: z.number(),
   difficultyLevel: z.string(),
@@ -201,6 +240,13 @@ export const problemProgressSchema = z.object({
   updatedAt: z.date(),
 });
 
+export const exampleSchema = z.object({
+  id: z.number(),
+  userId: z.string().optional(),
+  isActive: z.boolean(),
+  createdAt: z.date(),
+});
+
 // Types
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = z.infer<typeof userGoalSchema>;
@@ -208,12 +254,16 @@ export type DailyProgress = z.infer<typeof dailyProgressSchema>;
 export type CustomScenario = z.infer<typeof customScenarioSchema>;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type ProblemProgress = z.infer<typeof problemProgressSchema>;
+export type Example = z.infer<typeof exampleSchema>;
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
 export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
 export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
-export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type InsertUserSubscription = z.infer<
+  typeof insertUserSubscriptionSchema
+>;
 export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
+export type InsertExample = z.infer<typeof insertExampleSchema>;
 
 // API request/response schemas
 export const translateRequestSchema = z.object({
@@ -233,7 +283,13 @@ export const translateResponseSchema = z.object({
 });
 
 export const problemRequestSchema = z.object({
-  difficultyLevel: z.enum(['toeic', 'middle-school', 'high-school', 'basic-verbs', 'business-email']),
+  difficultyLevel: z.enum([
+    "toeic",
+    "middle-school",
+    "high-school",
+    "basic-verbs",
+    "business-email",
+  ]),
 });
 
 export const problemResponseSchema = z.object({
@@ -255,35 +311,35 @@ export const checkoutSessionResponseSchema = z.object({
 
 // Difficulty level metadata
 export const DIFFICULTY_LEVELS = {
-  'toeic': {
-    name: 'TOEIC',
-    description: 'ビジネス英語・資格対策',
-    color: 'purple',
-    icon: 'briefcase',
+  toeic: {
+    name: "TOEIC",
+    description: "ビジネス英語・資格対策",
+    color: "purple",
+    icon: "briefcase",
   },
-  'middle-school': {
-    name: '中学英語',
-    description: '基本的な文法と語彙',
-    color: 'blue',
-    icon: 'book-open',
+  "middle-school": {
+    name: "中学英語",
+    description: "基本的な文法と語彙",
+    color: "blue",
+    icon: "book-open",
   },
-  'high-school': {
-    name: '高校英語',
-    description: '応用文法と表現',
-    color: 'green',
-    icon: 'graduation-cap',
+  "high-school": {
+    name: "高校英語",
+    description: "応用文法と表現",
+    color: "green",
+    icon: "graduation-cap",
   },
-  'basic-verbs': {
-    name: '基本動詞',
-    description: '日常動詞の使い分け',
-    color: 'orange',
-    icon: 'zap',
+  "basic-verbs": {
+    name: "基本動詞",
+    description: "日常動詞の使い分け",
+    color: "orange",
+    icon: "zap",
   },
-  'business-email': {
-    name: 'ビジネスメール',
-    description: '実務メール作成',
-    color: 'red',
-    icon: 'mail',
+  "business-email": {
+    name: "ビジネスメール",
+    description: "実務メール作成",
+    color: "red",
+    icon: "mail",
   },
 } as const;
 
@@ -294,5 +350,9 @@ export type TranslateRequest = z.infer<typeof translateRequestSchema>;
 export type TranslateResponse = z.infer<typeof translateResponseSchema>;
 export type ProblemRequest = z.infer<typeof problemRequestSchema>;
 export type ProblemResponse = z.infer<typeof problemResponseSchema>;
-export type CreateCheckoutSessionRequest = z.infer<typeof createCheckoutSessionSchema>;
-export type CheckoutSessionResponse = z.infer<typeof checkoutSessionResponseSchema>;
+export type CreateCheckoutSessionRequest = z.infer<
+  typeof createCheckoutSessionSchema
+>;
+export type CheckoutSessionResponse = z.infer<
+  typeof checkoutSessionResponseSchema
+>;

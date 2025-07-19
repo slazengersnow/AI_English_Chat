@@ -66,8 +66,11 @@ __export(schema_exports, {
   customScenarios: () => customScenarios,
   dailyProgress: () => dailyProgress,
   dailyProgressSchema: () => dailyProgressSchema,
+  exampleSchema: () => exampleSchema,
+  exampleTable: () => exampleTable,
   insertCustomScenarioSchema: () => insertCustomScenarioSchema,
   insertDailyProgressSchema: () => insertDailyProgressSchema,
+  insertExampleSchema: () => insertExampleSchema,
   insertProblemProgressSchema: () => insertProblemProgressSchema,
   insertTrainingSessionSchema: () => insertTrainingSessionSchema,
   insertUserGoalSchema: () => insertUserGoalSchema,
@@ -86,7 +89,19 @@ __export(schema_exports, {
   userSubscriptionSchema: () => userSubscriptionSchema,
   userSubscriptions: () => userSubscriptions
 });
-import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  timestamp,
+  jsonb,
+  boolean,
+  varchar,
+  date,
+  index,
+  unique
+} from "drizzle-orm/pg-core";
 import { z } from "zod";
 var sessions = pgTable(
   "sessions",
@@ -118,27 +133,31 @@ var userGoals = pgTable("user_goals", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow()
 });
-var userSubscriptions = pgTable("user_subscriptions", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default_user"),
-  subscriptionType: varchar("subscription_type").notNull().default("standard"),
-  // "standard" or "premium"
-  subscriptionStatus: varchar("subscription_status").notNull().default("inactive"),
-  // active, trialing, canceled, past_due, etc.
-  planName: varchar("plan_name"),
-  // standard_monthly, premium_yearly, etc.
-  stripeCustomerId: varchar("stripe_customer_id"),
-  stripeSubscriptionId: varchar("stripe_subscription_id"),
-  stripeSubscriptionItemId: varchar("stripe_subscription_item_id"),
-  // For subscription upgrades
-  validUntil: timestamp("valid_until"),
-  trialStart: timestamp("trial_start"),
-  isAdmin: boolean("is_admin").notNull().default(false),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow()
-}, (table) => ({
-  uniqueUserId: unique().on(table.userId)
-}));
+var userSubscriptions = pgTable(
+  "user_subscriptions",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id").notNull().default("default_user"),
+    subscriptionType: varchar("subscription_type").notNull().default("standard"),
+    // "standard" or "premium"
+    subscriptionStatus: varchar("subscription_status").notNull().default("inactive"),
+    // active, trialing, canceled, past_due, etc.
+    planName: varchar("plan_name"),
+    // standard_monthly, premium_yearly, etc.
+    stripeCustomerId: varchar("stripe_customer_id"),
+    stripeSubscriptionId: varchar("stripe_subscription_id"),
+    stripeSubscriptionItemId: varchar("stripe_subscription_item_id"),
+    // For subscription upgrades
+    validUntil: timestamp("valid_until"),
+    trialStart: timestamp("trial_start"),
+    isAdmin: boolean("is_admin").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow()
+  },
+  (table) => ({
+    uniqueUserId: unique().on(table.userId)
+  })
+);
 var dailyProgress = pgTable("daily_progress", {
   id: serial("id").primaryKey(),
   date: date("date").notNull().unique(),
@@ -155,15 +174,25 @@ var customScenarios = pgTable("custom_scenarios", {
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow()
 });
-var problemProgress = pgTable("problem_progress", {
+var problemProgress = pgTable(
+  "problem_progress",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id").notNull().default("default_user"),
+    difficultyLevel: varchar("difficulty_level").notNull(),
+    currentProblemNumber: integer("current_problem_number").notNull().default(1),
+    updatedAt: timestamp("updated_at").notNull().defaultNow()
+  },
+  (table) => ({
+    uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel)
+  })
+);
+var exampleTable = pgTable("example_table", {
   id: serial("id").primaryKey(),
-  userId: varchar("user_id").notNull().default("default_user"),
-  difficultyLevel: varchar("difficulty_level").notNull(),
-  currentProblemNumber: integer("current_problem_number").notNull().default(1),
-  updatedAt: timestamp("updated_at").notNull().defaultNow()
-}, (table) => ({
-  uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel)
-}));
+  userId: varchar("user_id", { length: 36 }),
+  isActive: boolean("is_active").default(false),
+  createdAt: timestamp("created_at").defaultNow()
+});
 var insertTrainingSessionSchema = z.object({
   userId: z.string().optional(),
   difficultyLevel: z.string(),
@@ -207,6 +236,10 @@ var insertProblemProgressSchema = z.object({
   userId: z.string(),
   difficultyLevel: z.string(),
   currentProblemNumber: z.number()
+});
+var insertExampleSchema = z.object({
+  userId: z.string().optional(),
+  isActive: z.boolean().optional()
 });
 var trainingSessionSchema = z.object({
   id: z.number(),
@@ -263,6 +296,12 @@ var problemProgressSchema = z.object({
   currentProblemNumber: z.number(),
   updatedAt: z.date()
 });
+var exampleSchema = z.object({
+  id: z.number(),
+  userId: z.string().optional(),
+  isActive: z.boolean(),
+  createdAt: z.date()
+});
 var translateRequestSchema = z.object({
   japaneseSentence: z.string().min(1),
   userTranslation: z.string().min(1),
@@ -279,7 +318,13 @@ var translateResponseSchema = z.object({
   sessionId: z.number().optional()
 });
 var problemRequestSchema = z.object({
-  difficultyLevel: z.enum(["toeic", "middle-school", "high-school", "basic-verbs", "business-email"])
+  difficultyLevel: z.enum([
+    "toeic",
+    "middle-school",
+    "high-school",
+    "basic-verbs",
+    "business-email"
+  ])
 });
 var problemResponseSchema = z.object({
   japaneseSentence: z.string(),
@@ -295,7 +340,7 @@ var checkoutSessionResponseSchema = z.object({
   sessionId: z.string()
 });
 var DIFFICULTY_LEVELS = {
-  "toeic": {
+  toeic: {
     name: "TOEIC",
     description: "\u30D3\u30B8\u30CD\u30B9\u82F1\u8A9E\u30FB\u8CC7\u683C\u5BFE\u7B56",
     color: "purple",
@@ -353,10 +398,55 @@ var db = drizzle({ client: pool, schema: schema_exports });
 
 // server/storage.ts
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
+import {
+  pgTable as pgTable2,
+  serial as serial2,
+  varchar as varchar2,
+  text as text2,
+  integer as integer2,
+  boolean as boolean2,
+  timestamp as timestamp2,
+  date as date2
+} from "drizzle-orm/pg-core";
+var trainingSessions2 = pgTable2("training_sessions", {
+  id: serial2("id").primaryKey(),
+  difficultyLevel: varchar2("difficulty_level", { length: 50 }),
+  japaneseSentence: text2("japanese_sentence"),
+  userTranslation: text2("user_translation"),
+  correctTranslation: text2("correct_translation"),
+  feedback: text2("feedback"),
+  rating: integer2("rating"),
+  userId: varchar2("user_id", { length: 255 }),
+  isBookmarked: boolean2("is_bookmarked").default(false),
+  reviewCount: integer2("review_count").default(0),
+  lastReviewed: timestamp2("last_reviewed"),
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var dailyProgress2 = pgTable2("daily_progress", {
+  date: date2("date").primaryKey(),
+  dailyCount: integer2("daily_count").default(0),
+  problemsCompleted: integer2("problems_completed").default(0),
+  averageRating: integer2("average_rating").default(0),
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var customScenarios2 = pgTable2("custom_scenarios", {
+  id: serial2("id").primaryKey(),
+  title: text2("title"),
+  description: text2("description"),
+  isActive: boolean2("is_active").default(true),
+  createdAt: timestamp2("created_at").defaultNow()
+});
+var problemProgress2 = pgTable2("problem_progress", {
+  id: serial2("id").primaryKey(),
+  userId: varchar2("user_id", { length: 255 }),
+  difficultyLevel: varchar2("difficulty_level", { length: 50 }),
+  currentProblemNumber: integer2("current_problem_number").default(1),
+  updatedAt: timestamp2("updated_at").defaultNow()
+});
 var DatabaseStorage = class {
   // Training sessions
   async addTrainingSession(sessionData) {
-    const [session] = await db.insert(trainingSessions).values({
+    const [session] = await db.insert(trainingSessions2).values({
       difficultyLevel: sessionData.difficultyLevel,
       japaneseSentence: sessionData.japaneseSentence,
       userTranslation: sessionData.userTranslation,
@@ -370,63 +460,63 @@ var DatabaseStorage = class {
     return {
       ...session,
       difficultyLevel: session.difficultyLevel,
-      createdAt: session.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt ?? /* @__PURE__ */ new Date(),
+      lastReviewed: session.lastReviewed ?? void 0,
       isBookmarked: session.isBookmarked || false,
       reviewCount: session.reviewCount || 0
     };
   }
   async getTrainingSessions() {
-    const sessions2 = await db.select().from(trainingSessions).orderBy(desc(trainingSessions.createdAt));
+    const sessions2 = await db.select().from(trainingSessions2).orderBy(desc(trainingSessions2.createdAt));
     return sessions2.map((session) => ({
       ...session,
-      createdAt: session.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt ?? /* @__PURE__ */ new Date(),
+      lastReviewed: session.lastReviewed ?? void 0,
       isBookmarked: session.isBookmarked || false,
       reviewCount: session.reviewCount || 0
     }));
   }
   async getSessionsByDifficulty(difficultyLevel) {
-    const sessions2 = await db.select().from(trainingSessions).where(eq(trainingSessions.difficultyLevel, difficultyLevel)).orderBy(desc(trainingSessions.createdAt));
+    const sessions2 = await db.select().from(trainingSessions2).where(eq(trainingSessions2.difficultyLevel, difficultyLevel)).orderBy(desc(trainingSessions2.createdAt));
     return sessions2.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString()
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? void 0
     }));
   }
   async updateBookmark(sessionId, isBookmarked) {
-    await db.update(trainingSessions).set({ isBookmarked }).where(eq(trainingSessions.id, sessionId));
+    await db.update(trainingSessions2).set({ isBookmarked }).where(eq(trainingSessions2.id, sessionId));
   }
   async getSessionsForReview(ratingThreshold) {
-    const sessions2 = await db.select().from(trainingSessions).where(lte(trainingSessions.rating, ratingThreshold)).orderBy(desc(trainingSessions.createdAt));
+    const sessions2 = await db.select().from(trainingSessions2).where(lte(trainingSessions2.rating, ratingThreshold)).orderBy(desc(trainingSessions2.createdAt));
     return sessions2.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString()
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? void 0
     }));
   }
   async getBookmarkedSessions() {
-    const sessions2 = await db.select().from(trainingSessions).where(eq(trainingSessions.isBookmarked, true)).orderBy(desc(trainingSessions.createdAt));
+    const sessions2 = await db.select().from(trainingSessions2).where(eq(trainingSessions2.isBookmarked, true)).orderBy(desc(trainingSessions2.createdAt));
     return sessions2.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString()
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? void 0
     }));
   }
   async updateReviewCount(sessionId) {
-    await db.update(trainingSessions).set({
-      reviewCount: sql`${trainingSessions.reviewCount} + 1`,
+    await db.update(trainingSessions2).set({
+      reviewCount: sql`${trainingSessions2.reviewCount} + 1`,
       lastReviewed: /* @__PURE__ */ new Date()
-    }).where(eq(trainingSessions.id, sessionId));
+    }).where(eq(trainingSessions2.id, sessionId));
   }
   async getRecentSessions(daysBack = 7) {
     const cutoffDate = /* @__PURE__ */ new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-    const sessions2 = await db.select().from(trainingSessions).where(gte(trainingSessions.createdAt, cutoffDate)).orderBy(desc(trainingSessions.createdAt)).limit(50);
+    const sessions2 = await db.select().from(trainingSessions2).where(gte(trainingSessions2.createdAt, cutoffDate)).orderBy(desc(trainingSessions2.createdAt)).limit(50);
     return sessions2.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString()
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? void 0
     }));
   }
   // User goals
@@ -435,8 +525,8 @@ var DatabaseStorage = class {
     if (!goal) return void 0;
     return {
       ...goal,
-      createdAt: goal.createdAt.toISOString(),
-      updatedAt: goal.updatedAt.toISOString()
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt
     };
   }
   async updateUserGoals(goalData) {
@@ -446,27 +536,27 @@ var DatabaseStorage = class {
     }).returning();
     return {
       ...goal,
-      createdAt: goal.createdAt.toISOString(),
-      updatedAt: goal.updatedAt.toISOString()
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt
     };
   }
   // Daily progress
-  async getDailyProgress(date2) {
-    const [progress] = await db.select().from(dailyProgress).where(eq(dailyProgress.date, date2));
+  async getDailyProgress(date3) {
+    const [progress] = await db.select().from(dailyProgress2).where(eq(dailyProgress2.date, date3));
     if (!progress) return void 0;
     return {
       ...progress,
-      createdAt: progress.createdAt.toISOString(),
+      createdAt: progress.createdAt,
       dailyCount: progress.dailyCount
     };
   }
-  async updateDailyProgress(date2, problemsCompleted, averageRating) {
-    const [progress] = await db.insert(dailyProgress).values({
-      date: date2,
+  async updateDailyProgress(date3, problemsCompleted, averageRating) {
+    const [progress] = await db.insert(dailyProgress2).values({
+      date: date3,
       problemsCompleted,
       averageRating
     }).onConflictDoUpdate({
-      target: dailyProgress.date,
+      target: dailyProgress2.date,
       set: {
         problemsCompleted,
         averageRating
@@ -474,39 +564,39 @@ var DatabaseStorage = class {
     }).returning();
     return {
       ...progress,
-      createdAt: progress.createdAt.toISOString(),
+      createdAt: progress.createdAt,
       dailyCount: progress.dailyCount
     };
   }
-  async updateDailyProgressForDate(date2) {
-    const todaySessions = await db.select().from(trainingSessions).where(
+  async updateDailyProgressForDate(date3) {
+    const todaySessions = await db.select().from(trainingSessions2).where(
       and(
-        gte(trainingSessions.createdAt, /* @__PURE__ */ new Date(date2 + "T00:00:00Z")),
-        lte(trainingSessions.createdAt, /* @__PURE__ */ new Date(date2 + "T23:59:59Z"))
+        gte(trainingSessions2.createdAt, /* @__PURE__ */ new Date(date3 + "T00:00:00Z")),
+        lte(trainingSessions2.createdAt, /* @__PURE__ */ new Date(date3 + "T23:59:59Z"))
       )
     );
     if (todaySessions.length > 0) {
       const averageRating = Math.round(
         todaySessions.reduce((sum, session) => sum + session.rating, 0) / todaySessions.length
       );
-      await this.updateDailyProgress(date2, todaySessions.length, averageRating);
+      await this.updateDailyProgress(date3, todaySessions.length, averageRating);
     }
   }
   async getProgressHistory(startDate, endDate) {
-    const progress = await db.select().from(dailyProgress).where(
+    const progress = await db.select().from(dailyProgress2).where(
       and(
-        gte(dailyProgress.date, startDate),
-        lte(dailyProgress.date, endDate)
+        gte(dailyProgress2.date, startDate),
+        lte(dailyProgress2.date, endDate)
       )
-    ).orderBy(dailyProgress.date);
+    ).orderBy(dailyProgress2.date);
     return progress.map((p) => ({
       ...p,
-      createdAt: p.createdAt.toISOString(),
+      createdAt: p.createdAt,
       dailyCount: p.dailyCount
     }));
   }
   async getStreakCount() {
-    const recent = await db.select({ date: dailyProgress.date }).from(dailyProgress).where(gte(dailyProgress.problemsCompleted, 1)).orderBy(desc(dailyProgress.date)).limit(365);
+    const recent = await db.select({ date: dailyProgress2.date }).from(dailyProgress2).where(gte(dailyProgress2.problemsCompleted, 1)).orderBy(desc(dailyProgress2.date)).limit(365);
     let streak = 0;
     const today = /* @__PURE__ */ new Date();
     let checkDate = new Date(today);
@@ -533,28 +623,28 @@ var DatabaseStorage = class {
     if (currentCount >= 100) {
       return false;
     }
-    await db.insert(dailyProgress).values({
+    await db.insert(dailyProgress2).values({
       date: today,
       dailyCount: currentCount + 1,
       problemsCompleted: 0,
       averageRating: 0
     }).onConflictDoUpdate({
-      target: dailyProgress.date,
+      target: dailyProgress2.date,
       set: {
         dailyCount: currentCount + 1
       }
     });
     return true;
   }
-  async resetDailyCount(date2) {
-    const targetDate = date2 || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-    await db.insert(dailyProgress).values({
+  async resetDailyCount(date3) {
+    const targetDate = date3 || (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    await db.insert(dailyProgress2).values({
       date: targetDate,
       dailyCount: 0,
       problemsCompleted: 0,
       averageRating: 0
     }).onConflictDoUpdate({
-      target: dailyProgress.date,
+      target: dailyProgress2.date,
       set: {
         dailyCount: 0
       }
@@ -562,48 +652,50 @@ var DatabaseStorage = class {
   }
   // Custom scenarios
   async getCustomScenarios() {
-    const scenarios = await db.select().from(customScenarios).where(eq(customScenarios.isActive, true)).orderBy(desc(customScenarios.createdAt));
+    const scenarios = await db.select().from(customScenarios2).where(eq(customScenarios2.isActive, true)).orderBy(desc(customScenarios2.createdAt));
     return scenarios.map((scenario) => ({
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
+      createdAt: scenario.createdAt ?? /* @__PURE__ */ new Date(),
       isActive: scenario.isActive
     }));
   }
   async getCustomScenario(id) {
-    const [scenario] = await db.select().from(customScenarios).where(and(eq(customScenarios.id, id), eq(customScenarios.isActive, true)));
+    const [scenario] = await db.select().from(customScenarios2).where(
+      and(eq(customScenarios2.id, id), eq(customScenarios2.isActive, true))
+    );
     if (!scenario) return void 0;
     return {
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
+      createdAt: scenario.createdAt ?? /* @__PURE__ */ new Date(),
       isActive: scenario.isActive || true
     };
   }
   async addCustomScenario(scenarioData) {
-    const [scenario] = await db.insert(customScenarios).values(scenarioData).returning();
+    const [scenario] = await db.insert(customScenarios2).values(scenarioData).returning();
     return {
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
+      createdAt: scenario.createdAt ?? /* @__PURE__ */ new Date(),
       isActive: scenario.isActive || true
     };
   }
   async updateCustomScenario(id, scenarioData) {
-    const [scenario] = await db.update(customScenarios).set(scenarioData).where(eq(customScenarios.id, id)).returning();
+    const [scenario] = await db.update(customScenarios2).set(scenarioData).where(eq(customScenarios2.id, id)).returning();
     return {
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
+      createdAt: scenario.createdAt ?? /* @__PURE__ */ new Date(),
       isActive: scenario.isActive || true
     };
   }
   async deleteCustomScenario(id) {
-    await db.update(customScenarios).set({ isActive: false }).where(eq(customScenarios.id, id));
+    await db.update(customScenarios2).set({ isActive: false }).where(eq(customScenarios2.id, id));
   }
   // Analytics
   async getDifficultyStats() {
     const stats = await db.select({
-      difficulty: trainingSessions.difficultyLevel,
+      difficulty: trainingSessions2.difficultyLevel,
       count: count(),
-      averageRating: sql`ROUND(AVG(${trainingSessions.rating}), 1)`
-    }).from(trainingSessions).groupBy(trainingSessions.difficultyLevel);
+      averageRating: sql`ROUND(AVG(${trainingSessions2.rating}), 1)`
+    }).from(trainingSessions2).groupBy(trainingSessions2.difficultyLevel);
     return stats.map((stat) => ({
       difficulty: stat.difficulty,
       count: Number(stat.count),
@@ -615,11 +707,11 @@ var DatabaseStorage = class {
     const endDate = `${year}-${month.toString().padStart(2, "0")}-31`;
     const [stats] = await db.select({
       totalProblems: count(),
-      averageRating: sql`ROUND(AVG(${trainingSessions.rating}), 1)`
-    }).from(trainingSessions).where(
+      averageRating: sql`ROUND(AVG(${trainingSessions2.rating}), 1)`
+    }).from(trainingSessions2).where(
       and(
-        gte(trainingSessions.createdAt, new Date(startDate)),
-        lte(trainingSessions.createdAt, new Date(endDate))
+        gte(trainingSessions2.createdAt, new Date(startDate)),
+        lte(trainingSessions2.createdAt, new Date(endDate))
       )
     );
     return {
@@ -647,7 +739,7 @@ var DatabaseStorage = class {
   // Admin functions
   async getAdminStats() {
     const [userCount] = await db.select({ count: count() }).from(userSubscriptions);
-    const [sessionCount] = await db.select({ count: count() }).from(trainingSessions);
+    const [sessionCount] = await db.select({ count: count() }).from(trainingSessions2);
     const [activeSubscriptions] = await db.select({ count: count() }).from(userSubscriptions).where(eq(userSubscriptions.subscriptionType, "premium"));
     return {
       totalUsers: userCount?.count || 0,
@@ -665,22 +757,22 @@ var DatabaseStorage = class {
       // Placeholder email
       subscriptionType: user.subscriptionType,
       isAdmin: user.isAdmin,
-      createdAt: user.createdAt.toISOString(),
-      lastActive: user.updatedAt.toISOString()
+      createdAt: user.createdAt,
+      lastActive: user.updatedAt
     }));
   }
   async getLearningAnalytics() {
-    const [sessionCount] = await db.select({ count: count() }).from(trainingSessions);
+    const [sessionCount] = await db.select({ count: count() }).from(trainingSessions2);
     const difficultyStats = await db.select({
-      difficulty: trainingSessions.difficultyLevel,
+      difficulty: trainingSessions2.difficultyLevel,
       count: count(),
-      averageRating: sql`ROUND(AVG(${trainingSessions.rating})::numeric, 1)`
-    }).from(trainingSessions).groupBy(trainingSessions.difficultyLevel);
+      averageRating: sql`ROUND(AVG(${trainingSessions2.rating})::numeric, 1)`
+    }).from(trainingSessions2).groupBy(trainingSessions2.difficultyLevel);
     const monthlyStats = await db.select({
-      month: sql`TO_CHAR(${trainingSessions.createdAt}, 'YYYY-MM')`,
+      month: sql`TO_CHAR(${trainingSessions2.createdAt}, 'YYYY-MM')`,
       sessions: count(),
-      averageRating: sql`ROUND(AVG(${trainingSessions.rating})::numeric, 1)`
-    }).from(trainingSessions).groupBy(sql`TO_CHAR(${trainingSessions.createdAt}, 'YYYY-MM')`).orderBy(sql`TO_CHAR(${trainingSessions.createdAt}, 'YYYY-MM')`);
+      averageRating: sql`ROUND(AVG(${trainingSessions2.rating})::numeric, 1)`
+    }).from(trainingSessions2).groupBy(sql`TO_CHAR(${trainingSessions2.createdAt}, 'YYYY-MM')`).orderBy(sql`TO_CHAR(${trainingSessions2.createdAt}, 'YYYY-MM')`);
     return {
       totalLearningTime: (sessionCount?.count || 0) * 5,
       // Estimate 5 minutes per session
@@ -706,7 +798,7 @@ var DatabaseStorage = class {
       ).join("\n");
       return headers + rows;
     } else if (type === "sessions") {
-      const sessions2 = await db.select().from(trainingSessions);
+      const sessions2 = await db.select().from(trainingSessions2);
       const headers = "ID,Difficulty Level,Japanese Sentence,User Translation,Correct Translation,Rating,Created At\n";
       const rows = sessions2.map(
         (session) => `${session.id},"${session.difficultyLevel}","${session.japaneseSentence.replace(/"/g, '""')}","${session.userTranslation.replace(/"/g, '""')}","${session.correctTranslation.replace(/"/g, '""')}",${session.rating},${session.createdAt.toISOString()}`
@@ -716,35 +808,45 @@ var DatabaseStorage = class {
     throw new Error("Invalid export type");
   }
   async getUserAttemptedProblems(difficultyLevel, userId = "bizmowa.com") {
-    const sessions2 = await db.select({ japaneseSentence: trainingSessions.japaneseSentence }).from(trainingSessions).where(and(
-      eq(trainingSessions.difficultyLevel, difficultyLevel),
-      eq(trainingSessions.userId, userId)
-    )).groupBy(trainingSessions.japaneseSentence);
+    const sessions2 = await db.select({ japaneseSentence: trainingSessions2.japaneseSentence }).from(trainingSessions2).where(
+      and(
+        eq(trainingSessions2.difficultyLevel, difficultyLevel),
+        eq(trainingSessions2.userId, userId)
+      )
+    ).groupBy(trainingSessions2.japaneseSentence);
     return sessions2;
   }
   async getCurrentProblemNumber(userId, difficultyLevel) {
-    const [progress] = await db.select({ currentProblemNumber: problemProgress.currentProblemNumber }).from(problemProgress).where(and(
-      eq(problemProgress.userId, userId),
-      eq(problemProgress.difficultyLevel, difficultyLevel)
-    ));
+    const [progress] = await db.select({ currentProblemNumber: problemProgress2.currentProblemNumber }).from(problemProgress2).where(
+      and(
+        eq(problemProgress2.userId, userId),
+        eq(problemProgress2.difficultyLevel, difficultyLevel)
+      )
+    );
     if (progress) {
       return progress.currentProblemNumber;
     }
-    const [sessionCount] = await db.select({ count: sql`count(*)` }).from(trainingSessions).where(and(
-      eq(trainingSessions.difficultyLevel, difficultyLevel),
-      eq(trainingSessions.userId, userId)
-    ));
+    const [sessionCount] = await db.select({ count: sql`count(*)` }).from(trainingSessions2).where(
+      and(
+        eq(trainingSessions2.difficultyLevel, difficultyLevel),
+        eq(trainingSessions2.userId, userId)
+      )
+    );
     const nextProblemNumber = (sessionCount?.count || 0) + 1;
-    await this.updateProblemProgress(userId, difficultyLevel, nextProblemNumber);
+    await this.updateProblemProgress(
+      userId,
+      difficultyLevel,
+      nextProblemNumber
+    );
     return nextProblemNumber;
   }
   async updateProblemProgress(userId, difficultyLevel, problemNumber) {
-    await db.insert(problemProgress).values({
+    await db.insert(problemProgress2).values({
       userId,
       difficultyLevel,
       currentProblemNumber: problemNumber
     }).onConflictDoUpdate({
-      target: [problemProgress.userId, problemProgress.difficultyLevel],
+      target: [problemProgress2.userId, problemProgress2.difficultyLevel],
       set: {
         currentProblemNumber: problemNumber,
         updatedAt: /* @__PURE__ */ new Date()
@@ -752,11 +854,11 @@ var DatabaseStorage = class {
     });
   }
   async resetUserData(userId = "default_user") {
-    await db.delete(trainingSessions);
-    await db.delete(dailyProgress);
+    await db.delete(trainingSessions2);
+    await db.delete(dailyProgress2);
     await db.delete(userGoals);
-    await db.delete(customScenarios);
-    await db.delete(problemProgress);
+    await db.delete(customScenarios2);
+    await db.delete(problemProgress2);
     await db.update(userSubscriptions).set({
       subscriptionType: "trialing",
       trialStart: /* @__PURE__ */ new Date(),

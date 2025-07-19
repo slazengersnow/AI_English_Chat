@@ -21,6 +21,60 @@ import {
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 
+import {
+  pgTable,
+  serial,
+  varchar,
+  text,
+  integer,
+  boolean,
+  timestamp,
+  date,
+} from "drizzle-orm/pg-core";
+
+// Training Sessions Table
+export const trainingSessions = pgTable("training_sessions", {
+  id: serial("id").primaryKey(),
+  difficultyLevel: varchar("difficulty_level", { length: 50 }),
+  japaneseSentence: text("japanese_sentence"),
+  userTranslation: text("user_translation"),
+  correctTranslation: text("correct_translation"),
+  feedback: text("feedback"),
+  rating: integer("rating"),
+  userId: varchar("user_id", { length: 255 }),
+  isBookmarked: boolean("is_bookmarked").default(false),
+  reviewCount: integer("review_count").default(0),
+  lastReviewed: timestamp("last_reviewed"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Daily Progress Table
+export const dailyProgress = pgTable("daily_progress", {
+  date: date("date").primaryKey(),
+  dailyCount: integer("daily_count").default(0),
+  problemsCompleted: integer("problems_completed").default(0),
+  averageRating: integer("average_rating").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Custom Scenarios Table
+export const customScenarios = pgTable("custom_scenarios", {
+  id: serial("id").primaryKey(),
+  title: text("title"),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Problem Progress Table
+export const problemProgress = pgTable("problem_progress", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 255 }),
+  difficultyLevel: varchar("difficulty_level", { length: 50 }),
+  currentProblemNumber: integer("current_problem_number").default(1),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export interface IStorage {
   // Training sessions
   addTrainingSession(session: InsertTrainingSession): Promise<TrainingSession>;
@@ -31,57 +85,113 @@ export interface IStorage {
   getBookmarkedSessions(): Promise<TrainingSession[]>;
   updateReviewCount(sessionId: number): Promise<void>;
   getRecentSessions(daysBack: number): Promise<TrainingSession[]>;
-  
+
   // User goals
   getUserGoals(): Promise<UserGoal | undefined>;
   updateUserGoals(goals: InsertUserGoal): Promise<UserGoal>;
-  
+
   // Daily progress
   getDailyProgress(date: string): Promise<DailyProgress | undefined>;
-  updateDailyProgress(date: string, problemsCompleted: number, averageRating: number): Promise<DailyProgress>;
-  getProgressHistory(startDate: string, endDate: string): Promise<DailyProgress[]>;
+  updateDailyProgress(
+    date: string,
+    problemsCompleted: number,
+    averageRating: number,
+  ): Promise<DailyProgress>;
+  getProgressHistory(
+    startDate: string,
+    endDate: string,
+  ): Promise<DailyProgress[]>;
   getStreakCount(): Promise<number>;
-  
+
   // Daily limit functionality
   getTodaysProblemCount(): Promise<number>;
   incrementDailyCount(): Promise<boolean>; // Returns false if limit reached
   resetDailyCount(date?: string): Promise<void>;
-  
+
   // Custom scenarios
   getCustomScenarios(): Promise<CustomScenario[]>;
   getCustomScenario(id: number): Promise<CustomScenario | undefined>;
   addCustomScenario(scenario: InsertCustomScenario): Promise<CustomScenario>;
-  updateCustomScenario(id: number, scenario: Partial<InsertCustomScenario>): Promise<CustomScenario>;
+  updateCustomScenario(
+    id: number,
+    scenario: Partial<InsertCustomScenario>,
+  ): Promise<CustomScenario>;
   deleteCustomScenario(id: number): Promise<void>;
-  
+
   // Analytics
-  getDifficultyStats(): Promise<Array<{ difficulty: string; count: number; averageRating: number }>>;
-  getMonthlyStats(year: number, month: number): Promise<{ totalProblems: number; averageRating: number }>;
-  
+  getDifficultyStats(): Promise<
+    Array<{ difficulty: string; count: number; averageRating: number }>
+  >;
+  getMonthlyStats(
+    year: number,
+    month: number,
+  ): Promise<{ totalProblems: number; averageRating: number }>;
+
   // Problem tracking
-  getUserAttemptedProblems(difficultyLevel: string): Promise<Array<{ japaneseSentence: string }>>;
-  
+  getUserAttemptedProblems(
+    difficultyLevel: string,
+  ): Promise<Array<{ japaneseSentence: string }>>;
+
   // Problem progress tracking
-  getCurrentProblemNumber(userId: string, difficultyLevel: string): Promise<number>;
-  updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void>;
-  
+  getCurrentProblemNumber(
+    userId: string,
+    difficultyLevel: string,
+  ): Promise<number>;
+  updateProblemProgress(
+    userId: string,
+    difficultyLevel: string,
+    problemNumber: number,
+  ): Promise<void>;
+
   // User subscription
   getUserSubscription(userId?: string): Promise<UserSubscription | undefined>;
-  updateUserSubscription(userId: string, subscription: Partial<InsertUserSubscription>): Promise<UserSubscription>;
-  
+  updateUserSubscription(
+    userId: string,
+    subscription: Partial<InsertUserSubscription>,
+  ): Promise<UserSubscription>;
+
   // Admin functions
-  getAdminStats(): Promise<{ totalUsers: number; totalSessions: number; activeSubscriptions: number; monthlyActiveUsers: number }>;
-  getAllUsers(): Promise<Array<{ id: string; email: string; subscriptionType: string; isAdmin: boolean; createdAt: string; lastActive: string }>>;
-  getLearningAnalytics(): Promise<{ totalLearningTime: number; totalLearningCount: number; categoryStats: Array<{ category: string; correctRate: number; totalAttempts: number }>; monthlyStats: Array<{ month: string; sessions: number; averageRating: number }> }>;
+  getAdminStats(): Promise<{
+    totalUsers: number;
+    totalSessions: number;
+    activeSubscriptions: number;
+    monthlyActiveUsers: number;
+  }>;
+  getAllUsers(): Promise<
+    Array<{
+      id: string;
+      email: string;
+      subscriptionType: string;
+      isAdmin: boolean;
+      createdAt: string;
+      lastActive: string;
+    }>
+  >;
+  getLearningAnalytics(): Promise<{
+    totalLearningTime: number;
+    totalLearningCount: number;
+    categoryStats: Array<{
+      category: string;
+      correctRate: number;
+      totalAttempts: number;
+    }>;
+    monthlyStats: Array<{
+      month: string;
+      sessions: number;
+      averageRating: number;
+    }>;
+  }>;
   exportData(type: string): Promise<string>;
-  
+
   // User data management
   resetUserData(userId?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
   // Training sessions
-  async addTrainingSession(sessionData: InsertTrainingSession): Promise<TrainingSession> {
+  async addTrainingSession(
+    sessionData: InsertTrainingSession,
+  ): Promise<TrainingSession> {
     const [session] = await db
       .insert(trainingSessions)
       .values({
@@ -94,16 +204,16 @@ export class DatabaseStorage implements IStorage {
         userId: sessionData.userId || "default_user",
       })
       .returning();
-    
+
     // Update daily progress
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     await this.updateDailyProgressForDate(today);
-    
+
     return {
       ...session,
       difficultyLevel: session.difficultyLevel as any,
-      createdAt: session.createdAt?.toISOString() || new Date().toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt ?? new Date(),
+      lastReviewed: session.lastReviewed ?? undefined,
       isBookmarked: session.isBookmarked || false,
       reviewCount: session.reviewCount || 0,
     };
@@ -114,48 +224,55 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(trainingSessions)
       .orderBy(desc(trainingSessions.createdAt));
-    
-    return sessions.map(session => ({
+
+    return sessions.map((session) => ({
       ...session,
-      createdAt: session.createdAt?.toISOString() || new Date().toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt ?? new Date(),
+      lastReviewed: session.lastReviewed ?? undefined,
       isBookmarked: session.isBookmarked || false,
       reviewCount: session.reviewCount || 0,
     }));
   }
 
-  async getSessionsByDifficulty(difficultyLevel: string): Promise<TrainingSession[]> {
+  async getSessionsByDifficulty(
+    difficultyLevel: string,
+  ): Promise<TrainingSession[]> {
     const sessions = await db
       .select()
       .from(trainingSessions)
       .where(eq(trainingSessions.difficultyLevel, difficultyLevel))
       .orderBy(desc(trainingSessions.createdAt));
-    
-    return sessions.map(session => ({
+
+    return sessions.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? undefined,
     }));
   }
 
-  async updateBookmark(sessionId: number, isBookmarked: boolean): Promise<void> {
+  async updateBookmark(
+    sessionId: number,
+    isBookmarked: boolean,
+  ): Promise<void> {
     await db
       .update(trainingSessions)
       .set({ isBookmarked })
       .where(eq(trainingSessions.id, sessionId));
   }
 
-  async getSessionsForReview(ratingThreshold: number): Promise<TrainingSession[]> {
+  async getSessionsForReview(
+    ratingThreshold: number,
+  ): Promise<TrainingSession[]> {
     const sessions = await db
       .select()
       .from(trainingSessions)
       .where(lte(trainingSessions.rating, ratingThreshold))
       .orderBy(desc(trainingSessions.createdAt));
-    
-    return sessions.map(session => ({
+
+    return sessions.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? undefined,
     }));
   }
 
@@ -165,20 +282,20 @@ export class DatabaseStorage implements IStorage {
       .from(trainingSessions)
       .where(eq(trainingSessions.isBookmarked, true))
       .orderBy(desc(trainingSessions.createdAt));
-    
-    return sessions.map(session => ({
+
+    return sessions.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? undefined,
     }));
   }
 
   async updateReviewCount(sessionId: number): Promise<void> {
     await db
       .update(trainingSessions)
-      .set({ 
+      .set({
         reviewCount: sql`${trainingSessions.reviewCount} + 1`,
-        lastReviewed: new Date()
+        lastReviewed: new Date(),
       })
       .where(eq(trainingSessions.id, sessionId));
   }
@@ -186,18 +303,18 @@ export class DatabaseStorage implements IStorage {
   async getRecentSessions(daysBack: number = 7): Promise<TrainingSession[]> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysBack);
-    
+
     const sessions = await db
       .select()
       .from(trainingSessions)
       .where(gte(trainingSessions.createdAt, cutoffDate))
       .orderBy(desc(trainingSessions.createdAt))
       .limit(50); // Limit to prevent too many results
-    
-    return sessions.map(session => ({
+
+    return sessions.map((session) => ({
       ...session,
-      createdAt: session.createdAt.toISOString(),
-      lastReviewed: session.lastReviewed?.toISOString(),
+      createdAt: session.createdAt,
+      lastReviewed: session.lastReviewed ?? undefined,
     }));
   }
 
@@ -208,13 +325,13 @@ export class DatabaseStorage implements IStorage {
       .from(userGoals)
       .orderBy(desc(userGoals.createdAt))
       .limit(1);
-    
+
     if (!goal) return undefined;
-    
+
     return {
       ...goal,
-      createdAt: goal.createdAt.toISOString(),
-      updatedAt: goal.updatedAt.toISOString(),
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt,
     };
   }
 
@@ -226,11 +343,11 @@ export class DatabaseStorage implements IStorage {
         monthlyGoal: goalData.monthlyGoal,
       })
       .returning();
-    
+
     return {
       ...goal,
-      createdAt: goal.createdAt.toISOString(),
-      updatedAt: goal.updatedAt.toISOString(),
+      createdAt: goal.createdAt,
+      updatedAt: goal.updatedAt,
     };
   }
 
@@ -240,17 +357,21 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(dailyProgress)
       .where(eq(dailyProgress.date, date));
-    
+
     if (!progress) return undefined;
-    
+
     return {
       ...progress,
-      createdAt: progress.createdAt.toISOString(),
+      createdAt: progress.createdAt,
       dailyCount: progress.dailyCount,
     };
   }
 
-  async updateDailyProgress(date: string, problemsCompleted: number, averageRating: number): Promise<DailyProgress> {
+  async updateDailyProgress(
+    date: string,
+    problemsCompleted: number,
+    averageRating: number,
+  ): Promise<DailyProgress> {
     const [progress] = await db
       .insert(dailyProgress)
       .values({
@@ -266,10 +387,10 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
-    
+
     return {
       ...progress,
-      createdAt: progress.createdAt.toISOString(),
+      createdAt: progress.createdAt,
       dailyCount: progress.dailyCount,
     };
   }
@@ -280,35 +401,39 @@ export class DatabaseStorage implements IStorage {
       .from(trainingSessions)
       .where(
         and(
-          gte(trainingSessions.createdAt, new Date(date + 'T00:00:00Z')),
-          lte(trainingSessions.createdAt, new Date(date + 'T23:59:59Z'))
-        )
+          gte(trainingSessions.createdAt, new Date(date + "T00:00:00Z")),
+          lte(trainingSessions.createdAt, new Date(date + "T23:59:59Z")),
+        ),
       );
 
     if (todaySessions.length > 0) {
       const averageRating = Math.round(
-        todaySessions.reduce((sum, session) => sum + session.rating, 0) / todaySessions.length
+        todaySessions.reduce((sum, session) => sum + session.rating, 0) /
+          todaySessions.length,
       );
-      
+
       await this.updateDailyProgress(date, todaySessions.length, averageRating);
     }
   }
 
-  async getProgressHistory(startDate: string, endDate: string): Promise<DailyProgress[]> {
+  async getProgressHistory(
+    startDate: string,
+    endDate: string,
+  ): Promise<DailyProgress[]> {
     const progress = await db
       .select()
       .from(dailyProgress)
       .where(
         and(
           gte(dailyProgress.date, startDate),
-          lte(dailyProgress.date, endDate)
-        )
+          lte(dailyProgress.date, endDate),
+        ),
       )
       .orderBy(dailyProgress.date);
-    
-    return progress.map(p => ({
+
+    return progress.map((p) => ({
       ...p,
-      createdAt: p.createdAt.toISOString(),
+      createdAt: p.createdAt,
       dailyCount: p.dailyCount,
     }));
   }
@@ -320,11 +445,11 @@ export class DatabaseStorage implements IStorage {
       .where(gte(dailyProgress.problemsCompleted, 1))
       .orderBy(desc(dailyProgress.date))
       .limit(365);
-    
+
     let streak = 0;
     const today = new Date();
     let checkDate = new Date(today);
-    
+
     for (const record of recent) {
       const recordDate = new Date(record.date);
       if (recordDate.toDateString() === checkDate.toDateString()) {
@@ -334,26 +459,26 @@ export class DatabaseStorage implements IStorage {
         break;
       }
     }
-    
+
     return streak;
   }
 
   // Daily limit functionality
   async getTodaysProblemCount(): Promise<number> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     const progress = await this.getDailyProgress(today);
     return progress?.dailyCount || 0;
   }
 
   async incrementDailyCount(): Promise<boolean> {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     const currentCount = await this.getTodaysProblemCount();
-    
+
     // Check if limit reached
     if (currentCount >= 100) {
       return false;
     }
-    
+
     // Increment count
     await db
       .insert(dailyProgress)
@@ -369,13 +494,13 @@ export class DatabaseStorage implements IStorage {
           dailyCount: currentCount + 1,
         },
       });
-    
+
     return true;
   }
 
   async resetDailyCount(date?: string): Promise<void> {
-    const targetDate = date || new Date().toISOString().split('T')[0];
-    
+    const targetDate = date || new Date().toISOString().split("T")[0];
+
     await db
       .insert(dailyProgress)
       .values({
@@ -399,10 +524,10 @@ export class DatabaseStorage implements IStorage {
       .from(customScenarios)
       .where(eq(customScenarios.isActive, true))
       .orderBy(desc(customScenarios.createdAt));
-    
-    return scenarios.map(scenario => ({
+
+    return scenarios.map((scenario) => ({
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      createdAt: scenario.createdAt ?? new Date(),
       isActive: scenario.isActive,
     }));
   }
@@ -411,40 +536,47 @@ export class DatabaseStorage implements IStorage {
     const [scenario] = await db
       .select()
       .from(customScenarios)
-      .where(and(eq(customScenarios.id, id), eq(customScenarios.isActive, true)));
-    
+      .where(
+        and(eq(customScenarios.id, id), eq(customScenarios.isActive, true)),
+      );
+
     if (!scenario) return undefined;
-    
+
     return {
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      createdAt: scenario.createdAt ?? new Date(),
       isActive: scenario.isActive || true,
     };
   }
 
-  async addCustomScenario(scenarioData: InsertCustomScenario): Promise<CustomScenario> {
+  async addCustomScenario(
+    scenarioData: InsertCustomScenario,
+  ): Promise<CustomScenario> {
     const [scenario] = await db
       .insert(customScenarios)
       .values(scenarioData)
       .returning();
-    
+
     return {
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      createdAt: scenario.createdAt ?? new Date(),
       isActive: scenario.isActive || true,
     };
   }
 
-  async updateCustomScenario(id: number, scenarioData: Partial<InsertCustomScenario>): Promise<CustomScenario> {
+  async updateCustomScenario(
+    id: number,
+    scenarioData: Partial<InsertCustomScenario>,
+  ): Promise<CustomScenario> {
     const [scenario] = await db
       .update(customScenarios)
       .set(scenarioData)
       .where(eq(customScenarios.id, id))
       .returning();
-    
+
     return {
       ...scenario,
-      createdAt: scenario.createdAt?.toISOString() || new Date().toISOString(),
+      createdAt: scenario.createdAt ?? new Date(),
       isActive: scenario.isActive || true,
     };
   }
@@ -457,7 +589,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Analytics
-  async getDifficultyStats(): Promise<Array<{ difficulty: string; count: number; averageRating: number }>> {
+  async getDifficultyStats(): Promise<
+    Array<{ difficulty: string; count: number; averageRating: number }>
+  > {
     const stats = await db
       .select({
         difficulty: trainingSessions.difficultyLevel,
@@ -466,18 +600,21 @@ export class DatabaseStorage implements IStorage {
       })
       .from(trainingSessions)
       .groupBy(trainingSessions.difficultyLevel);
-    
-    return stats.map(stat => ({
+
+    return stats.map((stat) => ({
       difficulty: stat.difficulty,
       count: Number(stat.count),
       averageRating: Number(stat.averageRating),
     }));
   }
 
-  async getMonthlyStats(year: number, month: number): Promise<{ totalProblems: number; averageRating: number }> {
-    const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const endDate = `${year}-${month.toString().padStart(2, '0')}-31`;
-    
+  async getMonthlyStats(
+    year: number,
+    month: number,
+  ): Promise<{ totalProblems: number; averageRating: number }> {
+    const startDate = `${year}-${month.toString().padStart(2, "0")}-01`;
+    const endDate = `${year}-${month.toString().padStart(2, "0")}-31`;
+
     const [stats] = await db
       .select({
         totalProblems: count(),
@@ -487,26 +624,31 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           gte(trainingSessions.createdAt, new Date(startDate)),
-          lte(trainingSessions.createdAt, new Date(endDate))
-        )
+          lte(trainingSessions.createdAt, new Date(endDate)),
+        ),
       );
-    
+
     return {
       totalProblems: Number(stats?.totalProblems || 0),
       averageRating: Number(stats?.averageRating || 0),
     };
   }
 
-  async getUserSubscription(userId: string = "bizmowa.com"): Promise<UserSubscription | undefined> {
+  async getUserSubscription(
+    userId: string = "bizmowa.com",
+  ): Promise<UserSubscription | undefined> {
     const [subscription] = await db
       .select()
       .from(userSubscriptions)
       .where(eq(userSubscriptions.userId, userId));
-    
+
     return subscription;
   }
 
-  async updateUserSubscription(userId: string, subscriptionData: Partial<InsertUserSubscription>): Promise<UserSubscription> {
+  async updateUserSubscription(
+    userId: string,
+    subscriptionData: Partial<InsertUserSubscription>,
+  ): Promise<UserSubscription> {
     const [subscription] = await db
       .insert(userSubscriptions)
       .values({
@@ -525,7 +667,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Admin functions
-  async getAdminStats(): Promise<{ totalUsers: number; totalSessions: number; activeSubscriptions: number; monthlyActiveUsers: number }> {
+  async getAdminStats(): Promise<{
+    totalUsers: number;
+    totalSessions: number;
+    activeSubscriptions: number;
+    monthlyActiveUsers: number;
+  }> {
     const [userCount] = await db
       .select({ count: count() })
       .from(userSubscriptions);
@@ -547,19 +694,41 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getAllUsers(): Promise<Array<{ id: string; email: string; subscriptionType: string; isAdmin: boolean; createdAt: string; lastActive: string }>> {
+  async getAllUsers(): Promise<
+    Array<{
+      id: string;
+      email: string;
+      subscriptionType: string;
+      isAdmin: boolean;
+      createdAt: string;
+      lastActive: string;
+    }>
+  > {
     const users = await db.select().from(userSubscriptions);
-    return users.map(user => ({
+    return users.map((user) => ({
       id: user.userId,
       email: user.userId + "@example.com", // Placeholder email
       subscriptionType: user.subscriptionType,
       isAdmin: user.isAdmin,
-      createdAt: user.createdAt.toISOString(),
-      lastActive: user.updatedAt.toISOString(),
+      createdAt: user.createdAt,
+      lastActive: user.updatedAt,
     }));
   }
 
-  async getLearningAnalytics(): Promise<{ totalLearningTime: number; totalLearningCount: number; categoryStats: Array<{ category: string; correctRate: number; totalAttempts: number }>; monthlyStats: Array<{ month: string; sessions: number; averageRating: number }> }> {
+  async getLearningAnalytics(): Promise<{
+    totalLearningTime: number;
+    totalLearningCount: number;
+    categoryStats: Array<{
+      category: string;
+      correctRate: number;
+      totalAttempts: number;
+    }>;
+    monthlyStats: Array<{
+      month: string;
+      sessions: number;
+      averageRating: number;
+    }>;
+  }> {
     const [sessionCount] = await db
       .select({ count: count() })
       .from(trainingSessions);
@@ -586,12 +755,12 @@ export class DatabaseStorage implements IStorage {
     return {
       totalLearningTime: (sessionCount?.count || 0) * 5, // Estimate 5 minutes per session
       totalLearningCount: sessionCount?.count || 0,
-      categoryStats: difficultyStats.map(stat => ({
+      categoryStats: difficultyStats.map((stat) => ({
         category: stat.difficulty,
         correctRate: Math.round((Number(stat.averageRating) / 5) * 100),
         totalAttempts: Number(stat.count),
       })),
-      monthlyStats: monthlyStats.map(stat => ({
+      monthlyStats: monthlyStats.map((stat) => ({
         month: stat.month,
         sessions: Number(stat.sessions),
         averageRating: Number(stat.averageRating),
@@ -602,66 +771,94 @@ export class DatabaseStorage implements IStorage {
   async exportData(type: string): Promise<string> {
     if (type === "users") {
       const users = await this.getAllUsers();
-      const headers = "ID,Email,Subscription Type,Is Admin,Created At,Last Active\n";
-      const rows = users.map(user => 
-        `${user.id},${user.email},${user.subscriptionType},${user.isAdmin},${user.createdAt},${user.lastActive}`
-      ).join("\n");
+      const headers =
+        "ID,Email,Subscription Type,Is Admin,Created At,Last Active\n";
+      const rows = users
+        .map(
+          (user) =>
+            `${user.id},${user.email},${user.subscriptionType},${user.isAdmin},${user.createdAt},${user.lastActive}`,
+        )
+        .join("\n");
       return headers + rows;
     } else if (type === "sessions") {
       const sessions = await db.select().from(trainingSessions);
-      const headers = "ID,Difficulty Level,Japanese Sentence,User Translation,Correct Translation,Rating,Created At\n";
-      const rows = sessions.map(session => 
-        `${session.id},"${session.difficultyLevel}","${session.japaneseSentence.replace(/"/g, '""')}","${session.userTranslation.replace(/"/g, '""')}","${session.correctTranslation.replace(/"/g, '""')}",${session.rating},${session.createdAt.toISOString()}`
-      ).join("\n");
+      const headers =
+        "ID,Difficulty Level,Japanese Sentence,User Translation,Correct Translation,Rating,Created At\n";
+      const rows = sessions
+        .map(
+          (session) =>
+            `${session.id},"${session.difficultyLevel}","${session.japaneseSentence.replace(/"/g, '""')}","${session.userTranslation.replace(/"/g, '""')}","${session.correctTranslation.replace(/"/g, '""')}",${session.rating},${session.createdAt.toISOString()}`,
+        )
+        .join("\n");
       return headers + rows;
     }
     throw new Error("Invalid export type");
   }
 
-  async getUserAttemptedProblems(difficultyLevel: string, userId: string = "bizmowa.com"): Promise<Array<{ japaneseSentence: string }>> {
+  async getUserAttemptedProblems(
+    difficultyLevel: string,
+    userId: string = "bizmowa.com",
+  ): Promise<Array<{ japaneseSentence: string }>> {
     const sessions = await db
       .select({ japaneseSentence: trainingSessions.japaneseSentence })
       .from(trainingSessions)
-      .where(and(
-        eq(trainingSessions.difficultyLevel, difficultyLevel),
-        eq(trainingSessions.userId, userId)
-      ))
+      .where(
+        and(
+          eq(trainingSessions.difficultyLevel, difficultyLevel),
+          eq(trainingSessions.userId, userId),
+        ),
+      )
       .groupBy(trainingSessions.japaneseSentence);
-    
+
     return sessions;
   }
 
-  async getCurrentProblemNumber(userId: string, difficultyLevel: string): Promise<number> {
+  async getCurrentProblemNumber(
+    userId: string,
+    difficultyLevel: string,
+  ): Promise<number> {
     const [progress] = await db
       .select({ currentProblemNumber: problemProgress.currentProblemNumber })
       .from(problemProgress)
-      .where(and(
-        eq(problemProgress.userId, userId),
-        eq(problemProgress.difficultyLevel, difficultyLevel)
-      ));
-    
+      .where(
+        and(
+          eq(problemProgress.userId, userId),
+          eq(problemProgress.difficultyLevel, difficultyLevel),
+        ),
+      );
+
     if (progress) {
       return progress.currentProblemNumber;
     }
-    
+
     // If no progress record exists, initialize based on user's existing training sessions
     const [sessionCount] = await db
       .select({ count: sql<number>`count(*)` })
       .from(trainingSessions)
-      .where(and(
-        eq(trainingSessions.difficultyLevel, difficultyLevel),
-        eq(trainingSessions.userId, userId)
-      ));
-    
+      .where(
+        and(
+          eq(trainingSessions.difficultyLevel, difficultyLevel),
+          eq(trainingSessions.userId, userId),
+        ),
+      );
+
     const nextProblemNumber = (sessionCount?.count || 0) + 1;
-    
+
     // Initialize the progress record
-    await this.updateProblemProgress(userId, difficultyLevel, nextProblemNumber);
-    
+    await this.updateProblemProgress(
+      userId,
+      difficultyLevel,
+      nextProblemNumber,
+    );
+
     return nextProblemNumber;
   }
 
-  async updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void> {
+  async updateProblemProgress(
+    userId: string,
+    difficultyLevel: string,
+    problemNumber: number,
+  ): Promise<void> {
     await db
       .insert(problemProgress)
       .values({
@@ -685,12 +882,12 @@ export class DatabaseStorage implements IStorage {
     await db.delete(userGoals);
     await db.delete(customScenarios);
     await db.delete(problemProgress);
-    
+
     // Reset user subscription to trial state
     await db
       .update(userSubscriptions)
       .set({
-        subscriptionType: 'trialing',
+        subscriptionType: "trialing",
         trialStart: new Date(),
         validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         updatedAt: new Date(),
