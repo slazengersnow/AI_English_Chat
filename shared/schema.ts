@@ -142,7 +142,7 @@ export const insertUserGoalSchema = z.object({
 });
 
 export const insertDailyProgressSchema = z.object({
-  date: z.string(),
+  date: z.string(), // dateフィールドは文字列形式（YYYY-MM-DD）
   problemsCompleted: z.number(),
   averageRating: z.number(),
   dailyCount: z.number().optional(),
@@ -188,7 +188,7 @@ export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
 export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
 export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
 
-// Zod Schemas
+// Zod Schemas - Date型に統一
 export const trainingSessionSchema = z.object({
   id: z.number(),
   difficultyLevel: z.string(),
@@ -199,61 +199,7 @@ export const trainingSessionSchema = z.object({
   rating: z.number().min(1).max(5),
   isBookmarked: z.boolean().optional(),
   reviewCount: z.number().optional(),
-  lastReviewed: z.string().optional(),
-  createdAt: z.string(),
-});
-
-export const userGoalSchema = z.object({
-  id: z.number(),
-  dailyGoal: z.number(),
-  monthlyGoal: z.number(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const dailyProgressSchema = z.object({
-  id: z.number(),
-  date: z.string(),
-  problemsCompleted: z.number(),
-  averageRating: z.number(),
-  dailyCount: z.number(),
-  createdAt: z.string(),
-});
-
-export const customScenarioSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  description: z.string(),
-  isActive: z.boolean(),
-  createdAt: z.string(),
-});
-
-export const userSubscriptionSchema = z.object({
-  id: z.number(),
-  userId: z.string(),
-  subscriptionType: z.enum(["standard", "premium"]),
-  subscriptionStatus: z.string().optional(),
-  planName: z.string().optional(),
-  stripeCustomerId: z.string().optional(),
-  stripeSubscriptionId: z.string().optional(),
-  validUntil: z.date().optional(),
-  isAdmin: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-export const problemProgressSchema = z.object({
-  id: z.number(),
-  userId: z.string(),
-  difficultyLevel: z.string(),
-  currentProblemNumber: z.number(),
-  updatedAt: z.date(),
-});
-
-export const exampleSchema = z.object({
-  id: z.number(),
-  userId: z.string().optional(),
-  isActive: z.boolean(),
+  lastReviewed: z.date().optional(),
   createdAt: z.date(),
 });
 

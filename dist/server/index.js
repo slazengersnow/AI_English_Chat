@@ -62,11 +62,8 @@ __export(schema_exports, {
   DIFFICULTY_LEVELS: () => DIFFICULTY_LEVELS,
   checkoutSessionResponseSchema: () => checkoutSessionResponseSchema,
   createCheckoutSessionSchema: () => createCheckoutSessionSchema,
-  customScenarioSchema: () => customScenarioSchema,
   customScenarios: () => customScenarios,
   dailyProgress: () => dailyProgress,
-  dailyProgressSchema: () => dailyProgressSchema,
-  exampleSchema: () => exampleSchema,
   exampleTable: () => exampleTable,
   insertCustomScenarioSchema: () => insertCustomScenarioSchema,
   insertDailyProgressSchema: () => insertDailyProgressSchema,
@@ -75,7 +72,6 @@ __export(schema_exports, {
   insertUserGoalSchema: () => insertUserGoalSchema,
   insertUserSubscriptionSchema: () => insertUserSubscriptionSchema,
   problemProgress: () => problemProgress,
-  problemProgressSchema: () => problemProgressSchema,
   problemRequestSchema: () => problemRequestSchema,
   problemResponseSchema: () => problemResponseSchema,
   sessions: () => sessions,
@@ -83,9 +79,7 @@ __export(schema_exports, {
   trainingSessions: () => trainingSessions,
   translateRequestSchema: () => translateRequestSchema,
   translateResponseSchema: () => translateResponseSchema,
-  userGoalSchema: () => userGoalSchema,
   userGoals: () => userGoals,
-  userSubscriptionSchema: () => userSubscriptionSchema,
   userSubscriptions: () => userSubscriptions
 });
 import {
@@ -210,6 +204,7 @@ var insertUserGoalSchema = z.object({
 });
 var insertDailyProgressSchema = z.object({
   date: z.string(),
+  // dateフィールドは文字列形式（YYYY-MM-DD）
   problemsCompleted: z.number(),
   averageRating: z.number(),
   dailyCount: z.number().optional()
@@ -246,55 +241,7 @@ var trainingSessionSchema = z.object({
   rating: z.number().min(1).max(5),
   isBookmarked: z.boolean().optional(),
   reviewCount: z.number().optional(),
-  lastReviewed: z.string().optional(),
-  createdAt: z.string()
-});
-var userGoalSchema = z.object({
-  id: z.number(),
-  dailyGoal: z.number(),
-  monthlyGoal: z.number(),
-  createdAt: z.string(),
-  updatedAt: z.string()
-});
-var dailyProgressSchema = z.object({
-  id: z.number(),
-  date: z.string(),
-  problemsCompleted: z.number(),
-  averageRating: z.number(),
-  dailyCount: z.number(),
-  createdAt: z.string()
-});
-var customScenarioSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  description: z.string(),
-  isActive: z.boolean(),
-  createdAt: z.string()
-});
-var userSubscriptionSchema = z.object({
-  id: z.number(),
-  userId: z.string(),
-  subscriptionType: z.enum(["standard", "premium"]),
-  subscriptionStatus: z.string().optional(),
-  planName: z.string().optional(),
-  stripeCustomerId: z.string().optional(),
-  stripeSubscriptionId: z.string().optional(),
-  validUntil: z.date().optional(),
-  isAdmin: z.boolean(),
-  createdAt: z.date(),
-  updatedAt: z.date()
-});
-var problemProgressSchema = z.object({
-  id: z.number(),
-  userId: z.string(),
-  difficultyLevel: z.string(),
-  currentProblemNumber: z.number(),
-  updatedAt: z.date()
-});
-var exampleSchema = z.object({
-  id: z.number(),
-  userId: z.string().optional(),
-  isActive: z.boolean(),
+  lastReviewed: z.date().optional(),
   createdAt: z.date()
 });
 var translateRequestSchema = z.object({
