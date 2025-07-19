@@ -21,59 +21,7 @@ import {
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql, count } from "drizzle-orm";
 
-import {
-  pgTable,
-  serial,
-  varchar,
-  text,
-  integer,
-  boolean,
-  timestamp,
-  date,
-} from "drizzle-orm/pg-core";
-
-// Training Sessions Table
-export const trainingSessions = pgTable("training_sessions", {
-  id: serial("id").primaryKey(),
-  difficultyLevel: varchar("difficulty_level", { length: 50 }),
-  japaneseSentence: text("japanese_sentence"),
-  userTranslation: text("user_translation"),
-  correctTranslation: text("correct_translation"),
-  feedback: text("feedback"),
-  rating: integer("rating"),
-  userId: varchar("user_id", { length: 255 }),
-  isBookmarked: boolean("is_bookmarked").default(false),
-  reviewCount: integer("review_count").default(0),
-  lastReviewed: timestamp("last_reviewed"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Daily Progress Table
-export const dailyProgress = pgTable("daily_progress", {
-  date: date("date").primaryKey(),
-  dailyCount: integer("daily_count").default(0),
-  problemsCompleted: integer("problems_completed").default(0),
-  averageRating: integer("average_rating").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Custom Scenarios Table
-export const customScenarios = pgTable("custom_scenarios", {
-  id: serial("id").primaryKey(),
-  title: text("title"),
-  description: text("description"),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Problem Progress Table
-export const problemProgress = pgTable("problem_progress", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 255 }),
-  difficultyLevel: varchar("difficulty_level", { length: 50 }),
-  currentProblemNumber: integer("current_problem_number").default(1),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// Schema imports only - all table definitions are in shared/schema.ts
 
 export interface IStorage {
   // Training sessions

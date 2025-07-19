@@ -122,15 +122,15 @@ export const exampleTable = pgTable("example_table", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Insert schemas - using manual Zod schemas to avoid Drizzle type conflicts
+// Insert schemas - using manual Zod schemas to match database types
 export const insertTrainingSessionSchema = z.object({
-  userId: z.string().optional(),
   difficultyLevel: z.string(),
   japaneseSentence: z.string(),
   userTranslation: z.string(),
   correctTranslation: z.string(),
   feedback: z.string(),
   rating: z.number(),
+  userId: z.string().optional(),
   isBookmarked: z.boolean().optional(),
   reviewCount: z.number().optional(),
   lastReviewed: z.date().optional(),
@@ -168,15 +168,25 @@ export const insertUserSubscriptionSchema = z.object({
 });
 
 export const insertProblemProgressSchema = z.object({
-  userId: z.string(),
+  userId: z.string().optional(),
   difficultyLevel: z.string(),
-  currentProblemNumber: z.number(),
+  currentProblemNumber: z.number().optional(),
 });
 
-export const insertExampleSchema = z.object({
-  userId: z.string().optional(),
-  isActive: z.boolean().optional(),
-});
+// Type definitions
+export type TrainingSession = typeof trainingSessions.$inferSelect;
+export type UserGoal = typeof userGoals.$inferSelect;
+export type DailyProgress = typeof dailyProgress.$inferSelect;
+export type CustomScenario = typeof customScenarios.$inferSelect;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type ProblemProgress = typeof problemProgress.$inferSelect;
+
+export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
+export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
+export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
+export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
 
 // Zod Schemas
 export const trainingSessionSchema = z.object({
@@ -247,23 +257,7 @@ export const exampleSchema = z.object({
   createdAt: z.date(),
 });
 
-// Types
-export type TrainingSession = typeof trainingSessions.$inferSelect;
-export type UserGoal = z.infer<typeof userGoalSchema>;
-export type DailyProgress = z.infer<typeof dailyProgressSchema>;
-export type CustomScenario = z.infer<typeof customScenarioSchema>;
-export type UserSubscription = typeof userSubscriptions.$inferSelect;
-export type ProblemProgress = z.infer<typeof problemProgressSchema>;
-export type Example = z.infer<typeof exampleSchema>;
-export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
-export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
-export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
-export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
-export type InsertUserSubscription = z.infer<
-  typeof insertUserSubscriptionSchema
->;
-export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
-export type InsertExample = z.infer<typeof insertExampleSchema>;
+// Remove duplicate type definitions - already defined above
 
 // API request/response schemas
 export const translateRequestSchema = z.object({
