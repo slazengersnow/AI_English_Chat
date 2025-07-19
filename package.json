@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "tsc --project tsconfig.server.json && vite build",
+    "build": "tsc --project ./tsconfig.server.json && vite build",
     "start": "NODE_ENV=production node dist/server/index.js",
     "postinstall": "npm run build",
     "dev": "ts-node server/index.ts",
