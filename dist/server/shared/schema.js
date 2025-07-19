@@ -10,15 +10,15 @@ export const sessions = pgTable("sessions", {
 // Training sessions table
 export const trainingSessions = pgTable("training_sessions", {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id", { length: 36 }).notNull(),
-    difficultyLevel: varchar("difficulty_level").notNull(),
+    userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
+    difficultyLevel: text("difficulty_level").notNull(),
     japaneseSentence: text("japanese_sentence").notNull(),
     userTranslation: text("user_translation").notNull(),
     correctTranslation: text("correct_translation").notNull(),
     feedback: text("feedback").notNull(),
     rating: integer("rating").notNull(),
-    isBookmarked: boolean("is_bookmarked").notNull().default(false),
-    reviewCount: integer("review_count").notNull().default(0),
+    isBookmarked: boolean("is_bookmarked").default(false).notNull(),
+    reviewCount: integer("review_count").default(0).notNull(),
     lastReviewed: timestamp("last_reviewed"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -33,22 +33,22 @@ export const userGoals = pgTable("user_goals", {
 // User subscription table
 export const userSubscriptions = pgTable("user_subscriptions", {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id").notNull().default("default_user"),
+    userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
     subscriptionType: varchar("subscription_type")
-        .notNull()
-        .default("standard"), // "standard" or "premium"
+        .default("standard")
+        .notNull(), // "standard" or "premium"
     subscriptionStatus: varchar("subscription_status")
-        .notNull()
-        .default("inactive"), // active, trialing, canceled, past_due, etc.
+        .default("inactive")
+        .notNull(), // active, trialing, canceled, past_due, etc.
     planName: varchar("plan_name"), // standard_monthly, premium_yearly, etc.
     stripeCustomerId: varchar("stripe_customer_id"),
     stripeSubscriptionId: varchar("stripe_subscription_id"),
     stripeSubscriptionItemId: varchar("stripe_subscription_item_id"), // For subscription upgrades
     validUntil: timestamp("valid_until"),
     trialStart: timestamp("trial_start"),
-    isAdmin: boolean("is_admin").notNull().default(false),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    isAdmin: boolean("is_admin").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
     uniqueUserId: unique().on(table.userId),
 }));
@@ -84,28 +84,28 @@ export const problemProgress = pgTable("problem_progress", {
     uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
 }));
 // All tables defined above - schema complete
-// Insert schemas - using manual Zod schemas to match database types
+// Insert schemas - manual Zod schemas to match exact table structure
 export const insertTrainingSessionSchema = z.object({
+    userId: z.string().optional(),
     difficultyLevel: z.string(),
     japaneseSentence: z.string(),
     userTranslation: z.string(),
     correctTranslation: z.string(),
     feedback: z.string(),
     rating: z.number(),
-    userId: z.string().optional(),
     isBookmarked: z.boolean().optional(),
     reviewCount: z.number().optional(),
-    lastReviewed: z.date().optional(),
+    lastReviewed: z.date().nullable().optional(),
 });
 export const insertUserGoalSchema = z.object({
     dailyGoal: z.number(),
     monthlyGoal: z.number(),
 });
 export const insertDailyProgressSchema = z.object({
-    date: z.string(), // dateフィールドは文字列形式（YYYY-MM-DD）
+    date: z.string(),
+    dailyCount: z.number().optional(),
     problemsCompleted: z.number(),
     averageRating: z.number(),
-    dailyCount: z.number().optional(),
 });
 export const insertCustomScenarioSchema = z.object({
     title: z.string(),
@@ -116,16 +116,16 @@ export const insertUserSubscriptionSchema = z.object({
     userId: z.string().optional(),
     subscriptionType: z.string().optional(),
     subscriptionStatus: z.string().optional(),
-    planName: z.string().optional(),
-    stripeCustomerId: z.string().optional(),
-    stripeSubscriptionId: z.string().optional(),
-    stripeSubscriptionItemId: z.string().optional(),
-    validUntil: z.date().optional(),
-    trialStart: z.date().optional(),
+    planName: z.string().nullable().optional(),
+    stripeCustomerId: z.string().nullable().optional(),
+    stripeSubscriptionId: z.string().nullable().optional(),
+    stripeSubscriptionItemId: z.string().nullable().optional(),
+    validUntil: z.date().nullable().optional(),
+    trialStart: z.date().nullable().optional(),
     isAdmin: z.boolean().optional(),
 });
 export const insertProblemProgressSchema = z.object({
-    userId: z.string().optional(),
+    userId: z.string(),
     difficultyLevel: z.string(),
     currentProblemNumber: z.number().optional(),
     isBookmarked: z.boolean().optional(),

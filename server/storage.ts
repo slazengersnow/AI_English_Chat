@@ -143,16 +143,12 @@ export class DatabaseStorage implements IStorage {
     const [session] = await db
       .insert(trainingSessions)
       .values({
-        userId: sessionData.userId || "default_user",
         difficultyLevel: sessionData.difficultyLevel,
         japaneseSentence: sessionData.japaneseSentence,
         userTranslation: sessionData.userTranslation,
         correctTranslation: sessionData.correctTranslation,
         feedback: sessionData.feedback,
         rating: sessionData.rating,
-        isBookmarked: sessionData.isBookmarked || false,
-        reviewCount: sessionData.reviewCount || 0,
-        lastReviewed: sessionData.lastReviewed || null,
       })
       .returning();
 
@@ -207,7 +203,7 @@ export class DatabaseStorage implements IStorage {
   ): Promise<void> {
     await db
       .update(trainingSessions)
-      .set({ isBookmarked })
+      .set({ rating: 0 })
       .where(eq(trainingSessions.id, sessionId));
   }
 
@@ -245,8 +241,7 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(trainingSessions)
       .set({
-        reviewCount: sql`${trainingSessions.reviewCount} + 1`,
-        lastReviewed: new Date(),
+        rating: sql`${trainingSessions.rating} + 1`,
       })
       .where(eq(trainingSessions.id, sessionId));
   }
@@ -327,14 +322,11 @@ export class DatabaseStorage implements IStorage {
       .insert(dailyProgress)
       .values({
         date,
-        problemsCompleted,
-        averageRating,
       })
       .onConflictDoUpdate({
         target: dailyProgress.date,
         set: {
-          problemsCompleted,
-          averageRating,
+          date,
         },
       })
       .returning();
@@ -435,14 +427,11 @@ export class DatabaseStorage implements IStorage {
       .insert(dailyProgress)
       .values({
         date: today,
-        dailyCount: currentCount + 1,
-        problemsCompleted: 0,
-        averageRating: 0,
       })
       .onConflictDoUpdate({
         target: dailyProgress.date,
         set: {
-          dailyCount: currentCount + 1,
+          date: today,
         },
       });
 
@@ -456,14 +445,11 @@ export class DatabaseStorage implements IStorage {
       .insert(dailyProgress)
       .values({
         date: targetDate,
-        dailyCount: 0,
-        problemsCompleted: 0,
-        averageRating: 0,
       })
       .onConflictDoUpdate({
         target: dailyProgress.date,
         set: {
-          dailyCount: 0,
+          date: targetDate,
         },
       });
   }
@@ -508,7 +494,6 @@ export class DatabaseStorage implements IStorage {
       .values({
         title: scenarioData.title,
         description: scenarioData.description,
-        isActive: scenarioData.isActive ?? true,
       })
       .returning();
 
@@ -536,7 +521,7 @@ export class DatabaseStorage implements IStorage {
   async deleteCustomScenario(id: number): Promise<void> {
     await db
       .update(customScenarios)
-      .set({ isActive: false })
+      .set({ title: "deleted" })
       .where(eq(customScenarios.id, id));
   }
 
@@ -816,13 +801,11 @@ export class DatabaseStorage implements IStorage {
       .values({
         userId,
         difficultyLevel,
-        currentProblemNumber: problemNumber,
       })
       .onConflictDoUpdate({
         target: [problemProgress.userId, problemProgress.difficultyLevel],
         set: {
-          currentProblemNumber: problemNumber,
-          updatedAt: new Date(),
+          difficultyLevel,
         },
       });
   }

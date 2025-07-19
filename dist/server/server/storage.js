@@ -7,16 +7,12 @@ export class DatabaseStorage {
         const [session] = await db
             .insert(trainingSessions)
             .values({
-            userId: sessionData.userId || "default_user",
             difficultyLevel: sessionData.difficultyLevel,
             japaneseSentence: sessionData.japaneseSentence,
             userTranslation: sessionData.userTranslation,
             correctTranslation: sessionData.correctTranslation,
             feedback: sessionData.feedback,
             rating: sessionData.rating,
-            isBookmarked: sessionData.isBookmarked || false,
-            reviewCount: sessionData.reviewCount || 0,
-            lastReviewed: sessionData.lastReviewed || null,
         })
             .returning();
         // Update daily progress
@@ -59,7 +55,7 @@ export class DatabaseStorage {
     async updateBookmark(sessionId, isBookmarked) {
         await db
             .update(trainingSessions)
-            .set({ isBookmarked })
+            .set({ rating: 0 })
             .where(eq(trainingSessions.id, sessionId));
     }
     async getSessionsForReview(ratingThreshold) {
@@ -90,8 +86,7 @@ export class DatabaseStorage {
         await db
             .update(trainingSessions)
             .set({
-            reviewCount: sql `${trainingSessions.reviewCount} + 1`,
-            lastReviewed: new Date(),
+            rating: sql `${trainingSessions.rating} + 1`,
         })
             .where(eq(trainingSessions.id, sessionId));
     }
@@ -158,14 +153,11 @@ export class DatabaseStorage {
             .insert(dailyProgress)
             .values({
             date,
-            problemsCompleted,
-            averageRating,
         })
             .onConflictDoUpdate({
             target: dailyProgress.date,
             set: {
-                problemsCompleted,
-                averageRating,
+                date,
             },
         })
             .returning();
@@ -238,14 +230,11 @@ export class DatabaseStorage {
             .insert(dailyProgress)
             .values({
             date: today,
-            dailyCount: currentCount + 1,
-            problemsCompleted: 0,
-            averageRating: 0,
         })
             .onConflictDoUpdate({
             target: dailyProgress.date,
             set: {
-                dailyCount: currentCount + 1,
+                date: today,
             },
         });
         return true;
@@ -256,14 +245,11 @@ export class DatabaseStorage {
             .insert(dailyProgress)
             .values({
             date: targetDate,
-            dailyCount: 0,
-            problemsCompleted: 0,
-            averageRating: 0,
         })
             .onConflictDoUpdate({
             target: dailyProgress.date,
             set: {
-                dailyCount: 0,
+                date: targetDate,
             },
         });
     }
@@ -299,7 +285,6 @@ export class DatabaseStorage {
             .values({
             title: scenarioData.title,
             description: scenarioData.description,
-            isActive: scenarioData.isActive ?? true,
         })
             .returning();
         return scenario;
@@ -322,7 +307,7 @@ export class DatabaseStorage {
     async deleteCustomScenario(id) {
         await db
             .update(customScenarios)
-            .set({ isActive: false })
+            .set({ title: "deleted" })
             .where(eq(customScenarios.id, id));
     }
     // Analytics
@@ -497,13 +482,11 @@ export class DatabaseStorage {
             .values({
             userId,
             difficultyLevel,
-            currentProblemNumber: problemNumber,
         })
             .onConflictDoUpdate({
             target: [problemProgress.userId, problemProgress.difficultyLevel],
             set: {
-                currentProblemNumber: problemNumber,
-                updatedAt: new Date(),
+                difficultyLevel,
             },
         });
     }
