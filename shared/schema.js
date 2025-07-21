@@ -1,5 +1,4 @@
-import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
+import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique, real, } from "drizzle-orm/pg-core";
 import { z } from "zod";
 // Database Tables
 // Session storage table (mandatory for Replit Auth)
@@ -11,8 +10,8 @@ export const sessions = pgTable("sessions", {
 // Training sessions table
 export const trainingSessions = pgTable("training_sessions", {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id").default("default_user").notNull(),
-    difficultyLevel: varchar("difficulty_level").notNull(),
+    userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
+    difficultyLevel: text("difficulty_level").notNull(),
     japaneseSentence: text("japanese_sentence").notNull(),
     userTranslation: text("user_translation").notNull(),
     correctTranslation: text("correct_translation").notNull(),
@@ -26,17 +25,23 @@ export const trainingSessions = pgTable("training_sessions", {
 // User goals table
 export const userGoals = pgTable("user_goals", {
     id: serial("id").primaryKey(),
-    dailyGoal: integer("daily_goal").default(30).notNull(),
-    monthlyGoal: integer("monthly_goal").default(900).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    dailyGoal: integer("daily_goal").notNull().default(30),
+    monthlyGoal: integer("monthly_goal").notNull().default(900),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 // User subscription table
 export const userSubscriptions = pgTable("user_subscriptions", {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id").default("default_user").notNull(),
-    subscriptionType: varchar("subscription_type").default("standard").notNull(), // "standard" or "premium"
-    subscriptionStatus: varchar("subscription_status").default("inactive").notNull(), // active, trialing, canceled, past_due, etc.
+    userId: varchar("user_id", { length: 36 })
+        .default("default_user")
+        .notNull(),
+    subscriptionType: varchar("subscription_type")
+        .default("standard")
+        .notNull(), // "standard" or "premium"
+    subscriptionStatus: varchar("subscription_status")
+        .default("inactive")
+        .notNull(), // active, trialing, canceled, past_due, etc.
     planName: varchar("plan_name"), // standard_monthly, premium_yearly, etc.
     stripeCustomerId: varchar("stripe_customer_id"),
     stripeSubscriptionId: varchar("stripe_subscription_id"),
@@ -49,41 +54,86 @@ export const userSubscriptions = pgTable("user_subscriptions", {
 }, (table) => ({
     uniqueUserId: unique().on(table.userId),
 }));
-// Daily progress table
+// Daily progress table - Updated
 export const dailyProgress = pgTable("daily_progress", {
     id: serial("id").primaryKey(),
-    date: date("date").notNull().unique(),
-    problemsCompleted: integer("problems_completed").default(0).notNull(),
-    averageRating: integer("average_rating").default(0).notNull(),
-    dailyCount: integer("daily_count").default(0).notNull(), // Track problems attempted today
+    date: date("date").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    dailyCount: integer("daily_count").default(0).notNull(),
+    problemsCompleted: integer("problems_completed").default(0).notNull(),
+    averageRating: real("average_rating").default(0).notNull(),
 });
-// Custom scenarios table
+// Custom scenarios table - Updated
 export const customScenarios = pgTable("custom_scenarios", {
     id: serial("id").primaryKey(),
-    title: varchar("title").notNull(),
+    title: text("title").notNull(),
     description: text("description").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
 });
-// Problem progress table - tracks current problem number for each difficulty
+// Problem progress table - Updated
 export const problemProgress = pgTable("problem_progress", {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id").default("default_user").notNull(),
-    difficultyLevel: varchar("difficulty_level").notNull(),
-    currentProblemNumber: integer("current_problem_number").default(1).notNull(),
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    difficultyLevel: text("difficulty_level").notNull(),
+    currentProblemNumber: integer("current_problem_number")
+        .default(0)
+        .notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    isBookmarked: boolean("is_bookmarked").default(false).notNull(),
+    reviewCount: integer("review_count").default(0).notNull(),
 }, (table) => ({
     uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
 }));
-// Insert schemas
-export const insertTrainingSessionSchema = createInsertSchema(trainingSessions).omit({ id: true, createdAt: true });
-export const insertUserGoalSchema = createInsertSchema(userGoals).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({ id: true, createdAt: true });
-export const insertCustomScenarioSchema = createInsertSchema(customScenarios).omit({ id: true, createdAt: true });
-export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertProblemProgressSchema = createInsertSchema(problemProgress).omit({ id: true, updatedAt: true });
-// Zod Schemas  
+// All tables defined above - schema complete
+// Insert schemas - manual Zod schemas to match exact table structure
+export const insertTrainingSessionSchema = z.object({
+    userId: z.string().optional(),
+    difficultyLevel: z.string(),
+    japaneseSentence: z.string(),
+    userTranslation: z.string(),
+    correctTranslation: z.string(),
+    feedback: z.string(),
+    rating: z.number(),
+    isBookmarked: z.boolean().optional(),
+    reviewCount: z.number().optional(),
+    lastReviewed: z.date().nullable().optional(),
+});
+export const insertUserGoalSchema = z.object({
+    dailyGoal: z.number(),
+    monthlyGoal: z.number(),
+});
+export const insertDailyProgressSchema = z.object({
+    date: z.string(),
+    dailyCount: z.number().optional(),
+    problemsCompleted: z.number(),
+    averageRating: z.number(),
+});
+export const insertCustomScenarioSchema = z.object({
+    title: z.string(),
+    description: z.string(),
+    isActive: z.boolean().optional(),
+});
+export const insertUserSubscriptionSchema = z.object({
+    userId: z.string().optional(),
+    subscriptionType: z.string().optional(),
+    subscriptionStatus: z.string().optional(),
+    planName: z.string().nullable().optional(),
+    stripeCustomerId: z.string().nullable().optional(),
+    stripeSubscriptionId: z.string().nullable().optional(),
+    stripeSubscriptionItemId: z.string().nullable().optional(),
+    validUntil: z.date().nullable().optional(),
+    trialStart: z.date().nullable().optional(),
+    isAdmin: z.boolean().optional(),
+});
+export const insertProblemProgressSchema = z.object({
+    userId: z.string(),
+    difficultyLevel: z.string(),
+    currentProblemNumber: z.number().optional(),
+    isBookmarked: z.boolean().optional(),
+    reviewCount: z.number().optional(),
+});
+// Zod Schemas - Date型に統一
 export const trainingSessionSchema = z.object({
     id: z.number(),
     difficultyLevel: z.string(),
@@ -94,50 +144,8 @@ export const trainingSessionSchema = z.object({
     rating: z.number().min(1).max(5),
     isBookmarked: z.boolean().optional(),
     reviewCount: z.number().optional(),
-    lastReviewed: z.string().optional(),
-    createdAt: z.string(),
-});
-export const userGoalSchema = z.object({
-    id: z.number(),
-    dailyGoal: z.number(),
-    monthlyGoal: z.number(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-});
-export const dailyProgressSchema = z.object({
-    id: z.number(),
-    date: z.string(),
-    problemsCompleted: z.number(),
-    averageRating: z.number(),
-    dailyCount: z.number(),
-    createdAt: z.string(),
-});
-export const customScenarioSchema = z.object({
-    id: z.number(),
-    title: z.string(),
-    description: z.string(),
-    isActive: z.boolean(),
-    createdAt: z.string(),
-});
-export const userSubscriptionSchema = z.object({
-    id: z.number(),
-    userId: z.string(),
-    subscriptionType: z.enum(["standard", "premium"]),
-    subscriptionStatus: z.string().optional(),
-    planName: z.string().optional(),
-    stripeCustomerId: z.string().optional(),
-    stripeSubscriptionId: z.string().optional(),
-    validUntil: z.date().optional(),
-    isAdmin: z.boolean(),
+    lastReviewed: z.date().optional(),
     createdAt: z.date(),
-    updatedAt: z.date(),
-});
-export const problemProgressSchema = z.object({
-    id: z.number(),
-    userId: z.string(),
-    difficultyLevel: z.string(),
-    currentProblemNumber: z.number(),
-    updatedAt: z.date(),
 });
 // API request/response schemas
 export const translateRequestSchema = z.object({
@@ -155,7 +163,13 @@ export const translateResponseSchema = z.object({
     sessionId: z.number().optional(),
 });
 export const problemRequestSchema = z.object({
-    difficultyLevel: z.enum(['toeic', 'middle-school', 'high-school', 'basic-verbs', 'business-email']),
+    difficultyLevel: z.enum([
+        "toeic",
+        "middle-school",
+        "high-school",
+        "basic-verbs",
+        "business-email",
+    ]),
 });
 export const problemResponseSchema = z.object({
     japaneseSentence: z.string(),
@@ -173,34 +187,34 @@ export const checkoutSessionResponseSchema = z.object({
 });
 // Difficulty level metadata
 export const DIFFICULTY_LEVELS = {
-    'toeic': {
-        name: 'TOEIC',
-        description: 'ビジネス英語・資格対策',
-        color: 'purple',
-        icon: 'briefcase',
+    toeic: {
+        name: "TOEIC",
+        description: "ビジネス英語・資格対策",
+        color: "purple",
+        icon: "briefcase",
     },
-    'middle-school': {
-        name: '中学英語',
-        description: '基本的な文法と語彙',
-        color: 'blue',
-        icon: 'book-open',
+    "middle-school": {
+        name: "中学英語",
+        description: "基本的な文法と語彙",
+        color: "blue",
+        icon: "book-open",
     },
-    'high-school': {
-        name: '高校英語',
-        description: '応用文法と表現',
-        color: 'green',
-        icon: 'graduation-cap',
+    "high-school": {
+        name: "高校英語",
+        description: "応用文法と表現",
+        color: "green",
+        icon: "graduation-cap",
     },
-    'basic-verbs': {
-        name: '基本動詞',
-        description: '日常動詞の使い分け',
-        color: 'orange',
-        icon: 'zap',
+    "basic-verbs": {
+        name: "基本動詞",
+        description: "日常動詞の使い分け",
+        color: "orange",
+        icon: "zap",
     },
-    'business-email': {
-        name: 'ビジネスメール',
-        description: '実務メール作成',
-        color: 'red',
-        icon: 'mail',
+    "business-email": {
+        name: "ビジネスメール",
+        description: "実務メール作成",
+        color: "red",
+        icon: "mail",
     },
 };

@@ -1,5 +1,5 @@
 {
-  "include": ["client"],
+  "include": ["client", "src/server/**/*"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
@@ -8,14 +8,13 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "strict": false,
+    "strict": true,
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
     "baseUrl": ".",
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "node"],
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@/*": ["./client/src/*"],
@@ -23,3 +22,4 @@
     }
   }
 }
+

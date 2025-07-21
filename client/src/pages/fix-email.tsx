@@ -1,181 +1,229 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@shared/supabase'
-import { AlertTriangle, CheckCircle, Mail } from 'lucide-react'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@shared/supabase";
+import { AlertTriangle, CheckCircle, Mail } from "lucide-react";
 
 export default function FixEmail() {
-  const [email, setEmail] = useState('slazengersnow@gmail.com')
-  const [isLoading, setIsLoading] = useState(false)
-  const [fixResults, setFixResults] = useState<any[]>([])
-  const { toast } = useToast()
+  const [email, setEmail] = useState("slazengersnow@gmail.com");
+  const [isLoading, setIsLoading] = useState(false);
+  const [fixResults, setFixResults] = useState<any[]>([]);
+  const { toast } = useToast();
 
-  const addResult = (step: string, success: boolean, message: string, details?: any) => {
-    setFixResults(prev => [...prev, {
-      step,
-      success,
-      message,
-      details,
-      timestamp: new Date().toISOString()
-    }])
-  }
+  const addResult = (
+    step: string,
+    success: boolean,
+    message: string,
+    details?: any,
+  ) => {
+    setFixResults((prev) => [
+      ...prev,
+      {
+        step,
+        success,
+        message,
+        details,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
 
   const fixEmailIssue = async () => {
-    setIsLoading(true)
-    setFixResults([])
+    setIsLoading(true);
+    setFixResults([]);
 
     try {
       // Step 1: Check if user exists
-      addResult('ユーザー確認', true, 'ユーザー存在確認を開始...')
-      
+      addResult("ユーザー確認", true, "ユーザー存在確認を開始...");
+
       // First, try to sign up the user to ensure they exist
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: email,
-        password: 'TempPassword123!',
-        options: {
-          emailRedirectTo: `${window.location.origin}/reset-password`
-        }
-      })
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email: email,
+          password: "TempPassword123!",
+          options: {
+            emailRedirectTo: `${window.location.origin}/reset-password`,
+          },
+        });
 
       if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          addResult('ユーザー確認', true, 'ユーザーは既に登録済みです')
+        if (signUpError.message.includes("already registered")) {
+          addResult("ユーザー確認", true, "ユーザーは既に登録済みです");
         } else {
-          addResult('ユーザー確認', false, `サインアップエラー: ${signUpError.message}`)
+          addResult(
+            "ユーザー確認",
+            false,
+            `サインアップエラー: ${signUpError.message}`,
+          );
         }
       } else {
-        addResult('ユーザー確認', true, 'ユーザーを新規作成しました')
+        addResult("ユーザー確認", true, "ユーザーを新規作成しました");
       }
 
       // Step 2: Try different password reset approaches
       const resetAttempts = [
         {
-          name: '基本リセット',
+          name: "基本リセット",
           config: {
-            redirectTo: `${window.location.origin}/reset-password`
-          }
+            redirectTo: `${window.location.origin}/reset-password`,
+          },
         },
         {
-          name: 'HTTPSリセット',
+          name: "HTTPSリセット",
           config: {
-            redirectTo: `https://${window.location.host}/reset-password`
-          }
+            redirectTo: `https://${window.location.host}/reset-password`,
+          },
         },
         {
-          name: 'ルートリダイレクト',
+          name: "ルートリダイレクト",
           config: {
-            redirectTo: `${window.location.origin}/`
-          }
+            redirectTo: `${window.location.origin}/`,
+          },
         },
         {
-          name: 'オプション無し',
-          config: undefined
-        }
-      ]
+          name: "オプション無し",
+          config: undefined,
+        },
+      ];
 
       for (const attempt of resetAttempts) {
-        addResult('パスワードリセット', true, `${attempt.name}を試行中...`)
-        
+        addResult("パスワードリセット", true, `${attempt.name}を試行中...`);
+
         const { data, error } = await supabase.auth.resetPasswordForEmail(
-          email, 
-          attempt.config
-        )
+          email,
+          attempt.config,
+        );
 
         if (error) {
-          addResult('パスワードリセット', false, `${attempt.name}失敗: ${error.message}`)
+          addResult(
+            "パスワードリセット",
+            false,
+            `${attempt.name}失敗: ${error.message}`,
+          );
         } else {
-          addResult('パスワードリセット', true, `${attempt.name}成功！`)
-          
+          addResult("パスワードリセット", true, `${attempt.name}成功！`);
+
           // If successful, stop trying other methods
           toast({
             title: "修正完了",
             description: `${attempt.name}でメール送信が成功しました`,
-          })
-          
-          setIsLoading(false)
-          return
+          });
+
+          setIsLoading(false);
+          return;
         }
-        
+
         // Wait between attempts
-        await new Promise(resolve => setTimeout(resolve, 2000))
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
       // Step 3: Try resend confirmation
-      addResult('確認メール再送', true, '確認メールの再送を試行中...')
-      
-      const { data: resendData, error: resendError } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/reset-password`
-        }
-      })
+      addResult("確認メール再送", true, "確認メールの再送を試行中...");
+
+      const { data: resendData, error: resendError } =
+        await supabase.auth.resend({
+          type: "signup",
+          email: email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/reset-password`,
+          },
+        });
 
       if (resendError) {
-        addResult('確認メール再送', false, `再送失敗: ${resendError.message}`)
+        addResult("確認メール再送", false, `再送失敗: ${resendError.message}`);
       } else {
-        addResult('確認メール再送', true, '確認メール再送成功！')
+        addResult("確認メール再送", true, "確認メール再送成功！");
       }
 
       // Step 4: Emergency server-side reset
-      addResult('緊急リセット要求', true, 'サーバーサイドの緊急リセットを試行中...')
-      
-      try {
-        const emergencyResponse = await fetch('/api/emergency-reset', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email })
-        })
+      addResult(
+        "緊急リセット要求",
+        true,
+        "サーバーサイドの緊急リセットを試行中...",
+      );
 
-        const emergencyData = await emergencyResponse.json()
+      try {
+        const emergencyResponse = await fetch("/api/emergency-reset", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        });
+
+        const emergencyData = await emergencyResponse.json();
 
         if (emergencyResponse.ok && emergencyData.success) {
-          addResult('緊急リセット要求', true, '緊急アクセス解決策を生成しました！')
-          
+          addResult(
+            "緊急リセット要求",
+            true,
+            "緊急アクセス解決策を生成しました！",
+          );
+
           // Show emergency credentials
           if (emergencyData.solution) {
-            const solution = emergencyData.solution
-            addResult('緊急アクセス情報', true, `
+            const solution = emergencyData.solution;
+            addResult(
+              "緊急アクセス情報",
+              true,
+              `
               一時パスワード: ${solution.credentials.temporaryPassword}
               有効期限: ${new Date(solution.expires).toLocaleString()}
               ログインURL: ${solution.loginUrl}
-            `)
-            
+            `,
+            );
+
             toast({
               title: "緊急アクセス解決策",
-              description: "一時パスワードでログインできます。詳細は下記を確認してください。",
-            })
+              description:
+                "一時パスワードでログインできます。詳細は下記を確認してください。",
+            });
           }
         } else {
-          addResult('緊急リセット要求', false, `緊急リセット失敗: ${emergencyData.error}`)
+          addResult(
+            "緊急リセット要求",
+            false,
+            `緊急リセット失敗: ${emergencyData.error}`,
+          );
         }
       } catch (emergencyError) {
-        addResult('緊急リセット要求', false, `緊急リセット通信エラー: ${emergencyError.message}`)
+        addResult(
+          "緊急リセット要求",
+          false,
+          `緊急リセット通信エラー: ${(emergencyError as Error).message}`,
+        );
       }
 
       toast({
         title: "修正プロセス完了",
         description: "全ての修正手順が完了しました。結果を確認してください。",
-      })
-
+      });
     } catch (error) {
-      console.error('Fix email error:', error)
-      addResult('エラー', false, `修正プロセスでエラーが発生: ${error.message}`)
-      
+      console.error("Fix email error:", error);
+      addResult(
+        "エラー",
+        false,
+        `修正プロセスでエラーが発生: ${(error as Error).message}`,
+      );
+
       toast({
         title: "修正エラー",
         description: "メール送信の修正中にエラーが発生しました",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -201,7 +249,7 @@ export default function FixEmail() {
             />
           </div>
 
-          <Button 
+          <Button
             onClick={fixEmailIssue}
             disabled={isLoading}
             className="w-full"
@@ -214,7 +262,10 @@ export default function FixEmail() {
               <Label>修正プロセス</Label>
               <div className="bg-white border rounded-lg p-4 max-h-96 overflow-auto">
                 {fixResults.map((result, index) => (
-                  <div key={index} className="flex items-start gap-3 py-2 border-b last:border-b-0">
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 py-2 border-b last:border-b-0"
+                  >
                     {result.success ? (
                       <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                     ) : (
@@ -222,10 +273,14 @@ export default function FixEmail() {
                     )}
                     <div className="flex-1">
                       <div className="font-medium text-sm">{result.step}</div>
-                      <div className="text-sm text-gray-600">{result.message}</div>
+                      <div className="text-sm text-gray-600">
+                        {result.message}
+                      </div>
                       {result.details && (
                         <div className="text-xs text-gray-500 mt-1">
-                          {typeof result.details === 'string' ? result.details : JSON.stringify(result.details)}
+                          {typeof result.details === "string"
+                            ? result.details
+                            : JSON.stringify(result.details)}
                         </div>
                       )}
                       <div className="text-xs text-gray-400">
@@ -243,12 +298,17 @@ export default function FixEmail() {
             <ul className="text-sm text-red-700 space-y-1">
               <li>• このツールは複数のアプローチでメール送信を試行します</li>
               <li>• 管理者権限を使用して直接リセットリンクを生成します</li>
-              <li>• 成功した場合、そのリンクを使用してパスワードリセットが可能です</li>
-              <li>• 全ての手順でエラーが発生する場合、Supabaseの設定に問題がある可能性があります</li>
+              <li>
+                • 成功した場合、そのリンクを使用してパスワードリセットが可能です
+              </li>
+              <li>
+                •
+                全ての手順でエラーが発生する場合、Supabaseの設定に問題がある可能性があります
+              </li>
             </ul>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

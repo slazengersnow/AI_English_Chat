@@ -57,7 +57,9 @@ export const userSubscriptions = pgTable(
   "user_subscriptions",
   {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
+    userId: varchar("user_id", { length: 36 })
+      .default("default_user")
+      .notNull(),
     subscriptionType: varchar("subscription_type")
       .default("standard")
       .notNull(), // "standard" or "premium"
@@ -281,6 +283,17 @@ export const DIFFICULTY_LEVELS = {
     icon: "mail",
   },
 } as const;
+
+export type ChatMessage = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
+
+export type Conversation = {
+  id: string;
+  messages: ChatMessage[];
+  createdAt: string;
+};
 
 export type DifficultyKey = keyof typeof DIFFICULTY_LEVELS;
 

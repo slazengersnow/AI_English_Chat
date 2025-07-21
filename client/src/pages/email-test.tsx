@@ -1,141 +1,163 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@shared/supabase'
-import { Mail, CheckCircle, XCircle } from 'lucide-react'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@shared/supabase";
+import { Mail, CheckCircle, XCircle } from "lucide-react";
 
 export default function EmailTest() {
-  const [email, setEmail] = useState('slazengersnow@gmail.com')
-  const [password, setPassword] = useState('TestPassword123!')
-  const [isLoading, setIsLoading] = useState(false)
-  const [testResults, setTestResults] = useState<any[]>([])
-  const { toast } = useToast()
+  const [email, setEmail] = useState("slazengersnow@gmail.com");
+  const [password, setPassword] = useState("TestPassword123!");
+  const [isLoading, setIsLoading] = useState(false);
+  const [testResults, setTestResults] = useState<any[]>([]);
+  const { toast } = useToast();
 
   const addTestResult = (testName: string, success: boolean, details: any) => {
-    setTestResults(prev => [...prev, {
-      testName,
-      success,
-      details,
-      timestamp: new Date().toISOString()
-    }])
-  }
+    setTestResults((prev) => [
+      ...prev,
+      {
+        testName,
+        success,
+        details,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
 
   const testSignUp = async () => {
     try {
-      console.log('Testing sign up with email:', email)
-      
+      console.log("Testing sign up with email:", email);
+
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
         options: {
-          data: { test: true }
-        }
-      })
+          data: { test: true },
+        },
+      });
 
-      console.log('Sign up result:', { data, error })
-      
+      console.log("Sign up result:", { data, error });
+
       if (error) {
-        if (error.message.includes('already registered')) {
-          addTestResult('サインアップテスト', true, '既に登録済み（正常）')
-          return true
+        if (error.message.includes("already registered")) {
+          addTestResult("サインアップテスト", true, "既に登録済み（正常）");
+          return true;
         } else {
-          addTestResult('サインアップテスト', false, error.message)
-          return false
+          addTestResult("サインアップテスト", false, error.message);
+          return false;
         }
       }
 
-      addTestResult('サインアップテスト', true, '新規登録成功')
-      return true
+      addTestResult("サインアップテスト", true, "新規登録成功");
+      return true;
     } catch (error) {
-      console.error('Sign up error:', error)
-      addTestResult('サインアップテスト', false, error.message || String(error))
-      return false
+      console.error("Sign up error:", error);
+      addTestResult(
+        "サインアップテスト",
+        false,
+        (error as Error).message || String(error),
+      );
+      return false;
     }
-  }
+  };
 
   const testPasswordReset = async () => {
     try {
-      console.log('Testing password reset with email:', email)
-      
+      console.log("Testing password reset with email:", email);
+
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
-      })
+      });
 
-      console.log('Password reset result:', { data, error })
-      
+      console.log("Password reset result:", { data, error });
+
       if (error) {
-        addTestResult('パスワードリセット', false, error.message)
-        return false
+        addTestResult("パスワードリセット", false, error.message);
+        return false;
       }
 
-      addTestResult('パスワードリセット', true, 'リセット要求送信成功')
-      return true
+      addTestResult("パスワードリセット", true, "リセット要求送信成功");
+      return true;
     } catch (error) {
-      console.error('Password reset error:', error)
-      addTestResult('パスワードリセット', false, error.message || String(error))
-      return false
+      console.error("Password reset error:", error);
+      addTestResult(
+        "パスワードリセット",
+        false,
+        (error as Error).message || String(error),
+      );
+      return false;
     }
-  }
+  };
 
   const testResendConfirmation = async () => {
     try {
-      console.log('Testing resend confirmation with email:', email)
-      
-      const { data, error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email
-      })
+      console.log("Testing resend confirmation with email:", email);
 
-      console.log('Resend confirmation result:', { data, error })
-      
+      const { data, error } = await supabase.auth.resend({
+        type: "signup",
+        email: email,
+      });
+
+      console.log("Resend confirmation result:", { data, error });
+
       if (error) {
-        addTestResult('確認メール再送', false, error.message)
-        return false
+        addTestResult("確認メール再送", false, error.message);
+        return false;
       }
 
-      addTestResult('確認メール再送', true, '確認メール再送成功')
-      return true
+      addTestResult("確認メール再送", true, "確認メール再送成功");
+      return true;
     } catch (error) {
-      console.error('Resend confirmation error:', error)
-      addTestResult('確認メール再送', false, error.message || String(error))
-      return false
+      console.error("Resend confirmation error:", error);
+      addTestResult(
+        "確認メール再送",
+        false,
+        (error as Error).message || String(error),
+      );
+      return false;
     }
-  }
+  };
 
   const runAllTests = async () => {
-    setIsLoading(true)
-    setTestResults([])
+    setIsLoading(true);
+    setTestResults([]);
 
     try {
       // Test 1: Sign up (to trigger email)
-      await testSignUp()
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await testSignUp();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Test 2: Password reset
-      await testPasswordReset()
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await testPasswordReset();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Test 3: Resend confirmation
-      await testResendConfirmation()
+      await testResendConfirmation();
 
       toast({
         title: "全テスト完了",
-        description: "すべてのメール送信テストが完了しました。結果を確認してください。",
-      })
+        description:
+          "すべてのメール送信テストが完了しました。結果を確認してください。",
+      });
     } catch (error) {
-      console.error('Test suite error:', error)
+      console.error("Test suite error:", error);
       toast({
         title: "テストエラー",
         description: "テスト実行中にエラーが発生しました",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -174,32 +196,32 @@ export default function EmailTest() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-            <Button 
-              onClick={testSignUp} 
+            <Button
+              onClick={testSignUp}
               disabled={isLoading}
               variant="outline"
               size="sm"
             >
               サインアップテスト
             </Button>
-            <Button 
-              onClick={testPasswordReset} 
+            <Button
+              onClick={testPasswordReset}
               disabled={isLoading}
               variant="outline"
               size="sm"
             >
               パスワードリセット
             </Button>
-            <Button 
-              onClick={testResendConfirmation} 
+            <Button
+              onClick={testResendConfirmation}
               disabled={isLoading}
               variant="outline"
               size="sm"
             >
               確認メール再送
             </Button>
-            <Button 
-              onClick={runAllTests} 
+            <Button
+              onClick={runAllTests}
               disabled={isLoading}
               className="w-full"
             >
@@ -212,7 +234,10 @@ export default function EmailTest() {
               <Label>テスト結果</Label>
               <div className="bg-white border rounded-lg p-4 max-h-96 overflow-auto">
                 {testResults.map((result, index) => (
-                  <div key={index} className="flex items-center gap-3 py-2 border-b last:border-b-0">
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 py-2 border-b last:border-b-0"
+                  >
                     {result.success ? (
                       <CheckCircle className="w-5 h-5 text-green-500" />
                     ) : (
@@ -220,7 +245,9 @@ export default function EmailTest() {
                     )}
                     <div className="flex-1">
                       <div className="font-medium">{result.testName}</div>
-                      <div className="text-sm text-gray-600">{result.details}</div>
+                      <div className="text-sm text-gray-600">
+                        {result.details}
+                      </div>
                       <div className="text-xs text-gray-400">
                         {new Date(result.timestamp).toLocaleString()}
                       </div>
@@ -236,12 +263,14 @@ export default function EmailTest() {
             <ul className="text-sm text-yellow-700 space-y-1">
               <li>• テストメールは実際に送信されます</li>
               <li>• 既に登録済みのメールアドレスでもテスト可能</li>
-              <li>• Supabaseの設定によってはメール送信に時間がかかる場合があります</li>
+              <li>
+                • Supabaseの設定によってはメール送信に時間がかかる場合があります
+              </li>
               <li>• レート制限を避けるためテスト間に遅延を設けています</li>
             </ul>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,22 +1,28 @@
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@shared/supabase'
-import { AlertCircle, CheckCircle, XCircle, Settings } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@shared/supabase";
+import { AlertCircle, CheckCircle, XCircle, Settings } from "lucide-react";
 
 export default function SupabaseConfigCheck() {
-  const [configData, setConfigData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
+  const [configData, setConfigData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    checkConfiguration()
-  }, [])
+    checkConfiguration();
+  }, []);
 
   const checkConfiguration = async () => {
-    setIsLoading(true)
-    
+    setIsLoading(true);
+
     try {
       // Check environment variables
       const envConfig = {
@@ -25,86 +31,92 @@ export default function SupabaseConfigCheck() {
         supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
         keyLength: import.meta.env.VITE_SUPABASE_ANON_KEY?.length || 0,
         isDev: import.meta.env.DEV,
-        mode: import.meta.env.MODE
-      }
+        mode: import.meta.env.MODE,
+      };
 
       // Check Supabase client initialization
       const clientCheck = {
         clientInitialized: !!supabase,
-        clientUrl: supabase?.supabaseUrl,
-        clientKey: supabase?.supabaseKey?.substring(0, 20) + '...'
-      }
+        clientUrl: import.meta.env.VITE_SUPABASE_URL,
+        clientKey:
+          import.meta.env.VITE_SUPABASE_ANON_KEY?.substring(0, 20) + "...",
+      };
 
       // Test basic Supabase operations
-      const operationTests = []
+      const operationTests = [];
 
       // Test 1: Get session
       try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
         operationTests.push({
-          test: 'getSession',
+          test: "getSession",
           success: !sessionError,
-          result: sessionError ? sessionError.message : 'Success',
-          hasUser: !!sessionData?.session?.user
-        })
+          result: sessionError ? sessionError.message : "Success",
+          hasUser: !!sessionData?.session?.user,
+        });
       } catch (e) {
         operationTests.push({
-          test: 'getSession',
+          test: "getSession",
           success: false,
-          result: e.message || String(e),
-          hasUser: false
-        })
+          result: (e as Error).message || String(e),
+          hasUser: false,
+        });
       }
 
       // Test 2: Get user
       try {
-        const { data: userData, error: userError } = await supabase.auth.getUser()
+        const { data: userData, error: userError } =
+          await supabase.auth.getUser();
         operationTests.push({
-          test: 'getUser',
+          test: "getUser",
           success: !userError,
-          result: userError ? userError.message : 'Success',
-          hasUser: !!userData?.user
-        })
+          result: userError ? userError.message : "Success",
+          hasUser: !!userData?.user,
+        });
       } catch (e) {
         operationTests.push({
-          test: 'getUser',
+          test: "getUser",
           success: false,
-          result: e.message || String(e),
-          hasUser: false
-        })
+          result: (e as Error).message || String(e),
+          hasUser: false,
+        });
       }
 
       // Test 3: Test password reset with different scenarios
-      const resetTests = []
+      const resetTests = [];
       const testEmails = [
-        'test@example.com',
-        'noreply@example.com',
-        'admin@example.com'
-      ]
+        "test@example.com",
+        "noreply@example.com",
+        "admin@example.com",
+      ];
 
       for (const email of testEmails) {
         try {
-          const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`
-          })
-          
+          const { data, error } = await supabase.auth.resetPasswordForEmail(
+            email,
+            {
+              redirectTo: `${window.location.origin}/reset-password`,
+            },
+          );
+
           resetTests.push({
             email,
             success: !error,
-            result: error ? error.message : 'Reset request sent',
-            data: data || null
-          })
+            result: error ? error.message : "Reset request sent",
+            data: data || null,
+          });
         } catch (e) {
           resetTests.push({
             email,
             success: false,
-            result: e.message || String(e),
-            data: null
-          })
+            result: (e as Error).message || String(e),
+            data: null,
+          });
         }
-        
+
         // Wait to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       // Network and URL tests
@@ -112,10 +124,10 @@ export default function SupabaseConfigCheck() {
         origin: window.location.origin,
         host: window.location.host,
         protocol: window.location.protocol,
-        isHttps: window.location.protocol === 'https:',
+        isHttps: window.location.protocol === "https:",
         userAgent: navigator.userAgent,
-        language: navigator.language
-      }
+        language: navigator.language,
+      };
 
       setConfigData({
         envConfig,
@@ -123,28 +135,27 @@ export default function SupabaseConfigCheck() {
         operationTests,
         resetTests,
         networkTests,
-        timestamp: new Date().toISOString()
-      })
-
+        timestamp: new Date().toISOString(),
+      });
     } catch (error) {
-      console.error('Configuration check error:', error)
+      console.error("Configuration check error:", error);
       toast({
         title: "設定チェックエラー",
         description: "設定確認中にエラーが発生しました",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const renderStatus = (success: boolean) => {
     return success ? (
       <CheckCircle className="w-5 h-5 text-green-500" />
     ) : (
       <XCircle className="w-5 h-5 text-red-500" />
-    )
-  }
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -160,7 +171,7 @@ export default function SupabaseConfigCheck() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex justify-center">
-            <Button 
+            <Button
               onClick={checkConfiguration}
               disabled={isLoading}
               className="w-full max-w-md"
@@ -180,11 +191,21 @@ export default function SupabaseConfigCheck() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     {renderStatus(configData.envConfig.hasSupabaseUrl)}
-                    <span>Supabase URL: {configData.envConfig.hasSupabaseUrl ? '設定済み' : '未設定'}</span>
+                    <span>
+                      Supabase URL:{" "}
+                      {configData.envConfig.hasSupabaseUrl
+                        ? "設定済み"
+                        : "未設定"}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     {renderStatus(configData.envConfig.hasSupabaseKey)}
-                    <span>Supabase Key: {configData.envConfig.hasSupabaseKey ? '設定済み' : '未設定'}</span>
+                    <span>
+                      Supabase Key:{" "}
+                      {configData.envConfig.hasSupabaseKey
+                        ? "設定済み"
+                        : "未設定"}
+                    </span>
                   </div>
                   <div className="text-xs text-gray-600 col-span-2">
                     URL: {configData.envConfig.supabaseUrl}
@@ -201,7 +222,12 @@ export default function SupabaseConfigCheck() {
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     {renderStatus(configData.clientCheck.clientInitialized)}
-                    <span>クライアント初期化: {configData.clientCheck.clientInitialized ? '成功' : '失敗'}</span>
+                    <span>
+                      クライアント初期化:{" "}
+                      {configData.clientCheck.clientInitialized
+                        ? "成功"
+                        : "失敗"}
+                    </span>
                   </div>
                   <div className="text-xs text-gray-600">
                     クライアントURL: {configData.clientCheck.clientUrl}
@@ -213,10 +239,15 @@ export default function SupabaseConfigCheck() {
               <div className="bg-white border rounded-lg p-4">
                 <h3 className="font-semibold mb-3">基本操作テスト</h3>
                 <div className="space-y-2">
-                  {configData.operationTests.map((test, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
+                  {configData.operationTests.map((test: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 text-sm"
+                    >
                       {renderStatus(test.success)}
-                      <span>{test.test}: {test.result}</span>
+                      <span>
+                        {test.test}: {test.result}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -226,10 +257,15 @@ export default function SupabaseConfigCheck() {
               <div className="bg-white border rounded-lg p-4">
                 <h3 className="font-semibold mb-3">パスワードリセットテスト</h3>
                 <div className="space-y-2">
-                  {configData.resetTests.map((test, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
+                  {configData.resetTests.map((test: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 text-sm"
+                    >
                       {renderStatus(test.success)}
-                      <span>{test.email}: {test.result}</span>
+                      <span>
+                        {test.email}: {test.result}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -244,7 +280,9 @@ export default function SupabaseConfigCheck() {
                   <div>Protocol: {configData.networkTests.protocol}</div>
                   <div className="flex items-center gap-2">
                     {renderStatus(configData.networkTests.isHttps)}
-                    <span>HTTPS: {configData.networkTests.isHttps ? '有効' : '無効'}</span>
+                    <span>
+                      HTTPS: {configData.networkTests.isHttps ? "有効" : "無効"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -261,5 +299,5 @@ export default function SupabaseConfigCheck() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

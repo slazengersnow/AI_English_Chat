@@ -1,28 +1,42 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { CheckCircle, AlertCircle, CreditCard } from 'lucide-react'
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, AlertCircle, CreditCard } from "lucide-react";
 
 export default function StripeTest() {
-  const { toast } = useToast()
-  const [priceId, setPriceId] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [testResults, setTestResults] = useState<any[]>([])
-  const [availablePrices, setAvailablePrices] = useState<any[]>([])
-  const [isLoadingPrices, setIsLoadingPrices] = useState(false)
+  const { toast } = useToast();
+  const [priceId, setPriceId] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [testResults, setTestResults] = useState<any[]>([]);
+  const [availablePrices, setAvailablePrices] = useState<any[]>([]);
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
 
-  const addResult = (step: string, success: boolean, message: string, details?: any) => {
-    setTestResults(prev => [...prev, {
-      step,
-      success,
-      message,
-      details,
-      timestamp: new Date().toISOString()
-    }])
-  }
+  const addResult = (
+    step: string,
+    success: boolean,
+    message: string,
+    details?: any,
+  ) => {
+    setTestResults((prev) => [
+      ...prev,
+      {
+        step,
+        success,
+        message,
+        details,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  };
 
   const testCreateCheckoutSession = async () => {
     if (!priceId.trim()) {
@@ -30,90 +44,106 @@ export default function StripeTest() {
         title: "エラー",
         description: "価格IDを入力してください",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
-    setTestResults([])
+    setIsLoading(true);
+    setTestResults([]);
 
     try {
-      addResult('セッション作成開始', true, `価格ID: ${priceId}`)
+      addResult("セッション作成開始", true, `価格ID: ${priceId}`);
 
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           priceId: priceId,
           successUrl: `${window.location.origin}/success`,
-          cancelUrl: `${window.location.origin}/cancel`
-        })
-      })
+          cancelUrl: `${window.location.origin}/cancel`,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        addResult('セッション作成', false, `エラー: ${data.message}`, data)
-        throw new Error(data.message)
+        addResult("セッション作成", false, `エラー: ${data.message}`, data);
+        throw new Error(data.message);
       }
 
-      addResult('セッション作成', true, 'セッションが正常に作成されました', data)
+      addResult(
+        "セッション作成",
+        true,
+        "セッションが正常に作成されました",
+        data,
+      );
 
       if (data.url) {
-        addResult('リダイレクト', true, 'Stripeチェックアウトページへリダイレクト中...')
-        
+        addResult(
+          "リダイレクト",
+          true,
+          "Stripeチェックアウトページへリダイレクト中...",
+        );
+
         toast({
           title: "成功",
           description: "Stripeチェックアウトページを開きます",
-        })
+        });
 
-        // Open in new tab to avoid losing the test page
-        window.open(data.url, '_blank')
+        window.open(data.url, "_blank");
       } else {
-        addResult('リダイレクト', false, 'チェックアウトURLが見つかりません')
+        addResult("リダイレクト", false, "チェックアウトURLが見つかりません");
       }
-
     } catch (error) {
-      console.error('Stripe test error:', error)
-      addResult('エラー', false, `テストエラー: ${error.message}`)
-      
+      console.error("Stripe test error:", error);
+      addResult("エラー", false, `テストエラー: ${(error as Error).message}`);
+
       toast({
         title: "テスト失敗",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const fetchAvailablePrices = async () => {
-    setIsLoadingPrices(true)
+    setIsLoadingPrices(true);
     try {
-      const response = await fetch('/api/stripe-prices')
-      const data = await response.json()
-      
+      const response = await fetch("/api/stripe-prices");
+      const data = await response.json();
+
       if (response.ok) {
-        setAvailablePrices(data.prices || [])
-        addResult('価格ID取得', true, `${data.account_type}環境から${data.total_prices}個の価格IDを取得しました`, data)
+        setAvailablePrices(data.prices || []);
+        addResult(
+          "価格ID取得",
+          true,
+          `${data.account_type}環境から${data.total_prices}個の価格IDを取得しました`,
+          data,
+        );
       } else {
-        addResult('価格ID取得', false, `エラー: ${data.message}`, data)
+        addResult("価格ID取得", false, `エラー: ${data.message}`, data);
       }
     } catch (error) {
-      addResult('価格ID取得', false, `価格ID取得エラー: ${error.message}`)
+      addResult(
+        "価格ID取得",
+        false,
+        `価格ID取得エラー: ${(error as Error).message}`,
+      );
     } finally {
-      setIsLoadingPrices(false)
+      setIsLoadingPrices(false);
     }
-  }
+  };
 
   const testPriceIds = [
-    'price_1ReXPnHridtc6DvMQaW7NC6w', // 実際のプレミアム月額価格ID
-    'price_1OXXXXXXXXXXXXXXXXXXXXXX', // 実際のStripe価格ID例
-    'prod_SZgm74ZfQCQMSP', // 古い価格ID（存在しない）
-    'prod_SZgeMcEAMDMlDe', // 古い価格ID（存在しない）
-  ]
+    "price_1ReXPnHridtc6DvMQaW7NC6w",
+    "price_1OXXXXXXXXXXXXXXXXXXXXXX",
+    "prod_SZgm74ZfQCQMSP",
+    "prod_SZgeMcEAMDMlDe",
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -153,14 +183,16 @@ export default function StripeTest() {
                     >
                       使用
                     </Button>
-                    <code className="text-xs bg-white px-2 py-1 rounded">{id}</code>
+                    <code className="text-xs bg-white px-2 py-1 rounded">
+                      {id}
+                    </code>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={fetchAvailablePrices}
                 disabled={isLoadingPrices}
                 variant="outline"
@@ -168,7 +200,7 @@ export default function StripeTest() {
               >
                 {isLoadingPrices ? "取得中..." : "利用可能な価格IDを取得"}
               </Button>
-              <Button 
+              <Button
                 onClick={testCreateCheckoutSession}
                 disabled={isLoading}
                 className="flex-1"
@@ -183,13 +215,20 @@ export default function StripeTest() {
               <h3 className="font-semibold">利用可能な価格ID一覧:</h3>
               <div className="bg-white border rounded-lg p-4 max-h-60 overflow-auto">
                 {availablePrices.map((price, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between py-2 border-b last:border-b-0"
+                  >
                     <div>
-                      <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">{price.id}</code>
+                      <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                        {price.id}
+                      </code>
                       <div className="text-xs text-gray-500 mt-1">
-                        {price.unit_amount ? `¥${price.unit_amount / 100}` : '無料'} 
+                        {price.unit_amount
+                          ? `\u00a5${price.unit_amount / 100}`
+                          : "無料"}
                         {price.recurring && ` / ${price.recurring.interval}`}
-                        {price.active ? ' (有効)' : ' (無効)'}
+                        {price.active ? " (有効)" : " (無効)"}
                       </div>
                     </div>
                     <Button
@@ -210,7 +249,10 @@ export default function StripeTest() {
               <h3 className="font-semibold">テスト結果:</h3>
               <div className="bg-white border rounded-lg p-4 max-h-96 overflow-auto">
                 {testResults.map((result, index) => (
-                  <div key={index} className="flex items-start gap-3 py-2 border-b last:border-b-0">
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 py-2 border-b last:border-b-0"
+                  >
                     {result.success ? (
                       <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                     ) : (
@@ -218,7 +260,9 @@ export default function StripeTest() {
                     )}
                     <div className="flex-1">
                       <div className="font-medium text-sm">{result.step}</div>
-                      <div className="text-sm text-gray-600 whitespace-pre-line">{result.message}</div>
+                      <div className="text-sm text-gray-600 whitespace-pre-line">
+                        {result.message}
+                      </div>
                       {result.details && (
                         <div className="text-xs text-gray-500 mt-1 bg-gray-50 p-2 rounded">
                           <pre>{JSON.stringify(result.details, null, 2)}</pre>
@@ -239,13 +283,17 @@ export default function StripeTest() {
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• 実際のStripe価格IDを使用してテストします</li>
               <li>• 7日間の無料トライアル期間が設定されます</li>
-              <li>• 成功した場合、新しいタブでチェックアウトページが開きます</li>
+              <li>
+                • 成功した場合、新しいタブでチェックアウトページが開きます
+              </li>
               <li>• 価格IDは Stripe ダッシュボードから確認できます</li>
             </ul>
           </div>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <h3 className="font-semibold text-yellow-800 mb-2">価格ID取得方法</h3>
+            <h3 className="font-semibold text-yellow-800 mb-2">
+              価格ID取得方法
+            </h3>
             <ol className="text-sm text-yellow-700 space-y-1">
               <li>1. Stripeダッシュボード → 商品 → 価格</li>
               <li>2. 価格IDをコピー（price_xxx または prod_xxx）</li>
@@ -255,5 +303,5 @@ export default function StripeTest() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
