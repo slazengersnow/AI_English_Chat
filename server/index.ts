@@ -20,13 +20,13 @@ app.use(express.urlencoded({ extended: true }));
 registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {
-  const { serveStatic } = await import("./vite");
+  const { serveStatic } = await import("./vite-static.js");
   serveStatic(app);
 } else {
-  const { setupVite } = await import("./vite");
+  const { setupVite } = await import("./vite.ts");
   await setupVite(app, server);
 }
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

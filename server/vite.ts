@@ -35,19 +35,3 @@ export async function setupVite(app: express.Express, server: any) {
     }
   });
 }
-
-export function serveStatic(app: express.Express) {
-  const distPath = path.resolve(__dirname, "../dist/client");
-
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}. Please run 'npm run build' before start.`,
-    );
-  }
-
-  app.use(express.static(distPath));
-
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
-  });
-}
