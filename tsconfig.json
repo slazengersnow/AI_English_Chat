@@ -16,7 +16,7 @@
     "jsx": "react-jsx",
     "outDir": "dist",
     "baseUrl": ".",
-    "types": ["vite/client", "node"],
+    "types": ["express", "express-session", "node"],
     "paths": {
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
@@ -25,4 +25,3 @@
   "include": ["client", "server", "shared"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"]
 }
-
