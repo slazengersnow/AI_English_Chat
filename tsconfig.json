@@ -22,6 +22,6 @@
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["client", "server", "shared"],
+  "include": ["env.d.ts", "client", "server", "shared"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"]
 }
