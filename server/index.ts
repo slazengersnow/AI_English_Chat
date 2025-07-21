@@ -3,7 +3,6 @@ import { createServer } from "http";
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
-import { setupVite, serveStatic } from "./vite";
 import { registerRoutes } from "./routes";
 
 dotenv.config();
@@ -21,8 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {
+  const { serveStatic } = await import("./vite");
   serveStatic(app);
 } else {
+  const { setupVite } = await import("./vite");
   await setupVite(app, server);
 }
 

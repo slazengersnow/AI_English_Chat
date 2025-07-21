@@ -1,8 +1,12 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { nanoid } from "nanoid";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function setupVite(app: express.Express, server: any) {
   const vite = await createViteServer({
@@ -34,6 +38,7 @@ export async function setupVite(app: express.Express, server: any) {
 
 export function serveStatic(app: express.Express) {
   const distPath = path.resolve(__dirname, "../dist/client");
+
   if (!fs.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}. Please run 'npm run build' before start.`,
