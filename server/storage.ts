@@ -160,7 +160,7 @@ export class DatabaseStorage implements IStorage {
       ...session,
       difficultyLevel: session.difficultyLevel as any,
       createdAt: session.createdAt ?? new Date(),
-      lastReviewed: session.lastReviewed ?? undefined,
+      lastReviewed: session.lastReviewed ?? null,
       isBookmarked: session.isBookmarked || false,
       reviewCount: session.reviewCount || 0,
     };
@@ -175,7 +175,7 @@ export class DatabaseStorage implements IStorage {
     return sessions.map((session) => ({
       ...session,
       createdAt: session.createdAt ?? new Date(),
-      lastReviewed: session.lastReviewed ?? undefined,
+      lastReviewed: session.lastReviewed ?? null,
       isBookmarked: session.isBookmarked || false,
       reviewCount: session.reviewCount || 0,
     }));
@@ -193,7 +193,7 @@ export class DatabaseStorage implements IStorage {
     return sessions.map((session) => ({
       ...session,
       createdAt: session.createdAt,
-      lastReviewed: session.lastReviewed ?? undefined,
+      lastReviewed: session.lastReviewed ?? null,
     }));
   }
 
@@ -219,7 +219,7 @@ export class DatabaseStorage implements IStorage {
     return sessions.map((session) => ({
       ...session,
       createdAt: session.createdAt,
-      lastReviewed: session.lastReviewed ?? undefined,
+      lastReviewed: session.lastReviewed ?? null,
     }));
   }
 
@@ -233,7 +233,7 @@ export class DatabaseStorage implements IStorage {
     return sessions.map((session) => ({
       ...session,
       createdAt: session.createdAt,
-      lastReviewed: session.lastReviewed ?? undefined,
+      lastReviewed: session.lastReviewed ?? null,
     }));
   }
 
@@ -260,7 +260,7 @@ export class DatabaseStorage implements IStorage {
     return sessions.map((session) => ({
       ...session,
       createdAt: session.createdAt,
-      lastReviewed: session.lastReviewed ?? undefined,
+      lastReviewed: session.lastReviewed ?? null,
     }));
   }
 
@@ -506,9 +506,11 @@ export class DatabaseStorage implements IStorage {
   ): Promise<CustomScenario> {
     const updateData: any = {};
     if (scenarioData.title !== undefined) updateData.title = scenarioData.title;
-    if (scenarioData.description !== undefined) updateData.description = scenarioData.description;
-    if (scenarioData.isActive !== undefined) updateData.isActive = scenarioData.isActive;
-    
+    if (scenarioData.description !== undefined)
+      updateData.description = scenarioData.description;
+    if (scenarioData.isActive !== undefined)
+      updateData.isActive = scenarioData.isActive;
+
     const [scenario] = await db
       .update(customScenarios)
       .set(updateData)

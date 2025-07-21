@@ -16,8 +16,13 @@ import {
 // Session-based problem tracking to prevent duplicates
 const sessionProblems = new Map<string, Set<string>>();
 
+declare module "express" {
+  interface Request {
+    sessionID?: string;
+  }
+}
+
 function getSessionId(req: Request): string {
-  // Use session ID if available, otherwise use IP as fallback
   return req.sessionID || req.ip || "default";
 }
 
@@ -51,9 +56,24 @@ function getUnusedProblem(
   ];
 }
 
+export default function setupRoutes(app: Express) {
+  app.get("/health", (req: Request, res: Response) => {
+    res.status(200).send("OK");
+  });
+
+  app.post("/api/echo", (req: Request, res: Response) => {
+    const sessionId = getSessionId(req);
+    res.json({ sessionId, data: req.body });
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication middleware to check subscription status
-  const requireActiveSubscription = async (req: Request, res: Response, next: NextFunction) => {
+  const requireActiveSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       // Get user ID from Authorization header (Supabase JWT token)
       const authHeader = req.headers.authorization;
@@ -117,7 +137,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
-  const requirePremiumSubscription = async (req: Request, res: Response, next: NextFunction) => {
+  const requirePremiumSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       // Get user ID from headers
       const userEmail =
@@ -207,164 +231,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate Japanese problem for translation (protected)
-  app.post("/api/problem", requireActiveSubscription, async (req: Request, res: Response) => {
-    try {
-      // Check daily limit first
-      const canProceed = await storage.incrementDailyCount();
-      if (!canProceed) {
-        return res.status(429).json({
-          message:
-            "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
-          dailyLimitReached: true,
-        });
+  app.post(
+    "/api/problem",
+    requireActiveSubscription,
+    async (req: Request, res: Response) => {
+      try {
+        // Check daily limit first
+        const canProceed = await storage.incrementDailyCount();
+        if (!canProceed) {
+          return res.status(429).json({
+            message:
+              "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+            dailyLimitReached: true,
+          });
+        }
+
+        const { difficultyLevel } = problemRequestSchema.parse(req.body);
+
+        // Get previously attempted problems from database
+        const userId = "bizmowa.com"; // Use bizmowa.com user for trial
+        const previousProblems = await storage.getUserAttemptedProblems(
+          difficultyLevel,
+          userId,
+        );
+        const attemptedSentences = new Set(
+          previousProblems.map((p) => p.japaneseSentence),
+        );
+
+        // Problem sentences by difficulty level (expanded sets)
+        const problemSets = {
+          toeic: [
+            "会議の資料を準備しておいてください。",
+            "売上が前年比20%増加しました。",
+            "新しいプロジェクトの進捗はいかがですか。",
+            "顧客からのフィードバックを検討する必要があります。",
+            "来週までに報告書を提出してください。",
+            "クライアントとの打ち合わせが予定されています。",
+            "予算の見直しが必要です。",
+            "スケジュールを調整いたします。",
+            "チームメンバーと連携を取ってください。",
+            "納期に間に合うよう努力します。",
+            "品質管理の向上が課題です。",
+            "マーケティング戦略を検討しています。",
+            "競合他社の動向を調査しました。",
+            "今四半期の目標を達成しました。",
+            "プロジェクトの進捗状況を報告します。",
+          ],
+          "middle-school": [
+            "私は毎日学校に行きます。",
+            "今日は雨が降っています。",
+            "彼女は本を読むのが好きです。",
+            "私たちは昨日映画を見ました。",
+            "明日友達と会う予定です。",
+            "昨日は図書館で勉強しました。",
+            "母は美味しい夕食を作ってくれます。",
+            "兄は野球が上手です。",
+            "私は数学が好きです。",
+            "先生はとても親切です。",
+            "夏休みに海に行きました。",
+            "犬と散歩をしています。",
+            "友達と公園で遊びました。",
+            "宿題を忘れてしまいました。",
+            "電車で学校に通っています。",
+          ],
+          "high-school": [
+            "環境問題について考えることは重要です。",
+            "技術の進歩により、私たちの生活は便利になりました。",
+            "彼は将来医者になりたいと言っています。",
+            "この本を読み終えたら、感想を教えてください。",
+            "もし時間があれば、一緒に旅行に行きませんか。",
+            "科学技術の発展は社会に大きな影響を与えています。",
+            "国際化が進む中で、英語の重要性が高まっています。",
+            "地球温暖化は深刻な問題となっています。",
+            "教育制度の改革が議論されています。",
+            "多様性を認め合うことが大切です。",
+            "持続可能な社会を目指すべきです。",
+            "文化の違いを理解することは重要です。",
+            "創造性を育むことが求められています。",
+            "情報社会における課題は多岐にわたります。",
+            "若者の価値観は変化しています。",
+          ],
+          "basic-verbs": [
+            "彼は毎朝コーヒーを作ります。",
+            "子供たちが公園で遊んでいます。",
+            "母は料理を作っています。",
+            "私は友達に手紙を書きました。",
+            "電車が駅に到着しました。",
+            "猫が魚を食べています。",
+            "父は新聞を読んでいます。",
+            "私は音楽を聞いています。",
+            "彼女は花を植えました。",
+            "鳥が空を飛んでいます。",
+            "学生が勉強しています。",
+            "医者が患者を診察します。",
+            "雨が降り始めました。",
+            "太陽が昇っています。",
+            "風が強く吹いています。",
+          ],
+          "business-email": [
+            "お世話になっております。",
+            "会議の件でご連絡いたします。",
+            "添付ファイルをご査収ください。",
+            "明日の会議の件でリスケジュールをお願いしたく存じます。",
+            "資料の修正版を添付いたします。",
+            "ご確認のほど、よろしくお願いいたします。",
+            "誠に申し訳ございませんが、添付ファイルに不備がございました。",
+            "お忙しいところ恐縮ですが、ご返信をお待ちしております。",
+            "来週の打ち合わせの日程調整をさせていただきたく存じます。",
+            "議事録を共有いたします。",
+            "Teamsのリンクを共有いたします。",
+            "恐れ入りますが、期日の延期をお願いできますでしょうか。",
+            "進捗状況についてご報告いたします。",
+            "お手数ですが、ご確認いただけますでしょうか。",
+            "ご指摘いただいた点について修正いたします。",
+            "見積書を送付いたします。",
+            "契約書の件でご相談があります。",
+            "担当者変更のご案内をいたします。",
+            "今月末までにご提出をお願いいたします。",
+            "CCで関係者の皆様にも共有いたします。",
+            "お疲れ様でした。本日はありがとうございました。",
+            "至急ご対応いただけますでしょうか。",
+            "念のため、再度ご連絡いたします。",
+            "ご都合の良い日時をお教えください。",
+            "引き続きよろしくお願いいたします。",
+          ],
+        };
+
+        // Get current problem number for this user and difficulty
+        const currentProblemNumber = await storage.getCurrentProblemNumber(
+          userId,
+          difficultyLevel,
+        );
+
+        const allSentences = problemSets[difficultyLevel];
+        // Filter out previously attempted problems
+        const availableSentences = allSentences.filter(
+          (sentence) => !attemptedSentences.has(sentence),
+        );
+
+        // If all problems have been attempted, use all problems (allow reset)
+        const sentences =
+          availableSentences.length > 0 ? availableSentences : allSentences;
+
+        const sessionId = getSessionId(req);
+        const selectedSentence = getUnusedProblem(sessionId, sentences);
+
+        if (!selectedSentence) {
+          return res.status(500).json({ message: "No problems available" });
+        }
+
+        markProblemAsUsed(sessionId, selectedSentence);
+
+        const response: ProblemResponse = {
+          japaneseSentence: selectedSentence,
+          hints: [`問題${currentProblemNumber}`],
+        };
+
+        res.json(response);
+      } catch (error) {
+        res.status(400).json({ message: "Invalid request data" });
       }
-
-      const { difficultyLevel } = problemRequestSchema.parse(req.body);
-
-      // Get previously attempted problems from database
-      const userId = "bizmowa.com"; // Use bizmowa.com user for trial
-      const previousProblems = await storage.getUserAttemptedProblems(
-        difficultyLevel,
-        userId,
-      );
-      const attemptedSentences = new Set(
-        previousProblems.map((p) => p.japaneseSentence),
-      );
-
-      // Problem sentences by difficulty level (expanded sets)
-      const problemSets = {
-        toeic: [
-          "会議の資料を準備しておいてください。",
-          "売上が前年比20%増加しました。",
-          "新しいプロジェクトの進捗はいかがですか。",
-          "顧客からのフィードバックを検討する必要があります。",
-          "来週までに報告書を提出してください。",
-          "クライアントとの打ち合わせが予定されています。",
-          "予算の見直しが必要です。",
-          "スケジュールを調整いたします。",
-          "チームメンバーと連携を取ってください。",
-          "納期に間に合うよう努力します。",
-          "品質管理の向上が課題です。",
-          "マーケティング戦略を検討しています。",
-          "競合他社の動向を調査しました。",
-          "今四半期の目標を達成しました。",
-          "プロジェクトの進捗状況を報告します。",
-        ],
-        "middle-school": [
-          "私は毎日学校に行きます。",
-          "今日は雨が降っています。",
-          "彼女は本を読むのが好きです。",
-          "私たちは昨日映画を見ました。",
-          "明日友達と会う予定です。",
-          "昨日は図書館で勉強しました。",
-          "母は美味しい夕食を作ってくれます。",
-          "兄は野球が上手です。",
-          "私は数学が好きです。",
-          "先生はとても親切です。",
-          "夏休みに海に行きました。",
-          "犬と散歩をしています。",
-          "友達と公園で遊びました。",
-          "宿題を忘れてしまいました。",
-          "電車で学校に通っています。",
-        ],
-        "high-school": [
-          "環境問題について考えることは重要です。",
-          "技術の進歩により、私たちの生活は便利になりました。",
-          "彼は将来医者になりたいと言っています。",
-          "この本を読み終えたら、感想を教えてください。",
-          "もし時間があれば、一緒に旅行に行きませんか。",
-          "科学技術の発展は社会に大きな影響を与えています。",
-          "国際化が進む中で、英語の重要性が高まっています。",
-          "地球温暖化は深刻な問題となっています。",
-          "教育制度の改革が議論されています。",
-          "多様性を認め合うことが大切です。",
-          "持続可能な社会を目指すべきです。",
-          "文化の違いを理解することは重要です。",
-          "創造性を育むことが求められています。",
-          "情報社会における課題は多岐にわたります。",
-          "若者の価値観は変化しています。",
-        ],
-        "basic-verbs": [
-          "彼は毎朝コーヒーを作ります。",
-          "子供たちが公園で遊んでいます。",
-          "母は料理を作っています。",
-          "私は友達に手紙を書きました。",
-          "電車が駅に到着しました。",
-          "猫が魚を食べています。",
-          "父は新聞を読んでいます。",
-          "私は音楽を聞いています。",
-          "彼女は花を植えました。",
-          "鳥が空を飛んでいます。",
-          "学生が勉強しています。",
-          "医者が患者を診察します。",
-          "雨が降り始めました。",
-          "太陽が昇っています。",
-          "風が強く吹いています。",
-        ],
-        "business-email": [
-          "お世話になっております。",
-          "会議の件でご連絡いたします。",
-          "添付ファイルをご査収ください。",
-          "明日の会議の件でリスケジュールをお願いしたく存じます。",
-          "資料の修正版を添付いたします。",
-          "ご確認のほど、よろしくお願いいたします。",
-          "誠に申し訳ございませんが、添付ファイルに不備がございました。",
-          "お忙しいところ恐縮ですが、ご返信をお待ちしております。",
-          "来週の打ち合わせの日程調整をさせていただきたく存じます。",
-          "議事録を共有いたします。",
-          "Teamsのリンクを共有いたします。",
-          "恐れ入りますが、期日の延期をお願いできますでしょうか。",
-          "進捗状況についてご報告いたします。",
-          "お手数ですが、ご確認いただけますでしょうか。",
-          "ご指摘いただいた点について修正いたします。",
-          "見積書を送付いたします。",
-          "契約書の件でご相談があります。",
-          "担当者変更のご案内をいたします。",
-          "今月末までにご提出をお願いいたします。",
-          "CCで関係者の皆様にも共有いたします。",
-          "お疲れ様でした。本日はありがとうございました。",
-          "至急ご対応いただけますでしょうか。",
-          "念のため、再度ご連絡いたします。",
-          "ご都合の良い日時をお教えください。",
-          "引き続きよろしくお願いいたします。",
-        ],
-      };
-
-      // Get current problem number for this user and difficulty
-      const currentProblemNumber = await storage.getCurrentProblemNumber(
-        userId,
-        difficultyLevel,
-      );
-
-      const allSentences = problemSets[difficultyLevel];
-      // Filter out previously attempted problems
-      const availableSentences = allSentences.filter(
-        (sentence) => !attemptedSentences.has(sentence),
-      );
-
-      // If all problems have been attempted, use all problems (allow reset)
-      const sentences =
-        availableSentences.length > 0 ? availableSentences : allSentences;
-
-      const sessionId = getSessionId(req);
-      const selectedSentence = getUnusedProblem(sessionId, sentences);
-
-      if (!selectedSentence) {
-        return res.status(500).json({ message: "No problems available" });
-      }
-
-      markProblemAsUsed(sessionId, selectedSentence);
-
-      const response: ProblemResponse = {
-        japaneseSentence: selectedSentence,
-        hints: [`問題${currentProblemNumber}`],
-      };
-
-      res.json(response);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid request data" });
-    }
-  });
+    },
+  );
 
   // Evaluate user translation using Claude Haiku
   app.post("/api/translate", async (req: Request, res: Response) => {
@@ -401,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userPrompt = `日本語文: ${japaneseSentence}
 ユーザーの英訳: ${userTranslation}
 
-上記の翻訳を評価してください。`;
+i��記の翻訳を評価してください。`;
 
       try {
         console.log("Attempting translation with Anthropic SDK...");
@@ -464,10 +492,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               );
             } catch (secondParseError: unknown) {
               const err = secondParseError as Error;
-              console.error(
-                "Second JSON parse attempt failed:",
-                err.message,
-              );
+              console.error("Second JSON parse attempt failed:", err.message);
               throw new Error("Failed to parse Claude response as JSON");
             }
           } else {
@@ -704,12 +729,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: unknown) {
       const err = error as Error;
       console.error("Error fetching Stripe prices:", err.message);
-      res
-        .status(500)
-        .json({
-          message: "Stripe価格の取得に失敗しました",
-          error: err.message,
-        });
+      res.status(500).json({
+        message: "Stripe価格の取得に失敗しました",
+        error: err.message,
+      });
     }
   });
 
@@ -804,61 +827,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Price info error:", err.message);
       res.status(400).json({
         message:
-          error instanceof Error
-            ? err.message
-            : "価格情報の取得に失敗しました",
+          error instanceof Error ? err.message : "価格情報の取得に失敗しました",
       });
     }
   });
 
   // Save price configuration endpoint
-  app.post("/api/save-price-configuration", async (req: Request, res: Response) => {
-    try {
-      const { priceIds } = req.body;
+  app.post(
+    "/api/save-price-configuration",
+    async (req: Request, res: Response) => {
+      try {
+        const { priceIds } = req.body;
 
-      if (!priceIds || typeof priceIds !== "object") {
-        return res.status(400).json({ message: "価格ID情報が不正です" });
-      }
+        if (!priceIds || typeof priceIds !== "object") {
+          return res.status(400).json({ message: "価格ID情報が不正です" });
+        }
 
-      // Save to environment variables (in production, this would be saved to a database or config file)
-      // For this demo, we'll just return success
-      console.log("Saving price configuration:", priceIds);
+        // Save to environment variables (in production, this would be saved to a database or config file)
+        // For this demo, we'll just return success
+        console.log("Saving price configuration:", priceIds);
 
-      // Switch between test and production mode
-      if (priceIds.mode) {
-        process.env.STRIPE_MODE = priceIds.mode;
-        console.log(`Switched to ${priceIds.mode} mode`);
-      }
+        // Switch between test and production mode
+        if (priceIds.mode) {
+          process.env.STRIPE_MODE = priceIds.mode;
+          console.log(`Switched to ${priceIds.mode} mode`);
+        }
 
-      // Update individual price IDs if provided
-      if (priceIds.standard_monthly) {
-        process.env.STRIPE_PRICE_STANDARD_MONTHLY = priceIds.standard_monthly;
-        priceConfig.production.standard_monthly = priceIds.standard_monthly;
-      }
-      if (priceIds.standard_yearly) {
-        process.env.STRIPE_PRICE_STANDARD_YEARLY = priceIds.standard_yearly;
-        priceConfig.production.standard_yearly = priceIds.standard_yearly;
-      }
-      if (priceIds.premium_monthly) {
-        process.env.STRIPE_PRICE_PREMIUM_MONTHLY = priceIds.premium_monthly;
-        priceConfig.production.premium_monthly = priceIds.premium_monthly;
-      }
-      if (priceIds.premium_yearly) {
-        process.env.STRIPE_PRICE_PREMIUM_YEARLY = priceIds.premium_yearly;
-        priceConfig.production.premium_yearly = priceIds.premium_yearly;
-      }
+        // Update individual price IDs if provided
+        if (priceIds.standard_monthly) {
+          process.env.STRIPE_PRICE_STANDARD_MONTHLY = priceIds.standard_monthly;
+          priceConfig.production.standard_monthly = priceIds.standard_monthly;
+        }
+        if (priceIds.standard_yearly) {
+          process.env.STRIPE_PRICE_STANDARD_YEARLY = priceIds.standard_yearly;
+          priceConfig.production.standard_yearly = priceIds.standard_yearly;
+        }
+        if (priceIds.premium_monthly) {
+          process.env.STRIPE_PRICE_PREMIUM_MONTHLY = priceIds.premium_monthly;
+          priceConfig.production.premium_monthly = priceIds.premium_monthly;
+        }
+        if (priceIds.premium_yearly) {
+          process.env.STRIPE_PRICE_PREMIUM_YEARLY = priceIds.premium_yearly;
+          priceConfig.production.premium_yearly = priceIds.premium_yearly;
+        }
 
-      res.json({
-        message: "価格ID設定が保存されました",
-        updatedPrices: priceIds,
-        currentMode: process.env.STRIPE_MODE || "test",
-      });
-    } catch (error: unknown) {
-      const err = error as Error;
-      console.error("Error saving price configuration:", err.message);
-      res.status(500).json({ message: "価格ID設定の保存に失敗しました" });
-    }
-  });
+        res.json({
+          message: "価格ID設定が保存されました",
+          updatedPrices: priceIds,
+          currentMode: process.env.STRIPE_MODE || "test",
+        });
+      } catch (error: unknown) {
+        const err = error as Error;
+        console.error("Error saving price configuration:", err.message);
+        res.status(500).json({ message: "価格ID設定の保存に失敗しました" });
+      }
+    },
+  );
 
   // Update plan configuration endpoint
   app.post("/api/plan-configuration", async (req: Request, res: Response) => {
@@ -891,85 +915,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/create-checkout-session", async (req: Request, res: Response) => {
-    try {
-      const { priceId, successUrl, cancelUrl } =
-        createCheckoutSessionSchema.parse(req.body);
-
-      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-      if (!stripeSecretKey) {
-        return res.status(500).json({ message: "Stripe not configured" });
-      }
-
-      console.log(
-        "Attempting to create checkout session for priceId:",
-        priceId,
-      );
-      console.log(
-        "Stripe Secret Key type:",
-        stripeSecretKey.startsWith("sk_test_")
-          ? "TEST"
-          : stripeSecretKey.startsWith("sk_live_")
-            ? "LIVE"
-            : "UNKNOWN",
-      );
-
-      const stripe = new Stripe(stripeSecretKey);
-
-      // まず価格IDが存在するか確認
+  app.post(
+    "/api/create-checkout-session",
+    async (req: Request, res: Response) => {
       try {
-        const price = await stripe.prices.retrieve(priceId);
+        const { priceId, successUrl, cancelUrl } =
+          createCheckoutSessionSchema.parse(req.body);
+
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        if (!stripeSecretKey) {
+          return res.status(500).json({ message: "Stripe not configured" });
+        }
+
         console.log(
-          "Price found:",
-          price.id,
-          "Amount:",
-          price.unit_amount,
-          "Currency:",
-          price.currency,
+          "Attempting to create checkout session for priceId:",
+          priceId,
         );
-      } catch (priceError: unknown) {
-        const err = priceError as Error;
-        console.error("Price not found:", err.message);
-        return res.status(400).json({
-          message: `価格ID "${priceId}" が見つかりません。Stripeダッシュボードで正しい価格IDを確認してください。`,
-          details: err.message,
-        });
-      }
+        console.log(
+          "Stripe Secret Key type:",
+          stripeSecretKey.startsWith("sk_test_")
+            ? "TEST"
+            : stripeSecretKey.startsWith("sk_live_")
+              ? "LIVE"
+              : "UNKNOWN",
+        );
 
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "subscription",
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
+        const stripe = new Stripe(stripeSecretKey);
+
+        // まず価格IDが存在するか確認
+        try {
+          const price = await stripe.prices.retrieve(priceId);
+          console.log(
+            "Price found:",
+            price.id,
+            "Amount:",
+            price.unit_amount,
+            "Currency:",
+            price.currency,
+          );
+        } catch (priceError: unknown) {
+          const err = priceError as Error;
+          console.error("Price not found:", err.message);
+          return res.status(400).json({
+            message: `価格ID "${priceId}" が見つかりません。Stripeダッシュボードで正しい価格IDを確認してください。`,
+            details: err.message,
+          });
+        }
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          mode: "subscription",
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          success_url:
+            successUrl ||
+            `${req.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: cancelUrl || `${req.get("origin")}/payment-cancelled`,
+          allow_promotion_codes: true,
+          subscription_data: {
+            trial_period_days: 7,
           },
-        ],
-        success_url:
-          successUrl ||
-          `${req.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: cancelUrl || `${req.get("origin")}/payment-cancelled`,
-        allow_promotion_codes: true,
-        subscription_data: {
-          trial_period_days: 7,
-        },
-        metadata: {
-          userId: "default_user", // In real app, get from authenticated user
-          planType: getPlanTypeFromPriceId(priceId),
-        },
-      });
+          metadata: {
+            userId: "default_user", // In real app, get from authenticated user
+            planType: getPlanTypeFromPriceId(priceId),
+          },
+        });
 
-      const response: CheckoutSessionResponse = {
-        url: session.url,
-        sessionId: session.id,
-      };
+        const response: CheckoutSessionResponse = {
+          url: session.url ?? "",
+          sessionId: session.id,
+        };
 
-      res.json(response);
-    } catch (error) {
-      console.error("Stripe error:", error);
-      res.status(500).json({ message: "決済セッションの作成に失敗しました" });
-    }
-  });
+        res.json(response);
+      } catch (error) {
+        console.error("Stripe error:", error);
+        res.status(500).json({ message: "決済セッションの作成に失敗しました" });
+      }
+    },
+  );
 
   app.get("/api/stripe-prices", async (req: Request, res: Response) => {
     try {
@@ -1121,31 +1148,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create Stripe Customer Portal session
-  app.post("/api/create-customer-portal", async (req: Request, res: Response) => {
-    try {
-      const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-      if (!stripeSecretKey) {
-        return res.status(500).json({ message: "Stripe not configured" });
+  app.post(
+    "/api/create-customer-portal",
+    async (req: Request, res: Response) => {
+      try {
+        const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+        if (!stripeSecretKey) {
+          return res.status(500).json({ message: "Stripe not configured" });
+        }
+
+        const stripe = new Stripe(stripeSecretKey);
+
+        // In a real app, get customer ID from authenticated user
+        const customerId = "cus_example123"; // This should come from user's subscription data
+
+        const session = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: `${req.get("origin")}/my-page?tab=account`,
+        });
+
+        res.json({ url: session.url });
+      } catch (error) {
+        console.error("Stripe Customer Portal error:", error);
+        res
+          .status(500)
+          .json({ message: "カスタマーポータルの作成に失敗しました" });
       }
-
-      const stripe = new Stripe(stripeSecretKey);
-
-      // In a real app, get customer ID from authenticated user
-      const customerId = "cus_example123"; // This should come from user's subscription data
-
-      const session = await stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: `${req.get("origin")}/my-page?tab=account`,
-      });
-
-      res.json({ url: session.url });
-    } catch (error) {
-      console.error("Stripe Customer Portal error:", error);
-      res
-        .status(500)
-        .json({ message: "カスタマーポータルの作成に失敗しました" });
-    }
-  });
+    },
+  );
 
   // Get subscription details
   app.get("/api/subscription-details", async (req: Request, res: Response) => {
@@ -1671,11 +1701,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         !subscriptionType ||
         !["standard", "premium"].includes(subscriptionType)
       ) {
-        return res
-          .status(400)
-          .json({
-            message: "有効なサブスクリプションタイプを指定してください",
-          });
+        return res.status(400).json({
+          message: "有効なサブスクリプションタイプを指定してください",
+        });
       }
 
       const updatedSubscription = await storage.updateUserSubscription(userId, {
@@ -1975,12 +2003,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.json(response);
         } catch (anthropicError) {
           console.error("Anthropic API error:", anthropicError);
-          res
-            .status(500)
-            .json({
-              message:
-                "AI評価に失敗しました。しばらくしてからもう一度お試しください。",
-            });
+          res.status(500).json({
+            message:
+              "AI評価に失敗しました。しばらくしてからもう一度お試しください。",
+          });
         }
       } catch (error) {
         console.error("Simulation translation error:", error);
