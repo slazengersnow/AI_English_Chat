@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -17,7 +17,7 @@ export function serveStatic(app: express.Express) {
 
   app.use(express.static(distPath));
 
-  app.use("*", (_req, res) => {
+  app.use("*", (_req: Request, res: Response) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }

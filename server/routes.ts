@@ -14,7 +14,7 @@ import {
 } from "@shared/schema";
 
 // Session-based problem tracking to prevent duplicates
-const sessionProblems = new Map<string, Set<string>>();
+const sessionProblems = new Map<string, Set<string>>(); // 型を明示
 
 declare module "express" {
   interface Request {
@@ -28,7 +28,7 @@ function getSessionId(req: Request): string {
 
 function getUsedProblems(sessionId: string): Set<string> {
   if (!sessionProblems.has(sessionId)) {
-    sessionProblems.set(sessionId, new Set());
+    sessionProblems.set(sessionId, new Set<string>());
   }
   return sessionProblems.get(sessionId)!;
 }
@@ -241,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!canProceed) {
           return res.status(429).json({
             message:
-              "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+              "本日の最大出題数(100問)に達しました。明日また学習を再開できます。",
             dailyLimitReached: true,
           });
         }
@@ -259,7 +259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Problem sentences by difficulty level (expanded sets)
-        const problemSets = {
+        const problemSets: { [key: string]: string[] } = {
           toeic: [
             "会議の資料を準備しておいてください。",
             "売上が前年比20%増加しました。",
@@ -409,19 +409,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。ユーザーの日本語から英語への翻訳を評価し、以下のJSON形式で返答してください。
 
-重要：すべての説明とフィードバックは必ず日本語で書いてください。
+重要:すべての説明とフィードバックは必ず日本語で書いてください。
 
 {
-  "correctTranslation": "正しい英訳（ネイティブが自然に使う表現）",
-  "feedback": "具体的なフィードバック（良い点と改善点を日本語で）",
-  "rating": 評価（1=要改善、5=完璧の数値）,
-  "improvements": ["改善提案1（日本語で）", "改善提案2（日本語で）"],
-  "explanation": "文法や語彙の詳しい解説（必ず日本語で）",
+  "correctTranslation": "正しい英訳(ネイティブが自然に使う表現)",
+  "feedback": "具体的なフィードバック(良い点と改善点を日本語で)",
+  "rating": 評価(1=要改善、5=完璧の数値),
+  "improvements": ["改善提案1(日本語で)", "改善提案2(日本語で)"],
+  "explanation": "文法や語彙の詳しい解説(必ず日本語で)",
   "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
 }
 
-評価基準：
-- 英文はシンプルで実用的（TOEIC700〜800レベル）
+評価基準:
+- 英文はシンプルで実用的(TOEIC700〜800レベル)
 - 直訳ではなく自然な英語
 - feedback、improvements、explanationはすべて日本語で説明
 - 中学生や高校生にも分かりやすい日本語の解説`;
@@ -429,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userPrompt = `日本語文: ${japaneseSentence}
 ユーザーの英訳: ${userTranslation}
 
-i��記の翻訳を評価してください。`;
+上記の翻訳を評価してください。`;
 
       try {
         console.log("Attempting translation with Anthropic SDK...");
@@ -1214,20 +1214,23 @@ i��記の翻訳を評価してください。`;
   });
 
   // Stripe webhook endpoint
-  app.post("/api/stripe-webhook", (req, res, next) => {
-    // Parse raw body for Stripe webhook
-    req.setEncoding("utf8");
-    let data = "";
-    req.on("data", (chunk) => {
-      data += chunk;
-    });
-    req.on("end", async () => {
-      req.body = data;
-      await handleStripeWebhook(req, res);
-    });
-  });
+  app.post(
+    "/api/stripe-webhook",
+    (req: Request, res: Response, next: NextFunction) => {
+      // Parse raw body for Stripe webhook
+      req.setEncoding("utf8");
+      let data = "";
+      req.on("data", (chunk) => {
+        data += chunk;
+      });
+      req.on("end", async () => {
+        req.body = data;
+        await handleStripeWebhook(req, res);
+      });
+    },
+  );
 
-  async function handleStripeWebhook(req: any, res: any) {
+  async function handleStripeWebhook(req: Request, res: Response) {
     const sig = req.headers["stripe-signature"];
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -1324,7 +1327,7 @@ i��記の翻訳を評価してください。`;
   }
 
   // Get training history
-  app.get("/api/sessions", async (req, res) => {
+  app.get("/api/sessions", async (req: Request, res: Response) => {
     try {
       const sessions = await storage.getTrainingSessions();
       res.json(sessions);
@@ -1334,7 +1337,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get sessions by difficulty
-  app.get("/api/sessions/:difficulty", async (req, res) => {
+  app.get("/api/sessions/:difficulty", async (req: Request, res: Response) => {
     try {
       const { difficulty } = req.params;
       const sessions = await storage.getSessionsByDifficulty(difficulty);
@@ -1347,7 +1350,7 @@ i��記の翻訳を評価してください。`;
   // My Page APIs
 
   // Get user goals
-  app.get("/api/user-goals", async (req, res) => {
+  app.get("/api/user-goals", async (req: Request, res: Response) => {
     try {
       const goals = await storage.getUserGoals();
       res.json(goals || { dailyGoal: 30, monthlyGoal: 900 });
@@ -1358,7 +1361,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Update user goals
-  app.post("/api/user-goals", async (req, res) => {
+  app.post("/api/user-goals", async (req: Request, res: Response) => {
     try {
       const { dailyGoal, monthlyGoal } = req.body;
       const goals = await storage.updateUserGoals({ dailyGoal, monthlyGoal });
@@ -1369,9 +1372,9 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get progress history
-  app.get("/api/progress", async (req, res) => {
+  app.get("/api/progress", async (req: Request, res: Response) => {
     try {
-      const { period = "week" } = req.query;
+      const { period = "week" } = req.query as { period?: string };
       const endDate = new Date();
       const startDate = new Date();
 
@@ -1394,7 +1397,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get streak count
-  app.get("/api/streak", async (req, res) => {
+  app.get("/api/streak", async (req: Request, res: Response) => {
     try {
       const streak = await storage.getStreakCount();
       res.json({ streak });
@@ -1404,7 +1407,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get difficulty stats
-  app.get("/api/difficulty-stats", async (req, res) => {
+  app.get("/api/difficulty-stats", async (req: Request, res: Response) => {
     try {
       const stats = await storage.getDifficultyStats();
       res.json(stats);
@@ -1414,7 +1417,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get monthly stats
-  app.get("/api/monthly-stats", async (req, res) => {
+  app.get("/api/monthly-stats", async (req: Request, res: Response) => {
     try {
       const year =
         parseInt(req.query.year as string) || new Date().getFullYear();
@@ -1428,7 +1431,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get sessions for review (★2以下)
-  app.get("/api/review-sessions", async (req, res) => {
+  app.get("/api/review-sessions", async (req: Request, res: Response) => {
     try {
       const threshold = parseInt(req.query.threshold as string) || 2;
       const sessions = await storage.getSessionsForReview(threshold);
@@ -1439,7 +1442,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get recent sessions (past week)
-  app.get("/api/recent-sessions", async (req, res) => {
+  app.get("/api/recent-sessions", async (req: Request, res: Response) => {
     try {
       const daysBack = parseInt(req.query.days as string) || 7;
       const sessions = await storage.getRecentSessions(daysBack);
@@ -1450,7 +1453,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Get bookmarked sessions
-  app.get("/api/bookmarked-sessions", async (req, res) => {
+  app.get("/api/bookmarked-sessions", async (req: Request, res: Response) => {
     try {
       const sessions = await storage.getBookmarkedSessions();
       res.json(sessions);
@@ -1460,19 +1463,22 @@ i��記の翻訳を評価してください。`;
   });
 
   // Update bookmark status
-  app.post("/api/sessions/:id/bookmark", async (req, res) => {
-    try {
-      const sessionId = parseInt(req.params.id);
-      const { isBookmarked } = req.body;
-      await storage.updateBookmark(sessionId, isBookmarked);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "ブックマークの更新に失敗しました" });
-    }
-  });
+  app.post(
+    "/api/sessions/:id/bookmark",
+    async (req: Request, res: Response) => {
+      try {
+        const sessionId = parseInt(req.params.id);
+        const { isBookmarked } = req.body;
+        await storage.updateBookmark(sessionId, isBookmarked);
+        res.json({ success: true });
+      } catch (error) {
+        res.status(500).json({ message: "ブックマークの更新に失敗しました" });
+      }
+    },
+  );
 
   // Update review count
-  app.post("/api/sessions/:id/review", async (req, res) => {
+  app.post("/api/sessions/:id/review", async (req: Request, res: Response) => {
     try {
       const sessionId = parseInt(req.params.id);
       await storage.updateReviewCount(sessionId);
@@ -1483,7 +1489,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Custom scenarios
-  app.get("/api/custom-scenarios", async (req, res) => {
+  app.get("/api/custom-scenarios", async (req: Request, res: Response) => {
     try {
       const scenarios = await storage.getCustomScenarios();
       res.json(scenarios);
@@ -1493,7 +1499,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // User subscription
-  app.get("/api/user-subscription", async (req, res) => {
+  app.get("/api/user-subscription", async (req: Request, res: Response) => {
     try {
       // Get user ID from Authorization header (Supabase JWT token)
       const authHeader = req.headers.authorization;
@@ -1543,7 +1549,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Upgrade subscription to premium
-  app.post("/api/upgrade-subscription", async (req, res) => {
+  app.post("/api/upgrade-subscription", async (req: Request, res: Response) => {
     try {
       const { planType } = req.body; // 'monthly' or 'yearly'
 
@@ -1610,7 +1616,7 @@ i��記の翻訳を評価してください。`;
 
       res.json({
         success: true,
-        message: `プレミアム${planType === "monthly" ? "月額" : "年間"}プランにアップグレードしました（日割り計算適用）`,
+        message: `プレミアム${planType === "monthly" ? "月額" : "年間"}プランにアップグレードしました(日割り計算適用)`,
         subscriptionId: updatedSubscription.id,
       });
     } catch (error) {
@@ -1620,7 +1626,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Admin routes
-  app.get("/api/admin/stats", async (req, res) => {
+  app.get("/api/admin/stats", async (req: Request, res: Response) => {
     try {
       const userSubscription = await storage.getUserSubscription();
       if (!userSubscription?.isAdmin) {
@@ -1635,7 +1641,7 @@ i��記の翻訳を評価してください。`;
     }
   });
 
-  app.get("/api/admin/users", async (req, res) => {
+  app.get("/api/admin/users", async (req: Request, res: Response) => {
     try {
       const userSubscription = await storage.getUserSubscription();
       if (!userSubscription?.isAdmin) {
@@ -1650,7 +1656,7 @@ i��記の翻訳を評価してください。`;
     }
   });
 
-  app.get("/api/admin/analytics", async (req, res) => {
+  app.get("/api/admin/analytics", async (req: Request, res: Response) => {
     try {
       const userSubscription = await storage.getUserSubscription();
       if (!userSubscription?.isAdmin) {
@@ -1665,7 +1671,7 @@ i��記の翻訳を評価してください。`;
     }
   });
 
-  app.get("/api/admin/export/:type", async (req, res) => {
+  app.get("/api/admin/export/:type", async (req: Request, res: Response) => {
     try {
       const userSubscription = await storage.getUserSubscription();
       if (!userSubscription?.isAdmin) {
@@ -1687,39 +1693,45 @@ i��記の翻訳を評価してください。`;
     }
   });
 
-  app.put("/api/admin/users/:userId/subscription", async (req, res) => {
-    try {
-      const userSubscription = await storage.getUserSubscription();
-      if (!userSubscription?.isAdmin) {
-        return res.status(403).json({ message: "管理者権限が必要です" });
+  app.put(
+    "/api/admin/users/:userId/subscription",
+    async (req: Request, res: Response) => {
+      try {
+        const userSubscription = await storage.getUserSubscription();
+        if (!userSubscription?.isAdmin) {
+          return res.status(403).json({ message: "管理者権限が必要です" });
+        }
+
+        const { userId } = req.params;
+        const { subscriptionType } = req.body;
+
+        if (
+          !subscriptionType ||
+          !["standard", "premium"].includes(subscriptionType)
+        ) {
+          return res.status(400).json({
+            message: "有効なサブスクリプションタイプを指定してください",
+          });
+        }
+
+        const updatedSubscription = await storage.updateUserSubscription(
+          userId,
+          {
+            subscriptionType,
+          },
+        );
+        res.json(updatedSubscription);
+      } catch (error) {
+        console.error("Update subscription error:", error);
+        res
+          .status(500)
+          .json({ message: "サブスクリプションの更新に失敗しました" });
       }
-
-      const { userId } = req.params;
-      const { subscriptionType } = req.body;
-
-      if (
-        !subscriptionType ||
-        !["standard", "premium"].includes(subscriptionType)
-      ) {
-        return res.status(400).json({
-          message: "有効なサブスクリプションタイプを指定してください",
-        });
-      }
-
-      const updatedSubscription = await storage.updateUserSubscription(userId, {
-        subscriptionType,
-      });
-      res.json(updatedSubscription);
-    } catch (error) {
-      console.error("Update subscription error:", error);
-      res
-        .status(500)
-        .json({ message: "サブスクリプションの更新に失敗しました" });
-    }
-  });
+    },
+  );
 
   // Reset user data for new accounts
-  app.post("/api/reset-user-data", async (req, res) => {
+  app.post("/api/reset-user-data", async (req: Request, res: Response) => {
     try {
       await storage.resetUserData();
       res.json({ success: true, message: "ユーザーデータをリセットしました" });
@@ -1732,7 +1744,7 @@ i��記の翻訳を評価してください。`;
   app.post(
     "/api/custom-scenarios",
     requirePremiumSubscription,
-    async (req, res) => {
+    async (req: Request, res: Response) => {
       try {
         const { title, description } = req.body;
         const scenario = await storage.addCustomScenario({
@@ -1751,7 +1763,7 @@ i��記の翻訳を評価してください。`;
   app.put(
     "/api/custom-scenarios/:id",
     requirePremiumSubscription,
-    async (req, res) => {
+    async (req: Request, res: Response) => {
       try {
         const id = parseInt(req.params.id);
         const { title, description } = req.body;
@@ -1771,7 +1783,7 @@ i��記の翻訳を評価してください。`;
   app.delete(
     "/api/custom-scenarios/:id",
     requirePremiumSubscription,
-    async (req, res) => {
+    async (req: Request, res: Response) => {
       try {
         const id = parseInt(req.params.id);
         await storage.deleteCustomScenario(id);
@@ -1785,7 +1797,7 @@ i��記の翻訳を評価してください。`;
   );
 
   // Get single custom scenario
-  app.get("/api/custom-scenarios/:id", async (req, res) => {
+  app.get("/api/custom-scenarios/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const scenario = await storage.getCustomScenario(id);
@@ -1802,7 +1814,7 @@ i��記の翻訳を評価してください。`;
   app.get(
     "/api/simulation-problem/:scenarioId",
     requirePremiumSubscription,
-    async (req, res) => {
+    async (req: Request, res: Response) => {
       try {
         const scenarioId = parseInt(req.params.scenarioId);
         const scenario = await storage.getCustomScenario(scenarioId);
@@ -1823,10 +1835,10 @@ i��記の翻訳を評価してください。`;
 シミュレーション: ${scenario.title}
 詳細: ${scenario.description}
 
-以下の形式でJSONで回答してください：
+以下の形式でJSONで回答してください:
 {
   "japaneseSentence": "日本語の文章",
-  "context": "具体的なシチュエーションの説明（20文字以内）"
+  "context": "具体的なシチュエーションの説明(20文字以内)"
 }
 
 実際の場面で使われそうな自然な日本語文を生成してください。`;
@@ -1920,7 +1932,7 @@ i��記の翻訳を評価してください。`;
   app.post(
     "/api/simulation-translate",
     requirePremiumSubscription,
-    async (req, res) => {
+    async (req: Request, res: Response) => {
       try {
         const { scenarioId, japaneseSentence, userTranslation, context } =
           req.body;
@@ -1945,13 +1957,13 @@ i��記の翻訳を評価してください。`;
 日本語文: ${japaneseSentence}
 ユーザーの英訳: ${userTranslation}
 
-以下の形式でJSONで回答してください：
+以下の形式でJSONで回答してください:
 {
-  "correctTranslation": "正しい英訳（そのシチュエーションに最適な表現）",
-  "feedback": "具体的なフィードバック（良い点と改善点）",
-  "rating": 1から5の評価（1=要改善、5=完璧）,
+  "correctTranslation": "正しい英訳(そのシチュエーションに最適な表現)",
+  "feedback": "具体的なフィードバック(良い点と改善点)",
+  "rating": 1から5の評価(1=要改善、5=完璧),
   "improvements": ["改善提案1", "改善提案2"],
-  "explanation": "そのシチュエーションでの表現のポイント（日本語で）",
+  "explanation": "そのシチュエーションでの表現のポイント(日本語で)",
   "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
 }`;
 
@@ -2016,7 +2028,7 @@ i��記の翻訳を評価してください。`;
   );
 
   // Get today's problem count
-  app.get("/api/daily-count", async (req, res) => {
+  app.get("/api/daily-count", async (req: Request, res: Response) => {
     try {
       const count = await storage.getTodaysProblemCount();
       res.json({ count, remaining: Math.max(0, 100 - count) });
@@ -2027,7 +2039,7 @@ i��記の翻訳を評価してください。`;
   });
 
   // Reset daily count (for testing/admin purposes)
-  app.post("/api/reset-daily-count", async (req, res) => {
+  app.post("/api/reset-daily-count", async (req: Request, res: Response) => {
     try {
       await storage.resetDailyCount();
       res.json({ message: "Daily count reset successfully" });

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -16,7 +16,7 @@ export async function setupVite(app: express.Express, server: any) {
 
   app.use(vite.middlewares);
 
-  app.use("*", async (req, res, next) => {
+  app.use("*", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = req.originalUrl;
       const templatePath = path.resolve(__dirname, "../client/index.html");
