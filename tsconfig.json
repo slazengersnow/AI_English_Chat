@@ -11,6 +11,7 @@
     "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
     "resolveJsonModule": true,
+    "outExtension": { ".ts": ".js" },
     "baseUrl": ".",
     "paths": {
       "@/*": ["client/src/*"],

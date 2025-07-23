@@ -3,7 +3,7 @@ import { createServer } from "http";
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
-import { registerRoutes } from "./routes/index.js";
+import { registerRoutes } from "./routes";
 
 dotenv.config();
 
