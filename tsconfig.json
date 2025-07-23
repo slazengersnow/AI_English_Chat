@@ -10,6 +10,7 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "outExtension": { ".ts": ".js" },
     "baseUrl": ".",
