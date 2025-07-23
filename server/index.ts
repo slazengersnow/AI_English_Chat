@@ -3,7 +3,7 @@ import { createServer } from "http";
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes/index.js";
 
 dotenv.config();
 
@@ -18,7 +18,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.raw({ type: "application/json" }));
 
-// ✅ 修正：use ではなく直接呼び出すだけ
 await registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {
