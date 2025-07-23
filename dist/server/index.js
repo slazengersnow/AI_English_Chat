@@ -12,7 +12,9 @@ const server = createServer(app);
 const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-registerRoutes(app);
+app.use(express.raw({ type: "application/json" }));
+// ✅ 修正：use ではなく直接呼び出すだけ
+await registerRoutes(app);
 if (process.env.NODE_ENV === "production") {
     const { serveStatic } = await import("./vite-static.js");
     serveStatic(app);
