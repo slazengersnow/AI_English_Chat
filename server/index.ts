@@ -9,10 +9,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-async function start() {
-  await registerRoutes(app); // 修正された関数を呼び出す
+// Health check route for Fly.io
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
-  const port = process.env.PORT || 3000;
+async function start() {
+  await registerRoutes(app);
+
+  const port = process.env.PORT || 8080; // Fly.io expects 8080
   app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
   });

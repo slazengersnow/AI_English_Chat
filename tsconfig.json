@@ -1,25 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "rootDir": "./server",
+    "outDir": "./dist",
     "strict": true,
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx",
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "noEmit": true,
-    "isolatedModules": true,
-    "paths": {
-      "@/*": ["client/src/*"],
-      "@server/*": ["server/*"],
-      "@shared/*": ["shared/*"]
-    }
+    "typeRoots": ["./node_modules/@types", "./types"]
   },
-  "include": ["client", "server", "env.d.ts"],
-  "exclude": ["node_modules", "dist", "server/vite.ts"]
+  "include": ["server/**/*"],
+  "exclude": ["node_modules", "dist"]
 }
