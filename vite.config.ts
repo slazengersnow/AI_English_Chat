@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import dotenv from "dotenv";
 
+// 環境変数の読み込み
 dotenv.config();
 dotenv.config({ path: ".env.local" });
 
@@ -17,7 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"), // 共有ディレクトリのエイリアス
+      "@shared": path.resolve(__dirname, "shared"), // TypeScript paths対応のための共有ディレクトリエイリアス
     },
   },
   define: {

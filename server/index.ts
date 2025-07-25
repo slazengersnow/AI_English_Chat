@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { registerRoutes } from "./routes";
+import { registerRoutes } from "./routes/index.js";
 
 dotenv.config();
 
@@ -15,11 +15,11 @@ app.get("/health", (req, res) => {
 });
 
 async function start() {
-  await registerRoutes(app);
+  await registerRoutes(app); // ルーティング登録
 
-  const port = process.env.PORT || 8080; // Fly.io expects 8080
-  app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+  const port = Number(process.env.PORT) || 8080;
+  app.listen(port, "0.0.0.0", () => {
+    console.log(`Server running on http://0.0.0.0:${port}`);
   });
 }
 
