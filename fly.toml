@@ -2,6 +2,7 @@ app = "ai-english-chat"
 
 [build]
   dockerfile = "Dockerfile"
+  # GitHub 経由でも Docker を使用させるための明示的指定
 
 [env]
   NODE_ENV = "production"
