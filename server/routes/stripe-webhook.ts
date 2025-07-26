@@ -68,3 +68,36 @@ if (!stripeSecretKey || !webhookSecret) {
     },
   );
 }
+
+// 以下に各ハンドラー関数を定義（中身はダミーでOK、後で実装可能）
+
+function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log("✅ Checkout session completed:", session.id);
+}
+
+function handlePaymentIntentSucceeded(intent: Stripe.PaymentIntent) {
+  console.log("✅ Payment intent succeeded:", intent.id);
+}
+
+function handlePaymentIntentFailed(intent: Stripe.PaymentIntent) {
+  console.log("❌ Payment intent failed:", intent.id);
+}
+
+function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+  console.log("✅ Invoice payment succeeded:", invoice.id);
+}
+
+function handleSubscriptionCreated(subscription: Stripe.Subscription) {
+  console.log("✅ Subscription created:", subscription.id);
+}
+
+function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  console.log("✅ Subscription updated:", subscription.id);
+}
+
+function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  console.log("✅ Subscription deleted:", subscription.id);
+}
+
+// ✅ これがないと import エラーになる！
+export default router;

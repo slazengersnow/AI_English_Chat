@@ -13,8 +13,10 @@ export default defineConfig({
   base: "/", // 本番でもルートから読み込む
   plugins: [react()],
   build: {
-    outDir: path.resolve(__dirname, "dist/client"), // Express側と一致
+    // ✅ dist/client をサーバーが見えるようにルート相対で出力
+    outDir: path.resolve(__dirname, "dist/client"),
     emptyOutDir: true,
+    sourcemap: true, // 任意：デバッグしやすく
   },
   resolve: {
     alias: {

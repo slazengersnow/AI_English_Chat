@@ -1,13 +1,13 @@
 // server/routes/index.ts
-import { Router } from "express"; // ← ここで Express をインポート
+import { Router } from "express";
 import chatRoutes from "./chat.js";
 import userRoutes from "./user.js";
-import stripeWebhookRoutes from "./stripe-webhook.js";
+// ⚠️ 👇 これは削除（index.tsでは登録しない）
+/* import stripeWebhookRoutes from "./stripe-webhook.js"; */
 export function registerRoutes(app) {
-    // ← 型を明示
     const router = Router();
     router.use("/chat", chatRoutes);
     router.use("/user", userRoutes);
-    router.use("/webhook", stripeWebhookRoutes);
+    // router.use("/webhook", stripeWebhookRoutes); // 👈 削除
     app.use("/api", router);
 }

@@ -474,9 +474,7 @@ router.get("/stripe-prices", async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching Stripe prices:", error);
-        res
-            .status(500)
-            .json({
+        res.status(500).json({
             message: "Stripe価格の取得に失敗しました",
             error: error.message,
         });
@@ -555,9 +553,7 @@ router.post("/stripe/price-info", async (req, res) => {
     }
     catch (error) {
         console.error("Price info error:", error);
-        res
-            .status(400)
-            .json({
+        res.status(400).json({
             message: error.message || "価格情報の取得に失敗しました",
         });
     }
@@ -615,9 +611,7 @@ router.post("/plan-configuration", async (req, res) => {
     }
     catch (error) {
         console.error("Plan configuration error:", error);
-        res
-            .status(400)
-            .json({
+        res.status(400).json({
             message: error.message || "プラン設定の更新に失敗しました",
         });
     }
@@ -1266,9 +1260,7 @@ router.post("/simulation-translate", requirePremiumSubscription, async (req, res
         }
         catch (anthropicError) {
             console.error("Anthropic API error:", anthropicError);
-            res
-                .status(500)
-                .json({
+            res.status(500).json({
                 message: "AI評価に失敗しました。しばらくしてからもう一度お試しください。",
             });
         }
@@ -1454,9 +1446,7 @@ router.put("/admin/users/:userId/subscription", async (req, res) => {
         const { subscriptionType } = req.body;
         if (!subscriptionType ||
             !["standard", "premium"].includes(subscriptionType)) {
-            return res
-                .status(400)
-                .json({
+            return res.status(400).json({
                 message: "有効なサブスクリプションタイプを指定してください",
             });
         }
@@ -1483,5 +1473,8 @@ router.post("/reset-user-data", async (req, res) => {
     }
 });
 export async function registerRoutes(app) {
+    // 通常APIルート
     app.use("/api", router);
+    // Stripe Webhook
+    app.use("/api/stripe-webhook", stripeWebhookRouter);
 }

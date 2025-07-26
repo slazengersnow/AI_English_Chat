@@ -588,12 +588,10 @@ router.get("/stripe-prices", async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching Stripe prices:", error);
-    res
-      .status(500)
-      .json({
-        message: "Stripe価格の取得に失敗しました",
-        error: (error as Error).message,
-      });
+    res.status(500).json({
+      message: "Stripe価格の取得に失敗しました",
+      error: (error as Error).message,
+    });
   }
 });
 
@@ -678,11 +676,9 @@ router.post("/stripe/price-info", async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Price info error:", error);
-    res
-      .status(400)
-      .json({
-        message: (error as Error).message || "価格情報の取得に失敗しました",
-      });
+    res.status(400).json({
+      message: (error as Error).message || "価格情報の取得に失敗しました",
+    });
   }
 });
 
@@ -746,11 +742,9 @@ router.post("/plan-configuration", async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Plan configuration error:", error);
-    res
-      .status(400)
-      .json({
-        message: (error as Error).message || "プラン設定の更新に失敗しました",
-      });
+    res.status(400).json({
+      message: (error as Error).message || "プラン設定の更新に失敗しました",
+    });
   }
 });
 
@@ -1497,12 +1491,10 @@ router.post(
         res.json(response);
       } catch (anthropicError) {
         console.error("Anthropic API error:", anthropicError);
-        res
-          .status(500)
-          .json({
-            message:
-              "AI評価に失敗しました。しばらくしてからもう一度お試しください。",
-          });
+        res.status(500).json({
+          message:
+            "AI評価に失敗しました。しばらくしてからもう一度お試しください。",
+        });
       }
     } catch (error) {
       console.error("Simulation translation error:", error);
@@ -1721,11 +1713,9 @@ router.put(
         !subscriptionType ||
         !["standard", "premium"].includes(subscriptionType)
       ) {
-        return res
-          .status(400)
-          .json({
-            message: "有効なサブスクリプションタイプを指定してください",
-          });
+        return res.status(400).json({
+          message: "有効なサブスクリプションタイプを指定してください",
+        });
       }
 
       const updatedSubscription = await storage.updateUserSubscription(userId, {
@@ -1752,5 +1742,9 @@ router.post("/reset-user-data", async (req: Request, res: Response) => {
 });
 
 export async function registerRoutes(app: Express): Promise<void> {
+  // 通常APIルート
   app.use("/api", router);
+
+  // Stripe Webhook
+  app.use("/api/stripe-webhook", stripeWebhookRouter);
 }
