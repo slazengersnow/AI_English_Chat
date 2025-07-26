@@ -1,22 +1,22 @@
-// vite.config.ts
+// client/vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import dotenv from "dotenv";
 
-// .env.local → .env の順で読み込む
+// ✅ 環境変数の読み込み（.env.local → .env の順）
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
-  base: "/", // 本番でもルートから読み込む
+  base: "/", // ✅ ルートパスで読み込む（Fly.io 含む全環境で安定）
+
   plugins: [react()],
   build: {
-    // ✅ dist/client をサーバーが見えるようにルート相対で出力
-    outDir: path.resolve(__dirname, "dist/client"),
+    outDir: path.resolve(__dirname, "dist/client"), // ✅ 静的ファイルの出力先
     emptyOutDir: true,
-    sourcemap: true, // 任意：デバッグしやすく
+    sourcemap: true, // ✅ 任意：デバッグ用にソースマップ
   },
   resolve: {
     alias: {
@@ -26,10 +26,10 @@ export default defineConfig({
   },
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_SUPABASE_URL ?? "",
+      process.env.VITE_SUPABASE_URL || "",
     ),
     "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-      process.env.VITE_SUPABASE_ANON_KEY ?? "",
+      process.env.VITE_SUPABASE_ANON_KEY || "",
     ),
   },
 });
