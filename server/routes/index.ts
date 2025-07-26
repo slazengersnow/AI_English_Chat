@@ -1,9 +1,16 @@
-import { Express } from "express";
+// server/routes/index.ts
+import { Router, Express } from "express"; // ← ここで Express をインポート
+import chatRoutes from "./chat.js";
+import userRoutes from "./user.js";
+import stripeWebhookRoutes from "./stripe-webhook.js";
 
-export async function registerRoutes(app: Express) {
-  app.get("/api", (req, res) => {
-    res.send("Hello from server!");
-  });
+export function registerRoutes(app: Express) {
+  // ← 型を明示
+  const router = Router();
 
-  // 必要であれば他のルートをここに追加
+  router.use("/chat", chatRoutes);
+  router.use("/user", userRoutes);
+  router.use("/webhook", stripeWebhookRoutes);
+
+  app.use("/api", router);
 }
