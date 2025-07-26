@@ -1,3 +1,12 @@
+// vite.config.js
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
+dotenv.config();
+
 export default defineConfig({
   root: path.resolve(__dirname, "client"),
   base: "/",
@@ -15,10 +24,10 @@ export default defineConfig({
   },
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_SUPABASE_URL ?? "",
+      process.env.VITE_SUPABASE_URL || "",
     ),
     "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-      process.env.VITE_SUPABASE_ANON_KEY ?? "",
+      process.env.VITE_SUPABASE_ANON_KEY || "",
     ),
   },
 });
