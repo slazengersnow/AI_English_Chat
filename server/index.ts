@@ -13,7 +13,7 @@ dotenv.config();
 const __dirname = path.resolve();
 
 // Vite のビルド出力先
-const rootDir = path.resolve(__dirname, "./client/dist");
+const rootDir = path.resolve(__dirname, "./dist/client");
 
 const app = express();
 

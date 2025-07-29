@@ -155,6 +155,51 @@ router.post("/auth/login", async (req, res) => {
         res.status(400).json({ message: "ログインに失敗しました" });
     }
 });
+// Get user subscription information
+router.get("/user-subscription", async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        let userId = "bizmowa.com";
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+            const token = authHeader.substring(7);
+            try {
+                const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+                if (payload.email) {
+                    userId = payload.email;
+                }
+            }
+            catch (jwtError) {
+                console.log("JWT parsing failed, using fallback:", jwtError);
+                const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
+                if (userEmail) {
+                    userId = userEmail;
+                }
+            }
+        }
+        console.log("Getting subscription for user:", userId);
+        const subscription = await storage_1.storage.getUserSubscription(userId);
+        if (!subscription) {
+            // Create a default subscription for new users
+            console.log("No subscription found, creating default for user:", userId);
+            const defaultSubscription = await storage_1.storage.updateUserSubscription(userId, {
+                subscriptionStatus: "inactive",
+                subscriptionType: "standard",
+                userId: userId,
+                isAdmin: userId === 'slazengersnow@gmail.com',
+            });
+            return res.json(defaultSubscription);
+        }
+        console.log("Found subscription:", subscription);
+        res.json(subscription);
+    }
+    catch (error) {
+        console.error("User subscription error:", error);
+        res.status(500).json({
+            message: "サブスクリプション情報の取得に失敗しました",
+            error: error.message
+        });
+    }
+});
 // Generate Japanese problem for translation
 router.post("/problem", requireActiveSubscription, async (req, res) => {
     try {

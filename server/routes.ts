@@ -256,20 +256,6 @@ router.get("/user-subscription", async (req: Request, res: Response) => {
     });
   }
 });
-      });
-      return res.json(defaultSubscription);
-    }
-    
-    console.log("Found subscription:", subscription);
-    res.json(subscription);
-  } catch (error) {
-    console.error("User subscription error:", error);
-    res.status(500).json({ 
-      message: "サブスクリプション情報の取得に失敗しました",
-      error: (error as Error).message 
-    });
-  }
-});
 
 // Generate Japanese problem for translation
 router.post(

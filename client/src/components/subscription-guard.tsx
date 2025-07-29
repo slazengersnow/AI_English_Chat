@@ -56,47 +56,29 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
     return <>{children}</>;
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (error || (!subscription || !['active', 'trialing'].includes(subscription.subscriptionStatus || ''))) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <Lock className="w-12 h-12 mx-auto text-orange-500 mb-4" />
-            <CardTitle>サブスクリプションが必要です</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">
-              AI英作文チャットをご利用いただくには、アクティブなサブスクリプションが必要です。
-            </p>
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                onClick={() => setLocation('/login')}
-                className="w-full"
-              >
-                ログイン
-              </Button>
-              <Button
-                onClick={() => setLocation('/subscription/select')}
-                className="w-full"
-              >
-                <CreditCard className="w-4 h-4 mr-2" />
-                プランを選択
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  // If no valid subscription, show subscription required screen
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <Lock className="w-12 h-12 mx-auto text-orange-500 mb-4" />
+          <CardTitle>サブスクリプションが必要です</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p className="text-gray-600">
+            AI瞬間英作文チャットをご利用いただくには、アクティブなサブスクリプションが必要です。
+          </p>
+          <div className="space-y-2">
+            <Button
+              onClick={() => setLocation('/subscription/select')}
+              className="w-full"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              プランを選択
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
