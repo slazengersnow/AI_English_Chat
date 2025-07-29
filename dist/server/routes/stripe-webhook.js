@@ -1,6 +1,11 @@
-import Stripe from "stripe";
-import express from "express";
-const router = express.Router();
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const stripe_1 = __importDefault(require("stripe"));
+const express_1 = __importDefault(require("express"));
+const router = express_1.default.Router();
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 if (!stripeSecretKey || !webhookSecret) {
@@ -8,11 +13,11 @@ if (!stripeSecretKey || !webhookSecret) {
 }
 else {
     // Stripeインスタンスを初期化
-    const stripe = new Stripe(stripeSecretKey, {
+    const stripe = new stripe_1.default(stripeSecretKey, {
         apiVersion: "2025-06-30.basil",
     });
     // Webhookルート
-    router.post("/", express.raw({ type: "application/json" }), (req, res) => {
+    router.post("/", express_1.default.raw({ type: "application/json" }), (req, res) => {
         const sig = req.headers["stripe-signature"];
         let event;
         try {
@@ -76,4 +81,4 @@ function handleSubscriptionDeleted(subscription) {
     console.log("✅ Subscription deleted:", subscription.id);
 }
 // ✅ これがないと import エラーになる！
-export default router;
+exports.default = router;

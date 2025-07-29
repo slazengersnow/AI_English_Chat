@@ -1,7 +1,9 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 // server/routes/chat.ts
-import { Router } from "express";
-const router = Router();
+const express_1 = require("express");
+const router = (0, express_1.Router)();
 router.get("/", (req, res) => {
     res.send("This is the chat route");
 });
-export default router;
+exports.default = router;

@@ -4,7 +4,7 @@ hidden = [".config", ".git", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["q", "lsof", "fly"]
+packages = ["q", "lsof", "fly", "psmisc"]
 
 [deployment]
 # Replit 上での自動ホスティングを無効化

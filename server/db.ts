@@ -2,18 +2,28 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import * as schema from "@shared/schema";
 
-// WebSocket setup for better performance in production
-if (typeof WebSocket !== "undefined") {
-  neonConfig.webSocketConstructor = WebSocket;
-} else {
-  try {
-    const { WebSocket: WSWebSocket } = await import('ws');
-    neonConfig.webSocketConstructor = WSWebSocket;
-  } catch (e: unknown) {
-    const err = e as Error;
-    console.warn("WebSocket setup failed, using HTTP fallback:", err.message);
+// 💡 WebSocket setup for Neon
+function setupWebSocket() {
+  if (typeof WebSocket !== "undefined") {
+    neonConfig.webSocketConstructor = WebSocket;
+  } else {
+    // 関数の中で async 処理
+    (async () => {
+      try {
+        const { WebSocket: WSWebSocket } = await import("ws");
+        neonConfig.webSocketConstructor = WSWebSocket;
+      } catch (e: unknown) {
+        const err = e as Error;
+        console.warn(
+          "WebSocket setup failed, using HTTP fallback:",
+          err.message,
+        );
+      }
+    })();
   }
 }
+
+setupWebSocket();
 
 // 💡 NODE_ENV に応じて接続URLを切り替え
 const databaseUrl =
