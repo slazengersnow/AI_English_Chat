@@ -46,6 +46,7 @@ import StripePriceCheck from "@/pages/stripe-price-check";
 import PlanConfiguration from "@/pages/plan-configuration";
 import SimplePriceSetup from "@/pages/simple-price-setup";
 import DebugPage from "@/pages/debug";
+import SimpleLogin from "@/pages/simple-login";
 import NotFound from "@/pages/not-found";
 import Logout from "@/pages/logout";
 
@@ -87,6 +88,7 @@ function Router() {
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/debug-auth" component={DebugAuth} />
       <Route path="/debug" component={DebugPage} />
+      <Route path="/simple-login" component={SimpleLogin} />
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/password-reset" component={PasswordReset} />
       <Route path="/reset-password" component={ResetPassword} />
@@ -137,7 +139,7 @@ function Router() {
       ) : (
         <>
           {/* Handle unauthenticated routes */}
-          <Route path="/" component={DebugPage} />
+          <Route path="/" component={SimpleLogin} />
         </>
       )}
       
