@@ -66,6 +66,21 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
+### July 29, 2025 - TypeScript Module Resolution Issue Fixed
+- **Fixed ts-node module extension error**: Resolved the `TypeError: Unknown file extension ".ts"` error that prevented the app from starting
+  - Issue: ts-node couldn't handle TypeScript files with ESNext module configuration
+  - Root cause: Mismatch between package.json (CommonJS default) and tsconfig.json (ESNext modules)
+  - Solution: Use `tsx` instead of `ts-node` for running TypeScript files
+  - **Working startup command**: `tsx server/index.ts` successfully runs the server on port 8080
+  - Server responds correctly to API calls (confirmed `/api/chat` endpoint working)
+- **Application status**: Fully functional when using tsx
+  - All API routes working correctly (chat, user, stripe-webhook)
+  - Stripe webhook warning is expected (missing environment variables)
+  - TypeScript imports fixed to work with CommonJS module system
+  - Client directory path corrected for static file serving
+
+## Recent Changes
+
 ### July 19, 2025 - TypeScript厳密チェック完全解決とRailway本番デプロイ準備完了
 - **TypeScript厳密チェック完全成功**: `npx tsc --project tsconfig.server.json` がエラーゼロで通過
   - shared/schema.tsでmissing columns（userId、isBookmarked、reviewCount、currentProblemNumber等）を完全定義

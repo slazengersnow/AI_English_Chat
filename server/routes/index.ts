@@ -1,7 +1,7 @@
 // server/routes/index.ts
 import { Router, Express } from "express";
-import chatRoutes from "./chat.js";
-import userRoutes from "./user.js";
+import chatRoutes from "./chat";
+import userRoutes from "./user";
 
 // ⚠️ 👇 これは削除（index.tsでは登録しない）
 /* import stripeWebhookRoutes from "./stripe-webhook.js"; */

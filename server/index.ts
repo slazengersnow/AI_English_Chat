@@ -3,19 +3,17 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath } from "url";
-import { registerRoutes } from "./routes/index.js";
-import stripeWebhookRouter from "./routes/stripe-webhook.js";
+import { registerRoutes } from "./routes/index";
+import stripeWebhookRouter from "./routes/stripe-webhook";
 
 // 環境変数読み込み
 dotenv.config();
 
-// Node.js ESM 対応で __dirname を取得
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// CommonJS で __dirname を取得
+const __dirname = path.resolve();
 
 // Vite のビルド出力先
-const rootDir = path.resolve(__dirname, "../client");
+const rootDir = path.resolve(__dirname, "./client");
 
 const app = express();
 
