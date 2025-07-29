@@ -9,9 +9,16 @@ export function useAuthState() {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setIsLoading(false)
+      try {
+        console.log('Auth - Getting initial session...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('Auth - Initial session result:', { session: !!session, user: !!session?.user, error })
+        setUser(session?.user ?? null)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Auth - Error getting initial session:', error)
+        setIsLoading(false)
+      }
     }
 
     getInitialSession()
@@ -19,6 +26,7 @@ export function useAuthState() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth - State change:', { event, session: !!session, user: !!session?.user })
         setUser(session?.user ?? null)
         setIsLoading(false)
       }

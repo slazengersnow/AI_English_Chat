@@ -68,17 +68,18 @@ function Router() {
     
     console.log('Router - Current path:', currentPath)
     console.log('Router - Hash:', hash)
-    console.log('Router - Initialized')
+    console.log('Router - Auth status:', { isAuthenticated, isLoading })
     
-    // If not authenticated and on protected route, redirect to login
+    // Temporarily disable auth redirect for debugging
     if (!isLoading && !isAuthenticated) {
       const publicRoutes = ['/login', '/login-test', '/signup', '/terms', '/privacy', '/auth/callback', '/confirm'];
       if (!publicRoutes.includes(currentPath)) {
-        console.log('Router - Not authenticated, redirecting to login')
-        window.location.href = '/login'
+        console.log('Router - Not authenticated, but temporarily allowing access for debugging')
+        // Temporarily disable redirect for debugging
+        // setLocation('/login-test')
       }
     }
-  }, [isAuthenticated, isLoading])
+  }, [isAuthenticated, isLoading, setLocation])
 
   if (isLoading) {
     return (
