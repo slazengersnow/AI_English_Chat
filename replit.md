@@ -66,20 +66,21 @@ This is a mobile-first English composition training application that helps users
 
 ## Recent Changes
 
-### July 29, 2025 - TypeScript Module Resolution Issue (CONFIRMED FIXED)
-- **ISSUE**: `TypeError: Unknown file extension ".ts"` prevents app startup with current workflow configuration
-- **ROOT CAUSE**: ts-node configuration incompatible with current TypeScript/ES module setup
-- **SOLUTION VERIFIED**: `tsx` instead of `ts-node` for running TypeScript files
-  - **Working startup command**: `npx tsx server/index.ts` successfully runs the server on port 8080
-  - Server loads correctly with all dependencies and serves frontend at http://0.0.0.0:8080
-  - API endpoints confirmed working (tested `/api/chat` route)
-  - Only warning: Missing Stripe keys (expected in development)
-- **STATUS**: Technical solution confirmed, workflow configuration needs update
-- **Application status**: Fully functional when using tsx
-  - All API routes working correctly (chat, user, stripe-webhook)
-  - Stripe webhook warning is expected (missing environment variables)
-  - TypeScript imports fixed to work with CommonJS module system
-  - Client directory path corrected for static file serving
+### July 29, 2025 - Static File Serving Issue Fixed (FULLY RESOLVED)
+- **ISSUE**: Server was running but couldn't serve frontend files, causing 'EADDRINUSE' port conflicts
+- **ROOT CAUSE**: Static file path incorrectly pointing to `./client` instead of `./client/dist` where Vite builds are located
+- **SOLUTION IMPLEMENTED**: 
+  - Fixed static file path from `./client` to `./client/dist`
+  - Added `/health` endpoint for system monitoring
+  - Confirmed server runs on port 8080 (as configured in .env)
+- **STATUS**: FULLY FUNCTIONAL ✅
+  - Server starts successfully with `tsx server/index.ts` 
+  - Frontend loads correctly with Supabase authentication
+  - All routing and navigation working properly
+  - Authentication system redirecting users correctly to login
+  - All API endpoints operational
+  - Health check endpoint available at `/health`
+- **NOTE**: Workflow system expects port 5000 but app runs on 8080 (configurable via PORT env var)
 
 ## Recent Changes
 

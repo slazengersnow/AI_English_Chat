@@ -13,7 +13,7 @@ dotenv.config();
 const __dirname = path.resolve();
 
 // Vite のビルド出力先
-const rootDir = path.resolve(__dirname, "./client");
+const rootDir = path.resolve(__dirname, "./client/dist");
 
 const app = express();
 
@@ -30,6 +30,11 @@ app.use(
 // ✅ 通常の JSON API をパース
 app.use(express.json());
 
+// ✅ ヘルスチェックエンドポイント
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
 // ✅ API ルート登録
 registerRoutes(app);
 
@@ -41,8 +46,8 @@ app.get("*", (_req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
 
-// ✅ ポート設定（Fly.io では必ず "0.0.0.0" を使う！）
-const port = Number(process.env.PORT) || 8080;
+// ✅ ポート設定（Replit では 5000 が標準）
+const port = Number(process.env.PORT) || 5000;
 app.listen(port, "0.0.0.0", () => {
   console.log(`✅ Server running at http://0.0.0.0:${port}`);
 });
