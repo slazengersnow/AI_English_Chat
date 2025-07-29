@@ -47,6 +47,7 @@ import PlanConfiguration from "@/pages/plan-configuration";
 import SimplePriceSetup from "@/pages/simple-price-setup";
 import DebugPage from "@/pages/debug";
 import SimpleLogin from "@/pages/simple-login";
+import CreateAdmin from "@/pages/create-admin";
 import NotFound from "@/pages/not-found";
 import Logout from "@/pages/logout";
 
@@ -89,6 +90,7 @@ function Router() {
       <Route path="/debug-auth" component={DebugAuth} />
       <Route path="/debug" component={DebugPage} />
       <Route path="/simple-login" component={SimpleLogin} />
+      <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/password-reset" component={PasswordReset} />
       <Route path="/reset-password" component={ResetPassword} />
@@ -139,7 +141,7 @@ function Router() {
       ) : (
         <>
           {/* Handle unauthenticated routes */}
-          <Route path="/" component={SimpleLogin} />
+          <Route path="/" component={CreateAdmin} />
         </>
       )}
       
