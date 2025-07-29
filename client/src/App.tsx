@@ -14,6 +14,7 @@ import Admin from "@/pages/admin";
 import Success from "@/pages/success";
 import Cancel from "@/pages/cancel";
 import Login from "@/pages/login";
+import LoginTest from "@/pages/login-test";
 import Signup from "@/pages/signup";
 import Confirm from "@/pages/confirm";
 import Terms from "@/pages/terms";
@@ -71,13 +72,13 @@ function Router() {
     
     // If not authenticated and on protected route, redirect to login
     if (!isLoading && !isAuthenticated) {
-      const publicRoutes = ['/login', '/signup', '/terms', '/privacy', '/auth/callback', '/confirm'];
+      const publicRoutes = ['/login', '/login-test', '/signup', '/terms', '/privacy', '/auth/callback', '/confirm'];
       if (!publicRoutes.includes(currentPath)) {
         console.log('Router - Not authenticated, redirecting to login')
-        setLocation('/login')
+        window.location.href = '/login'
       }
     }
-  }, [isAuthenticated, isLoading, setLocation])
+  }, [isAuthenticated, isLoading])
 
   if (isLoading) {
     return (
@@ -91,6 +92,7 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/login" component={Login} />
+      <Route path="/login-test" component={LoginTest} />
       <Route path="/signup" component={Signup} />
       <Route path="/confirm" component={Confirm} />
       <Route path="/auth/callback" component={AuthCallback} />
