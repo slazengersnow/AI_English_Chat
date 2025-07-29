@@ -13,11 +13,13 @@ interface SubscriptionGuardProps {
 
 export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
   const [, setLocation] = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated, isLoading: authLoading } = useAuth();
   
-  const { data: subscription, isLoading, error } = useQuery<UserSubscription>({
+  // Only query subscription if user is authenticated
+  const { data: subscription, isLoading: subscriptionLoading, error } = useQuery<UserSubscription>({
     queryKey: ["/api/user-subscription"],
     retry: false,
+    enabled: isAuthenticated,
   });
 
   // Admin users bypass subscription checks
@@ -25,32 +27,34 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
     return <>{children}</>;
   }
 
-  useEffect(() => {
-    if (!isLoading && subscription) {
-      console.log('SubscriptionGuard - Subscription data:', subscription);
-      console.log('SubscriptionGuard - Status:', subscription.subscriptionStatus);
-      
-      if (!['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
-        // If no subscription or inactive, redirect to subscription selection
-        if (window.location.pathname !== '/subscription/select' && 
-            window.location.pathname !== '/login' && 
-            window.location.pathname !== '/signup' &&
-            window.location.pathname !== '/terms') {
-          console.log('SubscriptionGuard - Redirecting to subscription select');
-          setLocation('/subscription/select');
-        }
-      }
-    } else if (!isLoading && !subscription) {
-      // If no subscription at all, redirect to login instead of subscription selection
-      if (window.location.pathname !== '/subscription/select' && 
-          window.location.pathname !== '/login' && 
-          window.location.pathname !== '/signup' &&
-          window.location.pathname !== '/terms') {
-        console.log('SubscriptionGuard - No subscription, redirecting to login');
-        setLocation('/login');
-      }
-    }
-  }, [subscription, isLoading, setLocation]);
+  // Wait for auth to load
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  // If not authenticated, don't render anything (App.tsx router will handle redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Wait for subscription to load
+  if (subscriptionLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  // Handle subscription status
+  if (subscription && ['active', 'trialing'].includes(subscription.subscriptionStatus || '')) {
+    console.log('SubscriptionGuard - Valid subscription, allowing access');
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (

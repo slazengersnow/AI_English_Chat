@@ -60,7 +60,7 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Let HashHandler component handle all hash fragment processing
+  // Handle initial route setup
   useEffect(() => {
     const currentPath = window.location.pathname
     const hash = window.location.hash
@@ -70,9 +70,12 @@ function Router() {
     console.log('Router - Initialized')
     
     // If not authenticated and on protected route, redirect to login
-    if (!isLoading && !isAuthenticated && currentPath !== '/login' && currentPath !== '/signup' && currentPath !== '/terms' && currentPath !== '/privacy') {
-      console.log('Router - Not authenticated, redirecting to login')
-      setLocation('/login')
+    if (!isLoading && !isAuthenticated) {
+      const publicRoutes = ['/login', '/signup', '/terms', '/privacy', '/auth/callback', '/confirm'];
+      if (!publicRoutes.includes(currentPath)) {
+        console.log('Router - Not authenticated, redirecting to login')
+        setLocation('/login')
+      }
     }
   }, [isAuthenticated, isLoading, setLocation])
 

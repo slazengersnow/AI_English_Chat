@@ -206,6 +206,71 @@ router.post("/auth/login", async (req: Request, res: Response) => {
   }
 });
 
+// Get user subscription information
+router.get("/user-subscription", async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    let userId = "bizmowa.com";
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      try {
+        const payload = JSON.parse(
+          Buffer.from(token.split(".")[1], "base64").toString(),
+        );
+        if (payload.email) {
+          userId = payload.email;
+        }
+      } catch (jwtError) {
+        console.log("JWT parsing failed, using fallback:", jwtError);
+        const userEmail =
+          req.headers["x-user-email"] || req.headers["user-email"];
+        if (userEmail) {
+          userId = userEmail as string;
+        }
+      }
+    }
+
+    console.log("Getting subscription for user:", userId);
+    const subscription = await storage.getUserSubscription(userId);
+    
+    if (!subscription) {
+      // Create a default subscription for new users
+      console.log("No subscription found, creating default for user:", userId);
+      const defaultSubscription = await storage.updateUserSubscription(userId, {
+        subscriptionStatus: "inactive",
+        subscriptionType: "standard",
+        userId: userId,
+        isAdmin: userId === 'slazengersnow@gmail.com',
+      });
+      return res.json(defaultSubscription);
+    }
+    
+    console.log("Found subscription:", subscription);
+    res.json(subscription);
+  } catch (error) {
+    console.error("User subscription error:", error);
+    res.status(500).json({ 
+      message: "サブスクリプション情報の取得に失敗しました",
+      error: (error as Error).message 
+    });
+  }
+});
+      });
+      return res.json(defaultSubscription);
+    }
+    
+    console.log("Found subscription:", subscription);
+    res.json(subscription);
+  } catch (error) {
+    console.error("User subscription error:", error);
+    res.status(500).json({ 
+      message: "サブスクリプション情報の取得に失敗しました",
+      error: (error as Error).message 
+    });
+  }
+});
+
 // Generate Japanese problem for translation
 router.post(
   "/problem",
