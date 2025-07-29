@@ -45,6 +45,7 @@ import StripeCheckoutDebug from "@/pages/stripe-checkout-debug";
 import StripePriceCheck from "@/pages/stripe-price-check";
 import PlanConfiguration from "@/pages/plan-configuration";
 import SimplePriceSetup from "@/pages/simple-price-setup";
+import DebugPage from "@/pages/debug";
 import NotFound from "@/pages/not-found";
 import Logout from "@/pages/logout";
 
@@ -61,25 +62,12 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Handle initial route setup
+  // Temporarily disable auth redirect for debugging
   useEffect(() => {
-    const currentPath = window.location.pathname
-    const hash = window.location.hash
-    
-    console.log('Router - Current path:', currentPath)
-    console.log('Router - Hash:', hash)
+    console.log('Router - Auth check disabled for debugging')
+    console.log('Router - Current path:', window.location.pathname)
     console.log('Router - Auth status:', { isAuthenticated, isLoading })
-    
-    // Temporarily disable auth redirect for debugging
-    if (!isLoading && !isAuthenticated) {
-      const publicRoutes = ['/login', '/login-test', '/signup', '/terms', '/privacy', '/auth/callback', '/confirm'];
-      if (!publicRoutes.includes(currentPath)) {
-        console.log('Router - Not authenticated, but temporarily allowing access for debugging')
-        // Temporarily disable redirect for debugging
-        // setLocation('/login-test')
-      }
-    }
-  }, [isAuthenticated, isLoading, setLocation])
+  }, [isAuthenticated, isLoading])
 
   if (isLoading) {
     return (
@@ -98,6 +86,7 @@ function Router() {
       <Route path="/confirm" component={Confirm} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/debug-auth" component={DebugAuth} />
+      <Route path="/debug" component={DebugPage} />
       <Route path="/admin-setup" component={AdminSetup} />
       <Route path="/password-reset" component={PasswordReset} />
       <Route path="/reset-password" component={ResetPassword} />
@@ -148,7 +137,7 @@ function Router() {
       ) : (
         <>
           {/* Handle unauthenticated routes */}
-          <Route path="/" component={Login} />
+          <Route path="/" component={DebugPage} />
         </>
       )}
       
