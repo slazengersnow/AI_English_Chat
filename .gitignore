@@ -1,99 +1,76 @@
-# Dependencies
+#=======================
+# 📦 Node.js Dependencies
+#=======================
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment variables
+#=======================
+# 🌱 Environment Variables
+#=======================
 .env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
 
-# Build outputs
+#=======================
+# 🛠 Build Outputs
+#=======================
+dist/             # ✅ 本番はbuild後distを使うが、Gitには含めない
 build/
-# dist/  # Commented out for Railway deployment
 
-# Development files
+#=======================
+# 🧪 Test / Coverage / Debug
+#=======================
 *.log
 *.pid
 *.seed
 *.pid.lock
-
-# Coverage directory used by tools like istanbul
 coverage/
-
-# nyc test coverage
 .nyc_output
-
-# Dependency directories
-node_modules/
-jspm_packages/
-
-# TypeScript cache
 *.tsbuildinfo
-
-# Optional npm cache directory
 .npm
-
-# Optional eslint cache
 .eslintcache
-
-# Optional REPL history
 .node_repl_history
-
-# Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
+#=======================
+# 📁 Package Managers
+#=======================
+jspm_packages/
 
-# parcel-bundler cache (https://parceljs.org/)
+#=======================
+# ⚙️ Framework / Bundler Caches
+#=======================
 .cache
 .parcel-cache
-
-# next.js build output
 .next
-
-# nuxt.js build output
 .nuxt
-
-# vuepress build output
 .vuepress/dist
-
-# Serverless directories
 .serverless
-
-# FuseBox cache
 .fusebox/
-
-# DynamoDB Local files
 .dynamodb/
-
-# TernJS port file
 .tern-port
 
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# Replit files
+#=======================
+# 💻 Replit & Local IDE
+#=======================
 .replit
 replit.nix
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
+#=======================
+# 🍏 macOS & OS Files
+#=======================
 .DS_Store
 .DS_Store?
 ._*
