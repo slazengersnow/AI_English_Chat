@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ES2022",
-    "moduleResolution": "node",
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["shared/*"]
-    },
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "dist",
     "rootDir": ".",
-    "outDir": "./dist",
-    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "baseUrl": ".", // これがないと paths が効かない
+    "paths": {
+      "@shared/*": ["shared/*"]
+    }
   },
   "include": ["server/**/*", "shared/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules"]
 }

@@ -1,4 +1,4 @@
-# Dockerfile
+# 公式 Node イメージをベースにする
 FROM node:20-alpine
 
 WORKDIR /app
