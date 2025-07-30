@@ -7,7 +7,9 @@ interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
+  demoMode?: boolean
   signOut: () => Promise<void>
+  enableDemoMode?: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)

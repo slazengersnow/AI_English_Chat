@@ -6,13 +6,15 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@shared/supabase'
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '@/components/auth-provider'
+import { Mail, Lock, Eye, EyeOff, TestTube } from 'lucide-react'
 
 export default function Login() {
   const [, setLocation] = useLocation()
   const { toast } = useToast()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const auth = useAuth()
+  const [email, setEmail] = useState('slazengersnow@gmail.com')
+  const [password, setPassword] = useState('s05936623')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -27,10 +29,11 @@ export default function Login() {
       })
 
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: "ログインエラー",
           description: error.message === 'Invalid login credentials' ? 
-            "メールアドレスまたはパスワードが正しくありません" : 
+            "メールアドレスまたはパスワードが正しくありません。デモモードをお試しください。" : 
             error.message,
           variant: "destructive",
         })
@@ -57,6 +60,17 @@ export default function Login() {
       setIsLoading(false)
     }
   }
+
+  const handleDemoMode = () => {
+    auth.enableDemoMode();
+    toast({
+      title: "デモモード開始",
+      description: "デモ用管理者アカウントでログインしました",
+    });
+    setTimeout(() => {
+      setLocation('/');
+    }, 1000);
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -259,6 +273,16 @@ export default function Login() {
                 <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
               Googleでログイン
+            </Button>
+            
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-2 bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100"
+              onClick={handleDemoMode}
+            >
+              <TestTube className="w-4 h-4 mr-2" />
+              デモモード（認証不要）
             </Button>
           </div>
 
