@@ -3,20 +3,39 @@ import { createClient } from "@supabase/supabase-js";
 // Check if we're in a browser environment (client-side)
 const isBrowser = typeof window !== 'undefined';
 
-// Use import.meta.env for client-side (Vite), process.env for server-side
-const supabaseUrl = isBrowser
-  ? (import.meta as any).env?.VITE_SUPABASE_URL || 'https://xcjplyhqxgrbdhixmzse.supabase.co'
-  : process.env.VITE_SUPABASE_URL || 'https://xcjplyhqxgrbdhixmzse.supabase.co';
+// Fallback values for development
+const DEFAULT_SUPABASE_URL = 'https://xcjplyhqxgrbdhixmzse.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo";
 
-const supabaseKey = isBrowser
-  ? (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo"
-  : process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo";
+// Unified environment variable access
+let supabaseUrl: string;
+let supabaseKey: string;
+
+if (isBrowser) {
+  // Client-side: use import.meta.env (injected by Vite)
+  supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+} else {
+  // Server-side: use process.env, check both VITE_ prefixed and non-prefixed
+  supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+  
+  // Validate that we're not getting database URL instead of API key
+  if (supabaseKey?.startsWith('postgresql://')) {
+    console.error('ERROR: SUPABASE_ANON_KEY contains database URL instead of API key!');
+    supabaseKey = DEFAULT_SUPABASE_ANON_KEY;
+  }
+}
 
 console.log("Supabase config:", {
+  environment: isBrowser ? 'browser' : 'server',
   url: supabaseUrl?.slice(0, 30) + "...",
   keyLength: supabaseKey?.length,
+  keyPrefix: supabaseKey?.slice(0, 10) + "...",
   hasUrl: !!supabaseUrl,
   hasKey: !!supabaseKey,
+  isDefaultUrl: supabaseUrl === DEFAULT_SUPABASE_URL,
+  isDefaultKey: supabaseKey === DEFAULT_SUPABASE_ANON_KEY,
 });
 
 if (!supabaseUrl || !supabaseKey) {
