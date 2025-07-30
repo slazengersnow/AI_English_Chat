@@ -46,7 +46,7 @@ app.get("*", (_req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
 });
 
-// ✅ ポート設定（Replit では 5000 が標準）
+// ✅ ポート設定（Replit workflow expects port 5000）
 const port = Number(process.env.PORT) || 5000;
 app.listen(port, "0.0.0.0", () => {
   console.log(`✅ Server running at http://0.0.0.0:${port}`);
