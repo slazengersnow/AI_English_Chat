@@ -9,6 +9,13 @@ import stripeWebhookRouter from "./routes/stripe-webhook";
 // 環境変数読み込み
 dotenv.config();
 
+// .envファイルの内容が正しく読み込まれているか確認
+console.log("Debug - Supabase URL:", process.env.VITE_SUPABASE_URL);
+console.log(
+  "Debug - Supabase Anon Key:",
+  process.env.VITE_SUPABASE_ANON_KEY?.slice(0, 10) + "...",
+);
+
 // CommonJS で __dirname を取得
 const __dirname = path.resolve();
 
@@ -32,7 +39,9 @@ app.use(express.json());
 
 // ✅ ヘルスチェックエンドポイント
 app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "healthy", timestamp: new Date().toISOString() });
+  res
+    .status(200)
+    .json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
 // ✅ API ルート登録
