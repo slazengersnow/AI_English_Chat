@@ -13,8 +13,9 @@ let supabaseKey: string;
 
 if (isBrowser) {
   // Client-side: use import.meta.env (injected by Vite)
-  supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  supabaseKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+  const metaEnv = (import.meta as any).env;
+  supabaseUrl = metaEnv?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  supabaseKey = metaEnv?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
 } else {
   // Server-side: use process.env, check both VITE_ prefixed and non-prefixed
   supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
