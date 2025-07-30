@@ -63,7 +63,7 @@ export default function Login() {
 
   const handleDemoMode = () => {
     auth.enableDemoMode();
-    toast({
+    toast?.({
       title: "デモモード開始",
       description: "デモ用管理者アカウントでログインしました",
     });
