@@ -286,15 +286,21 @@ export default function Login() {
             </Button>
           </div>
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600">アカウントをお持ちでない方は</span>
-            <Button
-              variant="link"
-              className="p-0 ml-1 h-auto"
-              onClick={() => setLocation('/signup')}
-            >
-              新規登録
-            </Button>
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500 mb-4">
+              デモモード：Supabase認証エラーをバイパスして<br />
+              アプリケーション機能をテストできます
+            </p>
+            <div className="text-sm">
+              <span className="text-gray-600">アカウントをお持ちでない方は</span>
+              <Button
+                variant="link"
+                className="p-0 ml-1 h-auto"
+                onClick={() => setLocation('/signup')}
+              >
+                新規登録
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
