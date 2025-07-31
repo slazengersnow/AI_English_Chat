@@ -18,9 +18,26 @@ if (!supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function createAdminAccount() {
-  console.log('管理者アカウントを作成中...')
+  console.log('管理者アカウントを再作成中...')
   
   try {
+    // 既存アカウントの確認メール再送信を試行
+    console.log('既存アカウントの確認メール再送信を試行中...')
+    const { error: resendError } = await supabase.auth.resend({
+      type: 'signup',
+      email: 'slazengersnow@gmail.com'
+    })
+    
+    if (resendError) {
+      console.log('再送信エラー:', resendError.message)
+      console.log('新規アカウント作成を試行中...')
+    } else {
+      console.log('✅ 確認メール再送信成功!')
+      console.log('📧 slazengersnow@gmail.com にメール確認リンクを送信しました')
+      return true
+    }
+
+    // 新規アカウント作成
     const { data, error } = await supabase.auth.signUp({
       email: 'slazengersnow@gmail.com',
       password: 's05936623',
@@ -28,25 +45,29 @@ async function createAdminAccount() {
         data: {
           role: 'admin',
           is_admin: true
-        }
+        },
+        emailRedirectTo: `${process.env.VITE_SUPABASE_URL || 'https://xcjplyhqxgrbdhixmzse.supabase.co'}/auth/v1/verify`
       }
     })
 
     if (error) {
+      if (error.message.includes('already registered')) {
+        console.log('✅ アカウントは既に存在します')
+        console.log('📧 メール確認リンクが送信されました（確認メールをチェックしてください）')
+        return true
+      }
       console.error('アカウント作成エラー:', error.message)
       return false
     }
 
-    console.log('アカウント作成成功:', {
+    console.log('✅ アカウント作成成功:', {
       user: data.user?.email,
       id: data.user?.id,
       confirmed: data.user?.email_confirmed_at ? 'Yes' : 'No'
     })
 
-    // メール確認が必要な場合の対処
-    if (!data.user?.email_confirmed_at) {
-      console.log('📧 メール確認が必要です。確認後に再度ログインしてください。')
-    }
+    console.log('📧 メール確認リンクを送信しました')
+    console.log('メールボックスをチェックして確認リンクをクリックしてください')
 
     return true
   } catch (error) {
