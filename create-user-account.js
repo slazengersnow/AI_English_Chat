@@ -21,11 +21,14 @@ async function createAdminAccount() {
   console.log('管理者アカウントを再作成中...')
   
   try {
-    // 既存アカウントの確認メール再送信を試行
+    // 既存アカウントの確認メール再送信を試行（正しいリダイレクトURL付き）
     console.log('既存アカウントの確認メール再送信を試行中...')
     const { error: resendError } = await supabase.auth.resend({
       type: 'signup',
-      email: 'slazengersnow@gmail.com'
+      email: 'slazengersnow@gmail.com',
+      options: {
+        emailRedirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/auth-callback'
+      }
     })
     
     if (resendError) {

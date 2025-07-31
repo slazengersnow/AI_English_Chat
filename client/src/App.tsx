@@ -105,6 +105,7 @@ function Router() {
       <Route path="/direct-access" component={DirectAccess} />
       <Route path="/auth-callback" component={AuthCallback} />
       <Route path="/auth/callback" component={AuthCallback} />
+      <Route path="/confirm" component={AuthCallback} />
       <Route path="/test-actual-link" component={TestActualLink} />
       <Route path="/stripe-test" component={StripeTest} />
       <Route path="/price-check" component={PriceCheck} />

@@ -1,138 +1,167 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
-import { supabase } from "@shared/supabase";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from 'react'
+import { useLocation } from 'wouter'
+import { supabase } from '@shared/supabase'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 export default function AuthCallback() {
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
+  const [, setLocation] = useLocation()
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      const hash = window.location.hash;
-      const search = window.location.search;
+      try {
+        // URLの#部分とクエリパラメータの両方をチェック
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const queryParams = new URLSearchParams(window.location.search)
+        
+        // トークンとタイプを取得
+        const accessToken = hashParams.get('access_token') || queryParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token') || queryParams.get('refresh_token')
+        const type = hashParams.get('type') || queryParams.get('type')
+        const error = hashParams.get('error') || queryParams.get('error')
+        const errorDescription = hashParams.get('error_description') || queryParams.get('error_description')
 
-      console.log("AuthCallback - Hash:", hash);
-      console.log("AuthCallback - Search:", search);
-
-      if (hash) {
-        // Parse hash parameters
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        const refreshToken = params.get("refresh_token");
-        const expiresAt = params.get("expires_at");
-        const tokenType = params.get("token_type");
-        const type = params.get("type");
-
-        console.log("AuthCallback - Parsed params:", {
+        console.log('Auth callback parameters:', {
+          accessToken: accessToken ? 'present' : 'missing',
+          refreshToken: refreshToken ? 'present' : 'missing',
           type,
-          hasAccessToken: !!accessToken,
-          hasRefreshToken: !!refreshToken,
-          expiresAt,
-          tokenType,
-        });
-
-        if (accessToken && expiresAt) {
-          try {
-            // Create session object with proper typing
-            const sessionData = {
-              access_token: accessToken,
-              refresh_token: refreshToken || "",
-              expires_at: parseInt(expiresAt),
-              token_type: tokenType || "bearer",
-              user: null,
-            } as const;
-
-            // setSessionにはexpires_atは不要なので、削除
-            const { access_token, refresh_token } = sessionData;
-            const { data, error } = await supabase.auth.setSession({
-              access_token,
-              refresh_token,
-            });
-
-            if (error) {
-              console.error("Session set error:", error);
-              toast({
-                title: "認証エラー",
-                description: `認証に失敗しました: ${error.message}`,
-                variant: "destructive",
-              });
-              setLocation("/login");
-            } else {
-              console.log("Session set successfully:", data);
-
-              // Clear the hash from URL
-              window.history.replaceState({}, "", window.location.pathname);
-
-              toast({
-                title: "認証成功",
-                description: "ログインが完了しました！",
-              });
-
-              // Redirect to home
-              setLocation("/");
-            }
-          } catch (error) {
-            console.error("Auth callback error:", error);
-            toast({
-              title: "認証エラー",
-              description: "認証処理中にエラーが発生しました",
-              variant: "destructive",
-            });
-            setLocation("/login");
-          }
-        } else {
-          console.log("Missing required auth parameters");
-          toast({
-            title: "認証エラー",
-            description: "認証パラメータが不足しています",
-            variant: "destructive",
-          });
-          setLocation("/login");
-        }
-      } else if (search) {
-        // Handle search parameters (for error cases)
-        const searchParams = new URLSearchParams(search);
-        const error = searchParams.get("error");
-        const errorDescription = searchParams.get("error_description");
+          error,
+          errorDescription,
+          hash: window.location.hash,
+          search: window.location.search
+        })
 
         if (error) {
-          console.error("Auth error from search params:", {
-            error,
-            errorDescription,
-          });
-          toast({
-            title: "認証エラー",
-            description:
-              errorDescription || `認証エラーが発生しました: ${error}`,
-            variant: "destructive",
-          });
-          setLocation("/login");
-          return;
+          setStatus('error')
+          setMessage(errorDescription || error)
+          return
         }
 
-        console.log("Search params found but no error, redirecting to login");
-        setLocation("/login");
-      } else {
-        console.log("No hash or search params found in auth callback");
-        setLocation("/login");
-      }
-    };
+        if (type === 'signup' && accessToken) {
+          // メール確認の場合
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          })
 
-    handleAuthCallback();
-  }, [setLocation, toast]);
+          if (sessionError) {
+            console.error('Session error:', sessionError)
+            setStatus('error')
+            setMessage('認証セッションの設定に失敗しました')
+            return
+          }
+
+          if (data.user) {
+            console.log('User confirmed:', data.user.email)
+            setStatus('success')
+            setMessage(`メール認証が完了しました！ようこそ ${data.user.email}`)
+            
+            // 3秒後にログインページへリダイレクト
+            setTimeout(() => {
+              setLocation('/login')
+            }, 3000)
+          }
+        } else if (type === 'recovery' && accessToken) {
+          // パスワードリセットの場合
+          const { data, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          })
+
+          if (sessionError) {
+            console.error('Recovery session error:', sessionError)
+            setStatus('error')
+            setMessage('パスワードリセットセッションの設定に失敗しました')
+            return
+          }
+
+          setStatus('success')
+          setMessage('パスワードリセット認証が完了しました。新しいパスワードを設定してください。')
+          
+          // パスワード変更ページへリダイレクト
+          setTimeout(() => {
+            setLocation('/change-password')
+          }, 2000)
+        } else {
+          // 通常の認証の場合
+          const { data, error: authError } = await supabase.auth.getSession()
+          
+          if (authError) {
+            console.error('Auth error:', authError)
+            setStatus('error')
+            setMessage('認証の確認に失敗しました')
+            return
+          }
+
+          if (data.session) {
+            setStatus('success')
+            setMessage('認証が完了しました！')
+            setTimeout(() => {
+              setLocation('/')
+            }, 2000)
+          } else {
+            setStatus('error')
+            setMessage('認証情報が見つかりません')
+          }
+        }
+      } catch (error) {
+        console.error('Auth callback error:', error)
+        setStatus('error')
+        setMessage('認証処理中にエラーが発生しました')
+      }
+    }
+
+    handleAuthCallback()
+  }, [setLocation])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-md p-8 max-w-sm w-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-2">
-            認証を処理中...
-          </h2>
-          <p className="text-gray-600 text-sm">しばらくお待ちください</p>
-        </div>
-      </div>
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            {status === 'loading' && <Loader2 className="w-8 h-8 text-white animate-spin" />}
+            {status === 'success' && <CheckCircle className="w-8 h-8 text-white" />}
+            {status === 'error' && <XCircle className="w-8 h-8 text-white" />}
+          </div>
+          <CardTitle className="text-2xl">
+            {status === 'loading' && '認証処理中...'}
+            {status === 'success' && '認証完了'}
+            {status === 'error' && '認証エラー'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p className={`text-lg ${status === 'error' ? 'text-red-600' : 'text-gray-700'}`}>
+            {message}
+          </p>
+          
+          {status === 'error' && (
+            <div className="space-y-2">
+              <Button 
+                onClick={() => setLocation('/login')} 
+                className="w-full"
+              >
+                ログインページに戻る
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.reload()} 
+                className="w-full"
+              >
+                再試行
+              </Button>
+            </div>
+          )}
+          
+          {status === 'success' && (
+            <p className="text-sm text-gray-500">
+              自動的にリダイレクトされます...
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }
