@@ -1,109 +1,74 @@
-// Comprehensive debugging analysis
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js'
+import dotenv from 'dotenv'
 
-async function analyzeSupabaseConfig() {
-  console.log('=== SUPABASE CONFIGURATION ANALYSIS ===');
+dotenv.config()
+
+async function analyzeApiKeyIssue() {
+  console.log('=== API Key問題の詳細分析 ===')
   
-  // Environment variables
-  const viteUrl = process.env.VITE_SUPABASE_URL;
-  const viteKey = process.env.VITE_SUPABASE_ANON_KEY;
-  const regularUrl = process.env.SUPABASE_URL;
-  const regularKey = process.env.SUPABASE_ANON_KEY;
+  const url = process.env.VITE_SUPABASE_URL
+  const key = process.env.VITE_SUPABASE_ANON_KEY
   
-  console.log('Environment Variables:');
-  console.log('- VITE_SUPABASE_URL:', viteUrl ? viteUrl.slice(0, 30) + '...' : 'NOT SET');
-  console.log('- VITE_SUPABASE_ANON_KEY:', viteKey ? viteKey.slice(0, 20) + '...' : 'NOT SET');
-  console.log('- SUPABASE_URL:', regularUrl ? regularUrl.slice(0, 30) + '...' : 'NOT SET');
-  console.log('- SUPABASE_ANON_KEY:', regularKey ? regularKey.slice(0, 20) + '...' : 'NOT SET');
+  console.log('環境変数チェック:')
+  console.log('- VITE_SUPABASE_URL:', url ? 'あり' : 'なし')
+  console.log('- VITE_SUPABASE_ANON_KEY:', key ? `あり (長さ: ${key.length})` : 'なし')
+  console.log('- URL値:', url)
+  console.log('- キー先頭:', key ? key.substring(0, 50) + '...' : 'なし')
   
-  // Choose the correct values
-  const url = viteUrl || regularUrl;
-  const key = viteKey || regularKey;
-  
-  console.log('\nSelected Configuration:');
-  console.log('- URL:', url);
-  console.log('- Key starts with:', key?.slice(0, 10));
-  console.log('- Key length:', key?.length);
-  console.log('- Key ends with:', key?.slice(-10));
-  
-  // Validate URL format
-  console.log('\nURL Analysis:');
-  if (url) {
-    try {
-      const urlObj = new URL(url);
-      console.log('- Protocol:', urlObj.protocol);
-      console.log('- Hostname:', urlObj.hostname);
-      console.log('- Valid URL format: YES');
-    } catch (e) {
-      console.log('- Valid URL format: NO -', e.message);
-    }
+  if (!url || !key) {
+    console.log('❌ 環境変数が設定されていません')
+    return
   }
   
-  // Validate API key format
-  console.log('\nAPI Key Analysis:');
-  if (key) {
-    const isJWT = key.includes('.');
-    const parts = key.split('.');
-    console.log('- Is JWT format:', isJWT);
-    console.log('- Parts count:', parts.length);
-    console.log('- Starts with eyJ:', key.startsWith('eyJ'));
-    
-    if (key.startsWith('postgresql://')) {
-      console.log('- ERROR: This appears to be a database URL, not an API key!');
-    }
-  }
-  
-  // Test DNS resolution
-  console.log('\nDNS Resolution Test:');
-  if (url) {
-    try {
-      const hostname = new URL(url).hostname;
-      const dns = require('dns').promises;
-      const addresses = await dns.lookup(hostname);
-      console.log('- DNS Resolution: SUCCESS');
-      console.log('- IP Address:', addresses.address);
-    } catch (e) {
-      console.log('- DNS Resolution: FAILED -', e.message);
-    }
-  }
-  
-  // Test Supabase client creation
-  console.log('\nSupabase Client Test:');
   try {
-    const client = createClient(url, key);
-    console.log('- Client creation: SUCCESS');
+    // Supabaseクライアント作成テスト
+    console.log('\nSupabaseクライアント作成テスト...')
+    const supabase = createClient(url, key)
+    console.log('✅ クライアント作成成功')
     
-    // Test basic connection
-    try {
-      const { data, error } = await client.auth.getSession();
-      console.log('- Auth session check: SUCCESS');
-      console.log('- Session data:', data ? 'present' : 'null');
-    } catch (e) {
-      console.log('- Auth session check: FAILED -', e.message);
-    }
+    // 簡単なAPI呼び出しテスト
+    console.log('\n基本API呼び出しテスト...')
+    const { data, error } = await supabase.auth.getSession()
     
-    // Test sign in
-    try {
-      const { data, error } = await client.auth.signInWithPassword({
-        email: 'slazengersnow@gmail.com',
-        password: 's05936623'
-      });
+    if (error) {
+      console.log('❌ API呼び出しエラー:', error.message)
+      console.log('エラー詳細:', error)
       
-      if (error) {
-        console.log('- Sign in test: FAILED -', error.message);
-        console.log('- Error code:', error.status);
-        console.log('- Error details:', JSON.stringify(error, null, 2));
-      } else {
-        console.log('- Sign in test: SUCCESS');
-        console.log('- User ID:', data.user?.id);
+      if (error.message.includes('Invalid API key')) {
+        console.log('\n🔍 Invalid API Key 詳細分析:')
+        console.log('- API キーフォーマット確認必要')
+        console.log('- Supabaseプロジェクト設定確認必要')
+        console.log('- 新しいAPI キー生成が必要な可能性')
       }
-    } catch (e) {
-      console.log('- Sign in test: EXCEPTION -', e.message);
+    } else {
+      console.log('✅ API呼び出し成功')
+      console.log('セッション状態:', data.session ? 'あり' : 'なし')
     }
     
-  } catch (e) {
-    console.log('- Client creation: FAILED -', e.message);
+    // 直接ログインテスト
+    console.log('\n管理者アカウント直接ログインテスト...')
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+      email: 'admin.new@gmail.com',
+      password: 's05936623'
+    })
+    
+    if (loginError) {
+      console.log('❌ ログインエラー:', loginError.message)
+      console.log('エラーコード:', loginError.status)
+    } else {
+      console.log('✅ ログイン成功')
+      await supabase.auth.signOut()
+    }
+    
+  } catch (error) {
+    console.log('❌ 予期しないエラー:', error.message)
   }
+  
+  console.log('\n=== 解決策 ===')
+  console.log('1. 環境変数の再設定')
+  console.log('2. Supabaseプロジェクトの確認')
+  console.log('3. 新しいAPI キーの生成')
+  console.log('4. デモモードでの回避')
 }
 
-analyzeSupabaseConfig().catch(console.error);
+analyzeApiKeyIssue()

@@ -16,6 +16,14 @@ if (isBrowser) {
   const metaEnv = (import.meta as any).env;
   supabaseUrl = metaEnv?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   supabaseKey = metaEnv?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
+  
+  // Browser-side debug for environment variables
+  console.log('Browser environment variables:', {
+    VITE_SUPABASE_URL: metaEnv?.VITE_SUPABASE_URL,
+    VITE_SUPABASE_ANON_KEY: metaEnv?.VITE_SUPABASE_ANON_KEY ? `${metaEnv.VITE_SUPABASE_ANON_KEY.substring(0, 20)}...` : 'undefined',
+    hasUrl: !!metaEnv?.VITE_SUPABASE_URL,
+    hasKey: !!metaEnv?.VITE_SUPABASE_ANON_KEY
+  });
 } else {
   // Server-side: use process.env, check both VITE_ prefixed and non-prefixed
   supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL;
