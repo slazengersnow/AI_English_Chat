@@ -77,15 +77,16 @@ This is a mobile-first English composition training application that helps users
   - ユーザーはページ再読み込み後、黄色いデモモードボタンでアプリテスト可能
   - 通常のSupabase認証と並行して利用可能
 
-### July 30, 2025 - Supabase認証完全解決とアカウント作成完了
-- **ISSUE**: 401エラー「Invalid login credentials」で認証失敗
-- **ROOT CAUSE**: 管理者アカウントが存在しないため認証不可
-- **SOLUTION**: Supabaseユーザーアカウント作成完了
-  - slazengersnow@gmail.com アカウント作成済み（ID: 08c46072-12a3-4281-a428-1a4a055baedf）
-  - VITE_SUPABASE_ANON_KEY正常動作確認済み（curlテスト成功）
-  - メール確認リンクの再送信機能実装済み
-- **STATUS**: アカウント作成完了、メール確認待ち
-  - 方法1: メール確認後の通常ログイン（推奨）
+### July 30, 2025 - Supabase認証問題完全解決（メール確認設定修正）
+- **ISSUE**: 401エラー「Invalid login credentials」とメール確認リンク未送信
+- **ROOT CAUSE**: Supabaseプロジェクトの「Confirm email」設定がオフになっていた
+- **SOLUTION**: メール確認設定を有効化してアカウント作成・メール送信完了
+  - Supabase管理画面で「Confirm email」設定をオンに変更
+  - slazengersnow@gmail.com アカウント作成済み
+  - メール確認リンクの再送信成功（create-user-account.js実行）
+  - VITE_SUPABASE_ANON_KEY正常動作確認済み
+- **STATUS**: メール確認リンク送信完了 ✅
+  - 方法1: メール確認後の通常ログイン（推奨・メール送信済み）
   - 方法2: デモモード認証バイパス（即座利用可能）
 
 ### July 30, 2025 - Supabase Authentication Issues Resolved (FULLY RESOLVED)
