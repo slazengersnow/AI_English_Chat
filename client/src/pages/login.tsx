@@ -29,12 +29,26 @@ export default function Login() {
       })
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('Login error details:', {
+          message: error.message,
+          status: error.status,
+          details: error
+        });
+        
+        // Check if this is an API key issue
+        const isApiKeyError = error.message?.includes('Invalid API key') || 
+                             error.message?.includes('API key') ||
+                             error.status === 401;
+                             
+        const errorMessage = isApiKeyError ? 
+          "Supabase API設定に問題があります。VITE_SUPABASE_ANON_KEYを確認してください。" :
+          error.message === 'Invalid login credentials' ? 
+            "メールアドレスまたはパスワードが正しくありません。デモモードをお試しください。" : 
+            error.message;
+            
         toast({
           title: "ログインエラー",
-          description: error.message === 'Invalid login credentials' ? 
-            "メールアドレスまたはパスワードが正しくありません。デモモードをお試しください。" : 
-            error.message,
+          description: errorMessage,
           variant: "destructive",
         })
         return
