@@ -289,15 +289,19 @@ export default function Login() {
               Googleでログイン
             </Button>
             
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-2 bg-yellow-50 border-yellow-200 text-yellow-800 hover:bg-yellow-100"
-              onClick={handleDemoMode}
-            >
-              <TestTube className="w-4 h-4 mr-2" />
-              デモモード（認証不要）
-            </Button>
+            <div className="mt-3 p-3 bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-300 rounded-lg">
+              <Button
+                type="button"
+                className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-black font-bold py-3 text-lg shadow-lg"
+                onClick={handleDemoMode}
+              >
+                <TestTube className="w-5 h-5 mr-2" />
+                🚀 デモモード（認証不要）
+              </Button>
+              <p className="text-xs text-center text-amber-700 mt-2 font-medium">
+                認証エラーを回避してアプリを即座に体験
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 text-center">
