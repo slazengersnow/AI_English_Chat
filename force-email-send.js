@@ -8,106 +8,112 @@ const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 async function forceEmailSend() {
-  console.log('=== 強制メール送信テスト ===')
+  console.log('=== 強制メール送信とアカウント状態確認 ===')
+  
+  const email = 'slazengersnow@gmail.com'
   
   try {
-    // 1. 複数の方法でメール送信を試行
+    // 1. 現在のユーザー状態を確認
+    console.log('1. ユーザー状態確認中...')
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers()
+    
+    if (listError) {
+      console.log('ユーザー一覧取得エラー:', listError.message)
+    } else {
+      const targetUser = users.find(u => u.email === email)
+      if (targetUser) {
+        console.log('現在のユーザー状態:', {
+          id: targetUser.id,
+          email: targetUser.email,
+          confirmed: !!targetUser.email_confirmed_at,
+          created: targetUser.created_at,
+          last_sign_in: targetUser.last_sign_in_at
+        })
+      } else {
+        console.log('ユーザーが見つかりません')
+      }
+    }
+    
+    // 2. 複数の方法で確認メール送信
     const methods = [
       {
-        name: '確認メール再送信',
+        name: '基本確認メール再送信',
         action: () => supabase.auth.resend({
           type: 'signup',
-          email: 'slazengersnow@gmail.com'
+          email: email
         })
       },
       {
-        name: 'パスワードリセットメール',
-        action: () => supabase.auth.resetPasswordForEmail('slazengersnow@gmail.com', {
-          redirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/reset-password'
+        name: 'リダイレクトURL付き確認メール',
+        action: () => supabase.auth.resend({
+          type: 'signup',
+          email: email,
+          options: {
+            emailRedirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/auth-callback'
+          }
         })
       },
       {
-        name: '新規サインアップ（重複エラーでもメール試行）',
+        name: '新規サインアップ試行',
         action: () => supabase.auth.signUp({
-          email: 'slazengersnow@gmail.com',
+          email: email,
           password: 's05936623',
           options: {
-            data: { role: 'admin' },
-            emailRedirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/confirm'
+            emailRedirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/auth-callback',
+            data: {
+              role: 'admin',
+              is_admin: true
+            }
           }
         })
       }
     ]
     
     for (const method of methods) {
-      console.log(`\n--- ${method.name} ---`)
+      console.log(`\n2. ${method.name}を実行中...`)
       try {
         const { data, error } = await method.action()
-        console.log('Success:', !error)
-        console.log('Error:', error?.message || 'None')
-        console.log('Data:', data ? JSON.stringify(data, null, 2) : 'None')
+        console.log('結果:', {
+          success: !error,
+          error: error?.message,
+          data: data ? Object.keys(data) : null
+        })
         
-        // 各試行の間に少し待機
+        // 少し待機
         await new Promise(resolve => setTimeout(resolve, 2000))
       } catch (err) {
-        console.log('Exception:', err.message)
+        console.log('エラー:', err.message)
       }
     }
     
-    // 2. 手動でHTTP APIを直接呼び出し
-    console.log('\n=== 直接HTTP API呼び出し ===')
+    // 3. 代替手段：他のメールアドレスでテスト
+    console.log('\n3. 代替メールアドレステスト...')
+    const testEmail = 'test.alternate@gmail.com'
+    const { data: testData, error: testError } = await supabase.auth.signUp({
+      email: testEmail,
+      password: 'test123456',
+      options: {
+        emailRedirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/auth-callback'
+      }
+    })
     
-    try {
-      const directResponse = await fetch(`${supabaseUrl}/auth/v1/resend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        },
-        body: JSON.stringify({
-          type: 'signup',
-          email: 'slazengersnow@gmail.com'
-        })
-      })
-      
-      const directResult = await directResponse.text()
-      console.log('Direct API Status:', directResponse.status)
-      console.log('Direct API Response:', directResult)
-    } catch (err) {
-      console.log('Direct API Error:', err.message)
-    }
+    console.log('代替テスト結果:', {
+      success: !testError,
+      error: testError?.message,
+      user_created: !!testData?.user
+    })
     
-    // 3. ユーザー状態確認
-    console.log('\n=== ユーザー状態確認 ===')
-    try {
-      const { data: authUser } = await supabase.auth.getUser()
-      console.log('Current user:', authUser?.user?.email || 'None')
-      
-      // 管理者APIでユーザー詳細取得を試行（失敗予想だが情報収集のため）
-      const adminResponse = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
-      })
-      console.log('Admin API access:', adminResponse.status)
-    } catch (err) {
-      console.log('User check error:', err.message)
-    }
+    console.log('\n=== 推奨事項 ===')
+    console.log('1. Gmail の検索で "from:noreply" を確認')
+    console.log('2. 全フォルダを検索: "supabase" または "confirm"')
+    console.log('3. Gmailの設定→フィルタとブロック中のアドレス確認')
+    console.log('4. 別のメールアドレス（Yahoo、Outlook等）での試行')
+    console.log('5. デモモードでの即座利用継続')
     
   } catch (error) {
-    console.error('Force email send failed:', error.message)
+    console.error('強制送信エラー:', error)
   }
-  
-  console.log('\n=== メール確認案内 ===')
-  console.log('📧 確認先:')
-  console.log('  - 受信トレイ')
-  console.log('  - 迷惑メール/スパムフォルダ')
-  console.log('  - プロモーション/ソーシャルタブ（Gmail）')
-  console.log('  - すべてのメールフォルダ')
-  console.log('📧 送信者: noreply@mail.app.supabase.io')
-  console.log('📧 件名候補: "Confirm your signup", "Email confirmation", "Welcome"')
 }
 
+console.log('強制メール送信を開始します...')
 forceEmailSend()
