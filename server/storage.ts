@@ -434,7 +434,7 @@ export class DatabaseStorage implements IStorage {
       .onConflictDoUpdate({
         target: dailyProgress.date,
         set: {
-          dailyCount: sql`${dailyProgress.dailyCount} + 1`,
+          dailyCount: sql`daily_progress.daily_count + 1`,
         },
       });
 

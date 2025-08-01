@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -408,9 +408,11 @@ export function TrainingInterface({
       }
 
       // No review problem or not for this difficulty, get new problem
-      getProblemMutation.mutate();
+      if (!getProblemMutation.isPending) {
+        getProblemMutation.mutate();
+      }
     }
-  }, [difficulty, getProblemMutation, messages.length]);
+  }, [difficulty]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
