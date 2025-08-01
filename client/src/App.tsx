@@ -51,6 +51,8 @@ import CreateAdmin from "@/pages/create-admin";
 import NotFound from "@/pages/not-found";
 import Logout from "@/pages/logout";
 import OAuthFix from "@/pages/oauth-fix";
+import EmergencyLogin from "@/pages/emergency-login";
+import WorkingLogin from "@/pages/working-login";
 
 // Protected routes that require active subscription
 function ProtectedRoute({ component: Component }: { component: any }) {
@@ -123,6 +125,8 @@ function Router() {
       <Route path="/privacy" component={Privacy} />
       <Route path="/logout" component={Logout} />
       <Route path="/oauth-fix" component={OAuthFix} />
+      <Route path="/emergency-login" component={EmergencyLogin} />
+      <Route path="/working-login" component={WorkingLogin} />
       
       {isAuthenticated ? (
         <>

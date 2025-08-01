@@ -15,7 +15,7 @@ async function generatePasswordResetLink(email) {
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/reset-password'
+        redirectTo: 'process.env.SITE_URL || window.location.origin/reset-password'
       }
     })
 
@@ -41,7 +41,7 @@ async function inviteUserByEmail(email) {
     console.log('Inviting user by email:', email)
     
     const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-      redirectTo: 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/reset-password'
+      redirectTo: 'process.env.SITE_URL || window.location.origin/reset-password'
     })
 
     if (error) {

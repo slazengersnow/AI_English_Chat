@@ -103,10 +103,11 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      // Use the current domain for redirect URL
+      // Force use current domain - NOT .replit.app
       const currentDomain = window.location.origin;
       const redirectUrl = `${currentDomain}/auth/callback`;
-      console.log('Starting Google OAuth with redirect to:', redirectUrl)
+      console.log('🔧 FIXED Google OAuth with redirect to:', redirectUrl)
+      console.log('🔧 Current domain:', currentDomain)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',

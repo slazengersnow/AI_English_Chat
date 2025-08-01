@@ -89,14 +89,14 @@ export default function DebugAuth() {
             <div className="text-sm text-gray-600">
               <p><strong>Google Consoleで設定すべき項目：</strong></p>
               <ul className="list-disc pl-5 mt-2">
-                <li>承認済みのJavaScript生成元: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app</li>
+                <li>承認済みのJavaScript生成元: {window.location.origin}</li>
                 <li>承認済みのリダイレクトURI: https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/callback</li>
               </ul>
               
               <p className="mt-4"><strong>Supabaseで設定すべき項目：</strong></p>
               <ul className="list-disc pl-5 mt-2">
-                <li>Site URL: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app</li>
-                <li>Redirect URLs: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/auth/callback</li>
+                <li>Site URL: {window.location.origin}</li>
+                <li>Redirect URLs: {window.location.origin}/auth/callback</li>
               </ul>
             </div>
           </div>
