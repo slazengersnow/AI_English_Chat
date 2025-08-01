@@ -106,10 +106,19 @@ export default function Login() {
       // Force use current domain - NOT .replit.app
       const currentDomain = window.location.origin;
       const redirectUrl = `${currentDomain}/auth/callback`;
-      console.log('🔧 FIXED Google OAuth with redirect to:', redirectUrl)
-      console.log('🔧 Current domain:', currentDomain)
       
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      console.log('🔧 FINAL FIX - Google OAuth redirect:', redirectUrl);
+      console.log('🔧 Current domain:', currentDomain);
+      console.log('🚫 OLD URL (should NOT be used):', 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/auth/callback');
+      
+      // Create fresh Supabase client to ensure no cached config
+      const { createClient } = await import('@supabase/supabase-js');
+      const freshSupabase = createClient(
+        'https://xcjplyhqxgrbdhixmzse.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo'
+      );
+      
+      const { data, error } = await freshSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,

@@ -53,6 +53,7 @@ import Logout from "@/pages/logout";
 import OAuthFix from "@/pages/oauth-fix";
 import EmergencyLogin from "@/pages/emergency-login";
 import WorkingLogin from "@/pages/working-login";
+import FinalAuthTest from "@/pages/final-auth-test";
 
 // Protected routes that require active subscription
 function ProtectedRoute({ component: Component }: { component: any }) {
@@ -127,6 +128,7 @@ function Router() {
       <Route path="/oauth-fix" component={OAuthFix} />
       <Route path="/emergency-login" component={EmergencyLogin} />
       <Route path="/working-login" component={WorkingLogin} />
+      <Route path="/final-auth-test" component={FinalAuthTest} />
       
       {isAuthenticated ? (
         <>

@@ -9,15 +9,14 @@ export default function DebugAuth() {
   useEffect(() => {
     const getCurrentUrl = () => {
       const currentUrl = window.location.origin
-      const replitUrl = `https://${import.meta.env.VITE_REPL_ID || 'ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d'}.replit.app`
+      const currentDomain = window.location.origin
       
       setDebugInfo({
         currentUrl,
-        replitUrl,
-        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        currentDomain,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'Not configured',
         hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
-        redirectUrl: `${currentUrl}/auth/callback`,
-        replitRedirectUrl: `${replitUrl}/auth/callback`,
+        redirectUrl: `${currentDomain}/auth/callback`,
       })
     }
     
@@ -31,7 +30,7 @@ export default function DebugAuth() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: debugInfo.replitRedirectUrl,
+          redirectTo: debugInfo.redirectUrl,
         },
       })
       
@@ -56,8 +55,8 @@ export default function DebugAuth() {
             </div>
             
             <div>
-              <h3 className="font-semibold">Replit URL:</h3>
-              <p className="text-sm text-gray-600">{debugInfo.replitUrl}</p>
+              <h3 className="font-semibold">Current Domain:</h3>
+              <p className="text-sm text-gray-600">{debugInfo.currentDomain}</p>
             </div>
             
             <div>
