@@ -89,6 +89,7 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/login" component={Login} />
+      <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/login-test" component={LoginTest} />
       <Route path="/signup" component={Signup} />
       <Route path="/confirm" component={Confirm} />
@@ -154,7 +155,7 @@ function Router() {
       ) : (
         <>
           {/* Handle unauthenticated routes */}
-          <Route path="/" component={CreateAdmin} />
+          <Route path="/" component={Login} />
         </>
       )}
       
