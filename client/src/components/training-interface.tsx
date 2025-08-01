@@ -227,73 +227,14 @@ export function TrainingInterface({
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, evaluationMessage]);
-      setIsWaitingForTranslation(false);
 
       // Store session ID if available for bookmark functionality
       if (data.sessionId) {
         setCurrentSessionId(data.sessionId);
       }
 
-      // Auto-generate next problem after 3 seconds
-      setTimeout(() => {
-        // Check if we're in repeat practice mode
-        const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
-        const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
-        const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
-
-        if (isRepeatMode && repeatSessions && repeatIndex !== null) {
-          try {
-            const sessions: SessionType[] = JSON.parse(repeatSessions);
-            const currentIndex = parseInt(repeatIndex);
-            const nextIndex = currentIndex + 1;
-
-            // Filter sessions by current difficulty
-            const filteredSessions = sessions.filter(
-              (s: SessionType) => s.difficultyLevel === difficulty,
-            );
-
-            if (nextIndex < filteredSessions.length) {
-              const nextSession = filteredSessions[nextIndex];
-              if (nextSession) {
-                // Update index and show next repeat practice problem
-                sessionStorage.setItem(
-                  "repeatPracticeIndex",
-                  nextIndex.toString(),
-                );
-                setCurrentProblem(nextSession.japaneseSentence);
-                setProblemNumber(nextIndex + 1);
-                const problemMessage: TrainingMessage = {
-                  type: "problem",
-                  content: nextSession.japaneseSentence,
-                  timestamp: new Date().toISOString(),
-                  problemNumber: nextIndex + 1,
-                };
-                setMessages((prev) => [...prev, problemMessage]);
-                setIsWaitingForTranslation(true);
-                return;
-              }
-            } else {
-              // All repeat practice problems completed
-              sessionStorage.removeItem("repeatPracticeMode");
-              sessionStorage.removeItem("repeatPracticeSessions");
-              sessionStorage.removeItem("repeatPracticeIndex");
-            }
-          } catch (error) {
-            console.error("Error parsing repeat practice sessions:", error);
-            // Clear corrupted session storage
-            sessionStorage.removeItem("repeatPracticeMode");
-            sessionStorage.removeItem("repeatPracticeSessions");
-            sessionStorage.removeItem("repeatPracticeIndex");
-          }
-        }
-
-        // Regular mode - get new problem
-        if (!hasInitializedProblemNumber) {
-          setHasInitializedProblemNumber(true);
-        }
-        setProblemNumber((prev) => prev + 1);
-        getProblemMutation.mutate();
-      }, 3000);
+      // Ready for next problem - user will click next button
+      setIsWaitingForTranslation(false);
     },
     onError: (error) => {
       console.error("Translation evaluation error:", error);
@@ -320,6 +261,67 @@ export function TrainingInterface({
       e.preventDefault();
       handleSubmit();
     }
+  };
+
+  // Handle next problem button click
+  const handleNextProblem = () => {
+    // Check if we're in repeat practice mode
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
+
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+        const nextIndex = currentIndex + 1;
+
+        // Filter sessions by current difficulty
+        const filteredSessions = sessions.filter(
+          (s: SessionType) => s.difficultyLevel === difficulty,
+        );
+
+        if (nextIndex < filteredSessions.length) {
+          const nextSession = filteredSessions[nextIndex];
+          if (nextSession) {
+            // Update index and show next repeat practice problem
+            sessionStorage.setItem(
+              "repeatPracticeIndex",
+              nextIndex.toString(),
+            );
+            setCurrentProblem(nextSession.japaneseSentence);
+            setProblemNumber(nextIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: nextSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: nextIndex + 1,
+            };
+            setMessages((prev) => [...prev, problemMessage]);
+            setIsWaitingForTranslation(true);
+            return;
+          }
+        } else {
+          // All repeat practice problems completed
+          sessionStorage.removeItem("repeatPracticeMode");
+          sessionStorage.removeItem("repeatPracticeSessions");
+          sessionStorage.removeItem("repeatPracticeIndex");
+        }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        // Clear corrupted session storage
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
+      }
+    }
+
+    // Regular mode - get new problem
+    if (!hasInitializedProblemNumber) {
+      setHasInitializedProblemNumber(true);
+    }
+    setProblemNumber((prev) => prev + 1);
+    getProblemMutation.mutate();
   };
 
   // Auto-resize textarea
@@ -663,6 +665,29 @@ export function TrainingInterface({
 
       {/* Input Area */}
       <div className="bg-white border-t border-gray-200 px-4 py-3">
+        {/* Show Next Problem Button after evaluation */}
+        {!isWaitingForTranslation && messages.length > 0 && messages[messages.length - 1]?.type === "evaluation" && (
+          <div className="mb-3 flex justify-center">
+            <Button
+              onClick={handleNextProblem}
+              disabled={getProblemMutation.isPending}
+              className="px-6 py-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              {getProblemMutation.isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>問題作成中...</span>
+                </>
+              ) : (
+                <>
+                  <span>次の問題</span>
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+        
         <div className="flex items-end space-x-3">
           <div className="flex-1 relative">
             <Textarea
@@ -673,7 +698,7 @@ export function TrainingInterface({
               placeholder={
                 isWaitingForTranslation
                   ? "英語で翻訳を入力..."
-                  : "問題を取得中..."
+                  : "次の問題ボタンを押してください"
               }
               disabled={!isWaitingForTranslation}
               className="w-full px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 text-sm max-h-32 border-0 disabled:opacity-50"
