@@ -1,26 +1,4 @@
 import { Switch, Route, useLocation } from "wouter";
-
-// Console制御スクリプトの注入
-if (typeof window !== 'undefined') {
-  // プレビュー環境でのConsole最小化
-  const minimizeConsole = () => {
-    const style = document.createElement('style');
-    style.textContent = `
-      [class*="console"], [class*="devtools"], [data-testid*="console"] {
-        display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-      }
-    `;
-    document.head.appendChild(style);
-  };
-  
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', minimizeConsole);
-  } else {
-    minimizeConsole();
-  }
-}
 import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
