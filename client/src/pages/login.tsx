@@ -5,7 +5,7 @@ import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { useToast } from '../hooks/use-toast'
-import { supabase } from '../../../shared/supabase'
+import { supabase } from '@shared/supabase'
 import { useAuth } from '../components/auth-provider'
 import { Mail, Lock, Eye, EyeOff, TestTube, AlertTriangle } from 'lucide-react'
 
@@ -103,13 +103,15 @@ export default function Login() {
 
   const handleGoogleLogin = async () => {
     try {
-      const replitUrl = `https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/auth/callback`
-      console.log('Starting Google OAuth with redirect to:', replitUrl)
+      // Use the current domain for redirect URL
+      const currentDomain = window.location.origin;
+      const redirectUrl = `${currentDomain}/auth/callback`;
+      console.log('Starting Google OAuth with redirect to:', redirectUrl)
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: replitUrl,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

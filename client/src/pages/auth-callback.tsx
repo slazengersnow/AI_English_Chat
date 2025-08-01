@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation } from 'wouter'
 import { supabase } from '@shared/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

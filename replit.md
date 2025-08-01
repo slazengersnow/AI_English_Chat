@@ -23,6 +23,9 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Created emergency demo access routes (/auto-demo, /force-demo)
 - Implemented console minimization scripts and CSS injection
 - Documented manual Console control via 🔧 wrench icon
+- Fixed Google OAuth redirect URL to use dynamic current domain
+- Created OAuth testing and debug page (/oauth-fix)
+- Implemented multiple authentication fallback methods
 
 ## System Architecture
 
