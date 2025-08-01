@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>キャッシュクリア - AI瞬間英作文チャット</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px;">
+    <h1>🔄 ブラウザキャッシュをクリアします</h1>
+    
+    <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h2>実行手順:</h2>
+        <ol>
+            <li><strong>強制リロード:</strong> Ctrl+Shift+R (Windows/Linux) または Cmd+Shift+R (Mac)</li>
+            <li><strong>デベロッパーツール:</strong> F12 → Network タブ → "Disable cache" にチェック</li>
+            <li><strong>プライベートモード:</strong> Ctrl+Shift+N で新しいウィンドウを開く</li>
+        </ol>
+    </div>
+
+    <div style="background: #ffe4e1; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3>🎯 確認すべき点:</h3>
+        <ul>
+            <li>URLが正確に <code>/</code> (ルート) になっているか</li>
+            <li>ページタイトルが「AI瞬間英作文チャット」になっているか</li>
+            <li>「アカウントにログインしてください」と表示されているか</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('🔧 Cache clearing page loaded');
+        console.log('Current URL:', window.location.href);
+        console.log('Expected: Root URL ending with /');
+        
+        // 자동으로 메인 페이지로 리다이렉트
+        setTimeout(() => {
+            console.log('Redirecting to main login page...');
+            window.location.href = '/';
+        }, 3000);
+    </script>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <button onclick="window.location.href='/'" style="
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        ">
+            🏠 メインログイン画面へ移動
+        </button>
+    </div>
+
+    <p style="text-align: center; color: #666; margin-top: 20px;">
+        3秒後に自動的にメインページにリダイレクトされます...
+    </p>
+</body>
+</html>
