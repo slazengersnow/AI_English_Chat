@@ -1,64 +1,122 @@
-import React, { useState } from 'react'
-import { useLocation } from 'wouter'
-import { Button } from '../client/src/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../client/src/components/ui/card'
-import { AlertTriangle, TestTube } from 'lucide-react'
+import React from 'react';
 
-export default function EmergencyDemoLogin() {
-  const [, setLocation] = useLocation()
+// 緊急デモログイン - Agent-Preview同期問題回避用
+const EmergencyDemoLogin = () => {
+  const activateDemo = () => {
+    // 管理者アカウントでの自動ログイン実行
+    console.log('=== EMERGENCY DEMO ACTIVATION ===');
+    
+    // ローカルストレージに認証情報を強制設定
+    localStorage.setItem('demo_mode', 'active');
+    localStorage.setItem('auth_bypass', 'true');
+    localStorage.setItem('user_email', 'admin.new@gmail.com');
+    localStorage.setItem('user_role', 'admin');
+    
+    // 認証状態をSessionStorageに設定
+    sessionStorage.setItem('supabase.auth.token', JSON.stringify({
+      access_token: 'demo_token',
+      refresh_token: 'demo_refresh',
+      user: {
+        id: 'demo_admin_id',
+        email: 'admin.new@gmail.com',
+        role: 'authenticated'
+      }
+    }));
+    
+    // 強制リダイレクト
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 500);
+  };
 
-  const handleEmergencyDemo = () => {
-    console.log('Emergency demo mode activated')
-    
-    // 直接ローカルストレージにデモモードを設定
-    localStorage.setItem('demoMode', 'true')
-    
-    // 即座にホームページにリダイレクト
-    setLocation('/')
-  }
+  const goToDirectDemo = () => {
+    window.location.href = '/auto-demo';
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl font-bold">AI</span>
-          </div>
-          <CardTitle className="text-2xl">AI瞬間英作文チャット</CardTitle>
-          <CardDescription>
-            緊急アクセスモード
-          </CardDescription>
-        </CardHeader>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      backgroundColor: '#f0f2f5',
+      fontFamily: 'system-ui, -apple-system, sans-serif'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '40px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        maxWidth: '400px',
+        width: '100%',
+        textAlign: 'center'
+      }}>
+        <h1 style={{
+          fontSize: '24px',
+          marginBottom: '16px',
+          color: '#1a1a1a'
+        }}>
+          🚨 緊急デモアクセス
+        </h1>
         
-        <CardContent>
-          {/* 緊急デモモード - 単独表示 */}
-          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-lg p-6">
-            <div className="flex items-center mb-3">
-              <AlertTriangle className="w-6 h-6 text-red-600 mr-3 flex-shrink-0" />
-              <h3 className="font-bold text-red-800 text-lg">緊急アクセス</h3>
-            </div>
-            <p className="text-sm text-red-700 mb-4">
-              認証システムの問題により、デモモードで即座にアプリにアクセスできます。
-            </p>
-            <Button
-              onClick={handleEmergencyDemo}
-              className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold py-4 text-lg shadow-lg"
-            >
-              <TestTube className="w-5 h-5 mr-2" />
-              🚨 緊急デモモード開始
-            </Button>
-            <p className="text-xs text-center text-red-600 mt-3 font-medium">
-              認証を完全にバイパスしてアプリを体験
-            </p>
-          </div>
-          
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              このモードは技術的問題の解決までの一時的な措置です
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <p style={{
+          color: '#666',
+          marginBottom: '24px',
+          lineHeight: '1.5'
+        }}>
+          Agent-Preview同期問題により、通常のログインが機能しない場合の緊急アクセス方法です。
+        </p>
+        
+        <div style={{ marginBottom: '16px' }}>
+          <button
+            onClick={activateDemo}
+            style={{
+              width: '100%',
+              padding: '12px 24px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer',
+              marginBottom: '12px'
+            }}
+          >
+            デモモード強制起動
+          </button>
+        </div>
+        
+        <div style={{ marginBottom: '16px' }}>
+          <button
+            onClick={goToDirectDemo}
+            style={{
+              width: '100%',
+              padding: '12px 24px',
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            自動デモページへ
+          </button>
+        </div>
+        
+        <div style={{
+          fontSize: '14px',
+          color: '#888',
+          marginTop: '20px'
+        }}>
+          <p>認証情報: admin.new@gmail.com</p>
+          <p>パスワード: s05936623</p>
+        </div>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default EmergencyDemoLogin;

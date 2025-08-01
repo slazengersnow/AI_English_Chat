@@ -40,6 +40,10 @@ app.use(express_1.default.static(rootDir));
 app.get("/force-demo", (_req, res) => {
     res.sendFile(path_1.default.join(__dirname, "force-demo-mode.html"));
 });
+// ✅ 自動デモモード用のエンドポイント
+app.get("/auto-demo", (_req, res) => {
+    res.sendFile(path_1.default.join(__dirname, "force-demo-redirect.html"));
+});
 // ✅ SPA の fallback 対応（フロントでルーティングさせる）
 app.get("*", (_req, res) => {
     res.sendFile(path_1.default.join(rootDir, "index.html"));

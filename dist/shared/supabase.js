@@ -12,7 +12,13 @@ let supabaseUrl;
 let supabaseKey;
 if (isBrowser) {
     // Client-side: use import.meta.env (injected by Vite)
-    const metaEnv = typeof window !== 'undefined' ? import.meta.env : process.env;
+    let metaEnv = {};
+    try {
+        metaEnv = import.meta.env || {};
+    }
+    catch (e) {
+        metaEnv = {};
+    }
     supabaseUrl = metaEnv?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
     supabaseKey = metaEnv?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
     // Browser-side debug for environment variables

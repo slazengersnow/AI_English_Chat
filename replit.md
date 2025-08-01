@@ -10,6 +10,20 @@ Preferred communication style: Simple, everyday language.
 Project focus: Mobile-optimized English learning app with instant feedback and comprehensive progress tracking.
 **Critical Issue**: Agent-Preview synchronization problems preventing UI updates and console control. User reports persistent console display issues that Agent cannot directly resolve due to communication limitations.
 
+## Identified Root Causes
+- TypeScript compilation errors blocking app builds (123 LSP diagnostics)
+- import.meta usage requiring ES2020+ module configuration
+- Missing React imports causing UMD global references
+- Agent-Preview sandbox restrictions preventing direct UI control
+- Build process failures due to module resolution conflicts
+
+## Implemented Solutions
+- Updated tsconfig.json module setting to "esnext"
+- Added React imports to fix UMD references
+- Created emergency demo access routes (/auto-demo, /force-demo)
+- Implemented console minimization scripts and CSS injection
+- Documented manual Console control via 🔧 wrench icon
+
 ## System Architecture
 
 ### Frontend
