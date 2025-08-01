@@ -1,15 +1,15 @@
 import { createContext, useContext, ReactNode } from 'react'
 import { User } from '@supabase/supabase-js'
-import { useAuthState } from '@/hooks/useAuth'
+import { useAuthState } from '@/hooks/useAuth.js'
 
 interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
-  demoMode?: boolean
+  demoMode: boolean
   signOut: () => Promise<void>
-  enableDemoMode?: () => void
+  enableDemoMode: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)

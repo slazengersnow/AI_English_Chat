@@ -76,16 +76,29 @@ export default function Login() {
   }
 
   const handleDemoMode = () => {
-    auth.enableDemoMode();
-    if (toast) {
-      toast({
-        title: "デモモード開始",
-        description: "デモ用管理者アカウントでログインしました",
-      });
+    console.log('Demo mode button clicked');
+    try {
+      if (auth && auth.enableDemoMode) {
+        auth.enableDemoMode();
+        console.log('Demo mode enabled successfully');
+      } else {
+        console.error('enableDemoMode function not available');
+      }
+      
+      if (toast) {
+        toast({
+          title: "デモモード開始",
+          description: "デモ用管理者アカウントでログインしました",
+        });
+      }
+      
+      console.log('Redirecting to home page...');
+      setTimeout(() => {
+        setLocation('/');
+      }, 1000);
+    } catch (error) {
+      console.error('Error in demo mode:', error);
     }
-    setTimeout(() => {
-      setLocation('/');
-    }, 1000);
   };
 
   const handleGoogleLogin = async () => {
@@ -211,22 +224,33 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* 緊急デモモード - 最上位配置 */}
-          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 mb-6">
+          {/* 緊急デモモード - 最上位配置・確実表示 */}
+          <div 
+            className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-lg p-4 mb-6"
+            style={{ display: 'block !important', visibility: 'visible !important' }}
+          >
             <div className="flex items-center mb-2">
-              <AlertTriangle className="w-5 h-5 text-amber-600 mr-2 flex-shrink-0" />
-              <h3 className="font-semibold text-amber-800">認証サービス一時停止中</h3>
+              <AlertTriangle className="w-5 h-5 text-red-600 mr-2 flex-shrink-0" />
+              <h3 className="font-bold text-red-800">🚨 認証システム停止中</h3>
             </div>
-            <p className="text-sm text-amber-700 mb-3">
-              現在認証に技術的問題が発生しています。デモモードで全機能をお試しください。
+            <p className="text-sm text-red-700 mb-3 font-medium">
+              技術的問題により認証が利用できません。<br />
+              デモモードで即座にアプリをお試しください。
             </p>
-            <Button
-              onClick={handleDemoMode}
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium shadow-md"
+            <button
+              onClick={() => {
+                console.log('Emergency demo button clicked!');
+                localStorage.setItem('demoMode', 'true');
+                window.location.href = '/';
+              }}
+              className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-bold py-4 text-lg shadow-lg rounded-lg transition-all duration-200 hover:scale-105"
+              style={{ minHeight: '50px', fontSize: '16px' }}
             >
-              <TestTube className="w-4 h-4 mr-2" />
-              デモモードで即座にアクセス
-            </Button>
+              🚀 緊急デモモード開始
+            </button>
+            <p className="text-xs text-center text-red-600 mt-2 font-bold">
+              認証をバイパスして全機能を体験
+            </p>
           </div>
           
           <div className="relative mb-4">
