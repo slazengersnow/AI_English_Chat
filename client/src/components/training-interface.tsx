@@ -336,91 +336,101 @@ export function TrainingInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Flag to prevent multiple calls
-  const [hasInitialProblem, setHasInitialProblem] = useState(false);
+  // Initialize problem on component mount and difficulty change
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  const initializeProblem = () => {
+    if (isInitialized) return;
+    
+    console.log("Initializing problem for difficulty:", difficulty);
+    setIsInitialized(true);
+    
+    // Check for repeat practice mode
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
 
-  // Check for repeat practice mode or review problem from sessionStorage or start with first problem
-  useEffect(() => {
-    if (messages.length === 0 && !hasInitialProblem && !getProblemMutation.isPending) {
-      setHasInitialProblem(true);
-      
-      // Check for repeat practice mode
-      const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
-      const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
-      const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
 
-      if (isRepeatMode && repeatSessions && repeatIndex !== null) {
-        try {
-          const sessions: SessionType[] = JSON.parse(repeatSessions);
-          const currentIndex = parseInt(repeatIndex);
-
-          if (currentIndex < sessions.length) {
-            const currentSession = sessions[currentIndex];
-            if (currentSession.difficultyLevel === difficulty) {
-              // Set up repeat practice problem
-              setCurrentProblem(currentSession.japaneseSentence);
-              setProblemNumber(currentIndex + 1);
-              const problemMessage: TrainingMessage = {
-                type: "problem",
-                content: currentSession.japaneseSentence,
-                timestamp: new Date().toISOString(),
-                problemNumber: currentIndex + 1,
-              };
-              setMessages([problemMessage]);
-              setIsWaitingForTranslation(true);
-              return;
-            }
-          } else {
-            // All repeat practice problems completed, clear mode
-            sessionStorage.removeItem("repeatPracticeMode");
-            sessionStorage.removeItem("repeatPracticeSessions");
-            sessionStorage.removeItem("repeatPracticeIndex");
+        if (currentIndex < sessions.length) {
+          const currentSession = sessions[currentIndex];
+          if (currentSession.difficultyLevel === difficulty) {
+            // Set up repeat practice problem
+            setCurrentProblem(currentSession.japaneseSentence);
+            setProblemNumber(currentIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: currentSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: currentIndex + 1,
+            };
+            setMessages([problemMessage]);
+            setIsWaitingForTranslation(true);
+            return;
           }
-        } catch (error) {
-          console.error("Error parsing repeat practice sessions:", error);
-          // Clear corrupted session storage
+        } else {
+          // All repeat practice problems completed, clear mode
           sessionStorage.removeItem("repeatPracticeMode");
           sessionStorage.removeItem("repeatPracticeSessions");
           sessionStorage.removeItem("repeatPracticeIndex");
         }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        // Clear corrupted session storage
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
       }
-
-      // Check for single review problem
-      const reviewProblem = sessionStorage.getItem("reviewProblem");
-      if (reviewProblem) {
-        try {
-          const problemData = JSON.parse(reviewProblem);
-          if (problemData.difficultyLevel === difficulty) {
-            // Set up review problem - start from problem 1 for review mode
-            setCurrentProblem(problemData.japaneseSentence);
-            setProblemNumber(1);
-            const problemMessage: TrainingMessage = {
-              type: "problem",
-              content: problemData.japaneseSentence,
-              timestamp: new Date().toISOString(),
-              problemNumber: 1,
-            };
-            setMessages([problemMessage]);
-            setIsWaitingForTranslation(true);
-
-            // Clear the review problem from sessionStorage
-            sessionStorage.removeItem("reviewProblem");
-            return;
-          }
-        } catch (error) {
-          console.error("Error parsing review problem:", error);
-          sessionStorage.removeItem("reviewProblem");
-        }
-      }
-
-      // No review problem or not for this difficulty, get new problem
-      getProblemMutation.mutate();
     }
-  }, [difficulty, messages.length, hasInitialProblem, getProblemMutation.isPending]);
 
-  // Reset flag when difficulty changes
+    // Check for single review problem
+    const reviewProblem = sessionStorage.getItem("reviewProblem");
+    if (reviewProblem) {
+      try {
+        const problemData = JSON.parse(reviewProblem);
+        if (problemData.difficultyLevel === difficulty) {
+          // Set up review problem - start from problem 1 for review mode
+          setCurrentProblem(problemData.japaneseSentence);
+          setProblemNumber(1);
+          const problemMessage: TrainingMessage = {
+            type: "problem",
+            content: problemData.japaneseSentence,
+            timestamp: new Date().toISOString(),
+            problemNumber: 1,
+          };
+          setMessages([problemMessage]);
+          setIsWaitingForTranslation(true);
+
+          // Clear the review problem from sessionStorage
+          sessionStorage.removeItem("reviewProblem");
+          return;
+        }
+      } catch (error) {
+        console.error("Error parsing review problem:", error);
+        sessionStorage.removeItem("reviewProblem");
+      }
+    }
+
+    // No review problem or not for this difficulty, get new problem
+    console.log("Getting new problem via mutation");
+    getProblemMutation.mutate();
+  };
+
+  // Initialize only when messages are empty and not already initialized
   useEffect(() => {
-    setHasInitialProblem(false);
+    if (messages.length === 0 && !isInitialized) {
+      initializeProblem();
+    }
+  }, [messages.length, isInitialized]);
+
+  // Reset initialization when difficulty changes
+  useEffect(() => {
+    console.log("Difficulty changed, resetting initialization");
+    setIsInitialized(false);
+    setMessages([]);
   }, [difficulty]);
 
   const renderStars = (rating: number) => {
