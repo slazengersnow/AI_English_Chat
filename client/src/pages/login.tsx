@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { useToast } from '../hooks/use-toast'
 import { supabase } from '../../../shared/supabase'
 import { useAuth } from '../components/auth-provider'
-import { Mail, Lock, Eye, EyeOff, TestTube } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, TestTube, AlertTriangle } from 'lucide-react'
 
 export default function Login() {
   const [, setLocation] = useLocation()
@@ -209,7 +209,34 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          {/* 緊急デモモード - 最上位配置 */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center mb-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600 mr-2 flex-shrink-0" />
+              <h3 className="font-semibold text-amber-800">認証サービス一時停止中</h3>
+            </div>
+            <p className="text-sm text-amber-700 mb-3">
+              現在認証に技術的問題が発生しています。デモモードで全機能をお試しください。
+            </p>
+            <Button
+              onClick={handleDemoMode}
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium shadow-md"
+            >
+              <TestTube className="w-4 h-4 mr-2" />
+              デモモードで即座にアクセス
+            </Button>
+          </div>
+          
+          <div className="relative mb-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-3 text-gray-500 font-medium">通常ログイン（現在停止中）</span>
+            </div>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-4 opacity-50">
             <div className="space-y-2">
               <Label htmlFor="email">メールアドレス</Label>
               <div className="relative">
@@ -219,9 +246,9 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
+                  placeholder="admin.new@gmail.com"
                   className="pl-10"
-                  required
+                  disabled
                 />
               </div>
             </div>
