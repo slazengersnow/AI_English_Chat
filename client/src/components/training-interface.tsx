@@ -158,6 +158,7 @@ export function TrainingInterface({
       });
       return response.json();
     },
+    retry: false,
     onSuccess: (data) => {
       setCurrentProblem(data.japaneseSentence);
 
@@ -335,9 +336,14 @@ export function TrainingInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Flag to prevent multiple calls
+  const [hasInitialProblem, setHasInitialProblem] = useState(false);
+
   // Check for repeat practice mode or review problem from sessionStorage or start with first problem
   useEffect(() => {
-    if (messages.length === 0) {
+    if (messages.length === 0 && !hasInitialProblem && !getProblemMutation.isPending) {
+      setHasInitialProblem(true);
+      
       // Check for repeat practice mode
       const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
       const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
@@ -408,10 +414,13 @@ export function TrainingInterface({
       }
 
       // No review problem or not for this difficulty, get new problem
-      if (!getProblemMutation.isPending) {
-        getProblemMutation.mutate();
-      }
+      getProblemMutation.mutate();
     }
+  }, [difficulty, messages.length, hasInitialProblem, getProblemMutation.isPending]);
+
+  // Reset flag when difficulty changes
+  useEffect(() => {
+    setHasInitialProblem(false);
   }, [difficulty]);
 
   const renderStars = (rating: number) => {
