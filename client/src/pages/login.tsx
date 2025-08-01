@@ -77,10 +77,12 @@ export default function Login() {
 
   const handleDemoMode = () => {
     auth.enableDemoMode();
-    toast?.({
-      title: "デモモード開始",
-      description: "デモ用管理者アカウントでログインしました",
-    });
+    if (toast) {
+      toast({
+        title: "デモモード開始",
+        description: "デモ用管理者アカウントでログインしました",
+      });
+    }
     setTimeout(() => {
       setLocation('/');
     }, 1000);
@@ -264,7 +266,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="パスワードを入力"
                   className="pl-10 pr-10"
-                  required
+                  disabled
                 />
                 <button
                   type="button"
@@ -276,8 +278,8 @@ export default function Login() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "ログイン中..." : "ログイン"}
+            <Button type="submit" className="w-full" disabled={true}>
+              サービス一時停止中
             </Button>
           </form>
           
