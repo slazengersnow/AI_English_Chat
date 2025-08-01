@@ -224,6 +224,84 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* 最優先デモモード - 絶対表示 */}
+          <div style={{
+            position: 'relative',
+            zIndex: 9999,
+            display: 'block',
+            visibility: 'visible',
+            opacity: 1,
+            background: 'linear-gradient(135deg, #dc2626, #ea580c)',
+            padding: '20px',
+            borderRadius: '12px',
+            marginBottom: '24px',
+            border: '3px solid #dc2626',
+            boxShadow: '0 10px 25px rgba(220, 38, 38, 0.3)'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '12px',
+              color: 'white'
+            }}>
+              <span style={{ fontSize: '24px', marginRight: '8px' }}>🚨</span>
+              <h2 style={{ 
+                margin: 0, 
+                fontSize: '18px', 
+                fontWeight: 'bold',
+                color: 'white'
+              }}>
+                緊急アクセスモード
+              </h2>
+            </div>
+            <p style={{ 
+              color: 'white', 
+              fontSize: '14px', 
+              marginBottom: '16px',
+              lineHeight: '1.4'
+            }}>
+              認証システムに問題が発生しています。<br />
+              デモモードで即座にアプリをお試しください。
+            </p>
+            <button
+              onClick={() => {
+                console.log('Emergency demo activation');
+                localStorage.setItem('demoMode', 'true');
+                localStorage.setItem('emergencyDemo', 'true');
+                sessionStorage.setItem('demoActive', 'true');
+                window.location.href = '/';
+              }}
+              style={{
+                width: '100%',
+                padding: '16px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: 'white',
+                background: 'linear-gradient(135deg, #b91c1c, #c2410c)',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.02)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              🚀 緊急デモモード開始
+            </button>
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '12px', 
+              fontSize: '12px', 
+              color: 'rgba(255,255,255,0.9)'
+            }}>
+              認証を完全にバイパスして全機能を体験
+            </div>
+          </div>
           {/* 緊急デモモード - 最上位配置・確実表示 */}
           <div 
             className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-lg p-4 mb-6"
