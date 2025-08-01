@@ -215,6 +215,12 @@ export function TrainingInterface({
       return response.json();
     },
     onSuccess: (data) => {
+      // Store session ID if available for bookmark functionality
+      if (data.sessionId) {
+        setCurrentSessionId(data.sessionId);
+      }
+
+      // Show evaluation message with feedback
       const evaluationMessage: TrainingMessage = {
         type: "evaluation",
         content: data.feedback,
@@ -228,12 +234,7 @@ export function TrainingInterface({
       };
       setMessages((prev) => [...prev, evaluationMessage]);
 
-      // Store session ID if available for bookmark functionality
-      if (data.sessionId) {
-        setCurrentSessionId(data.sessionId);
-      }
-
-      // Auto-generate next problem after showing evaluation
+      // Generate next problem immediately after evaluation
       setTimeout(() => {
         // Check if we're in repeat practice mode
         const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
@@ -292,9 +293,8 @@ export function TrainingInterface({
         }
         setProblemNumber((prev) => prev + 1);
         getProblemMutation.mutate();
-      }, 2000);
+      }, 1000);
 
-      // Ready for next problem
       setIsWaitingForTranslation(false);
     },
     onError: (error) => {
