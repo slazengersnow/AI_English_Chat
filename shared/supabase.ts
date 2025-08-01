@@ -13,7 +13,12 @@ let supabaseKey: string;
 
 if (isBrowser) {
   // Client-side: use import.meta.env (injected by Vite)
-  const metaEnv = (import.meta as any).env;
+  let metaEnv: any = {};
+  try {
+    metaEnv = (import.meta as any).env || {};
+  } catch (e) {
+    metaEnv = {};
+  }
   supabaseUrl = metaEnv?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
   supabaseKey = metaEnv?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
   

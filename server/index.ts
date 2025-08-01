@@ -50,6 +50,11 @@ registerRoutes(app);
 // ✅ 静的ファイルを配信（Vite のビルド済み SPA）
 app.use(express.static(rootDir));
 
+// ✅ 緊急アクセス用のエンドポイント
+app.get("/force-demo", (_req, res) => {
+  res.sendFile(path.join(__dirname, "force-demo-mode.html"));
+});
+
 // ✅ SPA の fallback 対応（フロントでルーティングさせる）
 app.get("*", (_req, res) => {
   res.sendFile(path.join(rootDir, "index.html"));
