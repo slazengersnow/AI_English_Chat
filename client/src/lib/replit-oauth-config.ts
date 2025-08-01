@@ -42,7 +42,7 @@ export const createReplitSupabaseClient = async () => {
     const { createClient } = await import('@supabase/supabase-js');
     
     const supabaseUrl = 'https://xcjplyhqxgrbdhixmzse.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanBseWhxeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3NDEyMjksImV4cCI6MjA2NjMxNzIyOX0.IgMRAXM_fC9D5PnQR6iSP0ZC5rQNJxcpGrrNMWRCJqE';
     
     return createClient(supabaseUrl, supabaseKey);
   } catch (error) {
