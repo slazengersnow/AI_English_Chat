@@ -3,6 +3,7 @@ import { Router, Express } from "express";
 import chatRoutes from "./chat";
 import userRoutes from "./user";
 import { testAuth, getSupabaseStatus } from './debug-auth';
+import { registerRoutes as registerMainRoutes } from "../routes";
 
 // ⚠️ 👇 これは削除（index.tsでは登録しない）
 /* import stripeWebhookRoutes from "./stripe-webhook.js"; */
@@ -17,7 +18,8 @@ export function registerRoutes(app: Express) {
   router.post("/test-auth", testAuth);
   router.get("/supabase-status", getSupabaseStatus);
   
-  // router.use("/webhook", stripeWebhookRoutes); // 👈 削除
-
   app.use("/api", router);
+  
+  // Register main routes including problem generation
+  registerMainRoutes(app);
 }

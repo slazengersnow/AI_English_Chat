@@ -263,6 +263,8 @@ router.post(
   requireActiveSubscription,
   async (req: Request, res: Response) => {
     try {
+      console.log('Problem generation request body:', req.body);
+      
       const canProceed = await storage.incrementDailyCount();
       if (!canProceed) {
         return res.status(429).json({
@@ -272,15 +274,31 @@ router.post(
         });
       }
 
-      const { difficultyLevel } = problemRequestSchema.parse(req.body);
+      const parseResult = problemRequestSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        console.error('Schema validation failed:', parseResult.error);
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          details: parseResult.error.issues 
+        });
+      }
+      
+      const { difficultyLevel } = parseResult.data;
+      console.log('Schema validation passed, difficultyLevel:', difficultyLevel);
+      
       const userId = "bizmowa.com";
+      console.log('Fetching previous problems for user:', userId);
+      
       const previousProblems = await storage.getUserAttemptedProblems(
         difficultyLevel,
         userId,
       );
+      console.log('Previous problems fetched, count:', previousProblems.length);
+      
       const attemptedSentences = new Set(
         previousProblems.map((p) => p.japaneseSentence),
       );
+      console.log('Attempted sentences set created, size:', attemptedSentences.size);
 
       const problemSets: { [key: string]: string[] } = {
         toeic: [
@@ -405,7 +423,11 @@ router.post(
 
       res.json(response);
     } catch (error) {
-      res.status(400).json({ message: "Invalid request data" });
+      console.error('Problem generation error:', error);
+      res.status(400).json({ 
+        message: "Invalid request data",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   },
 );

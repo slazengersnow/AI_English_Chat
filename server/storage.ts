@@ -427,11 +427,14 @@ export class DatabaseStorage implements IStorage {
       .insert(dailyProgress)
       .values({
         date: today,
+        dailyCount: 1,
+        problemsCompleted: 0,
+        averageRating: 0,
       })
       .onConflictDoUpdate({
         target: dailyProgress.date,
         set: {
-          date: today,
+          dailyCount: sql`${dailyProgress.dailyCount} + 1`,
         },
       });
 
