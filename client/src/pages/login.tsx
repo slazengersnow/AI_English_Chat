@@ -110,6 +110,7 @@ export default function Login() {
       console.log('🔧 FINAL FIX - Google OAuth redirect:', redirectUrl);
       console.log('🔧 Current domain:', currentDomain);
       console.log('🚫 OLD URL (should NOT be used):', 'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d.replit.app/auth/callback');
+      console.log('Starting Google OAuth with redirect to:', redirectUrl);
       
       // Create fresh Supabase client to ensure no cached config
       const { createClient } = await import('@supabase/supabase-js');
