@@ -55,6 +55,7 @@ import EmergencyLogin from "@/pages/emergency-login";
 import WorkingLogin from "@/pages/working-login";
 import FinalAuthTest from "@/pages/final-auth-test";
 import ReplitAuthFix from "@/pages/replit-auth-fix";
+import EmergencyAuthFix from "@/pages/emergency-auth-fix";
 
 // Protected routes that require active subscription
 function ProtectedRoute({ component: Component }: { component: any }) {
@@ -131,6 +132,7 @@ function Router() {
       <Route path="/working-login" component={WorkingLogin} />
       <Route path="/final-auth-test" component={FinalAuthTest} />
       <Route path="/replit-auth-fix" component={ReplitAuthFix} />
+      <Route path="/emergency-auth-fix" component={EmergencyAuthFix} />
       
       {isAuthenticated ? (
         <>

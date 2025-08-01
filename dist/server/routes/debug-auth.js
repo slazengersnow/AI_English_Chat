@@ -1,8 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.testAuth = testAuth;
-exports.getSupabaseStatus = getSupabaseStatus;
-const supabase_js_1 = require("@supabase/supabase-js");
+import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://xcjplyhqxgrbdhixmzse.supabase.co';
 console.log('Debug - Server Supabase URL:', supabaseUrl);
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -10,7 +6,7 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY ||
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanlseXFoeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNjExMjMsImV4cCI6MjA1MDkzNzEyM30.XZaYqFdXF9XZQEtJGXcvzuXGlhXRoZKOJ4PxzCnJgDo";
 // Create admin client (if service key is available)
 const adminClient = supabaseServiceKey
-    ? (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceKey, {
+    ? createClient(supabaseUrl, supabaseServiceKey, {
         auth: {
             autoRefreshToken: false,
             persistSession: false
@@ -18,8 +14,8 @@ const adminClient = supabaseServiceKey
     })
     : null;
 // Regular client for testing auth
-const supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
-async function testAuth(req, res) {
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export async function testAuth(req, res) {
     try {
         const { email, password } = req.body;
         console.log('Testing auth for:', email);
@@ -76,7 +72,7 @@ async function testAuth(req, res) {
         });
     }
 }
-async function getSupabaseStatus(req, res) {
+export async function getSupabaseStatus(req, res) {
     res.json({
         supabaseUrl,
         hasServiceKey: !!supabaseServiceKey,

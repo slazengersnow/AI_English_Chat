@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabase = void 0;
-const supabase_js_1 = require("@supabase/supabase-js");
+import { createClient } from "@supabase/supabase-js";
 // Check if we're in a browser environment (client-side)
 const isBrowser = typeof window !== 'undefined';
 // Fallback values for development
@@ -53,4 +50,4 @@ if (!supabaseUrl || !supabaseKey) {
     console.error("Missing Supabase environment variables");
     throw new Error("supabaseUrl is required");
 }
-exports.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey);

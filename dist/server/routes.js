@@ -1,15 +1,9 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerRoutes = registerRoutes;
-const express_1 = require("express");
-const storage_1 = require("./storage");
-const stripe_1 = __importDefault(require("stripe"));
-const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
-const schema_1 = require("@shared/schema");
-const stripe_webhook_1 = __importDefault(require("./routes/stripe-webhook"));
+import { Router } from "express";
+import { storage } from "./storage";
+import Stripe from "stripe";
+import Anthropic from "@anthropic-ai/sdk";
+import { translateRequestSchema, problemRequestSchema, createCheckoutSessionSchema, } from "@shared/schema";
+import stripeWebhookRouter from "./routes/stripe-webhook";
 // Session-based problem tracking to prevent duplicates
 const sessionProblems = new Map();
 function getSessionId(req) {
@@ -34,9 +28,9 @@ function getUnusedProblem(sessionId, problems) {
     }
     return availableProblems[Math.floor(Math.random() * availableProblems.length)];
 }
-const router = (0, express_1.Router)();
+const router = Router();
 // Webhook route
-router.use("/webhook", stripe_webhook_1.default);
+router.use("/webhook", stripeWebhookRouter);
 // Health check
 router.get("/health", (req, res) => {
     res.status(200).send("OK");
@@ -72,7 +66,7 @@ const requireActiveSubscription = async (req, res, next) => {
             }
         }
         console.log("Checking subscription for user:", userId);
-        const subscription = await storage_1.storage.getUserSubscription(userId);
+        const subscription = await storage.getUserSubscription(userId);
         if (!subscription ||
             !["active", "trialing"].includes(subscription.subscriptionStatus || "")) {
             console.log("No valid subscription found for user:", userId);
@@ -99,7 +93,7 @@ const requirePremiumSubscription = async (req, res, next) => {
             userId = userEmail;
         }
         console.log("Checking premium subscription for user:", userId);
-        const subscription = await storage_1.storage.getUserSubscription(userId);
+        const subscription = await storage.getUserSubscription(userId);
         if (!subscription ||
             subscription.subscriptionType !== "premium" ||
             !["active", "trialing"].includes(subscription.subscriptionStatus || "")) {
@@ -123,7 +117,7 @@ const requirePremiumSubscription = async (req, res, next) => {
 router.post("/auth/signup", async (req, res) => {
     try {
         const { email, password } = req.body;
-        await storage_1.storage.updateUserSubscription("default_user", {
+        await storage.updateUserSubscription("default_user", {
             subscriptionStatus: "inactive",
             userId: "default_user",
         });
@@ -141,7 +135,7 @@ router.post("/auth/signup", async (req, res) => {
 router.post("/auth/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-        const subscription = await storage_1.storage.getUserSubscription();
+        const subscription = await storage.getUserSubscription();
         const needsSubscription = !subscription ||
             !["active", "trialing"].includes(subscription.subscriptionStatus || "");
         res.json({
@@ -177,11 +171,11 @@ router.get("/user-subscription", async (req, res) => {
             }
         }
         console.log("Getting subscription for user:", userId);
-        const subscription = await storage_1.storage.getUserSubscription(userId);
+        const subscription = await storage.getUserSubscription(userId);
         if (!subscription) {
             // Create a default subscription for new users
             console.log("No subscription found, creating default for user:", userId);
-            const defaultSubscription = await storage_1.storage.updateUserSubscription(userId, {
+            const defaultSubscription = await storage.updateUserSubscription(userId, {
                 subscriptionStatus: "inactive",
                 subscriptionType: "standard",
                 userId: userId,
@@ -203,16 +197,16 @@ router.get("/user-subscription", async (req, res) => {
 // Generate Japanese problem for translation
 router.post("/problem", requireActiveSubscription, async (req, res) => {
     try {
-        const canProceed = await storage_1.storage.incrementDailyCount();
+        const canProceed = await storage.incrementDailyCount();
         if (!canProceed) {
             return res.status(429).json({
                 message: "本日の最大出題数(100問)に達しました。明日また学習を再開できます。",
                 dailyLimitReached: true,
             });
         }
-        const { difficultyLevel } = schema_1.problemRequestSchema.parse(req.body);
+        const { difficultyLevel } = problemRequestSchema.parse(req.body);
         const userId = "bizmowa.com";
-        const previousProblems = await storage_1.storage.getUserAttemptedProblems(difficultyLevel, userId);
+        const previousProblems = await storage.getUserAttemptedProblems(difficultyLevel, userId);
         const attemptedSentences = new Set(previousProblems.map((p) => p.japaneseSentence));
         const problemSets = {
             toeic: [
@@ -323,7 +317,7 @@ router.post("/problem", requireActiveSubscription, async (req, res) => {
         const response = {
             japaneseSentence: selectedSentence,
             hints: [
-                `問題${await storage_1.storage.getCurrentProblemNumber(userId, difficultyLevel)}`,
+                `問題${await storage.getCurrentProblemNumber(userId, difficultyLevel)}`,
             ],
         };
         res.json(response);
@@ -335,7 +329,7 @@ router.post("/problem", requireActiveSubscription, async (req, res) => {
 // Evaluate user translation using Claude Haiku
 router.post("/translate", async (req, res) => {
     try {
-        const { japaneseSentence, userTranslation, difficultyLevel } = schema_1.translateRequestSchema.parse(req.body);
+        const { japaneseSentence, userTranslation, difficultyLevel } = translateRequestSchema.parse(req.body);
         const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
         if (!anthropicApiKey) {
             return res
@@ -365,7 +359,7 @@ router.post("/translate", async (req, res) => {
 
 上記の翻訳を評価してください。`;
         try {
-            const anthropic = new sdk_1.default({ apiKey: anthropicApiKey });
+            const anthropic = new Anthropic({ apiKey: anthropicApiKey });
             const message = await anthropic.messages.create({
                 model: "claude-3-haiku-20240307",
                 max_tokens: 1000,
@@ -398,7 +392,7 @@ router.post("/translate", async (req, res) => {
             };
             const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
             const userId = userEmail || "bizmowa.com";
-            const trainingSession = await storage_1.storage.addTrainingSession({
+            const trainingSession = await storage.addTrainingSession({
                 userId,
                 difficultyLevel,
                 japaneseSentence,
@@ -407,8 +401,8 @@ router.post("/translate", async (req, res) => {
                 feedback: response.feedback,
                 rating: response.rating,
             });
-            const currentProblemNumber = await storage_1.storage.getCurrentProblemNumber(userId, difficultyLevel);
-            await storage_1.storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
+            const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
+            await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
             res.json({ ...response, sessionId: trainingSession.id });
         }
         catch (sdkError) {
@@ -457,7 +451,7 @@ router.post("/translate", async (req, res) => {
                 };
                 const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
                 const userId = userEmail || "bizmowa.com";
-                const trainingSession = await storage_1.storage.addTrainingSession({
+                const trainingSession = await storage.addTrainingSession({
                     userId,
                     difficultyLevel,
                     japaneseSentence,
@@ -466,8 +460,8 @@ router.post("/translate", async (req, res) => {
                     feedback: response.feedback,
                     rating: response.rating,
                 });
-                const currentProblemNumber = await storage_1.storage.getCurrentProblemNumber(userId, difficultyLevel);
-                await storage_1.storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
+                const currentProblemNumber = await storage.getCurrentProblemNumber(userId, difficultyLevel);
+                await storage.updateProblemProgress(userId, difficultyLevel, currentProblemNumber + 1);
                 res.json({ ...response, sessionId: trainingSession.id });
             }
             catch (directApiError) {
@@ -502,7 +496,7 @@ router.get("/stripe-prices", async (req, res) => {
         if (!stripeSecretKey) {
             return res.status(500).json({ message: "Stripe not configured" });
         }
-        const stripe = new stripe_1.default(stripeSecretKey);
+        const stripe = new Stripe(stripeSecretKey);
         const prices = await stripe.prices.list({ limit: 50 });
         const formattedPrices = prices.data.map((price) => ({
             id: price.id,
@@ -590,7 +584,7 @@ router.post("/stripe/price-info", async (req, res) => {
         if (!stripeSecretKey) {
             return res.status(500).json({ message: "Stripe not configured" });
         }
-        const stripe = new stripe_1.default(stripeSecretKey);
+        const stripe = new Stripe(stripeSecretKey);
         const price = await stripe.prices.retrieve(priceId);
         res.json({
             id: price.id,
@@ -669,12 +663,12 @@ router.post("/plan-configuration", async (req, res) => {
 });
 router.post("/create-checkout-session", async (req, res) => {
     try {
-        const { priceId, successUrl, cancelUrl } = schema_1.createCheckoutSessionSchema.parse(req.body);
+        const { priceId, successUrl, cancelUrl } = createCheckoutSessionSchema.parse(req.body);
         const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
         if (!stripeSecretKey) {
             return res.status(500).json({ message: "Stripe not configured" });
         }
-        const stripe = new stripe_1.default(stripeSecretKey);
+        const stripe = new Stripe(stripeSecretKey);
         try {
             const price = await stripe.prices.retrieve(priceId);
             console.log("Price found:", price.id, "Amount:", price.unit_amount, "Currency:", price.currency);
@@ -717,7 +711,7 @@ router.get("/stripe-prices", async (req, res) => {
         if (!stripeSecretKey) {
             return res.status(500).json({ message: "Stripe not configured" });
         }
-        const stripe = new stripe_1.default(stripeSecretKey);
+        const stripe = new Stripe(stripeSecretKey);
         const prices = await stripe.prices.list({ active: true, limit: 100 });
         const account = await stripe.accounts.retrieve();
         res.json({
@@ -780,7 +774,7 @@ router.post("/create-subscription", async (req, res) => {
         }
         const planType = getPlanTypeFromPriceId(priceId);
         const userId = "bizmowa.com";
-        await storage_1.storage.updateUserSubscription(userId, {
+        await storage.updateUserSubscription(userId, {
             subscriptionType: planType,
             subscriptionStatus: "trialing",
             userId,
@@ -808,7 +802,7 @@ router.post("/create-customer-portal", async (req, res) => {
         if (!stripeSecretKey) {
             return res.status(500).json({ message: "Stripe not configured" });
         }
-        const stripe = new stripe_1.default(stripeSecretKey);
+        const stripe = new Stripe(stripeSecretKey);
         const customerId = "cus_example123";
         const session = await stripe.billingPortal.sessions.create({
             customer: customerId,
@@ -824,7 +818,7 @@ router.post("/create-customer-portal", async (req, res) => {
 router.get("/subscription-details", async (req, res) => {
     try {
         const userId = "default_user";
-        const subscription = await storage_1.storage.getUserSubscription(userId);
+        const subscription = await storage.getUserSubscription(userId);
         if (!subscription) {
             return res.status(404).json({ message: "Subscription not found" });
         }
@@ -872,7 +866,7 @@ router.post("/stripe-webhook", async (req, res) => {
             return res.status(400).send("Invalid webhook payload");
         }
     }
-    const stripe = new stripe_1.default(stripeSecretKey);
+    const stripe = new Stripe(stripeSecretKey);
     let event;
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
@@ -892,7 +886,7 @@ async function processWebhookEvent(event) {
             const planType = getPlanTypeFromPriceId(session.line_items?.data[0]?.price?.id || "");
             try {
                 const userId = session.metadata?.userId || "bizmowa.com";
-                await storage_1.storage.updateUserSubscription(userId, {
+                await storage.updateUserSubscription(userId, {
                     subscriptionType: planType,
                     subscriptionStatus: "trialing",
                     userId,
@@ -909,7 +903,7 @@ async function processWebhookEvent(event) {
             break;
         case "customer.subscription.deleted":
             try {
-                await storage_1.storage.updateUserSubscription("bizmowa.com", {
+                await storage.updateUserSubscription("bizmowa.com", {
                     subscriptionType: "standard",
                     subscriptionStatus: "inactive",
                 });
@@ -921,7 +915,7 @@ async function processWebhookEvent(event) {
             break;
         case "invoice.payment_succeeded":
             try {
-                await storage_1.storage.updateUserSubscription("bizmowa.com", {
+                await storage.updateUserSubscription("bizmowa.com", {
                     subscriptionStatus: "active",
                 });
                 console.log(`User subscription activated after payment`);
@@ -952,7 +946,7 @@ function getPlanTypeFromPriceId(priceId) {
 // Get training history
 router.get("/sessions", async (req, res) => {
     try {
-        const sessions = await storage_1.storage.getTrainingSessions();
+        const sessions = await storage.getTrainingSessions();
         res.json(sessions);
     }
     catch (error) {
@@ -963,7 +957,7 @@ router.get("/sessions", async (req, res) => {
 router.get("/sessions/:difficulty", async (req, res) => {
     try {
         const { difficulty } = req.params;
-        const sessions = await storage_1.storage.getSessionsByDifficulty(difficulty);
+        const sessions = await storage.getSessionsByDifficulty(difficulty);
         res.json(sessions);
     }
     catch (error) {
@@ -973,7 +967,7 @@ router.get("/sessions/:difficulty", async (req, res) => {
 // My Page APIs
 router.get("/user-goals", async (req, res) => {
     try {
-        const goals = await storage_1.storage.getUserGoals();
+        const goals = await storage.getUserGoals();
         res.json(goals || { dailyGoal: 30, monthlyGoal: 900 });
     }
     catch (error) {
@@ -984,7 +978,7 @@ router.get("/user-goals", async (req, res) => {
 router.post("/user-goals", async (req, res) => {
     try {
         const { dailyGoal, monthlyGoal } = req.body;
-        const goals = await storage_1.storage.updateUserGoals({ dailyGoal, monthlyGoal });
+        const goals = await storage.updateUserGoals({ dailyGoal, monthlyGoal });
         res.json(goals);
     }
     catch (error) {
@@ -1005,7 +999,7 @@ router.get("/progress", async (req, res) => {
         else {
             startDate.setDate(endDate.getDate() - 1);
         }
-        const progress = await storage_1.storage.getProgressHistory(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
+        const progress = await storage.getProgressHistory(startDate.toISOString().split("T")[0], endDate.toISOString().split("T")[0]);
         res.json(progress);
     }
     catch (error) {
@@ -1014,7 +1008,7 @@ router.get("/progress", async (req, res) => {
 });
 router.get("/streak", async (req, res) => {
     try {
-        const streak = await storage_1.storage.getStreakCount();
+        const streak = await storage.getStreakCount();
         res.json({ streak });
     }
     catch (error) {
@@ -1023,7 +1017,7 @@ router.get("/streak", async (req, res) => {
 });
 router.get("/difficulty-stats", async (req, res) => {
     try {
-        const stats = await storage_1.storage.getDifficultyStats();
+        const stats = await storage.getDifficultyStats();
         res.json(stats);
     }
     catch (error) {
@@ -1034,7 +1028,7 @@ router.get("/monthly-stats", async (req, res) => {
     try {
         const year = parseInt(req.query.year) || new Date().getFullYear();
         const month = parseInt(req.query.month) || new Date().getMonth() + 1;
-        const stats = await storage_1.storage.getMonthlyStats(year, month);
+        const stats = await storage.getMonthlyStats(year, month);
         res.json(stats);
     }
     catch (error) {
@@ -1044,7 +1038,7 @@ router.get("/monthly-stats", async (req, res) => {
 router.get("/review-sessions", async (req, res) => {
     try {
         const threshold = parseInt(req.query.threshold) || 2;
-        const sessions = await storage_1.storage.getSessionsForReview(threshold);
+        const sessions = await storage.getSessionsForReview(threshold);
         res.json(sessions);
     }
     catch (error) {
@@ -1054,7 +1048,7 @@ router.get("/review-sessions", async (req, res) => {
 router.get("/recent-sessions", async (req, res) => {
     try {
         const daysBack = parseInt(req.query.days) || 7;
-        const sessions = await storage_1.storage.getRecentSessions(daysBack);
+        const sessions = await storage.getRecentSessions(daysBack);
         res.json(sessions);
     }
     catch (error) {
@@ -1063,7 +1057,7 @@ router.get("/recent-sessions", async (req, res) => {
 });
 router.get("/bookmarked-sessions", async (req, res) => {
     try {
-        const sessions = await storage_1.storage.getBookmarkedSessions();
+        const sessions = await storage.getBookmarkedSessions();
         res.json(sessions);
     }
     catch (error) {
@@ -1074,7 +1068,7 @@ router.post("/sessions/:id/bookmark", async (req, res) => {
     try {
         const sessionId = parseInt(req.params.id);
         const { isBookmarked } = req.body;
-        await storage_1.storage.updateBookmark(sessionId, isBookmarked);
+        await storage.updateBookmark(sessionId, isBookmarked);
         res.json({ success: true });
     }
     catch (error) {
@@ -1084,7 +1078,7 @@ router.post("/sessions/:id/bookmark", async (req, res) => {
 router.post("/sessions/:id/review", async (req, res) => {
     try {
         const sessionId = parseInt(req.params.id);
-        await storage_1.storage.updateReviewCount(sessionId);
+        await storage.updateReviewCount(sessionId);
         res.json({ success: true });
     }
     catch (error) {
@@ -1093,7 +1087,7 @@ router.post("/sessions/:id/review", async (req, res) => {
 });
 router.get("/custom-scenarios", async (req, res) => {
     try {
-        const scenarios = await storage_1.storage.getCustomScenarios();
+        const scenarios = await storage.getCustomScenarios();
         res.json(scenarios);
     }
     catch (error) {
@@ -1103,7 +1097,7 @@ router.get("/custom-scenarios", async (req, res) => {
 router.post("/custom-scenarios", requirePremiumSubscription, async (req, res) => {
     try {
         const { title, description } = req.body;
-        const scenario = await storage_1.storage.addCustomScenario({ title, description });
+        const scenario = await storage.addCustomScenario({ title, description });
         res.json(scenario);
     }
     catch (error) {
@@ -1114,7 +1108,7 @@ router.put("/custom-scenarios/:id", requirePremiumSubscription, async (req, res)
     try {
         const id = parseInt(req.params.id);
         const { title, description } = req.body;
-        const scenario = await storage_1.storage.updateCustomScenario(id, {
+        const scenario = await storage.updateCustomScenario(id, {
             title,
             description,
         });
@@ -1127,7 +1121,7 @@ router.put("/custom-scenarios/:id", requirePremiumSubscription, async (req, res)
 router.delete("/custom-scenarios/:id", requirePremiumSubscription, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        await storage_1.storage.deleteCustomScenario(id);
+        await storage.deleteCustomScenario(id);
         res.json({ success: true });
     }
     catch (error) {
@@ -1137,7 +1131,7 @@ router.delete("/custom-scenarios/:id", requirePremiumSubscription, async (req, r
 router.get("/custom-scenarios/:id", async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const scenario = await storage_1.storage.getCustomScenario(id);
+        const scenario = await storage.getCustomScenario(id);
         if (!scenario) {
             return res.status(404).json({ message: "シナリオが見つかりません" });
         }
@@ -1150,7 +1144,7 @@ router.get("/custom-scenarios/:id", async (req, res) => {
 router.get("/simulation-problem/:scenarioId", requirePremiumSubscription, async (req, res) => {
     try {
         const scenarioId = parseInt(req.params.scenarioId);
-        const scenario = await storage_1.storage.getCustomScenario(scenarioId);
+        const scenario = await storage.getCustomScenario(scenarioId);
         if (!scenario) {
             return res.status(404).json({ message: "シナリオが見つかりません" });
         }
@@ -1250,7 +1244,7 @@ router.post("/simulation-translate", requirePremiumSubscription, async (req, res
                 .status(500)
                 .json({ message: "Anthropic API key not configured" });
         }
-        const scenario = await storage_1.storage.getCustomScenario(scenarioId);
+        const scenario = await storage.getCustomScenario(scenarioId);
         if (!scenario) {
             return res.status(404).json({ message: "シナリオが見つかりません" });
         }
@@ -1299,7 +1293,7 @@ router.post("/simulation-translate", requirePremiumSubscription, async (req, res
                 explanation: parsedResult.explanation || "",
                 similarPhrases: parsedResult.similarPhrases || [],
             };
-            await storage_1.storage.addTrainingSession({
+            await storage.addTrainingSession({
                 difficultyLevel: `simulation-${scenarioId}`,
                 japaneseSentence,
                 userTranslation,
@@ -1323,7 +1317,7 @@ router.post("/simulation-translate", requirePremiumSubscription, async (req, res
 });
 router.get("/daily-count", async (req, res) => {
     try {
-        const count = await storage_1.storage.getTodaysProblemCount();
+        const count = await storage.getTodaysProblemCount();
         res.json({ count, remaining: Math.max(0, 100 - count) });
     }
     catch (error) {
@@ -1333,7 +1327,7 @@ router.get("/daily-count", async (req, res) => {
 });
 router.post("/reset-daily-count", async (req, res) => {
     try {
-        await storage_1.storage.resetDailyCount();
+        await storage.resetDailyCount();
         res.json({ message: "Daily count reset successfully" });
     }
     catch (error) {
@@ -1364,7 +1358,7 @@ router.get("/user-subscription", async (req, res) => {
             }
         }
         console.log("Getting subscription for user:", userId);
-        const subscription = await storage_1.storage.getUserSubscription(userId);
+        const subscription = await storage.getUserSubscription(userId);
         if (!subscription) {
             console.log("No subscription found for user:", userId);
             return res.json(null);
@@ -1386,8 +1380,8 @@ router.post("/upgrade-subscription", async (req, res) => {
         if (!stripeSecretKey) {
             return res.status(500).json({ message: "Stripe not configured" });
         }
-        const stripe = new stripe_1.default(stripeSecretKey);
-        const subscription = await storage_1.storage.getUserSubscription();
+        const stripe = new Stripe(stripeSecretKey);
+        const subscription = await storage.getUserSubscription();
         if (!subscription || !subscription.stripeSubscriptionId) {
             return res
                 .status(400)
@@ -1412,7 +1406,7 @@ router.post("/upgrade-subscription", async (req, res) => {
             items: [{ id: subscriptionItemId, price: targetPriceId }],
             proration_behavior: "create_prorations",
         });
-        await storage_1.storage.updateUserSubscription(subscription.userId, {
+        await storage.updateUserSubscription(subscription.userId, {
             subscriptionType: "premium",
             stripeSubscriptionItemId: subscriptionItemId,
             planName: planType === "monthly" ? "premium_monthly" : "premium_yearly",
@@ -1430,11 +1424,11 @@ router.post("/upgrade-subscription", async (req, res) => {
 });
 router.get("/admin/stats", async (req, res) => {
     try {
-        const userSubscription = await storage_1.storage.getUserSubscription();
+        const userSubscription = await storage.getUserSubscription();
         if (!userSubscription?.isAdmin) {
             return res.status(403).json({ message: "管理者権限が必要です" });
         }
-        const stats = await storage_1.storage.getAdminStats();
+        const stats = await storage.getAdminStats();
         res.json(stats);
     }
     catch (error) {
@@ -1444,11 +1438,11 @@ router.get("/admin/stats", async (req, res) => {
 });
 router.get("/admin/users", async (req, res) => {
     try {
-        const userSubscription = await storage_1.storage.getUserSubscription();
+        const userSubscription = await storage.getUserSubscription();
         if (!userSubscription?.isAdmin) {
             return res.status(403).json({ message: "管理者権限が必要です" });
         }
-        const users = await storage_1.storage.getAllUsers();
+        const users = await storage.getAllUsers();
         res.json(users);
     }
     catch (error) {
@@ -1458,11 +1452,11 @@ router.get("/admin/users", async (req, res) => {
 });
 router.get("/admin/analytics", async (req, res) => {
     try {
-        const userSubscription = await storage_1.storage.getUserSubscription();
+        const userSubscription = await storage.getUserSubscription();
         if (!userSubscription?.isAdmin) {
             return res.status(403).json({ message: "管理者権限が必要です" });
         }
-        const analytics = await storage_1.storage.getLearningAnalytics();
+        const analytics = await storage.getLearningAnalytics();
         res.json(analytics);
     }
     catch (error) {
@@ -1472,12 +1466,12 @@ router.get("/admin/analytics", async (req, res) => {
 });
 router.get("/admin/export/:type", async (req, res) => {
     try {
-        const userSubscription = await storage_1.storage.getUserSubscription();
+        const userSubscription = await storage.getUserSubscription();
         if (!userSubscription?.isAdmin) {
             return res.status(403).json({ message: "管理者権限が必要です" });
         }
         const { type } = req.params;
-        const csvData = await storage_1.storage.exportData(type);
+        const csvData = await storage.exportData(type);
         res.setHeader("Content-Type", "text/csv");
         res.setHeader("Content-Disposition", `attachment; filename="${type}-export.csv"`);
         res.send(csvData);
@@ -1489,7 +1483,7 @@ router.get("/admin/export/:type", async (req, res) => {
 });
 router.put("/admin/users/:userId/subscription", async (req, res) => {
     try {
-        const userSubscription = await storage_1.storage.getUserSubscription();
+        const userSubscription = await storage.getUserSubscription();
         if (!userSubscription?.isAdmin) {
             return res.status(403).json({ message: "管理者権限が必要です" });
         }
@@ -1501,7 +1495,7 @@ router.put("/admin/users/:userId/subscription", async (req, res) => {
                 message: "有効なサブスクリプションタイプを指定してください",
             });
         }
-        const updatedSubscription = await storage_1.storage.updateUserSubscription(userId, {
+        const updatedSubscription = await storage.updateUserSubscription(userId, {
             subscriptionType,
         });
         res.json(updatedSubscription);
@@ -1515,7 +1509,7 @@ router.put("/admin/users/:userId/subscription", async (req, res) => {
 });
 router.post("/reset-user-data", async (req, res) => {
     try {
-        await storage_1.storage.resetUserData();
+        await storage.resetUserData();
         res.json({ success: true, message: "ユーザーデータをリセットしました" });
     }
     catch (error) {
@@ -1523,9 +1517,9 @@ router.post("/reset-user-data", async (req, res) => {
         res.status(500).json({ message: "データのリセットに失敗しました" });
     }
 });
-async function registerRoutes(app) {
+export async function registerRoutes(app) {
     // 通常APIルート
     app.use("/api", router);
     // Stripe Webhook
-    app.use("/api/stripe-webhook", stripe_webhook_1.default);
+    app.use("/api/stripe-webhook", stripeWebhookRouter);
 }

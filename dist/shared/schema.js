@@ -1,172 +1,169 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.DIFFICULTY_LEVELS = exports.checkoutSessionResponseSchema = exports.createCheckoutSessionSchema = exports.problemResponseSchema = exports.problemRequestSchema = exports.translateResponseSchema = exports.translateRequestSchema = exports.trainingSessionSchema = exports.insertProblemProgressSchema = exports.insertUserSubscriptionSchema = exports.insertCustomScenarioSchema = exports.insertDailyProgressSchema = exports.insertUserGoalSchema = exports.insertTrainingSessionSchema = exports.problemProgress = exports.customScenarios = exports.dailyProgress = exports.userSubscriptions = exports.userGoals = exports.trainingSessions = exports.sessions = void 0;
-const pg_core_1 = require("drizzle-orm/pg-core");
-const zod_1 = require("zod");
+import { pgTable, text, serial, integer, timestamp, jsonb, boolean, varchar, date, index, unique, real, } from "drizzle-orm/pg-core";
+import { z } from "zod";
 // Database Tables
 // Session storage table (mandatory for Replit Auth)
-exports.sessions = (0, pg_core_1.pgTable)("sessions", {
-    sid: (0, pg_core_1.varchar)("sid").primaryKey(),
-    sess: (0, pg_core_1.jsonb)("sess").notNull(),
-    expire: (0, pg_core_1.timestamp)("expire").notNull(),
-}, (table) => [(0, pg_core_1.index)("IDX_session_expire").on(table.expire)]);
+export const sessions = pgTable("sessions", {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+}, (table) => [index("IDX_session_expire").on(table.expire)]);
 // Training sessions table
-exports.trainingSessions = (0, pg_core_1.pgTable)("training_sessions", {
-    id: (0, pg_core_1.serial)("id").primaryKey(),
-    userId: (0, pg_core_1.varchar)("user_id", { length: 36 }).default("default_user").notNull(),
-    difficultyLevel: (0, pg_core_1.text)("difficulty_level").notNull(),
-    japaneseSentence: (0, pg_core_1.text)("japanese_sentence").notNull(),
-    userTranslation: (0, pg_core_1.text)("user_translation").notNull(),
-    correctTranslation: (0, pg_core_1.text)("correct_translation").notNull(),
-    feedback: (0, pg_core_1.text)("feedback").notNull(),
-    rating: (0, pg_core_1.integer)("rating").notNull(),
-    isBookmarked: (0, pg_core_1.boolean)("is_bookmarked").default(false).notNull(),
-    reviewCount: (0, pg_core_1.integer)("review_count").default(0).notNull(),
-    lastReviewed: (0, pg_core_1.timestamp)("last_reviewed"),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+export const trainingSessions = pgTable("training_sessions", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
+    difficultyLevel: text("difficulty_level").notNull(),
+    japaneseSentence: text("japanese_sentence").notNull(),
+    userTranslation: text("user_translation").notNull(),
+    correctTranslation: text("correct_translation").notNull(),
+    feedback: text("feedback").notNull(),
+    rating: integer("rating").notNull(),
+    isBookmarked: boolean("is_bookmarked").default(false).notNull(),
+    reviewCount: integer("review_count").default(0).notNull(),
+    lastReviewed: timestamp("last_reviewed"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 // User goals table
-exports.userGoals = (0, pg_core_1.pgTable)("user_goals", {
-    id: (0, pg_core_1.serial)("id").primaryKey(),
-    dailyGoal: (0, pg_core_1.integer)("daily_goal").notNull().default(30),
-    monthlyGoal: (0, pg_core_1.integer)("monthly_goal").notNull().default(900),
-    createdAt: (0, pg_core_1.timestamp)("created_at").notNull().defaultNow(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at").notNull().defaultNow(),
+export const userGoals = pgTable("user_goals", {
+    id: serial("id").primaryKey(),
+    dailyGoal: integer("daily_goal").notNull().default(30),
+    monthlyGoal: integer("monthly_goal").notNull().default(900),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 // User subscription table
-exports.userSubscriptions = (0, pg_core_1.pgTable)("user_subscriptions", {
-    id: (0, pg_core_1.serial)("id").primaryKey(),
-    userId: (0, pg_core_1.varchar)("user_id", { length: 36 })
+export const userSubscriptions = pgTable("user_subscriptions", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 36 })
         .default("default_user")
         .notNull(),
-    subscriptionType: (0, pg_core_1.varchar)("subscription_type")
+    subscriptionType: varchar("subscription_type")
         .default("standard")
         .notNull(), // "standard" or "premium"
-    subscriptionStatus: (0, pg_core_1.varchar)("subscription_status")
+    subscriptionStatus: varchar("subscription_status")
         .default("inactive")
         .notNull(), // active, trialing, canceled, past_due, etc.
-    planName: (0, pg_core_1.varchar)("plan_name"), // standard_monthly, premium_yearly, etc.
-    stripeCustomerId: (0, pg_core_1.varchar)("stripe_customer_id"),
-    stripeSubscriptionId: (0, pg_core_1.varchar)("stripe_subscription_id"),
-    stripeSubscriptionItemId: (0, pg_core_1.varchar)("stripe_subscription_item_id"), // For subscription upgrades
-    validUntil: (0, pg_core_1.timestamp)("valid_until"),
-    trialStart: (0, pg_core_1.timestamp)("trial_start"),
-    isAdmin: (0, pg_core_1.boolean)("is_admin").default(false).notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
+    planName: varchar("plan_name"), // standard_monthly, premium_yearly, etc.
+    stripeCustomerId: varchar("stripe_customer_id"),
+    stripeSubscriptionId: varchar("stripe_subscription_id"),
+    stripeSubscriptionItemId: varchar("stripe_subscription_item_id"), // For subscription upgrades
+    validUntil: timestamp("valid_until"),
+    trialStart: timestamp("trial_start"),
+    isAdmin: boolean("is_admin").default(false).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
-    uniqueUserId: (0, pg_core_1.unique)().on(table.userId),
+    uniqueUserId: unique().on(table.userId),
 }));
 // Daily progress table - Updated
-exports.dailyProgress = (0, pg_core_1.pgTable)("daily_progress", {
-    id: (0, pg_core_1.serial)("id").primaryKey(),
-    date: (0, pg_core_1.date)("date").notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
-    dailyCount: (0, pg_core_1.integer)("daily_count").default(0).notNull(),
-    problemsCompleted: (0, pg_core_1.integer)("problems_completed").default(0).notNull(),
-    averageRating: (0, pg_core_1.real)("average_rating").default(0).notNull(),
+export const dailyProgress = pgTable("daily_progress", {
+    id: serial("id").primaryKey(),
+    date: date("date").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    dailyCount: integer("daily_count").default(0).notNull(),
+    problemsCompleted: integer("problems_completed").default(0).notNull(),
+    averageRating: real("average_rating").default(0).notNull(),
 });
 // Custom scenarios table - Updated
-exports.customScenarios = (0, pg_core_1.pgTable)("custom_scenarios", {
-    id: (0, pg_core_1.serial)("id").primaryKey(),
-    title: (0, pg_core_1.text)("title").notNull(),
-    description: (0, pg_core_1.text)("description").notNull(),
-    isActive: (0, pg_core_1.boolean)("is_active").default(true).notNull(),
-    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow().notNull(),
+export const customScenarios = pgTable("custom_scenarios", {
+    id: serial("id").primaryKey(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 // Problem progress table - Updated
-exports.problemProgress = (0, pg_core_1.pgTable)("problem_progress", {
-    id: (0, pg_core_1.serial)("id").primaryKey(),
-    userId: (0, pg_core_1.varchar)("user_id", { length: 36 }).notNull(),
-    difficultyLevel: (0, pg_core_1.text)("difficulty_level").notNull(),
-    currentProblemNumber: (0, pg_core_1.integer)("current_problem_number")
+export const problemProgress = pgTable("problem_progress", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    difficultyLevel: text("difficulty_level").notNull(),
+    currentProblemNumber: integer("current_problem_number")
         .default(0)
         .notNull(),
-    updatedAt: (0, pg_core_1.timestamp)("updated_at").defaultNow().notNull(),
-    isBookmarked: (0, pg_core_1.boolean)("is_bookmarked").default(false).notNull(),
-    reviewCount: (0, pg_core_1.integer)("review_count").default(0).notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    isBookmarked: boolean("is_bookmarked").default(false).notNull(),
+    reviewCount: integer("review_count").default(0).notNull(),
 }, (table) => ({
-    uniqueUserDifficulty: (0, pg_core_1.unique)().on(table.userId, table.difficultyLevel),
+    uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
 }));
 // All tables defined above - schema complete
 // Insert schemas - manual Zod schemas to match exact table structure
-exports.insertTrainingSessionSchema = zod_1.z.object({
-    userId: zod_1.z.string().optional(),
-    difficultyLevel: zod_1.z.string(),
-    japaneseSentence: zod_1.z.string(),
-    userTranslation: zod_1.z.string(),
-    correctTranslation: zod_1.z.string(),
-    feedback: zod_1.z.string(),
-    rating: zod_1.z.number(),
-    isBookmarked: zod_1.z.boolean().optional(),
-    reviewCount: zod_1.z.number().optional(),
-    lastReviewed: zod_1.z.date().nullable().optional(),
+export const insertTrainingSessionSchema = z.object({
+    userId: z.string().optional(),
+    difficultyLevel: z.string(),
+    japaneseSentence: z.string(),
+    userTranslation: z.string(),
+    correctTranslation: z.string(),
+    feedback: z.string(),
+    rating: z.number(),
+    isBookmarked: z.boolean().optional(),
+    reviewCount: z.number().optional(),
+    lastReviewed: z.date().nullable().optional(),
 });
-exports.insertUserGoalSchema = zod_1.z.object({
-    dailyGoal: zod_1.z.number(),
-    monthlyGoal: zod_1.z.number(),
+export const insertUserGoalSchema = z.object({
+    dailyGoal: z.number(),
+    monthlyGoal: z.number(),
 });
-exports.insertDailyProgressSchema = zod_1.z.object({
-    date: zod_1.z.string(),
-    dailyCount: zod_1.z.number().optional(),
-    problemsCompleted: zod_1.z.number(),
-    averageRating: zod_1.z.number(),
+export const insertDailyProgressSchema = z.object({
+    date: z.string(),
+    dailyCount: z.number().optional(),
+    problemsCompleted: z.number(),
+    averageRating: z.number(),
 });
-exports.insertCustomScenarioSchema = zod_1.z.object({
-    title: zod_1.z.string(),
-    description: zod_1.z.string(),
-    isActive: zod_1.z.boolean().optional(),
+export const insertCustomScenarioSchema = z.object({
+    title: z.string(),
+    description: z.string(),
+    isActive: z.boolean().optional(),
 });
-exports.insertUserSubscriptionSchema = zod_1.z.object({
-    userId: zod_1.z.string().optional(),
-    subscriptionType: zod_1.z.string().optional(),
-    subscriptionStatus: zod_1.z.string().optional(),
-    planName: zod_1.z.string().nullable().optional(),
-    stripeCustomerId: zod_1.z.string().nullable().optional(),
-    stripeSubscriptionId: zod_1.z.string().nullable().optional(),
-    stripeSubscriptionItemId: zod_1.z.string().nullable().optional(),
-    validUntil: zod_1.z.date().nullable().optional(),
-    trialStart: zod_1.z.date().nullable().optional(),
-    isAdmin: zod_1.z.boolean().optional(),
+export const insertUserSubscriptionSchema = z.object({
+    userId: z.string().optional(),
+    subscriptionType: z.string().optional(),
+    subscriptionStatus: z.string().optional(),
+    planName: z.string().nullable().optional(),
+    stripeCustomerId: z.string().nullable().optional(),
+    stripeSubscriptionId: z.string().nullable().optional(),
+    stripeSubscriptionItemId: z.string().nullable().optional(),
+    validUntil: z.date().nullable().optional(),
+    trialStart: z.date().nullable().optional(),
+    isAdmin: z.boolean().optional(),
 });
-exports.insertProblemProgressSchema = zod_1.z.object({
-    userId: zod_1.z.string(),
-    difficultyLevel: zod_1.z.string(),
-    currentProblemNumber: zod_1.z.number().optional(),
-    isBookmarked: zod_1.z.boolean().optional(),
-    reviewCount: zod_1.z.number().optional(),
+export const insertProblemProgressSchema = z.object({
+    userId: z.string(),
+    difficultyLevel: z.string(),
+    currentProblemNumber: z.number().optional(),
+    isBookmarked: z.boolean().optional(),
+    reviewCount: z.number().optional(),
 });
 // Zod Schemas - Date型に統一
-exports.trainingSessionSchema = zod_1.z.object({
-    id: zod_1.z.number(),
-    difficultyLevel: zod_1.z.string(),
-    japaneseSentence: zod_1.z.string(),
-    userTranslation: zod_1.z.string(),
-    correctTranslation: zod_1.z.string(),
-    feedback: zod_1.z.string(),
-    rating: zod_1.z.number().min(1).max(5),
-    isBookmarked: zod_1.z.boolean().optional(),
-    reviewCount: zod_1.z.number().optional(),
-    lastReviewed: zod_1.z.date().optional(),
-    createdAt: zod_1.z.date(),
+export const trainingSessionSchema = z.object({
+    id: z.number(),
+    difficultyLevel: z.string(),
+    japaneseSentence: z.string(),
+    userTranslation: z.string(),
+    correctTranslation: z.string(),
+    feedback: z.string(),
+    rating: z.number().min(1).max(5),
+    isBookmarked: z.boolean().optional(),
+    reviewCount: z.number().optional(),
+    lastReviewed: z.date().optional(),
+    createdAt: z.date(),
 });
 // API request/response schemas
-exports.translateRequestSchema = zod_1.z.object({
-    japaneseSentence: zod_1.z.string().min(1),
-    userTranslation: zod_1.z.string().min(1),
-    difficultyLevel: zod_1.z.string(), // Allow simulation-X format as well as standard difficulty levels
+export const translateRequestSchema = z.object({
+    japaneseSentence: z.string().min(1),
+    userTranslation: z.string().min(1),
+    difficultyLevel: z.string(), // Allow simulation-X format as well as standard difficulty levels
 });
-exports.translateResponseSchema = zod_1.z.object({
-    correctTranslation: zod_1.z.string(),
-    feedback: zod_1.z.string(),
-    rating: zod_1.z.number().min(1).max(5),
-    improvements: zod_1.z.array(zod_1.z.string()).optional(),
-    explanation: zod_1.z.string(),
-    similarPhrases: zod_1.z.array(zod_1.z.string()),
-    sessionId: zod_1.z.number().optional(),
+export const translateResponseSchema = z.object({
+    correctTranslation: z.string(),
+    feedback: z.string(),
+    rating: z.number().min(1).max(5),
+    improvements: z.array(z.string()).optional(),
+    explanation: z.string(),
+    similarPhrases: z.array(z.string()),
+    sessionId: z.number().optional(),
 });
-exports.problemRequestSchema = zod_1.z.object({
-    difficultyLevel: zod_1.z.enum([
+export const problemRequestSchema = z.object({
+    difficultyLevel: z.enum([
         "toeic",
         "middle-school",
         "high-school",
@@ -174,22 +171,22 @@ exports.problemRequestSchema = zod_1.z.object({
         "business-email",
     ]),
 });
-exports.problemResponseSchema = zod_1.z.object({
-    japaneseSentence: zod_1.z.string(),
-    hints: zod_1.z.array(zod_1.z.string()).optional(),
+export const problemResponseSchema = z.object({
+    japaneseSentence: z.string(),
+    hints: z.array(z.string()).optional(),
 });
 // Stripe payment schemas
-exports.createCheckoutSessionSchema = zod_1.z.object({
-    priceId: zod_1.z.string(),
-    successUrl: zod_1.z.string().optional(),
-    cancelUrl: zod_1.z.string().optional(),
+export const createCheckoutSessionSchema = z.object({
+    priceId: z.string(),
+    successUrl: z.string().optional(),
+    cancelUrl: z.string().optional(),
 });
-exports.checkoutSessionResponseSchema = zod_1.z.object({
-    url: zod_1.z.string(),
-    sessionId: zod_1.z.string(),
+export const checkoutSessionResponseSchema = z.object({
+    url: z.string(),
+    sessionId: z.string(),
 });
 // Difficulty level metadata
-exports.DIFFICULTY_LEVELS = {
+export const DIFFICULTY_LEVELS = {
     toeic: {
         name: "TOEIC",
         description: "ビジネス英語・資格対策",
