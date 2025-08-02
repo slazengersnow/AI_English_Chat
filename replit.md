@@ -33,10 +33,12 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Implemented Replit-specific OAuth configuration using REPLIT_DEV_DOMAIN
 - Created Replit-optimized authentication page (/replit-auth-fix)
 - Resolved Preview environment OAuth restrictions
-- **CRITICAL FIX**: Resolved infinite loop in TrainingInterface useEffect
-- Fixed API routing to properly mount problem generation endpoints
-- Added database constraint and fixed daily count tracking
-- Implemented proper subscription validation and activation
+- **CRITICAL REBUILD (Aug 2, 2025)**: Completely rebuilt training interface from zero
+- Replaced complex TrainingInterface with SingleProblemPractice component
+- Implemented strict 1-problem-only architecture with manual step control
+- Eliminated all useEffect-based automatic problem generation
+- Fixed infinite loop by removing mutation chains and auto-triggers
+- Created clean state machine: start → problem_shown → answer_input → result_shown
 
 ## System Architecture
 
