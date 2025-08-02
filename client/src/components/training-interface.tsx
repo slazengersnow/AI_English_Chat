@@ -322,8 +322,8 @@ export function TrainingInterface({
   const [isInitialized, setIsInitialized] = useState(false);
   
   const initializeProblem = () => {
-    if (isInitialized) {
-      console.log("Already initialized, skipping");
+    if (isInitialized || isRequestInProgress) {
+      console.log("Already initialized or request in progress, skipping");
       return;
     }
     
@@ -403,7 +403,11 @@ export function TrainingInterface({
 
     // No review problem or not for this difficulty, get new problem
     console.log("Getting new problem via mutation");
-    getProblemMutation.mutate();
+    if (!getProblemMutation.isPending && !isRequestInProgress) {
+      getProblemMutation.mutate();
+    } else {
+      console.log("Skipping mutation - already pending or in progress");
+    }
   };
 
   const handleNextProblem = () => {
@@ -465,31 +469,38 @@ export function TrainingInterface({
       setHasInitializedProblemNumber(true);
     }
     setProblemNumber((prev) => prev + 1);
-    getProblemMutation.mutate();
+    
+    // Only call mutation if not already in progress
+    if (!getProblemMutation.isPending && !isRequestInProgress) {
+      getProblemMutation.mutate();
+    } else {
+      console.log("Skipping mutation - already pending or in progress");
+    }
   };
 
   // Initialize problem only once when component mounts or difficulty changes
   useEffect(() => {
     console.log("Difficulty effect triggered for:", difficulty);
     
-    // Reset state immediately
+    // Reset initialization state when difficulty changes
     setIsInitialized(false);
+    setIsRequestInProgress(false);
+    
+    // Reset UI state immediately
     setMessages([]);
     setShowNextButton(false);
     setIsWaitingForTranslation(false);
-    setIsRequestInProgress(false); // Reset request flag
     
-    // Use a timeout to ensure state is reset first, then initialize once
-    const timeoutId = setTimeout(() => {
-      console.log("Timeout executing initialization");
+    // Use a small delay to ensure state updates have processed
+    const initTimer = setTimeout(() => {
+      console.log("Starting initialization for difficulty:", difficulty);
       initializeProblem();
-    }, 100);
-
+    }, 10);
+    
     return () => {
-      console.log("Cleaning up timeout for difficulty:", difficulty);
-      clearTimeout(timeoutId);
+      clearTimeout(initTimer);
     };
-  }, [difficulty]);
+  }, [difficulty]); // Only depend on difficulty
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
