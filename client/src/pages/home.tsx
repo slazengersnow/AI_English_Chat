@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { DifficultySelection } from "@/components/difficulty-selection";
-// import { TrainingInterface } from "@/components/training-interface";
+import { TrainingInterface } from "@/components/training-interface";
 import { SimpleTrainingTest } from "@/components/simple-training-test";
 import { PaymentModal } from "@/components/payment-modal";
 import { Button } from "@/components/ui/button";
@@ -111,10 +111,11 @@ export default function Home() {
       )}
       
       {currentView === 'training' && selectedDifficulty && (
-        <div className="p-8 text-center">
-          <p className="text-lg text-gray-600 mb-4">現在、TrainingInterfaceは無効化されています</p>
-          <Button onClick={handleBackToDifficulty}>戻る</Button>
-        </div>
+        <TrainingInterface 
+          difficulty={selectedDifficulty}
+          onBack={handleBackToDifficulty}
+          onShowPayment={handleShowPayment}
+        />
       )}
       
       {currentView === 'test' && (
