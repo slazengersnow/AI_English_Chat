@@ -6,101 +6,147 @@ import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import { SpeechButton } from "@/components/speech-button";
 
-interface SingleProblemPracticeProps {
+interface OneProblemOnlyProps {
   difficulty: DifficultyKey;
   onBack: () => void;
 }
 
-type PracticeStep = "loading" | "problem_shown" | "evaluating" | "result_shown" | "error";
-
-interface ProblemData {
-  japaneseSentence: string;
-  hints?: string[];
-}
-
-interface EvaluationData {
-  rating: number;
-  feedback: string;
-  correctTranslation: string;
-  explanation?: string;
-  similarPhrases?: string[];
-  improvements?: string[];
-  sessionId: number;
-}
-
-export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPracticeProps) {
-  const [step, setStep] = useState<PracticeStep>("loading");
-  const [error, setError] = useState<string>("");
-  
-  // Problem state
-  const [problem, setProblem] = useState<ProblemData | null>(null);
+export function OneProblemOnly({ difficulty, onBack }: OneProblemOnlyProps) {
+  // State management - keep minimal
+  const [currentState, setCurrentState] = useState<"loading" | "show_problem" | "evaluating" | "show_result" | "error">("loading");
+  const [problem, setProblem] = useState<string>("");
   const [userAnswer, setUserAnswer] = useState("");
-  const [evaluation, setEvaluation] = useState<EvaluationData | null>(null);
+  const [evaluation, setEvaluation] = useState<any>(null);
+  const [error, setError] = useState<string>("");
   const [isBookmarked, setIsBookmarked] = useState(false);
   
-  // Critical: Use ref to prevent double execution
+  // Critical: Prevent double execution with useRef
   const hasGenerated = useRef(false);
 
-  // Generate problem ONLY once on mount
+  // ONE-TIME problem generation on mount ONLY
   useEffect(() => {
-    const generateProblem = async () => {
-      // Prevent double execution
+    let isMounted = true;
+
+    const generateOneProblem = async () => {
+      // Double-check prevention
       if (hasGenerated.current) {
-        console.log("Problem already generated, skipping");
+        console.log("Already generated, skipping");
         return;
       }
       
       hasGenerated.current = true;
-      console.log("Generating single problem for difficulty:", difficulty);
+      console.log("Generating ONE problem for:", difficulty);
       
       try {
         const response = await apiRequest("POST", "/api/problem", {
           difficultyLevel: difficulty,
         });
-        const data: ProblemData = await response.json();
         
-        console.log("Problem generated successfully:", data.japaneseSentence);
-        setProblem(data);
-        setStep("problem_shown");
+        if (!isMounted) return;
+        
+        const data = await response.json();
+        console.log("Problem generated:", data.japaneseSentence);
+        
+        setProblem(data.japaneseSentence);
+        setCurrentState("show_problem");
       } catch (err: any) {
+        if (!isMounted) return;
+        
         console.error("Problem generation failed:", err);
         if (err.message?.includes("429") || err.message?.includes("最大出題数")) {
           setError("本日の最大出題数（100問）に達しました。明日また学習を再開できます。");
         } else {
           setError("問題の生成に失敗しました。しばらく待ってから再試行してください。");
         }
-        setStep("error");
+        setCurrentState("error");
       }
     };
 
-    generateProblem();
-  }, []); // Empty dependency array - only run once on mount
+    generateOneProblem();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // EMPTY dependency array - critical for preventing loops
 
   const handleSubmitAnswer = async () => {
-    if (!problem || !userAnswer.trim()) return;
+    if (!userAnswer.trim() || !problem) return;
     
-    setStep("evaluating");
+    setCurrentState("evaluating");
     setError("");
     
     try {
       const response = await apiRequest("POST", "/api/translate", {
-        japaneseSentence: problem.japaneseSentence,
+        japaneseSentence: problem,
         userTranslation: userAnswer.trim(),
         difficultyLevel: difficulty,
       });
-      const data: EvaluationData = await response.json();
+      const data = await response.json();
       
       setEvaluation(data);
-      setStep("result_shown");
+      setCurrentState("show_result");
     } catch (err: any) {
       console.error("Evaluation failed:", err);
       setError("評価に失敗しました。しばらく待ってから再試行してください。");
-      setStep("error");
+      setCurrentState("error");
     }
   };
 
+  const handleNewProblem = () => {
+    // Complete reset for new problem
+    hasGenerated.current = false;
+    setCurrentState("loading");
+    setProblem("");
+    setUserAnswer("");
+    setEvaluation(null);
+    setIsBookmarked(false);
+    setError("");
+    
+    // Small delay to ensure state reset
+    setTimeout(() => {
+      let isMounted = true;
+
+      const generateNewProblem = async () => {
+        if (hasGenerated.current) return;
+        
+        hasGenerated.current = true;
+        console.log("Generating NEW problem for:", difficulty);
+        
+        try {
+          const response = await apiRequest("POST", "/api/problem", {
+            difficultyLevel: difficulty,
+          });
+          
+          if (!isMounted) return;
+          
+          const data = await response.json();
+          console.log("New problem generated:", data.japaneseSentence);
+          
+          setProblem(data.japaneseSentence);
+          setCurrentState("show_problem");
+        } catch (err: any) {
+          if (!isMounted) return;
+          
+          console.error("New problem generation failed:", err);
+          if (err.message?.includes("429") || err.message?.includes("最大出題数")) {
+            setError("本日の最大出題数（100問）に達しました。明日また学習を再開できます。");
+          } else {
+            setError("問題の生成に失敗しました。しばらく待ってから再試行してください。");
+          }
+          setCurrentState("error");
+        }
+      };
+
+      generateNewProblem();
+
+      return () => {
+        isMounted = false;
+      };
+    }, 200);
+  };
+
   const handleToggleBookmark = async () => {
-    if (!evaluation) return;
+    if (!evaluation?.sessionId) return;
     
     try {
       await apiRequest("POST", `/api/sessions/${evaluation.sessionId}/bookmark`, {
@@ -112,50 +158,8 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
     }
   };
 
-  const handleNewProblem = () => {
-    // Reset all state
-    hasGenerated.current = false;
-    setStep("loading");
-    setProblem(null);
-    setUserAnswer("");
-    setEvaluation(null);
-    setIsBookmarked(false);
-    setError("");
-    
-    // Generate new problem
-    setTimeout(() => {
-      const generateProblem = async () => {
-        if (hasGenerated.current) return;
-        
-        hasGenerated.current = true;
-        console.log("Generating new problem for difficulty:", difficulty);
-        
-        try {
-          const response = await apiRequest("POST", "/api/problem", {
-            difficultyLevel: difficulty,
-          });
-          const data: ProblemData = await response.json();
-          
-          console.log("New problem generated:", data.japaneseSentence);
-          setProblem(data);
-          setStep("problem_shown");
-        } catch (err: any) {
-          console.error("New problem generation failed:", err);
-          if (err.message?.includes("429") || err.message?.includes("最大出題数")) {
-            setError("本日の最大出題数（100問）に達しました。明日また学習を再開できます。");
-          } else {
-            setError("問題の生成に失敗しました。しばらく待ってから再試行してください。");
-          }
-          setStep("error");
-        }
-      };
-
-      generateProblem();
-    }, 100);
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey && step === "problem_shown" && userAnswer.trim()) {
+    if (e.key === "Enter" && !e.shiftKey && currentState === "show_problem" && userAnswer.trim()) {
       e.preventDefault();
       handleSubmitAnswer();
     }
@@ -189,7 +193,7 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             <div className="flex items-center space-x-2">
               <Sparkles className="w-5 h-5 text-blue-600" />
               <span className="font-semibold text-gray-900 text-sm sm:text-base">
-                {DIFFICULTY_LEVELS[difficulty]}
+                {DIFFICULTY_LEVELS[difficulty]?.name || difficulty}
               </span>
             </div>
           </div>
@@ -213,14 +217,14 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Loading Step */}
-          {step === "loading" && (
+          {/* Loading State */}
+          {currentState === "loading" && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mx-auto mb-6 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-white animate-spin" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {DIFFICULTY_LEVELS[difficulty]} - 1問練習
+                {DIFFICULTY_LEVELS[difficulty]?.name || difficulty} - 1問練習
               </h2>
               <p className="text-gray-600">
                 問題を生成中...
@@ -228,8 +232,8 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Error Step */}
-          {step === "error" && (
+          {/* Error State */}
+          {currentState === "error" && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-6 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-red-600" />
@@ -249,8 +253,8 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Problem Step */}
-          {step === "problem_shown" && problem && (
+          {/* Problem Display */}
+          {currentState === "show_problem" && problem && (
             <>
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
                 <div className="flex items-start justify-between mb-2">
@@ -258,12 +262,12 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
                     問題
                   </span>
                   <SpeechButton
-                    text={problem.japaneseSentence}
+                    text={problem}
                     className="text-gray-400 hover:text-gray-600"
                   />
                 </div>
                 <div className="text-sm sm:text-base leading-relaxed text-gray-900">
-                  {problem.japaneseSentence}
+                  {problem}
                 </div>
               </div>
 
@@ -282,8 +286,8 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </>
           )}
 
-          {/* User Answer */}
-          {step === "result_shown" && (
+          {/* User Answer Display */}
+          {currentState === "show_result" && userAnswer && (
             <div className="bg-blue-600 text-white rounded-2xl px-4 py-3 ml-auto max-w-[85%]">
               <div className="text-sm sm:text-base leading-relaxed">
                 {userAnswer}
@@ -291,15 +295,15 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Evaluation Result */}
-          {step === "result_shown" && evaluation && (
+          {/* Evaluation Display */}
+          {currentState === "show_result" && evaluation && (
             <div className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-3">
               <div className="space-y-3">
                 {/* Rating */}
                 <div className="flex items-center space-x-2">
                   <span className="text-xs font-medium text-gray-600">評価:</span>
-                  <div className="flex space-x-1">{renderStars(evaluation.rating)}</div>
-                  <span className="text-xs text-gray-600">({evaluation.rating}/5)</span>
+                  <div className="flex space-x-1">{renderStars(evaluation.rating || 0)}</div>
+                  <span className="text-xs text-gray-600">({evaluation.rating || 0}/5)</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -360,7 +364,7 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
                       類似表現:
                     </span>
                     <div className="space-y-1">
-                      {evaluation.similarPhrases.map((phrase, idx) => (
+                      {evaluation.similarPhrases.map((phrase: string, idx: number) => (
                         <div key={idx} className="flex items-center justify-between">
                           <p className="text-sm text-purple-800">{phrase}</p>
                           <SpeechButton
@@ -382,7 +386,7 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
                       改善点:
                     </span>
                     <div className="space-y-1">
-                      {evaluation.improvements.map((improvement, idx) => (
+                      {evaluation.improvements.map((improvement: string, idx: number) => (
                         <p key={idx} className="text-sm text-orange-800">
                           • {improvement}
                         </p>
@@ -394,8 +398,8 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Evaluating Step */}
-          {step === "evaluating" && (
+          {/* Evaluating State */}
+          {currentState === "evaluating" && (
             <div className="flex justify-center">
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
                 <div className="text-sm text-gray-600">
@@ -407,25 +411,21 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
         </div>
       </div>
 
-      {/* Input/Action Area */}
+      {/* Action Area */}
       <div className="bg-white border-t border-gray-200 px-2 sm:px-4 py-3">
         <div className="max-w-2xl mx-auto">
-          {step === "problem_shown" && (
-            <div className="flex space-x-2">
-              <div className="flex-1">
-                <Button
-                  onClick={handleSubmitAnswer}
-                  disabled={!userAnswer.trim() || step === "evaluating"}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
-                >
-                  {step === "evaluating" ? "評価中..." : "回答を送信"}
-                  <Send className="w-5 h-5 ml-2" />
-                </Button>
-              </div>
-            </div>
+          {currentState === "show_problem" && (
+            <Button
+              onClick={handleSubmitAnswer}
+              disabled={!userAnswer.trim() || currentState === "evaluating"}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
+            >
+              {currentState === "evaluating" ? "評価中..." : "回答を送信"}
+              <Send className="w-5 h-5 ml-2" />
+            </Button>
           )}
           
-          {step === "result_shown" && (
+          {currentState === "show_result" && (
             <Button
               onClick={handleNewProblem}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"

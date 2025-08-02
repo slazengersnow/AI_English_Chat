@@ -1,5 +1,5 @@
 import React from "react";
-import { SingleProblemPractice } from "./single-problem-practice";
+import { OneProblemOnly } from "./one-problem-only";
 import { type DifficultyKey } from "@/lib/constants";
 
 interface TrainingInterfaceProps {
@@ -14,7 +14,7 @@ export function TrainingInterface({
   onShowPayment,
 }: TrainingInterfaceProps) {
   return (
-    <SingleProblemPractice 
+    <OneProblemOnly 
       difficulty={difficulty} 
       onBack={onBack} 
     />
