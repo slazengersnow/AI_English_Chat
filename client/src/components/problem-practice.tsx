@@ -1,55 +1,45 @@
 import React, { useReducer, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  ArrowLeft,
-  Send,
-  Star,
-  Sparkles,
-  Bookmark,
-  BookmarkCheck,
-} from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
+import { ArrowLeft, Send, Star, Bookmark, BookmarkCheck } from "lucide-react";
+import { useApiMutation } from "@/lib/queryClient";
 import { SpeechButton } from "@/components/speech-button";
+import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
 interface ProblemPracticeProps {
   difficulty: DifficultyKey;
   onBack: () => void;
 }
 
-// Explicit state machine to prevent loops
-type AppStep =
-  | "loading"
-  | "show_problem"
-  | "waiting_user_input"
-  | "evaluating"
-  | "show_result"
-  | "wait_for_next_button"
-  | "error"
-  | "daily_limit_reached";
+// Simple state machine - NO COMPLEX TRANSITIONS
+type ProblemStep = 
+  | "loading" 
+  | "problem_ready" 
+  | "input_ready" 
+  | "evaluating" 
+  | "result_ready"
+  | "daily_limit"
+  | "error";
 
 interface ProblemState {
-  step: AppStep;
+  step: ProblemStep;
   problem: string;
   userAnswer: string;
   evaluation: any;
   error: string;
   isBookmarked: boolean;
-  dailyLimitReached: boolean;
 }
 
 type ProblemAction =
-  | { type: "LOAD_PROBLEM_START" }
-  | { type: "LOAD_PROBLEM_SUCCESS"; problem: string }
-  | { type: "LOAD_PROBLEM_ERROR"; error: string }
-  | { type: "SET_DAILY_LIMIT_REACHED" }
-  | { type: "SET_USER_ANSWER"; answer: string }
-  | { type: "EVALUATE_START" }
-  | { type: "EVALUATE_SUCCESS"; evaluation: any }
-  | { type: "EVALUATE_ERROR"; error: string }
+  | { type: "START_LOADING" }
+  | { type: "PROBLEM_LOADED"; problem: string }
+  | { type: "SET_DAILY_LIMIT" }
+  | { type: "SET_ERROR"; error: string }
+  | { type: "SET_USER_INPUT"; input: string }
+  | { type: "START_EVALUATION" }
+  | { type: "EVALUATION_DONE"; evaluation: any }
   | { type: "TOGGLE_BOOKMARK" }
-  | { type: "PREPARE_NEXT_PROBLEM" };
+  | { type: "RESET_FOR_NEXT" };
 
 const initialState: ProblemState = {
   step: "loading",
@@ -58,86 +48,61 @@ const initialState: ProblemState = {
   evaluation: null,
   error: "",
   isBookmarked: false,
-  dailyLimitReached: false,
 };
 
-function problemReducer(
-  state: ProblemState,
-  action: ProblemAction,
-): ProblemState {
+function problemReducer(state: ProblemState, action: ProblemAction): ProblemState {
   switch (action.type) {
-    case "LOAD_PROBLEM_START":
-      return {
-        ...initialState,
-        step: "loading",
-        dailyLimitReached: state.dailyLimitReached, // Preserve daily limit state
-      };
-
-    case "LOAD_PROBLEM_SUCCESS":
-      return {
-        ...state,
-        step: "show_problem",
+    case "START_LOADING":
+      return { ...initialState, step: "loading" };
+    
+    case "PROBLEM_LOADED":
+      return { 
+        ...state, 
+        step: "problem_ready", 
         problem: action.problem,
-        error: "",
+        error: ""
       };
-
-    case "LOAD_PROBLEM_ERROR":
-      return {
-        ...state,
-        step: "error",
-        error: action.error,
+    
+    case "SET_DAILY_LIMIT":
+      return { 
+        ...state, 
+        step: "daily_limit",
+        error: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
       };
-
-    case "SET_DAILY_LIMIT_REACHED":
-      return {
-        ...state,
-        step: "daily_limit_reached",
-        dailyLimitReached: true,
-        error:
-          "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+    
+    case "SET_ERROR":
+      return { 
+        ...state, 
+        step: "error", 
+        error: action.error 
       };
-
-    case "SET_USER_ANSWER":
-      return {
-        ...state,
-        userAnswer: action.answer,
-        step: state.step === "show_problem" ? "waiting_user_input" : state.step,
+    
+    case "SET_USER_INPUT":
+      return { 
+        ...state, 
+        userAnswer: action.input,
+        step: action.input.trim() ? "input_ready" : "problem_ready"
       };
-
-    case "EVALUATE_START":
-      return {
-        ...state,
-        step: "evaluating",
-        error: "",
+    
+    case "START_EVALUATION":
+      return { ...state, step: "evaluating" };
+    
+    case "EVALUATION_DONE":
+      return { 
+        ...state, 
+        step: "result_ready", 
+        evaluation: action.evaluation 
       };
-
-    case "EVALUATE_SUCCESS":
-      return {
-        ...state,
-        step: "show_result",
-        evaluation: action.evaluation,
-      };
-
-    case "EVALUATE_ERROR":
-      return {
-        ...state,
-        step: "error",
-        error: action.error,
-      };
-
+    
     case "TOGGLE_BOOKMARK":
-      return {
-        ...state,
-        isBookmarked: !state.isBookmarked,
+      return { ...state, isBookmarked: !state.isBookmarked };
+    
+    case "RESET_FOR_NEXT":
+      return { 
+        ...initialState, 
+        step: "loading" 
       };
-
-    case "PREPARE_NEXT_PROBLEM":
-      return {
-        ...initialState,
-        step: "loading",
-        dailyLimitReached: state.dailyLimitReached, // Preserve daily limit state
-      };
-
+    
     default:
       return state;
   }
@@ -145,227 +110,162 @@ function problemReducer(
 
 export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const [state, dispatch] = useReducer(problemReducer, initialState);
-  const initializationLock = useRef<boolean>(false);
+  const isInitialized = useRef(false);
+  const abortController = useRef<AbortController | null>(null);
 
-  // SINGLE initialization with proper daily limit handling
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadInitialProblem() {
-      // Prevent double execution
-      if (initializationLock.current) {
-        console.log("🔒 Initialization locked, skipping");
-        return;
+  // Problem generation mutation - NO RETRY
+  const generateProblem = useApiMutation<any, { difficultyLevel: string }>(
+    async ({ difficultyLevel }) => {
+      // Abort any previous request
+      if (abortController.current) {
+        abortController.current.abort();
       }
-
-      // If daily limit already reached, don't try again
-      if (state.dailyLimitReached) {
-        console.log("🛑 Daily limit already reached, not attempting to load");
-        return;
-      }
-
-      initializationLock.current = true;
-      console.log("🎯 Loading initial problem for:", difficulty);
-
-      dispatch({ type: "LOAD_PROBLEM_START" });
-
-      try {
-        const response = await apiRequest("POST", "/api/problem", {
-          difficultyLevel: difficulty,
-        });
-
-        if (!mounted) return;
-
-        // Check for 429 status first
-        if (response.status === 429) {
-          console.log("🛑 Daily limit reached (429 status)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        const data = await response.json();
-
-        // Check for daily limit in response body
-        if (data.dailyLimitReached) {
-          console.log("🛑 Daily limit reached (JSON response)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        console.log("✅ Initial problem loaded:", data.japaneseSentence);
-        dispatch({
-          type: "LOAD_PROBLEM_SUCCESS",
-          problem: data.japaneseSentence,
-        });
-      } catch (err: any) {
-        if (!mounted) return;
-
-        console.error("❌ Initial problem load failed:", err);
-
-        // Check if it's a 429 error
-        if (err?.response?.status === 429) {
-          console.log("🛑 Daily limit reached (429 error)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        // Check if error message contains daily limit info
-        if (
-          err?.message?.includes("429") ||
-          err?.message?.includes("dailyLimitReached")
-        ) {
-          console.log("🛑 Daily limit reached (error message)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        // General error
-        dispatch({
-          type: "LOAD_PROBLEM_ERROR",
-          error:
-            "問題の生成に失敗しました。しばらく待ってから再試行してください。",
-        });
-      }
-    }
-
-    loadInitialProblem();
-
-    return () => {
-      mounted = false;
-    };
-  }, []); // Empty dependency array - only run once
-
-  const generateNextProblem = async () => {
-    console.log("🔄 User requested next problem");
-
-    // Check if daily limit was already reached
-    if (state.dailyLimitReached) {
-      console.log("🛑 Daily limit already reached - blocking new request");
-      dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-      return;
-    }
-
-    // Reset lock for new problem
-    initializationLock.current = false;
-    dispatch({ type: "PREPARE_NEXT_PROBLEM" });
-
-    // Delay to ensure clean state reset
-    setTimeout(async () => {
-      if (initializationLock.current) return;
-
-      initializationLock.current = true;
-      dispatch({ type: "LOAD_PROBLEM_START" });
-
-      try {
-        const response = await apiRequest("POST", "/api/problem", {
-          difficultyLevel: difficulty,
-        });
-
-        // Check for 429 status first
-        if (response.status === 429) {
-          console.log("🛑 Daily limit reached (429 status)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        const data = await response.json();
-
-        // Check for daily limit in response body
-        if (data.dailyLimitReached) {
-          console.log("🛑 Daily limit reached (JSON response)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        console.log("✅ Next problem loaded:", data.japaneseSentence);
-        dispatch({
-          type: "LOAD_PROBLEM_SUCCESS",
-          problem: data.japaneseSentence,
-        });
-      } catch (err: any) {
-        console.error("❌ Next problem load failed:", err);
-
-        // Check if it's a 429 error
-        if (err?.response?.status === 429) {
-          console.log("🛑 Daily limit reached (429 error)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        // Check if error message contains daily limit info
-        if (
-          err?.message?.includes("429") ||
-          err?.message?.includes("dailyLimitReached")
-        ) {
-          console.log("🛑 Daily limit reached (error message)");
-          dispatch({ type: "SET_DAILY_LIMIT_REACHED" });
-          return;
-        }
-
-        // General error
-        dispatch({
-          type: "LOAD_PROBLEM_ERROR",
-          error:
-            "問題の生成に失敗しました。しばらく待ってから再試行してください。",
-        });
-      }
-    }, 150);
-  };
-
-  const submitAnswer = async () => {
-    if (!state.userAnswer.trim() || !state.problem) return;
-
-    console.log("📝 Submitting answer");
-    dispatch({ type: "EVALUATE_START" });
-
-    try {
-      const response = await apiRequest("POST", "/api/translate", {
-        japaneseSentence: state.problem,
-        userTranslation: state.userAnswer.trim(),
-        difficultyLevel: difficulty,
+      
+      abortController.current = new AbortController();
+      
+      const response = await fetch("/api/problem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ difficultyLevel }),
+        signal: abortController.current.signal,
       });
+
+      if (response.status === 429) {
+        const data = await response.json();
+        if (data.dailyLimitReached) {
+          throw new Error("DAILY_LIMIT");
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${await response.text()}`);
+      }
+
       const data = await response.json();
+      
+      if (data.dailyLimitReached) {
+        throw new Error("DAILY_LIMIT");
+      }
 
-      console.log("✅ Evaluation completed");
-      dispatch({
-        type: "EVALUATE_SUCCESS",
-        evaluation: data,
+      return data;
+    }
+  );
+
+  // Translation evaluation mutation - NO RETRY  
+  const evaluateTranslation = useApiMutation<any, { 
+    japaneseSentence: string; 
+    userTranslation: string; 
+    difficultyLevel: string; 
+  }>(
+    async ({ japaneseSentence, userTranslation, difficultyLevel }) => {
+      const response = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          japaneseSentence,
+          userTranslation,
+          difficultyLevel,
+        }),
       });
-    } catch (err: any) {
-      console.error("❌ Evaluation failed:", err);
-      dispatch({
-        type: "EVALUATE_ERROR",
-        error: "評価に失敗しました。しばらく待ってから再試行してください。",
+
+      if (!response.ok) {
+        throw new Error(`${response.status}: ${await response.text()}`);
+      }
+
+      return await response.json();
+    }
+  );
+
+  // Initial problem load - ONLY ONCE
+  useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
+    dispatch({ type: "START_LOADING" });
+    generateProblem.mutate({ difficultyLevel: difficulty });
+  }, []); // EMPTY DEPENDENCY ARRAY
+
+  // Handle problem generation result
+  useEffect(() => {
+    if (generateProblem.isSuccess && generateProblem.data) {
+      dispatch({ 
+        type: "PROBLEM_LOADED", 
+        problem: generateProblem.data.japaneseSentence 
       });
     }
+  }, [generateProblem.isSuccess, generateProblem.data]);
+
+  // Handle problem generation error
+  useEffect(() => {
+    if (generateProblem.isError) {
+      const error = generateProblem.error as Error;
+      if (error.message === "DAILY_LIMIT") {
+        dispatch({ type: "SET_DAILY_LIMIT" });
+      } else {
+        dispatch({ 
+          type: "SET_ERROR", 
+          error: "問題の読み込みに失敗しました。" 
+        });
+      }
+    }
+  }, [generateProblem.isError, generateProblem.error]);
+
+  // Handle evaluation result
+  useEffect(() => {
+    if (evaluateTranslation.isSuccess && evaluateTranslation.data) {
+      dispatch({ 
+        type: "EVALUATION_DONE", 
+        evaluation: evaluateTranslation.data 
+      });
+    }
+  }, [evaluateTranslation.isSuccess, evaluateTranslation.data]);
+
+  // Handle evaluation error
+  useEffect(() => {
+    if (evaluateTranslation.isError) {
+      dispatch({ 
+        type: "SET_ERROR", 
+        error: "翻訳の評価に失敗しました。" 
+      });
+    }
+  }, [evaluateTranslation.isError]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortController.current) {
+        abortController.current.abort();
+      }
+    };
+  }, []);
+
+  const handleInputChange = (value: string) => {
+    dispatch({ type: "SET_USER_INPUT", input: value });
   };
 
-  const toggleBookmark = async () => {
-    if (!state.evaluation?.sessionId) return;
+  const handleSubmit = () => {
+    if (state.step !== "input_ready" || !state.userAnswer.trim()) return;
+    
+    dispatch({ type: "START_EVALUATION" });
+    evaluateTranslation.mutate({
+      japaneseSentence: state.problem,
+      userTranslation: state.userAnswer.trim(),
+      difficultyLevel: difficulty,
+    });
+  };
 
-    try {
-      await apiRequest(
-        "POST",
-        `/api/sessions/${state.evaluation.sessionId}/bookmark`,
-        {
-          isBookmarked: !state.isBookmarked,
-        },
-      );
-      dispatch({ type: "TOGGLE_BOOKMARK" });
-    } catch (err) {
-      console.error("Bookmark toggle failed:", err);
-    }
+  const handleNextProblem = () => {
+    // Reset everything and get new problem
+    dispatch({ type: "RESET_FOR_NEXT" });
+    generateProblem.reset();
+    evaluateTranslation.reset();
+    generateProblem.mutate({ difficultyLevel: difficulty });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (
-      e.key === "Enter" &&
-      !e.shiftKey &&
-      state.step === "waiting_user_input" &&
-      state.userAnswer.trim()
-    ) {
+    if (e.key === 'Enter' && !e.shiftKey && state.step === "input_ready") {
       e.preventDefault();
-      submitAnswer();
+      handleSubmit();
     }
   };
 
@@ -374,313 +274,190 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
       <Star
         key={i}
         className={`w-4 h-4 ${
-          i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
         }`}
       />
     ));
   };
 
+  const isLoading = state.step === "loading" || generateProblem.isPending;
+  const isEvaluating = state.step === "evaluating" || evaluateTranslation.isPending;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-3">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center space-x-2 flex-shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 rounded-full hover:bg-gray-100"
-              onClick={onBack}
-            >
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button variant="ghost" size="sm" onClick={onBack}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div className="flex items-center space-x-2">
-              <Sparkles className="w-5 h-5 text-blue-600" />
-              <span className="font-semibold text-gray-900 text-sm sm:text-base">
-                {DIFFICULTY_LEVELS[difficulty]?.name || difficulty}
-              </span>
+            <div>
+              <h3 className="font-semibold text-gray-900">
+                {DIFFICULTY_LEVELS[difficulty]}
+              </h3>
             </div>
           </div>
-          <div className="text-center">
-            <span className="text-xs sm:text-sm text-gray-600 font-medium">
-              1問練習
-            </span>
-          </div>
-          <div className="w-8"></div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4">
+      <div className="flex-1 p-4">
         <div className="max-w-2xl mx-auto space-y-4">
-          {/* Error Message */}
-          {state.error && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl px-4 py-3">
-              <p className="text-red-800 text-sm">{state.error}</p>
-            </div>
-          )}
-
+          
           {/* Loading State */}
-          {state.step === "loading" && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-white animate-spin" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {DIFFICULTY_LEVELS[difficulty]?.name || difficulty} - 1問練習
-              </h2>
-              <p className="text-gray-600">問題を生成中...</p>
-            </div>
-          )}
-
-          {/* Daily Limit Reached State */}
-          {state.step === "daily_limit_reached" && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-orange-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-orange-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                本日の学習完了
-              </h2>
-              <p className="text-gray-600 mb-6">
-                本日の最大出題数（100問）に達しました。明日また学習を再開できます。
-              </p>
-              <p className="text-gray-500 text-sm">お疲れ様でした！</p>
-            </div>
-          )}
-
-          {/* Error State */}
-          {state.step === "error" && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-red-600" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                エラーが発生しました
-              </h2>
-              <p className="text-gray-600 mb-6">{state.error}</p>
-              {!state.dailyLimitReached && (
-                <Button
-                  onClick={generateNextProblem}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
-                >
-                  再試行
-                </Button>
-              )}
+          {isLoading && (
+            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+              <div className="text-gray-500">問題を読み込み中...</div>
             </div>
           )}
 
           {/* Problem Display */}
-          {(state.step === "show_problem" ||
-            state.step === "waiting_user_input") &&
-            state.problem && (
-              <>
-                <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
-                  <div className="flex items-start justify-between mb-2">
-                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                      問題
-                    </span>
-                    <SpeechButton
-                      text={state.problem}
-                      className="text-gray-400 hover:text-gray-600"
-                    />
-                  </div>
-                  <div className="text-sm sm:text-base leading-relaxed text-gray-900">
-                    {state.problem}
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3">
-                  <p className="text-xs font-medium text-blue-700 mb-2">
-                    上記の日本語を英語に翻訳してください:
-                  </p>
-                  <Textarea
-                    value={state.userAnswer}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_USER_ANSWER",
-                        answer: e.target.value,
-                      })
-                    }
-                    onKeyPress={handleKeyPress}
-                    placeholder="英訳を入力してください..."
-                    className="resize-none min-h-[80px] bg-white"
-                  />
-                </div>
-              </>
-            )}
-
-          {/* User Answer Display */}
-          {state.step === "show_result" && state.userAnswer && (
-            <div className="bg-blue-600 text-white rounded-2xl px-4 py-3 ml-auto max-w-[85%]">
-              <div className="text-sm sm:text-base leading-relaxed">
-                {state.userAnswer}
+          {(state.step === "problem_ready" || state.step === "input_ready") && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <div className="text-gray-700 text-lg mb-4 leading-relaxed">
+                {state.problem}
+              </div>
+              <div className="flex items-center justify-end">
+                <SpeechButton text={state.problem} />
               </div>
             </div>
           )}
 
-          {/* Evaluation Display */}
-          {state.step === "show_result" && state.evaluation && (
-            <div className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-3">
-              <div className="space-y-3">
-                {/* Rating */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs font-medium text-gray-600">
-                    評価:
-                  </span>
-                  <div className="flex space-x-1">
-                    {renderStars(state.evaluation.rating || 0)}
-                  </div>
-                  <span className="text-xs text-gray-600">
-                    ({state.evaluation.rating || 0}/5)
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 hover:bg-gray-200 ml-auto"
-                    onClick={toggleBookmark}
-                  >
-                    {state.isBookmarked ? (
-                      <BookmarkCheck className="w-4 h-4 text-blue-600" />
-                    ) : (
-                      <Bookmark className="w-4 h-4 text-gray-400" />
-                    )}
-                  </Button>
-                </div>
-
-                {/* Feedback */}
-                {state.evaluation.feedback && (
-                  <div className="text-sm text-gray-800">
-                    {state.evaluation.feedback}
-                  </div>
-                )}
-
-                {/* Correct Translation */}
-                {state.evaluation.correctTranslation && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-green-700 mb-1 block">
-                          模範解答:
-                        </span>
-                        <p className="text-sm text-green-800">
-                          {state.evaluation.correctTranslation}
-                        </p>
-                      </div>
-                      <SpeechButton
-                        text={state.evaluation.correctTranslation}
-                        className="text-green-600 hover:text-green-700 ml-2"
-                        lang="en-US"
-                        rate={0.8}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Explanation */}
-                {state.evaluation.explanation && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <span className="text-xs font-medium text-blue-700 mb-1 block">
-                      解説:
-                    </span>
-                    <p className="text-sm text-blue-800">
-                      {state.evaluation.explanation}
-                    </p>
-                  </div>
-                )}
-
-                {/* Similar Phrases */}
-                {state.evaluation.similarPhrases &&
-                  state.evaluation.similarPhrases.length > 0 && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                      <span className="text-xs font-medium text-purple-700 mb-2 block">
-                        類似表現:
-                      </span>
-                      <div className="space-y-1">
-                        {state.evaluation.similarPhrases.map(
-                          (phrase: string, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between"
-                            >
-                              <p className="text-sm text-purple-800">
-                                {phrase}
-                              </p>
-                              <SpeechButton
-                                text={phrase}
-                                className="text-purple-600 hover:text-purple-700 ml-2"
-                                lang="en-US"
-                                rate={0.8}
-                              />
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                {/* Improvements */}
-                {state.evaluation.improvements &&
-                  state.evaluation.improvements.length > 0 && (
-                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <span className="text-xs font-medium text-orange-700 mb-2 block">
-                        改善点:
-                      </span>
-                      <div className="space-y-1">
-                        {state.evaluation.improvements.map(
-                          (improvement: string, idx: number) => (
-                            <p key={idx} className="text-sm text-orange-800">
-                              • {improvement}
-                            </p>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  )}
+          {/* Input Area */}
+          {(state.step === "problem_ready" || state.step === "input_ready") && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <Textarea
+                value={state.userAnswer}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="英語で翻訳してください..."
+                className="min-h-[100px] mb-4"
+              />
+              <div className="flex justify-end">
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={state.step !== "input_ready"}
+                  className="flex items-center space-x-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>送信</span>
+                </Button>
               </div>
             </div>
           )}
 
           {/* Evaluating State */}
-          {state.step === "evaluating" && (
-            <div className="flex justify-center">
-              <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
-                <div className="text-sm text-gray-600">評価中...</div>
+          {isEvaluating && (
+            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+              <div className="text-gray-500">翻訳を評価中...</div>
+            </div>
+          )}
+
+          {/* Result Display */}
+          {state.step === "result_ready" && state.evaluation && (
+            <div className="space-y-4">
+              {/* Rating */}
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    {renderStars(state.evaluation.rating)}
+                    <span className="font-semibold text-lg">
+                      {state.evaluation.rating}/5
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => dispatch({ type: "TOGGLE_BOOKMARK" })}
+                  >
+                    {state.isBookmarked ? (
+                      <BookmarkCheck className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <Bookmark className="w-5 h-5" />
+                    )}
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      模範回答
+                    </h4>
+                    <div className="bg-green-50 p-3 rounded border-l-4 border-green-400">
+                      <div className="flex items-center justify-between">
+                        <span className="text-green-800">
+                          {state.evaluation.correctTranslation}
+                        </span>
+                        <SpeechButton 
+                          text={state.evaluation.correctTranslation} 
+                          size="sm" 
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">
+                      フィードバック
+                    </h4>
+                    <p className="text-gray-700">
+                      {state.evaluation.feedback}
+                    </p>
+                  </div>
+
+                  {state.evaluation.explanation && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        詳細解説
+                      </h4>
+                      <p className="text-gray-700">
+                        {state.evaluation.explanation}
+                      </p>
+                    </div>
+                  )}
+
+                  {state.evaluation.similarPhrases?.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">
+                        類似フレーズ
+                      </h4>
+                      <div className="space-y-2">
+                        {state.evaluation.similarPhrases.map((phrase: string, index: number) => (
+                          <div key={index} className="bg-blue-50 p-3 rounded">
+                            <div className="flex items-center justify-between">
+                              <span className="text-blue-800">{phrase}</span>
+                              <SpeechButton text={phrase} size="sm" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Next Problem Button */}
+              <div className="flex justify-center">
+                <Button onClick={handleNextProblem} size="lg">
+                  次の問題
+                </Button>
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Action Area */}
-      <div className="bg-white border-t border-gray-200 px-2 sm:px-4 py-3">
-        <div className="max-w-2xl mx-auto">
-          {(state.step === "waiting_user_input" ||
-            (state.step === "show_problem" && state.userAnswer.trim())) && (
-            <Button
-              onClick={submitAnswer}
-              disabled={!state.userAnswer.trim() || state.step === "evaluating"}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
-            >
-              {state.step === "evaluating" ? "評価中..." : "回答を送信"}
-              <Send className="w-5 h-5 ml-2" />
-            </Button>
-          )}
-
-          {state.step === "show_result" && !state.dailyLimitReached && (
-            <Button
-              onClick={generateNextProblem}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
-            >
-              新しい問題に挑戦
-            </Button>
-          )}
-
-          {state.step === "show_result" && state.dailyLimitReached && (
-            <div className="text-center py-4">
-              <p className="text-gray-600 text-sm">
-                本日の学習は完了しました。明日また挑戦してください！
-              </p>
+          {/* Error State */}
+          {(state.step === "error" || state.step === "daily_limit") && (
+            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+              <div className="text-red-600 mb-4">{state.error}</div>
+              {state.step === "error" && (
+                <Button onClick={() => {
+                  dispatch({ type: "RESET_FOR_NEXT" });
+                  generateProblem.mutate({ difficultyLevel: difficulty });
+                }}>
+                  再試行
+                </Button>
+              )}
             </div>
           )}
         </div>

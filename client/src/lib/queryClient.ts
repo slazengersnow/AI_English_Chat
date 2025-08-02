@@ -1,5 +1,10 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { supabase } from "@shared/supabase";
+import { QueryClient, QueryFunction, useMutation } from "@tanstack/react-query";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://xcjplyhqxgrbdhixmzse.supabase.co";
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanBseWhxeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1ODQ4MzQsImV4cCI6MjA2NDE2MDgzNH0.jaqoGOz1Z2zfj-eFShm2YF8nYu8DUGaE_cD9_N1Vfhg";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -65,6 +70,7 @@ export const getQueryFn: <T>(options: {
     return await res.json();
   };
 
+// CRITICAL: Absolutely no auto-retry for any operation
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -72,10 +78,20 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: false, // NO RETRY
     },
     mutations: {
-      retry: false,
+      retry: false, // NO RETRY
     },
   },
 });
+
+// Simple mutation helper with NO RETRY built-in
+export function useApiMutation<TData = unknown, TVariables = unknown>(
+  mutationFn: (variables: TVariables) => Promise<TData>
+) {
+  return useMutation({
+    mutationFn,
+    retry: false, // CRITICAL: No retry
+  });
+}
