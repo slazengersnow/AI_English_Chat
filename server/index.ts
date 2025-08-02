@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { registerRoutes } from "./routes/index";
+import { registerRoutes as registerMainRoutes } from "./routes";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 
 // 環境変数読み込み
@@ -46,6 +47,9 @@ app.get("/health", (_req, res) => {
 
 // ✅ API ルート登録
 registerRoutes(app);
+
+// ✅ Main API routes (問題生成等)
+registerMainRoutes(app);
 
 // ✅ 静的ファイルを配信（Vite のビルド済み SPA）
 app.use(express.static(rootDir));
