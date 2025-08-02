@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Star, Sparkles, Bookmark, BookmarkCheck } from "lucide-react";
@@ -11,7 +11,7 @@ interface SingleProblemPracticeProps {
   onBack: () => void;
 }
 
-type PracticeStep = "start" | "problem_shown" | "answer_input" | "result_shown";
+type PracticeStep = "loading" | "problem_shown" | "evaluating" | "result_shown" | "error";
 
 interface ProblemData {
   japaneseSentence: string;
@@ -29,8 +29,7 @@ interface EvaluationData {
 }
 
 export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPracticeProps) {
-  const [step, setStep] = useState<PracticeStep>("start");
-  const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState<PracticeStep>("loading");
   const [error, setError] = useState<string>("");
   
   // Problem state
@@ -38,35 +37,49 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluation, setEvaluation] = useState<EvaluationData | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  
+  // Critical: Use ref to prevent double execution
+  const hasGenerated = useRef(false);
 
-  const handleGenerateProblem = async () => {
-    setIsLoading(true);
-    setError("");
-    
-    try {
-      const response = await apiRequest("POST", "/api/problem", {
-        difficultyLevel: difficulty,
-      });
-      const data: ProblemData = await response.json();
-      
-      setProblem(data);
-      setStep("problem_shown");
-    } catch (err: any) {
-      console.error("Problem generation failed:", err);
-      if (err.message?.includes("429") || err.message?.includes("最大出題数")) {
-        setError("本日の最大出題数（100問）に達しました。明日また学習を再開できます。");
-      } else {
-        setError("問題の生成に失敗しました。しばらく待ってから再試行してください。");
+  // Generate problem ONLY once on mount
+  useEffect(() => {
+    const generateProblem = async () => {
+      // Prevent double execution
+      if (hasGenerated.current) {
+        console.log("Problem already generated, skipping");
+        return;
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      
+      hasGenerated.current = true;
+      console.log("Generating single problem for difficulty:", difficulty);
+      
+      try {
+        const response = await apiRequest("POST", "/api/problem", {
+          difficultyLevel: difficulty,
+        });
+        const data: ProblemData = await response.json();
+        
+        console.log("Problem generated successfully:", data.japaneseSentence);
+        setProblem(data);
+        setStep("problem_shown");
+      } catch (err: any) {
+        console.error("Problem generation failed:", err);
+        if (err.message?.includes("429") || err.message?.includes("最大出題数")) {
+          setError("本日の最大出題数（100問）に達しました。明日また学習を再開できます。");
+        } else {
+          setError("問題の生成に失敗しました。しばらく待ってから再試行してください。");
+        }
+        setStep("error");
+      }
+    };
+
+    generateProblem();
+  }, []); // Empty dependency array - only run once on mount
 
   const handleSubmitAnswer = async () => {
     if (!problem || !userAnswer.trim()) return;
     
-    setIsLoading(true);
+    setStep("evaluating");
     setError("");
     
     try {
@@ -82,8 +95,7 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
     } catch (err: any) {
       console.error("Evaluation failed:", err);
       setError("評価に失敗しました。しばらく待ってから再試行してください。");
-    } finally {
-      setIsLoading(false);
+      setStep("error");
     }
   };
 
@@ -100,17 +112,50 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
     }
   };
 
-  const handleReset = () => {
-    setStep("start");
+  const handleNewProblem = () => {
+    // Reset all state
+    hasGenerated.current = false;
+    setStep("loading");
     setProblem(null);
     setUserAnswer("");
     setEvaluation(null);
     setIsBookmarked(false);
     setError("");
+    
+    // Generate new problem
+    setTimeout(() => {
+      const generateProblem = async () => {
+        if (hasGenerated.current) return;
+        
+        hasGenerated.current = true;
+        console.log("Generating new problem for difficulty:", difficulty);
+        
+        try {
+          const response = await apiRequest("POST", "/api/problem", {
+            difficultyLevel: difficulty,
+          });
+          const data: ProblemData = await response.json();
+          
+          console.log("New problem generated:", data.japaneseSentence);
+          setProblem(data);
+          setStep("problem_shown");
+        } catch (err: any) {
+          console.error("New problem generation failed:", err);
+          if (err.message?.includes("429") || err.message?.includes("最大出題数")) {
+            setError("本日の最大出題数（100問）に達しました。明日また学習を再開できます。");
+          } else {
+            setError("問題の生成に失敗しました。しばらく待ってから再試行してください。");
+          }
+          setStep("error");
+        }
+      };
+
+      generateProblem();
+    }, 100);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey && step === "problem_shown") {
+    if (e.key === "Enter" && !e.shiftKey && step === "problem_shown" && userAnswer.trim()) {
       e.preventDefault();
       handleSubmitAnswer();
     }
@@ -168,24 +213,38 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Start Step */}
-          {step === "start" && (
+          {/* Loading Step */}
+          {step === "loading" && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-white" />
+                <Sparkles className="w-8 h-8 text-white animate-spin" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 {DIFFICULTY_LEVELS[difficulty]} - 1問練習
               </h2>
+              <p className="text-gray-600">
+                問題を生成中...
+              </p>
+            </div>
+          )}
+
+          {/* Error Step */}
+          {step === "error" && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-red-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                エラーが発生しました
+              </h2>
               <p className="text-gray-600 mb-6">
-                1問だけ練習して、AIの詳しい評価を受けましょう
+                {error}
               </p>
               <Button
-                onClick={handleGenerateProblem}
-                disabled={isLoading}
+                onClick={handleNewProblem}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
               >
-                {isLoading ? "問題生成中..." : "問題を生成"}
+                再試行
               </Button>
             </div>
           )}
@@ -335,12 +394,12 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
             </div>
           )}
 
-          {/* Loading indicator */}
-          {isLoading && (
+          {/* Evaluating Step */}
+          {step === "evaluating" && (
             <div className="flex justify-center">
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
                 <div className="text-sm text-gray-600">
-                  {step === "start" ? "問題を生成中..." : "評価中..."}
+                  評価中...
                 </div>
               </div>
             </div>
@@ -356,10 +415,10 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
               <div className="flex-1">
                 <Button
                   onClick={handleSubmitAnswer}
-                  disabled={!userAnswer.trim() || isLoading}
+                  disabled={!userAnswer.trim() || step === "evaluating"}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
                 >
-                  {isLoading ? "評価中..." : "回答を送信"}
+                  {step === "evaluating" ? "評価中..." : "回答を送信"}
                   <Send className="w-5 h-5 ml-2" />
                 </Button>
               </div>
@@ -368,7 +427,7 @@ export function SingleProblemPractice({ difficulty, onBack }: SingleProblemPract
           
           {step === "result_shown" && (
             <Button
-              onClick={handleReset}
+              onClick={handleNewProblem}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
             >
               新しい問題に挑戦
