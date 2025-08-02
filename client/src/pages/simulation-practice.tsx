@@ -91,10 +91,30 @@ function SimulationPracticeContent() {
   const getSimulationProblemMutation = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/simulation-problem/${scenarioId}`);
-      if (!response.ok) throw new Error('Failed to fetch problem');
+      if (!response.ok) {
+        // CRITICAL: Check for 429 status
+        if (response.status === 429) {
+          const errorData = await response.json();
+          if (errorData.dailyLimitReached) {
+            throw new Error('DAILY_LIMIT_REACHED');
+          }
+        }
+        throw new Error('Failed to fetch problem');
+      }
       return response.json();
     },
     onSuccess: (data: SimulationProblem) => {
+      // CRITICAL: Check for daily limit in response
+      if (data.dailyLimitReached) {
+        console.log("🛑 Daily limit reached in simulation response");
+        toast({
+          title: "本日の学習完了",
+          description: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setCurrentProblem(data.japaneseSentence);
       setCurrentContext(data.context);
       
@@ -110,12 +130,24 @@ function SimulationPracticeContent() {
     },
     onError: (error) => {
       console.error("Problem generation error:", error);
+      
+      // CRITICAL: Check for daily limit error
+      if (error.message === 'DAILY_LIMIT_REACHED') {
+        toast({
+          title: "本日の学習完了",
+          description: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "エラー",
         description: "問題の生成に失敗しました。しばらくしてからもう一度お試しください。",
         variant: "destructive",
       });
     },
+    retry: false, // CRITICAL: No auto retry
   });
 
   const translateMutation = useMutation({
@@ -192,29 +224,35 @@ function SimulationPracticeContent() {
     if (messages.length === 0) {
       const reviewProblem = sessionStorage.getItem('reviewProblem');
       if (reviewProblem) {
-        const problemData = JSON.parse(reviewProblem);
-        if (problemData.difficultyLevel === `simulation-${scenarioId}`) {
-          // Set up review problem
-          setCurrentProblem(problemData.japaneseSentence);
-          const problemMessage: SimulationMessage = {
-            type: 'problem',
-            content: problemData.japaneseSentence,
-            timestamp: new Date().toISOString(),
-            problemNumber: 1,
-            context: "復習問題"
-          };
-          setMessages([problemMessage]);
-          setProblemNumber(1);
-          
-          // Clear the review problem from sessionStorage
+        try {
+          const problemData = JSON.parse(reviewProblem);
+          if (problemData.difficultyLevel === `simulation-${scenarioId}`) {
+            // Set up review problem
+            setCurrentProblem(problemData.japaneseSentence);
+            const problemMessage: SimulationMessage = {
+              type: 'problem',
+              content: problemData.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: 1,
+              context: "復習問題"
+            };
+            setMessages([problemMessage]);
+            setProblemNumber(1);
+            
+            // Clear the review problem from sessionStorage
+            sessionStorage.removeItem('reviewProblem');
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing review problem:', error);
           sessionStorage.removeItem('reviewProblem');
-          return;
         }
       }
-      // No review problem or not for this simulation, get new problem
+      // ONLY generate new problem if no review problem - NO AUTO GENERATION
+      console.log("🎯 Manual simulation problem generation requested");
       getSimulationProblemMutation.mutate();
     }
-  }, []);
+  }, []); // EMPTY DEPENDENCY ARRAY - CRITICAL
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
