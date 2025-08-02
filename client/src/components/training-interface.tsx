@@ -78,6 +78,8 @@ export function TrainingInterface({
   // 状態追跡フラグ
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeStep, setActiveStep] = useState<"waiting" | "answer" | "evaluation">("waiting");
+  const [hasSetInitialStep, setHasSetInitialStep] = useState(false);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -152,6 +154,8 @@ export function TrainingInterface({
       setIsWaitingForTranslation(true);
       setShowNextButton(false);
       setIsLoading(false);
+      // activeStepフラグをリセットして新しい問題で再設定できるようにする
+      setHasSetInitialStep(false);
     },
     onError: (error: any) => {
       console.error("❌ Problem generation error:", error);
@@ -206,6 +210,8 @@ export function TrainingInterface({
       setMessages((prev) => [...prev, evaluationMessage]);
       setIsWaitingForTranslation(false);
       setShowNextButton(true);
+      // 評価完了時はevaluationステップに設定
+      setActiveStep('evaluation');
     },
     onError: (error) => {
       console.error("Translation evaluation error:", error);
@@ -248,6 +254,7 @@ export function TrainingInterface({
             setMessages([problemMessage]);
             setIsWaitingForTranslation(true);
             setShowNextButton(false);
+            setHasSetInitialStep(false); // 新しい問題でフラグリセット
             return;
           }
         } else {
@@ -280,6 +287,7 @@ export function TrainingInterface({
           setMessages([problemMessage]);
           setIsWaitingForTranslation(true);
           setShowNextButton(false);
+          setHasSetInitialStep(false); // レビュー問題でもフラグリセット
           sessionStorage.removeItem("reviewProblem");
           return;
         }
@@ -307,6 +315,9 @@ export function TrainingInterface({
     setCurrentProblem("");
     setProblemNumber(1);
     setCurrentSessionId(null);
+    // activeStepと関連フラグもリセット
+    setActiveStep("waiting");
+    setHasSetInitialStep(false);
     
     // 少し遅延を入れて初期化実行
     const timer = setTimeout(() => {
@@ -437,6 +448,19 @@ export function TrainingInterface({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // ユーザー指摘の無限ループ修正: activeStepの初期設定を一度だけ実行
+  useEffect(() => {
+    if (
+      currentProblem &&
+      !hasSetInitialStep &&
+      isWaitingForTranslation
+    ) {
+      console.log("🎯 Setting activeStep to 'answer' for the first time");
+      setActiveStep('answer');
+      setHasSetInitialStep(true);
+    }
+  }, [currentProblem, hasSetInitialStep, isWaitingForTranslation]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
