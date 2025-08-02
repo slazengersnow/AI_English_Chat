@@ -71,6 +71,7 @@ export function TrainingInterface({
   const [currentProblem, setCurrentProblem] = useState<string>("");
   const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
+  const [isRequestInProgress, setIsRequestInProgress] = useState(false);
   const [problemNumber, setProblemNumber] = useState(1);
   const [hasInitializedProblemNumber, setHasInitializedProblemNumber] =
     useState(false);
@@ -154,13 +155,30 @@ export function TrainingInterface({
   // Get new problem
   const getProblemMutation = useMutation({
     mutationFn: async (): Promise<ProblemResponse> => {
-      const response = await apiRequest("POST", "/api/problem", {
-        difficultyLevel: difficulty,
-      });
-      return response.json();
+      if (isRequestInProgress) {
+        console.log("Request already in progress, skipping");
+        throw new Error("Request already in progress");
+      }
+      console.log("Starting problem generation request");
+      setIsRequestInProgress(true);
+      
+      try {
+        const response = await apiRequest("POST", "/api/problem", {
+          difficultyLevel: difficulty,
+        });
+        const data = await response.json();
+        console.log("Problem generation successful:", data);
+        return data;
+      } catch (error) {
+        console.error("Problem generation failed:", error);
+        setIsRequestInProgress(false);
+        throw error;
+      }
     },
     retry: false,
     onSuccess: (data) => {
+      console.log("getProblemMutation onSuccess called");
+      setIsRequestInProgress(false);
       setCurrentProblem(data.japaneseSentence);
 
       // Extract problem number from hints if provided
@@ -190,6 +208,13 @@ export function TrainingInterface({
     },
     onError: (error: any) => {
       console.error("Problem generation error:", error);
+      setIsRequestInProgress(false);
+      
+      if (error.message === "Request already in progress") {
+        console.log("Skipping duplicate request");
+        return;
+      }
+      
       if (
         error.message?.includes("429") ||
         error.message?.includes("最大出題数")
@@ -202,6 +227,15 @@ export function TrainingInterface({
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, limitMessage]);
+        setIsWaitingForTranslation(false);
+      } else {
+        // Other errors - show generic error message
+        const errorMessage: TrainingMessage = {
+          type: "evaluation",
+          content: "問題の生成に失敗しました。しばらく待ってから再試行してください。",
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
         setIsWaitingForTranslation(false);
       }
     },
@@ -288,10 +322,13 @@ export function TrainingInterface({
   const [isInitialized, setIsInitialized] = useState(false);
   
   const initializeProblem = () => {
-    if (isInitialized) return;
+    if (isInitialized) {
+      console.log("Already initialized, skipping");
+      return;
+    }
     
     console.log("Initializing problem for difficulty:", difficulty);
-    setIsInitialized(true);
+    setIsInitialized(true); // Set this immediately to prevent re-runs
     
     // Check for repeat practice mode
     const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
@@ -317,6 +354,7 @@ export function TrainingInterface({
             };
             setMessages([problemMessage]);
             setIsWaitingForTranslation(true);
+            setShowNextButton(false);
             return;
           }
         } else {
@@ -351,6 +389,7 @@ export function TrainingInterface({
           };
           setMessages([problemMessage]);
           setIsWaitingForTranslation(true);
+          setShowNextButton(false);
 
           // Clear the review problem from sessionStorage
           sessionStorage.removeItem("reviewProblem");
@@ -431,18 +470,25 @@ export function TrainingInterface({
 
   // Initialize problem only once when component mounts or difficulty changes
   useEffect(() => {
-    console.log("Difficulty changed, initializing problem for:", difficulty);
+    console.log("Difficulty effect triggered for:", difficulty);
+    
+    // Reset state immediately
     setIsInitialized(false);
     setMessages([]);
+    setShowNextButton(false);
+    setIsWaitingForTranslation(false);
+    setIsRequestInProgress(false); // Reset request flag
     
-    // Use a timeout to ensure state is reset first
+    // Use a timeout to ensure state is reset first, then initialize once
     const timeoutId = setTimeout(() => {
-      if (!isInitialized) {
-        initializeProblem();
-      }
+      console.log("Timeout executing initialization");
+      initializeProblem();
     }, 100);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      console.log("Cleaning up timeout for difficulty:", difficulty);
+      clearTimeout(timeoutId);
+    };
   }, [difficulty]);
 
   const renderStars = (rating: number) => {
