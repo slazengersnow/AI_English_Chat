@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,7 +25,6 @@ import { useLocation } from "wouter";
 import { SpeechButton } from "@/components/speech-button";
 import { useAuth } from "@/components/auth-provider";
 
-// SessionType型定義を追加
 type SessionType = {
   id: number;
   japaneseSentence: string;
@@ -73,13 +72,15 @@ export function TrainingInterface({
   const [showNextButton, setShowNextButton] = useState(false);
   const [problemNumber, setProblemNumber] = useState(1);
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
-  const [hasInitializedProblemNumber, setHasInitializedProblemNumber] = useState(false);
   
-  // 状態追跡フラグ
-  const [hasInitialized, setHasInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  // 単一の初期化状態管理
+  const [initializationKey, setInitializationKey] = useState(0);
+  const [isInitializing, setIsInitializing] = useState(false);
   const [activeStep, setActiveStep] = useState<"waiting" | "answer" | "evaluation">("waiting");
-  const [hasSetInitialStep, setHasSetInitialStep] = useState(false);
+  
+  // useRefを使った初回実行制御
+  const hasSetStepRef = useRef(false);
+  const currentDifficultyRef = useRef(difficulty);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -88,9 +89,7 @@ export function TrainingInterface({
   const { user } = useAuth();
 
   // Bookmark management
-  const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(
-    new Set()
-  );
+  const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
 
   // Load bookmarks from localStorage on mount
   useEffect(() => {
@@ -113,21 +112,20 @@ export function TrainingInterface({
   // Problem generation mutation
   const getProblemMutation = useMutation({
     mutationFn: async (): Promise<ProblemResponse> => {
-      console.log("🔄 Making API request for new problem");
+      console.log("🔄 API request for new problem");
       const response = await apiRequest("POST", "/api/problem", {
         difficultyLevel: difficulty,
       });
       const data = await response.json();
-      console.log("✅ Problem generation successful");
+      console.log("✅ Problem generated successfully");
       return data;
     },
     retry: false,
     onMutate: () => {
-      console.log("⏳ Problem generation started");
-      setIsLoading(true);
+      setIsInitializing(true);
     },
     onSuccess: (data) => {
-      console.log("🎯 Problem generation onSuccess");
+      console.log("🎯 Problem success handler");
       setCurrentProblem(data.japaneseSentence);
 
       let currentProblemNum = problemNumber;
@@ -153,13 +151,13 @@ export function TrainingInterface({
       setMessages((prev) => [...prev, problemMessage]);
       setIsWaitingForTranslation(true);
       setShowNextButton(false);
-      setIsLoading(false);
-      // activeStepフラグをリセットして新しい問題で再設定できるようにする
-      setHasSetInitialStep(false);
+      setIsInitializing(false);
+      // 新しい問題でrefをリセット
+      hasSetStepRef.current = false;
     },
     onError: (error: any) => {
       console.error("❌ Problem generation error:", error);
-      setIsLoading(false);
+      setIsInitializing(false);
       
       if (
         error.message?.includes("429") ||
@@ -219,18 +217,28 @@ export function TrainingInterface({
     },
   });
 
-  // 初期化関数 - useCallbackで安定化
-  const initializeProblem = useCallback(() => {
-    console.log("🚀 Initializing problem for difficulty:", difficulty);
+  // 難易度変更時の初期化 - initializationKeyでトリガー
+  useEffect(() => {
+    console.log("🔄 Initializing for difficulty:", difficulty, "key:", initializationKey);
     
-    if (hasInitialized || isLoading || getProblemMutation.isPending) {
-      console.log("⚠️ Skipping initialization - already done or in progress");
+    // 初期化中は処理をスキップ
+    if (isInitializing || getProblemMutation.isPending) {
+      console.log("⚠️ Already initializing, skipping");
       return;
     }
 
-    setHasInitialized(true);
+    // 状態をリセット
+    setMessages([]);
+    setShowNextButton(false);
+    setIsWaitingForTranslation(false);
+    setCurrentProblem("");
+    setProblemNumber(1);
+    setCurrentSessionId(null);
+    // 初期化時にrefもリセット
+    hasSetStepRef.current = false;
+    setActiveStep("waiting");
 
-    // Check for repeat practice mode
+    // 特殊ケースをチェック
     const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
     const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
     const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
@@ -254,7 +262,6 @@ export function TrainingInterface({
             setMessages([problemMessage]);
             setIsWaitingForTranslation(true);
             setShowNextButton(false);
-            setHasSetInitialStep(false); // 新しい問題でフラグリセット
             return;
           }
         } else {
@@ -270,7 +277,7 @@ export function TrainingInterface({
       }
     }
 
-    // Check for single review problem
+    // レビュー問題をチェック
     const reviewProblem = sessionStorage.getItem("reviewProblem");
     if (reviewProblem) {
       try {
@@ -287,7 +294,6 @@ export function TrainingInterface({
           setMessages([problemMessage]);
           setIsWaitingForTranslation(true);
           setShowNextButton(false);
-          setHasSetInitialStep(false); // レビュー問題でもフラグリセット
           sessionStorage.removeItem("reviewProblem");
           return;
         }
@@ -297,35 +303,15 @@ export function TrainingInterface({
       }
     }
 
-    // Get new problem
+    // 通常の問題生成
     console.log("📥 Requesting new problem");
     getProblemMutation.mutate();
-  }, [difficulty, hasInitialized, isLoading, getProblemMutation]);
+  }, [difficulty, initializationKey]); // initializationKeyのみに依存
 
-  // 難易度変更時の初期化
+  // 難易度変更時にinitializationKeyを更新
   useEffect(() => {
-    console.log("🔄 Difficulty changed to:", difficulty);
-    
-    // 状態をリセット
-    setHasInitialized(false);
-    setIsLoading(false);
-    setMessages([]);
-    setShowNextButton(false);
-    setIsWaitingForTranslation(false);
-    setCurrentProblem("");
-    setProblemNumber(1);
-    setCurrentSessionId(null);
-    // activeStepと関連フラグもリセット
-    setActiveStep("waiting");
-    setHasSetInitialStep(false);
-    
-    // 少し遅延を入れて初期化実行
-    const timer = setTimeout(() => {
-      initializeProblem();
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [difficulty, initializeProblem]);
+    setInitializationKey(prev => prev + 1);
+  }, [difficulty]);
 
   const handleSubmit = () => {
     if (!input.trim() || !isWaitingForTranslation) return;
@@ -348,11 +334,11 @@ export function TrainingInterface({
     }
   };
 
-  const handleNextProblem = useCallback(() => {
+  const handleNextProblem = () => {
     console.log("⏭️ Next problem requested");
     setShowNextButton(false);
     
-    // Check repeat practice mode
+    // リピート練習モードをチェック
     const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
     const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
     const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
@@ -396,17 +382,14 @@ export function TrainingInterface({
       }
     }
 
-    // Regular mode - get new problem
-    if (!hasInitializedProblemNumber) {
-      setHasInitializedProblemNumber(true);
-    }
+    // 通常モード - 新しい問題を取得
     setProblemNumber((prev) => prev + 1);
     
-    if (!isLoading && !getProblemMutation.isPending) {
+    if (!isInitializing && !getProblemMutation.isPending) {
       console.log("📥 Getting next problem");
       getProblemMutation.mutate();
     }
-  }, [difficulty, hasInitializedProblemNumber, isLoading, getProblemMutation]);
+  };
 
   const toggleBookmark = async (problemText: string) => {
     const isBookmarked = bookmarkedProblems.has(problemText);
@@ -449,18 +432,28 @@ export function TrainingInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ユーザー指摘の無限ループ修正: activeStepの初期設定を一度だけ実行
+  // useRefを使った無限ループ修正: activeStepの初期設定を一度だけ実行
   useEffect(() => {
     if (
       currentProblem &&
-      !hasSetInitialStep &&
-      isWaitingForTranslation
+      isWaitingForTranslation &&
+      !hasSetStepRef.current
     ) {
-      console.log("🎯 Setting activeStep to 'answer' for the first time");
+      console.log("🎯 Setting activeStep to 'answer' for the first time (useRef)");
       setActiveStep('answer');
-      setHasSetInitialStep(true);
+      hasSetStepRef.current = true;
     }
-  }, [currentProblem, hasSetInitialStep, isWaitingForTranslation]);
+  }, [currentProblem, isWaitingForTranslation]);
+
+  // 難易度変更時はrefをリセット
+  useEffect(() => {
+    if (currentDifficultyRef.current !== difficulty) {
+      console.log("🔄 Difficulty changed, resetting hasSetStepRef");
+      hasSetStepRef.current = false;
+      currentDifficultyRef.current = difficulty;
+      setActiveStep("waiting");
+    }
+  }, [difficulty]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -676,7 +669,7 @@ export function TrainingInterface({
           ))}
 
           {/* Loading indicator */}
-          {isLoading && (
+          {isInitializing && (
             <div className="flex justify-center">
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
                 <div className="text-sm text-gray-600">問題を生成中...</div>
@@ -695,7 +688,7 @@ export function TrainingInterface({
             <Button
               onClick={handleNextProblem}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
-              disabled={isLoading || getProblemMutation.isPending}
+              disabled={isInitializing || getProblemMutation.isPending}
             >
               次の問題へ (1秒後)
             </Button>
