@@ -149,15 +149,8 @@ function SimulationPracticeContent() {
       setInput("");
       setIsWaitingForTranslation(false);
       
-      // Auto-generate next problem after evaluation
-      setTimeout(() => {
-        setProblemNumber(prev => prev + 1);
-        getSimulationProblemMutation.mutate();
-        // Auto-focus textarea for next input after problem is generated
-        setTimeout(() => {
-          textareaRef.current?.focus();
-        }, 100);
-      }, 1000);
+      // Removed auto-generation to prevent infinite loops
+      // User must manually click "Next Problem" button
     },
     onError: (error) => {
       console.error("Translation error:", error);
