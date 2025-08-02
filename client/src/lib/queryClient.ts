@@ -94,11 +94,14 @@ export function useApiMutation<TData = unknown, TVariables = unknown>(
   return useMutation({
     mutationFn,
     retry: false, // CRITICAL: No retry
+    // DO NOT add onSuccess/onError that could trigger additional calls
     onError: (error) => {
       console.error("🚨 Mutation error caught:", error);
+      // DO NOT call mutationFn again here
     },
     onSuccess: (data) => {
       console.log("✅ Mutation success:", data);
+      // DO NOT call mutationFn again here
     },
   });
 }

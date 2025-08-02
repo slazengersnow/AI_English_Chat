@@ -142,22 +142,25 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         
         if (data.dailyLimitReached) {
           console.error("🚨 DAILY LIMIT REACHED - stopping further generation");
-          throw new Error("DAILY_LIMIT");
+          // Return null to stop the mutation chain completely
+          return null;
         }
       }
 
       if (!response.ok) {
-        console.error("❌ Response not OK:", response.status, await response.text());
-        throw new Error(`${response.status}: ${await response.text()}`);
+        console.error("❌ Response not OK:", response.status);
+        const errorText = await response.text();
+        console.error("❌ Error text:", errorText);
+        throw new Error(`${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
       console.log("✅ Problem data received:", data);
       
-      // Double check for daily limit
+      // Double check for daily limit in response
       if (data.dailyLimitReached) {
-        console.error("🚨 DAILY LIMIT in response data - stopping");
-        throw new Error("DAILY_LIMIT");
+        console.error("🚨 DAILY LIMIT in response data - returning null");
+        return null;
       }
 
       return data;
@@ -193,9 +196,15 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   useEffect(() => {
     console.log("🚀 useEffect initial load triggered");
     console.log("🔍 isInitialized.current:", isInitialized.current);
+    console.log("🔍 state.dailyLimitReached:", state.dailyLimitReached);
     
     if (isInitialized.current) {
       console.log("⏭️ Already initialized - skipping");
+      return;
+    }
+    
+    if (state.dailyLimitReached) {
+      console.log("🛑 Daily limit already reached - skipping initial load");
       return;
     }
     
@@ -215,12 +224,17 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     console.log("📊 generateProblem.isSuccess:", generateProblem.isSuccess);
     console.log("📊 generateProblem.data:", generateProblem.data);
     
-    if (generateProblem.isSuccess && generateProblem.data) {
-      console.log("✅ Problem loaded successfully, dispatching PROBLEM_LOADED");
-      dispatch({ 
-        type: "PROBLEM_LOADED", 
-        problem: generateProblem.data.japaneseSentence 
-      });
+    if (generateProblem.isSuccess) {
+      if (generateProblem.data === null) {
+        console.log("🛑 Received null data - daily limit reached");
+        dispatch({ type: "SET_DAILY_LIMIT" });
+      } else if (generateProblem.data) {
+        console.log("✅ Problem loaded successfully, dispatching PROBLEM_LOADED");
+        dispatch({ 
+          type: "PROBLEM_LOADED", 
+          problem: generateProblem.data.japaneseSentence 
+        });
+      }
     }
   }, [generateProblem.isSuccess, generateProblem.data]);
 
@@ -293,6 +307,13 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   const handleNextProblem = () => {
     console.log("🔄 handleNextProblem called manually by user");
+    console.log("🔍 Current state.dailyLimitReached:", state.dailyLimitReached);
+    
+    if (state.dailyLimitReached) {
+      console.log("🛑 Daily limit reached - preventing new problem generation");
+      return;
+    }
+    
     // Reset everything and get new problem
     console.log("🔄 Dispatching RESET_FOR_NEXT");
     dispatch({ type: "RESET_FOR_NEXT" });
