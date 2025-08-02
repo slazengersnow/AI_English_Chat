@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -10,6 +10,7 @@ import {
   BookmarkCheck,
   User,
   Home,
+  Settings,
   Shield,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,10 +19,26 @@ import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import type {
   TranslateResponse,
   ProblemResponse,
+  UserSubscription,
 } from "@shared/schema";
 import { useLocation } from "wouter";
 import { SpeechButton } from "@/components/speech-button";
 import { useAuth } from "@/components/auth-provider";
+
+type SessionType = {
+  id: number;
+  japaneseSentence: string;
+  userTranslation: string;
+  correctTranslation: string;
+  rating: number;
+  difficultyLevel: string;
+  createdAt: string;
+  isBookmarked?: boolean;
+  feedback?: string;
+  explanation?: string;
+  similarPhrases?: string[];
+  improvements?: string[];
+};
 
 interface TrainingInterfaceProps {
   difficulty: DifficultyKey;
@@ -43,22 +60,24 @@ interface TrainingMessage {
   isBookmarked?: boolean;
 }
 
-type AppState = "initial" | "waiting_for_answer" | "evaluating" | "showing_evaluation" | "daily_limit" | "error";
-
 export function TrainingInterface({
   difficulty,
   onBack,
   onShowPayment,
 }: TrainingInterfaceProps) {
-  // Core state
-  const [appState, setAppState] = useState<AppState>("initial");
   const [messages, setMessages] = useState<TrainingMessage[]>([]);
   const [input, setInput] = useState("");
   const [currentProblem, setCurrentProblem] = useState<string>("");
+  const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
+  const [showNextButton, setShowNextButton] = useState(false);
   const [problemNumber, setProblemNumber] = useState(1);
   const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
   
-  // UI refs
+  // シンプルなルーム状態管理
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isDailyLimitReached, setIsDailyLimitReached] = useState(false);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -68,6 +87,7 @@ export function TrainingInterface({
   // Bookmark management
   const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
 
+  // Load bookmarks from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("bookmarkedProblems");
     if (saved) {
@@ -79,43 +99,72 @@ export function TrainingInterface({
     localStorage.setItem("bookmarkedProblems", JSON.stringify([...bookmarks]));
   };
 
-  // Generate problem mutation
-  const generateProblemMutation = useMutation({
-    mutationFn: async (): Promise<ProblemResponse> => {
+  // Get user subscription
+  const { data: subscription } = useQuery({
+    queryKey: ["/api/subscription"],
+    enabled: !!user,
+  });
+
+  // Problem generation - 完全に制御された関数
+  const generateProblem = async () => {
+    console.log("🔄 generateProblem called - current state:", {
+      isProcessing,
+      isDailyLimitReached,
+      hasInitialized,
+      problemNumber
+    });
+
+    if (isProcessing || isDailyLimitReached) {
+      console.log("🛑 Skipping problem generation - processing or limit reached");
+      return;
+    }
+
+    setIsProcessing(true);
+    console.log("📥 Generating new problem for difficulty:", difficulty);
+
+    try {
       const response = await apiRequest("POST", "/api/problem", {
         difficultyLevel: difficulty,
       });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      console.log("Problem generated:", data.japaneseSentence);
-      setCurrentProblem(data.japaneseSentence);
+      const data: ProblemResponse = await response.json();
       
+      console.log("✅ Problem generated successfully:", data.japaneseSentence);
+      setCurrentProblem(data.japaneseSentence);
+
+      // 問題番号を正しく更新
+      const nextProblemNumber = problemNumber;
+      console.log("📊 Setting problem number to:", nextProblemNumber);
+
       const problemMessage: TrainingMessage = {
         type: "problem",
         content: data.japaneseSentence,
         timestamp: new Date().toISOString(),
-        problemNumber: problemNumber,
+        problemNumber: nextProblemNumber,
         isBookmarked: bookmarkedProblems.has(data.japaneseSentence),
       };
       
       setMessages((prev) => [...prev, problemMessage]);
-      setAppState("waiting_for_answer");
-    },
-    onError: (error: any) => {
-      console.error("Problem generation error:", error);
+      setIsWaitingForTranslation(true);
+      setShowNextButton(false);
+      
+    } catch (error: any) {
+      console.error("❌ Problem generation error:", error);
       
       if (
         error.message?.includes("429") ||
         error.message?.includes("最大出題数")
       ) {
+        console.log("📛 Daily limit reached - stopping all generation");
+        setIsDailyLimitReached(true);
         const limitMessage: TrainingMessage = {
           type: "evaluation",
           content: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
           timestamp: new Date().toISOString(),
         };
-        setMessages((prev) => [...prev, limitMessage]);
-        setAppState("daily_limit");
+        setMessages((prev) => [...prev, limitMessage]);  
+        setIsWaitingForTranslation(false);
+        setShowNextButton(false);
+        return; // 完全に停止
       } else {
         const errorMessage: TrainingMessage = {
           type: "evaluation",
@@ -123,10 +172,12 @@ export function TrainingInterface({
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, errorMessage]);
-        setAppState("error");
+        setIsWaitingForTranslation(false);
       }
-    },
-  });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Translation evaluation mutation
   const evaluateTranslationMutation = useMutation({
@@ -139,9 +190,7 @@ export function TrainingInterface({
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("Translation evaluated:", data);
       setCurrentSessionId(data.sessionId);
-      
       const evaluationMessage: TrainingMessage = {
         type: "evaluation",
         content: data.feedback || "",
@@ -153,31 +202,116 @@ export function TrainingInterface({
         improvements: data.improvements,
         timestamp: new Date().toISOString(),
       };
-      
       setMessages((prev) => [...prev, evaluationMessage]);
-      setAppState("showing_evaluation");
+      setIsWaitingForTranslation(false);
+      setShowNextButton(true);
     },
     onError: (error) => {
       console.error("Translation evaluation error:", error);
-      setAppState("error");
+      setIsWaitingForTranslation(false);
     },
   });
 
-  // Initialize with first problem on mount
+  // 初期化処理 - 厳格に制御
   useEffect(() => {
-    console.log("Initializing training interface for difficulty:", difficulty);
-    setMessages([]);
-    setProblemNumber(1);
-    setCurrentProblem("");
-    setCurrentSessionId(null);
-    setAppState("initial");
+    console.log("🔄 Difficulty useEffect triggered:", difficulty, "hasInitialized:", hasInitialized);
     
-    // Start with first problem
-    generateProblemMutation.mutate();
+    // 状態をリセット（difficultyが変わったら必ずリセット）
+    setHasInitialized(false);
+
+    // 状態をリセット
+    console.log("🧹 Resetting state for new difficulty");
+    setIsProcessing(false);
+    setIsDailyLimitReached(false);
+    setMessages([]);
+    setShowNextButton(false);
+    setIsWaitingForTranslation(false);
+    setCurrentProblem("");
+    setProblemNumber(1);
+    setCurrentSessionId(null);
+
+    // 特殊ケース処理
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
+
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+
+        if (currentIndex < sessions.length) {
+          const currentSession = sessions[currentIndex];
+          if (currentSession.difficultyLevel === difficulty) {
+            console.log("🔄 Loading repeat session:", currentIndex + 1);
+            setCurrentProblem(currentSession.japaneseSentence);
+            setProblemNumber(currentIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: currentSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: currentIndex + 1,
+            };
+            setMessages([problemMessage]);
+            setIsWaitingForTranslation(true);
+            setShowNextButton(false);
+            setHasInitialized(true);
+            return;
+          }
+        } else {
+          sessionStorage.removeItem("repeatPracticeMode");
+          sessionStorage.removeItem("repeatPracticeSessions");
+          sessionStorage.removeItem("repeatPracticeIndex");
+        }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
+      }
+    }
+
+    // レビュー問題チェック
+    const reviewProblem = sessionStorage.getItem("reviewProblem");
+    if (reviewProblem) {
+      try {
+        const problemData = JSON.parse(reviewProblem);
+        if (problemData.difficultyLevel === difficulty) {
+          console.log("🔄 Loading review problem");
+          setCurrentProblem(problemData.japaneseSentence);
+          setProblemNumber(1);
+          const problemMessage: TrainingMessage = {
+            type: "problem",
+            content: problemData.japaneseSentence,
+            timestamp: new Date().toISOString(),
+            problemNumber: 1,
+          };
+          setMessages([problemMessage]);
+          setIsWaitingForTranslation(true);
+          setShowNextButton(false);
+          setHasInitialized(true);
+          sessionStorage.removeItem("reviewProblem");
+          return;
+        }
+      } catch (error) {
+        console.error("Error parsing review problem:", error);
+        sessionStorage.removeItem("reviewProblem");
+      }
+    }
+
+    // 通常の問題生成を一度だけ実行
+    console.log("🚀 Starting normal problem generation");
+    const performInitialGeneration = async () => {
+      await generateProblem();
+      console.log("✅ Initial problem generation completed");
+      setHasInitialized(true);
+    };
+    
+    performInitialGeneration();
   }, [difficulty]);
 
   const handleSubmit = () => {
-    if (!input.trim() || appState !== "waiting_for_answer") return;
+    if (!input.trim() || !isWaitingForTranslation) return;
 
     const userMessage: TrainingMessage = {
       type: "user",
@@ -186,22 +320,8 @@ export function TrainingInterface({
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setAppState("evaluating");
     evaluateTranslationMutation.mutate(input.trim());
     setInput("");
-  };
-
-  const handleNextProblem = () => {
-    if (appState !== "showing_evaluation") return;
-    
-    console.log("Moving to next problem:", problemNumber + 1);
-    setProblemNumber(prev => prev + 1);
-    setCurrentProblem("");
-    setCurrentSessionId(null);
-    setAppState("initial");
-    
-    // Generate next problem
-    generateProblemMutation.mutate();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -211,7 +331,69 @@ export function TrainingInterface({
     }
   };
 
+  const handleNextProblem = () => {
+    console.log("⏭️ Next problem requested");
+    
+    if (isDailyLimitReached) {
+      console.log("🛑 Daily limit reached, not generating new problem");
+      return;
+    }
+
+    setShowNextButton(false);
+    
+    // リピート練習モードをチェック
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
+
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+        const nextIndex = currentIndex + 1;
+
+        const filteredSessions = sessions.filter(
+          (s: SessionType) => s.difficultyLevel === difficulty,
+        );
+
+        if (nextIndex < filteredSessions.length) {
+          const nextSession = filteredSessions[nextIndex];
+          if (nextSession) {
+            console.log("📝 Loading next repeat session:", nextIndex + 1);
+            sessionStorage.setItem("repeatPracticeIndex", nextIndex.toString());
+            setCurrentProblem(nextSession.japaneseSentence);
+            setProblemNumber(nextIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: nextSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: nextIndex + 1,
+            };
+            setMessages((prev) => [...prev, problemMessage]);
+            setIsWaitingForTranslation(true);
+            return;
+          }
+        } else {
+          sessionStorage.removeItem("repeatPracticeMode");
+          sessionStorage.removeItem("repeatPracticeSessions");
+          sessionStorage.removeItem("repeatPracticeIndex");
+        }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
+      }
+    }
+
+    // 通常モード - 問題番号をインクリメントして新しい問題を取得
+    console.log("➕ Incrementing problem number from", problemNumber, "to", problemNumber + 1);
+    setProblemNumber((prev) => prev + 1);
+    generateProblem();
+  };
+
   const toggleBookmark = async (problemText: string) => {
+    const isBookmarked = bookmarkedProblems.has(problemText);
     const newBookmarks = new Set(bookmarkedProblems);
 
     if (newBookmarks.has(problemText)) {
@@ -226,7 +408,7 @@ export function TrainingInterface({
     if (currentSessionId) {
       try {
         await apiRequest("POST", `/api/sessions/${currentSessionId}/bookmark`, {
-          isBookmarked: !bookmarkedProblems.has(problemText),
+          isBookmarked,
         });
         queryClient.invalidateQueries({
           queryKey: ["/api/bookmarked-sessions"],
@@ -262,33 +444,12 @@ export function TrainingInterface({
     ));
   };
 
-  const getInputPlaceholder = () => {
-    switch (appState) {
-      case "waiting_for_answer":
-        return "英訳を入力してください...";
-      case "evaluating":
-        return "評価中...";
-      case "daily_limit":
-        return "本日の制限に達しました";
-      case "error":
-        return "エラーが発生しました";
-      default:
-        return "問題の読み込み中...";
-    }
-  };
-
-  const isInputDisabled = () => {
-    return appState !== "waiting_for_answer" || evaluateTranslationMutation.isPending;
-  };
-
-  const showNextButton = appState === "showing_evaluation";
-  const showSubmitButton = appState === "waiting_for_answer" && input.trim();
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-2 sm:px-4 py-3">
         <div className="flex items-center justify-between w-full">
+          {/* Left section */}
           <div className="flex items-center space-x-2 flex-shrink-0">
             <Button
               variant="ghost"
@@ -306,6 +467,7 @@ export function TrainingInterface({
             </div>
           </div>
 
+          {/* Center section */}
           <div className="flex-1 text-center">
             {messages.length > 0 && (
               <span className="text-xs sm:text-sm text-gray-600 font-medium">
@@ -314,6 +476,7 @@ export function TrainingInterface({
             )}
           </div>
 
+          {/* Right section */}
           <div className="flex items-center space-x-1 flex-shrink-0">
             <Button
               variant="ghost"
@@ -484,12 +647,10 @@ export function TrainingInterface({
           ))}
 
           {/* Loading indicator */}
-          {(generateProblemMutation.isPending || evaluateTranslationMutation.isPending) && (
+          {isProcessing && (
             <div className="flex justify-center">
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
-                <div className="text-sm text-gray-600">
-                  {generateProblemMutation.isPending ? "問題を生成中..." : "評価中..."}
-                </div>
+                <div className="text-sm text-gray-600">問題を生成中...</div>
               </div>
             </div>
           )}
@@ -505,9 +666,9 @@ export function TrainingInterface({
             <Button
               onClick={handleNextProblem}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
-              disabled={generateProblemMutation.isPending}
+              disabled={isProcessing || isDailyLimitReached}
             >
-              次の問題へ
+              次の問題へ (1秒後)
             </Button>
           ) : (
             <div className="flex space-x-2">
@@ -517,15 +678,19 @@ export function TrainingInterface({
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder={getInputPlaceholder()}
-                  disabled={isInputDisabled()}
+                  placeholder={
+                    isWaitingForTranslation
+                      ? "英訳を入力してください..."
+                      : "問題の読み込み中..."
+                  }
+                  disabled={!isWaitingForTranslation}
                   className="resize-none pr-12 min-h-[44px] max-h-32"
                   rows={1}
                 />
               </div>
               <Button
                 onClick={handleSubmit}
-                disabled={!showSubmitButton}
+                disabled={!input.trim() || !isWaitingForTranslation}
                 className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl"
               >
                 <Send className="w-5 h-5" />
@@ -534,6 +699,15 @@ export function TrainingInterface({
           )}
         </div>
       </div>
+
+      {/* Auto-advance removed to prevent infinite loops */}
+      {showNextButton && !isDailyLimitReached && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2">
+          <div className="bg-black/75 text-white px-3 py-1 rounded-full text-sm">
+            「次の問題へ」ボタンをクリックしてください
+          </div>
+        </div>
+      )}
     </div>
   );
 }
