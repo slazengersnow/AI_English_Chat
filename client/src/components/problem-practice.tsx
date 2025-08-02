@@ -120,9 +120,9 @@ function problemReducer(state: ProblemState, action: ProblemAction): ProblemStat
 
 export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const [state, dispatch] = useReducer(problemReducer, initialState);
-  const initializationLock = useRef(false);
+  const initializationLock = useRef<boolean | string>(false);
 
-  // SINGLE initialization - strict control
+  // SINGLE initialization with 429 protection
   useEffect(() => {
     let mounted = true;
 
@@ -156,13 +156,22 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         if (!mounted) return;
 
         console.error("❌ Initial problem load failed:", err);
-        const errorMessage = err.message?.includes("429") || err.message?.includes("最大出題数")
-          ? "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
-          : "問題の生成に失敗しました。しばらく待ってから再試行してください。";
+        
+        // CRITICAL: Check for daily limit reached
+        if (err.message?.includes("429") || err.message?.includes("dailyLimitReached") || err.message?.includes("最大出題数")) {
+          console.log("🛑 Daily limit reached - stopping ALL further attempts");
+          dispatch({ 
+            type: "LOAD_PROBLEM_ERROR", 
+            error: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
+          });
+          // Mark as permanently failed to prevent any retry
+          initializationLock.current = "DAILY_LIMIT_REACHED";
+          return;
+        }
 
         dispatch({ 
           type: "LOAD_PROBLEM_ERROR", 
-          error: errorMessage 
+          error: "問題の生成に失敗しました。しばらく待ってから再試行してください。"
         });
       }
     }
@@ -176,6 +185,16 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   const generateNextProblem = async () => {
     console.log("🔄 User requested next problem");
+    
+    // CRITICAL: Check if daily limit was already reached
+    if (initializationLock.current === "DAILY_LIMIT_REACHED") {
+      console.log("🛑 Daily limit already reached - blocking new request");
+      dispatch({ 
+        type: "LOAD_PROBLEM_ERROR", 
+        error: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
+      });
+      return;
+    }
     
     // Reset lock for new problem
     initializationLock.current = false;
@@ -201,13 +220,22 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         });
       } catch (err: any) {
         console.error("❌ Next problem load failed:", err);
-        const errorMessage = err.message?.includes("429") || err.message?.includes("最大出題数")
-          ? "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
-          : "問題の生成に失敗しました。しばらく待ってから再試行してください。";
+        
+        // CRITICAL: Check for daily limit reached
+        if (err.message?.includes("429") || err.message?.includes("dailyLimitReached") || err.message?.includes("最大出題数")) {
+          console.log("🛑 Daily limit reached on next problem - stopping ALL further attempts");
+          dispatch({ 
+            type: "LOAD_PROBLEM_ERROR", 
+            error: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
+          });
+          // Mark as permanently failed to prevent any retry
+          initializationLock.current = "DAILY_LIMIT_REACHED";
+          return;
+        }
 
         dispatch({ 
           type: "LOAD_PROBLEM_ERROR", 
-          error: errorMessage 
+          error: "問題の生成に失敗しました。しばらく待ってから再試行してください。"
         });
       }
     }, 150);
@@ -340,12 +368,20 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
               <p className="text-gray-600 mb-6">
                 {state.error}
               </p>
-              <Button
-                onClick={generateNextProblem}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
-              >
-                再試行
-              </Button>
+              {initializationLock.current !== "DAILY_LIMIT_REACHED" && (
+                <Button
+                  onClick={generateNextProblem}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+                >
+                  再試行
+                </Button>
+              )}
+              
+              {initializationLock.current === "DAILY_LIMIT_REACHED" && (
+                <p className="text-gray-600 text-sm">
+                  明日また挑戦してください
+                </p>
+              )}
             </div>
           )}
 
@@ -521,13 +557,21 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
             </Button>
           )}
           
-          {state.step === "show_result" && (
+          {state.step === "show_result" && initializationLock.current !== "DAILY_LIMIT_REACHED" && (
             <Button
               onClick={generateNextProblem}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
             >
               新しい問題に挑戦
             </Button>
+          )}
+          
+          {state.step === "show_result" && initializationLock.current === "DAILY_LIMIT_REACHED" && (
+            <div className="text-center py-4">
+              <p className="text-gray-600 text-sm">
+                本日の学習は完了しました。明日また挑戦してください！
+              </p>
+            </div>
           )}
         </div>
       </div>
