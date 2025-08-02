@@ -105,15 +105,22 @@ export function TrainingInterface({
     enabled: !!user,
   });
 
-  // Problem generation mutation - 単一のハンドラー
-  const generateProblem = useCallback(async () => {
+  // Problem generation - 完全に制御された関数
+  const generateProblem = async () => {
+    console.log("🔄 generateProblem called - current state:", {
+      isProcessing,
+      isDailyLimitReached,
+      hasInitialized,
+      problemNumber
+    });
+
     if (isProcessing || isDailyLimitReached) {
       console.log("🛑 Skipping problem generation - processing or limit reached");
       return;
     }
 
     setIsProcessing(true);
-    console.log("📥 Generating new problem");
+    console.log("📥 Generating new problem for difficulty:", difficulty);
 
     try {
       const response = await apiRequest("POST", "/api/problem", {
@@ -121,26 +128,18 @@ export function TrainingInterface({
       });
       const data: ProblemResponse = await response.json();
       
-      console.log("✅ Problem generated successfully");
+      console.log("✅ Problem generated successfully:", data.japaneseSentence);
       setCurrentProblem(data.japaneseSentence);
 
-      let currentProblemNum = problemNumber;
-      if (data.hints && data.hints.length > 0) {
-        const problemHint = data.hints.find((hint) => hint.startsWith("問題"));
-        if (problemHint) {
-          const match = problemHint.match(/問題(\d+)/);
-          if (match) {
-            currentProblemNum = parseInt(match[1]);
-            setProblemNumber(currentProblemNum);
-          }
-        }
-      }
+      // 問題番号を正しく更新
+      const nextProblemNumber = problemNumber;
+      console.log("📊 Setting problem number to:", nextProblemNumber);
 
       const problemMessage: TrainingMessage = {
         type: "problem",
         content: data.japaneseSentence,
         timestamp: new Date().toISOString(),
-        problemNumber: currentProblemNum,
+        problemNumber: nextProblemNumber,
         isBookmarked: bookmarkedProblems.has(data.japaneseSentence),
       };
       
@@ -155,14 +154,17 @@ export function TrainingInterface({
         error.message?.includes("429") ||
         error.message?.includes("最大出題数")
       ) {
+        console.log("📛 Daily limit reached - stopping all generation");
         setIsDailyLimitReached(true);
         const limitMessage: TrainingMessage = {
           type: "evaluation",
           content: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
           timestamp: new Date().toISOString(),
         };
-        setMessages((prev) => [...prev, limitMessage]);
+        setMessages((prev) => [...prev, limitMessage]);  
         setIsWaitingForTranslation(false);
+        setShowNextButton(false);
+        return; // 完全に停止
       } else {
         const errorMessage: TrainingMessage = {
           type: "evaluation",
@@ -175,7 +177,7 @@ export function TrainingInterface({
     } finally {
       setIsProcessing(false);
     }
-  }, [difficulty, problemNumber, bookmarkedProblems, isProcessing, isDailyLimitReached]);
+  };
 
   // Translation evaluation mutation
   const evaluateTranslationMutation = useMutation({
@@ -210,12 +212,15 @@ export function TrainingInterface({
     },
   });
 
-  // 初期化処理 - 難易度変更時のみ実行
+  // 初期化処理 - 厳格に制御
   useEffect(() => {
-    console.log("🔄 Difficulty changed to:", difficulty);
+    console.log("🔄 Difficulty useEffect triggered:", difficulty, "hasInitialized:", hasInitialized);
     
-    // 状態をリセット
+    // 状態をリセット（difficultyが変わったら必ずリセット）
     setHasInitialized(false);
+
+    // 状態をリセット
+    console.log("🧹 Resetting state for new difficulty");
     setIsProcessing(false);
     setIsDailyLimitReached(false);
     setMessages([]);
@@ -225,7 +230,7 @@ export function TrainingInterface({
     setProblemNumber(1);
     setCurrentSessionId(null);
 
-    // 特殊ケースをチェック
+    // 特殊ケース処理
     const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
     const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
     const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
@@ -238,6 +243,7 @@ export function TrainingInterface({
         if (currentIndex < sessions.length) {
           const currentSession = sessions[currentIndex];
           if (currentSession.difficultyLevel === difficulty) {
+            console.log("🔄 Loading repeat session:", currentIndex + 1);
             setCurrentProblem(currentSession.japaneseSentence);
             setProblemNumber(currentIndex + 1);
             const problemMessage: TrainingMessage = {
@@ -265,12 +271,13 @@ export function TrainingInterface({
       }
     }
 
-    // レビュー問題をチェック
+    // レビュー問題チェック
     const reviewProblem = sessionStorage.getItem("reviewProblem");
     if (reviewProblem) {
       try {
         const problemData = JSON.parse(reviewProblem);
         if (problemData.difficultyLevel === difficulty) {
+          console.log("🔄 Loading review problem");
           setCurrentProblem(problemData.japaneseSentence);
           setProblemNumber(1);
           const problemMessage: TrainingMessage = {
@@ -293,12 +300,15 @@ export function TrainingInterface({
     }
 
     // 通常の問題生成を一度だけ実行
-    if (!hasInitialized && !isDailyLimitReached) {
-      generateProblem().then(() => {
-        setHasInitialized(true);
-      });
-    }
-  }, [difficulty]); // difficultyのみに依存
+    console.log("🚀 Starting normal problem generation");
+    const performInitialGeneration = async () => {
+      await generateProblem();
+      console.log("✅ Initial problem generation completed");
+      setHasInitialized(true);
+    };
+    
+    performInitialGeneration();
+  }, [difficulty]);
 
   const handleSubmit = () => {
     if (!input.trim() || !isWaitingForTranslation) return;
@@ -323,6 +333,12 @@ export function TrainingInterface({
 
   const handleNextProblem = () => {
     console.log("⏭️ Next problem requested");
+    
+    if (isDailyLimitReached) {
+      console.log("🛑 Daily limit reached, not generating new problem");
+      return;
+    }
+
     setShowNextButton(false);
     
     // リピート練習モードをチェック
@@ -343,6 +359,7 @@ export function TrainingInterface({
         if (nextIndex < filteredSessions.length) {
           const nextSession = filteredSessions[nextIndex];
           if (nextSession) {
+            console.log("📝 Loading next repeat session:", nextIndex + 1);
             sessionStorage.setItem("repeatPracticeIndex", nextIndex.toString());
             setCurrentProblem(nextSession.japaneseSentence);
             setProblemNumber(nextIndex + 1);
@@ -369,7 +386,8 @@ export function TrainingInterface({
       }
     }
 
-    // 通常モード - 新しい問題を取得
+    // 通常モード - 問題番号をインクリメントして新しい問題を取得
+    console.log("➕ Incrementing problem number from", problemNumber, "to", problemNumber + 1);
     setProblemNumber((prev) => prev + 1);
     generateProblem();
   };
@@ -682,22 +700,12 @@ export function TrainingInterface({
         </div>
       </div>
 
-      {/* Auto-advance to next problem */}
-      {showNextButton && (
+      {/* Auto-advance removed to prevent infinite loops */}
+      {showNextButton && !isDailyLimitReached && (
         <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2">
           <div className="bg-black/75 text-white px-3 py-1 rounded-full text-sm">
-            1秒後に次の問題へ進みます
+            「次の問題へ」ボタンをクリックしてください
           </div>
-        </div>
-      )}
-
-      {showNextButton && (
-        <div>
-          {setTimeout(() => {
-            if (showNextButton) {
-              handleNextProblem();
-            }
-          }, 1000)}
         </div>
       )}
     </div>
