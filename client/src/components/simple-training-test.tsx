@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, ArrowLeft } from "lucide-react";
@@ -14,22 +14,31 @@ export function SimpleTrainingTest({ onBack }: SimpleTrainingTestProps) {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const hasGeneratedRef = useRef(false);
 
   const generateProblem = async () => {
+    // 二重実行防止
+    if (hasGeneratedRef.current || isLoading) {
+      console.log("Problem generation already in progress or completed");
+      return;
+    }
+    
+    hasGeneratedRef.current = true;
     setIsLoading(true);
     setError("");
     
     try {
-      console.log("Generating problem...");
+      console.log("Generating single problem...");
       const response = await apiRequest("POST", "/api/problem", {
         difficultyLevel: "toeic",
       });
       const data = await response.json();
-      console.log("Problem data:", data);
+      console.log("Problem generated successfully:", data.japaneseSentence);
       setProblem(data.japaneseSentence);
     } catch (err: any) {
       console.error("Problem generation error:", err);
       setError(`問題生成エラー: ${err.message}`);
+      hasGeneratedRef.current = false; // エラー時はリセット
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +73,7 @@ export function SimpleTrainingTest({ onBack }: SimpleTrainingTestProps) {
     setUserAnswer("");
     setEvaluation(null);
     setError("");
+    hasGeneratedRef.current = false; // フラグもリセット
   };
 
   return (
@@ -91,10 +101,10 @@ export function SimpleTrainingTest({ onBack }: SimpleTrainingTestProps) {
           <div className="text-center py-8">
             <Button
               onClick={generateProblem}
-              disabled={isLoading}
+              disabled={isLoading || hasGeneratedRef.current}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              {isLoading ? "問題生成中..." : "問題を1つ生成"}
+              {isLoading ? "問題生成中..." : hasGeneratedRef.current ? "生成済み" : "問題を1つ生成"}
             </Button>
           </div>
         )}
