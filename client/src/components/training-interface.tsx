@@ -70,6 +70,7 @@ export function TrainingInterface({
   const [input, setInput] = useState("");
   const [currentProblem, setCurrentProblem] = useState<string>("");
   const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
+  const [showNextButton, setShowNextButton] = useState(false);
   const [problemNumber, setProblemNumber] = useState(1);
   const [hasInitializedProblemNumber, setHasInitializedProblemNumber] =
     useState(false);
@@ -183,7 +184,9 @@ export function TrainingInterface({
         isBookmarked: bookmarkedProblems.has(data.japaneseSentence),
       };
       setMessages((prev) => [...prev, problemMessage]);
+      setCurrentProblem(data.japaneseSentence);
       setIsWaitingForTranslation(true);
+      setShowNextButton(false);
     },
     onError: (error: any) => {
       console.error("Problem generation error:", error);
@@ -234,68 +237,9 @@ export function TrainingInterface({
       };
       setMessages((prev) => [...prev, evaluationMessage]);
 
-      // Generate next problem immediately after evaluation
-      setTimeout(() => {
-        // Check if we're in repeat practice mode
-        const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
-        const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
-        const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
-
-        if (isRepeatMode && repeatSessions && repeatIndex !== null) {
-          try {
-            const sessions: SessionType[] = JSON.parse(repeatSessions);
-            const currentIndex = parseInt(repeatIndex);
-            const nextIndex = currentIndex + 1;
-
-            // Filter sessions by current difficulty
-            const filteredSessions = sessions.filter(
-              (s: SessionType) => s.difficultyLevel === difficulty,
-            );
-
-            if (nextIndex < filteredSessions.length) {
-              const nextSession = filteredSessions[nextIndex];
-              if (nextSession) {
-                // Update index and show next repeat practice problem
-                sessionStorage.setItem(
-                  "repeatPracticeIndex",
-                  nextIndex.toString(),
-                );
-                setCurrentProblem(nextSession.japaneseSentence);
-                setProblemNumber(nextIndex + 1);
-                const problemMessage: TrainingMessage = {
-                  type: "problem",
-                  content: nextSession.japaneseSentence,
-                  timestamp: new Date().toISOString(),
-                  problemNumber: nextIndex + 1,
-                };
-                setMessages((prev) => [...prev, problemMessage]);
-                setIsWaitingForTranslation(true);
-                return;
-              }
-            } else {
-              // All repeat practice problems completed
-              sessionStorage.removeItem("repeatPracticeMode");
-              sessionStorage.removeItem("repeatPracticeSessions");
-              sessionStorage.removeItem("repeatPracticeIndex");
-            }
-          } catch (error) {
-            console.error("Error parsing repeat practice sessions:", error);
-            // Clear corrupted session storage
-            sessionStorage.removeItem("repeatPracticeMode");
-            sessionStorage.removeItem("repeatPracticeSessions");
-            sessionStorage.removeItem("repeatPracticeIndex");
-          }
-        }
-
-        // Regular mode - get new problem
-        if (!hasInitializedProblemNumber) {
-          setHasInitializedProblemNumber(true);
-        }
-        setProblemNumber((prev) => prev + 1);
-        getProblemMutation.mutate();
-      }, 1000);
-
+      // Show next problem button instead of auto-generating
       setIsWaitingForTranslation(false);
+      setShowNextButton(true);
     },
     onError: (error) => {
       console.error("Translation evaluation error:", error);
@@ -324,66 +268,7 @@ export function TrainingInterface({
     }
   };
 
-  // Handle next problem button click
-  const handleNextProblem = () => {
-    // Check if we're in repeat practice mode
-    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
-    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
-    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
 
-    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
-      try {
-        const sessions: SessionType[] = JSON.parse(repeatSessions);
-        const currentIndex = parseInt(repeatIndex);
-        const nextIndex = currentIndex + 1;
-
-        // Filter sessions by current difficulty
-        const filteredSessions = sessions.filter(
-          (s: SessionType) => s.difficultyLevel === difficulty,
-        );
-
-        if (nextIndex < filteredSessions.length) {
-          const nextSession = filteredSessions[nextIndex];
-          if (nextSession) {
-            // Update index and show next repeat practice problem
-            sessionStorage.setItem(
-              "repeatPracticeIndex",
-              nextIndex.toString(),
-            );
-            setCurrentProblem(nextSession.japaneseSentence);
-            setProblemNumber(nextIndex + 1);
-            const problemMessage: TrainingMessage = {
-              type: "problem",
-              content: nextSession.japaneseSentence,
-              timestamp: new Date().toISOString(),
-              problemNumber: nextIndex + 1,
-            };
-            setMessages((prev) => [...prev, problemMessage]);
-            setIsWaitingForTranslation(true);
-            return;
-          }
-        } else {
-          // All repeat practice problems completed
-          sessionStorage.removeItem("repeatPracticeMode");
-          sessionStorage.removeItem("repeatPracticeSessions");
-          sessionStorage.removeItem("repeatPracticeIndex");
-        }
-      } catch (error) {
-        console.error("Error parsing repeat practice sessions:", error);
-        // Clear corrupted session storage
-        sessionStorage.removeItem("repeatPracticeMode");
-        sessionStorage.removeItem("repeatPracticeSessions");
-        sessionStorage.removeItem("repeatPracticeIndex");
-      }
-    }
-
-    // Regular mode - get new problem
-    if (!hasInitializedProblemNumber) {
-      setHasInitializedProblemNumber(true);
-    }
-    setProblemNumber((prev) => prev + 1);
-    getProblemMutation.mutate();
-  };
 
   // Auto-resize textarea
   useEffect(() => {
@@ -482,18 +367,82 @@ export function TrainingInterface({
     getProblemMutation.mutate();
   };
 
-  // Initialize only when messages are empty and not already initialized
-  useEffect(() => {
-    if (messages.length === 0 && !isInitialized) {
-      initializeProblem();
-    }
-  }, [messages.length, isInitialized]);
+  const handleNextProblem = () => {
+    setShowNextButton(false);
+    
+    // Check if we're in repeat practice mode
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
 
-  // Reset initialization when difficulty changes
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+        const nextIndex = currentIndex + 1;
+
+        // Filter sessions by current difficulty
+        const filteredSessions = sessions.filter(
+          (s: SessionType) => s.difficultyLevel === difficulty,
+        );
+
+        if (nextIndex < filteredSessions.length) {
+          const nextSession = filteredSessions[nextIndex];
+          if (nextSession) {
+            // Update index and show next repeat practice problem
+            sessionStorage.setItem(
+              "repeatPracticeIndex",
+              nextIndex.toString(),
+            );
+            setCurrentProblem(nextSession.japaneseSentence);
+            setProblemNumber(nextIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: nextSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: nextIndex + 1,
+            };
+            setMessages((prev) => [...prev, problemMessage]);
+            setIsWaitingForTranslation(true);
+            return;
+          }
+        } else {
+          // All repeat practice problems completed
+          sessionStorage.removeItem("repeatPracticeMode");
+          sessionStorage.removeItem("repeatPracticeSessions");
+          sessionStorage.removeItem("repeatPracticeIndex");
+        }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        // Clear corrupted session storage
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
+      }
+    }
+
+    // Regular mode - get new problem
+    if (!hasInitializedProblemNumber) {
+      setHasInitializedProblemNumber(true);
+    }
+    setProblemNumber((prev) => prev + 1);
+    getProblemMutation.mutate();
+  };
+
+  // Initialize problem only once when component mounts or difficulty changes
   useEffect(() => {
-    console.log("Difficulty changed, resetting initialization");
+    console.log("Difficulty changed, initializing problem for:", difficulty);
     setIsInitialized(false);
     setMessages([]);
+    
+    // Use a timeout to ensure state is reset first
+    const timeoutId = setTimeout(() => {
+      if (!isInitialized) {
+        initializeProblem();
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [difficulty]);
 
   const renderStars = (rating: number) => {
@@ -726,35 +675,50 @@ export function TrainingInterface({
 
       {/* Input Area */}
       <div className="bg-white border-t border-gray-200 px-4 py-3">
-        <div className="flex items-end space-x-3">
-          <div className="flex-1 relative">
-            <Textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={
-                isWaitingForTranslation
-                  ? "英語で翻訳を入力..."
-                  : "次の問題を準備中..."
-              }
-              disabled={!isWaitingForTranslation}
-              className="w-full px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 text-sm max-h-32 border-0 disabled:opacity-50"
-              rows={1}
-            />
+        {showNextButton ? (
+          // Show Next Problem button after evaluation
+          <div className="flex justify-center">
+            <Button
+              onClick={handleNextProblem}
+              disabled={getProblemMutation.isPending}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full flex items-center space-x-2 disabled:opacity-50"
+            >
+              <Sparkles className="w-5 h-5" />
+              <span>次の問題</span>
+            </Button>
           </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={
-              !input.trim() ||
-              !isWaitingForTranslation ||
-              evaluateTranslationMutation.isPending
-            }
-            className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-0"
-          >
-            <Send className="w-5 h-5 text-white" />
-          </Button>
-        </div>
+        ) : (
+          // Show input area when waiting for translation
+          <div className="flex items-end space-x-3">
+            <div className="flex-1 relative">
+              <Textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  isWaitingForTranslation
+                    ? "英語で翻訳を入力..."
+                    : "次の問題を準備中..."
+                }
+                disabled={!isWaitingForTranslation}
+                className="w-full px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 text-sm max-h-32 border-0 disabled:opacity-50"
+                rows={1}
+              />
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={
+                !input.trim() ||
+                !isWaitingForTranslation ||
+                evaluateTranslationMutation.isPending
+              }
+              className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-0"
+            >
+              <Send className="w-5 h-5 text-white" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
