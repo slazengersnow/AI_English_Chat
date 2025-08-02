@@ -33,13 +33,14 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Implemented Replit-specific OAuth configuration using REPLIT_DEV_DOMAIN
 - Created Replit-optimized authentication page (/replit-auth-fix)
 - Resolved Preview environment OAuth restrictions
-- **CRITICAL REBUILD (Aug 2, 2025)**: Completely rebuilt training interface from zero
-- Replaced complex TrainingInterface with SimpleProblemPractice using useReducer
-- Implemented strict 1-problem-only architecture with manual step control
-- Eliminated all useEffect-based automatic problem generation across ALL files
-- Fixed infinite loop by removing mutation chains and auto-triggers in simulation-practice.tsx
-- Created clean state machine with useReducer: initial → loading_problem → showing_problem → evaluating → showing_result
-- Removed auto-generation from simulation practice to prevent cross-file interference
+- **COMPLETE RECONSTRUCTION (Aug 2, 2025)**: Deleted all problem-related files and rebuilt from zero
+- Created new ProblemPractice component with explicit state machine using useReducer
+- Implemented absolute initialization lock (initializationLock.current) to prevent double execution
+- State transitions: loading → show_problem → waiting_user_input → evaluating → show_result → wait_for_next_button
+- Eliminated all automatic problem generation - ONLY manual button clicks trigger new problems
+- Removed auto-generation from simulation-practice.tsx to prevent cross-file interference
+- Rebuilt chat-interface.tsx with minimal functionality to prevent side effects
+- Empty dependency arrays [] and strict mounted checks to prevent infinite loops
 
 ## System Architecture
 

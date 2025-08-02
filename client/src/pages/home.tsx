@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { DifficultySelection } from "@/components/difficulty-selection";
 import { TrainingInterface } from "@/components/training-interface";
-import { SimpleProblemPractice } from "@/components/simple-problem-practice";
+import { ProblemPractice } from "@/components/problem-practice";
 import { PaymentModal } from "@/components/payment-modal";
 import { Button } from "@/components/ui/button";
 import { User, Shield } from "lucide-react";
@@ -119,7 +119,7 @@ export default function Home() {
       )}
       
       {currentView === 'test' && (
-        <SimpleProblemPractice difficulty="toeic" onBack={handleBackToDifficulty} />
+        <ProblemPractice difficulty="toeic" onBack={handleBackToDifficulty} />
       )}
       
       <PaymentModal 

@@ -6,16 +6,23 @@ import { apiRequest } from "@/lib/queryClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import { SpeechButton } from "@/components/speech-button";
 
-interface SimpleProblemPracticeProps {
+interface ProblemPracticeProps {
   difficulty: DifficultyKey;
   onBack: () => void;
 }
 
-// State machine using useReducer to prevent infinite loops
-type StateType = "initial" | "loading_problem" | "showing_problem" | "evaluating" | "showing_result" | "error";
+// Explicit state machine to prevent loops
+type AppStep = 
+  | "loading"
+  | "show_problem" 
+  | "waiting_user_input"
+  | "evaluating"
+  | "show_result"
+  | "wait_for_next_button"
+  | "error";
 
-interface AppState {
-  currentState: StateType;
+interface ProblemState {
+  step: AppStep;
   problem: string;
   userAnswer: string;
   evaluation: any;
@@ -23,19 +30,19 @@ interface AppState {
   isBookmarked: boolean;
 }
 
-type ActionType =
-  | { type: "START_LOADING" }
-  | { type: "PROBLEM_LOADED"; payload: string }
-  | { type: "PROBLEM_ERROR"; payload: string }
-  | { type: "SET_ANSWER"; payload: string }
-  | { type: "START_EVALUATING" }
-  | { type: "EVALUATION_COMPLETE"; payload: any }
-  | { type: "EVALUATION_ERROR"; payload: string }
+type ProblemAction =
+  | { type: "LOAD_PROBLEM_START" }
+  | { type: "LOAD_PROBLEM_SUCCESS"; problem: string }
+  | { type: "LOAD_PROBLEM_ERROR"; error: string }
+  | { type: "SET_USER_ANSWER"; answer: string }
+  | { type: "EVALUATE_START" }
+  | { type: "EVALUATE_SUCCESS"; evaluation: any }
+  | { type: "EVALUATE_ERROR"; error: string }
   | { type: "TOGGLE_BOOKMARK" }
-  | { type: "RESET_FOR_NEW_PROBLEM" };
+  | { type: "PREPARE_NEXT_PROBLEM" };
 
-const initialState: AppState = {
-  currentState: "initial",
+const initialState: ProblemState = {
+  step: "loading",
   problem: "",
   userAnswer: "",
   evaluation: null,
@@ -43,55 +50,55 @@ const initialState: AppState = {
   isBookmarked: false,
 };
 
-function appReducer(state: AppState, action: ActionType): AppState {
+function problemReducer(state: ProblemState, action: ProblemAction): ProblemState {
   switch (action.type) {
-    case "START_LOADING":
+    case "LOAD_PROBLEM_START":
+      return {
+        ...initialState,
+        step: "loading",
+      };
+
+    case "LOAD_PROBLEM_SUCCESS":
       return {
         ...state,
-        currentState: "loading_problem",
+        step: "show_problem",
+        problem: action.problem,
         error: "",
       };
 
-    case "PROBLEM_LOADED":
+    case "LOAD_PROBLEM_ERROR":
       return {
         ...state,
-        currentState: "showing_problem",
-        problem: action.payload,
+        step: "error",
+        error: action.error,
+      };
+
+    case "SET_USER_ANSWER":
+      return {
+        ...state,
+        userAnswer: action.answer,
+        step: state.step === "show_problem" ? "waiting_user_input" : state.step,
+      };
+
+    case "EVALUATE_START":
+      return {
+        ...state,
+        step: "evaluating",
         error: "",
       };
 
-    case "PROBLEM_ERROR":
+    case "EVALUATE_SUCCESS":
       return {
         ...state,
-        currentState: "error",
-        error: action.payload,
+        step: "show_result",
+        evaluation: action.evaluation,
       };
 
-    case "SET_ANSWER":
+    case "EVALUATE_ERROR":
       return {
         ...state,
-        userAnswer: action.payload,
-      };
-
-    case "START_EVALUATING":
-      return {
-        ...state,
-        currentState: "evaluating",
-        error: "",
-      };
-
-    case "EVALUATION_COMPLETE":
-      return {
-        ...state,
-        currentState: "showing_result",
-        evaluation: action.payload,
-      };
-
-    case "EVALUATION_ERROR":
-      return {
-        ...state,
-        currentState: "error",
-        error: action.payload,
+        step: "error",
+        error: action.error,
       };
 
     case "TOGGLE_BOOKMARK":
@@ -100,10 +107,10 @@ function appReducer(state: AppState, action: ActionType): AppState {
         isBookmarked: !state.isBookmarked,
       };
 
-    case "RESET_FOR_NEW_PROBLEM":
+    case "PREPARE_NEXT_PROBLEM":
       return {
         ...initialState,
-        currentState: "initial",
+        step: "loading",
       };
 
     default:
@@ -111,60 +118,106 @@ function appReducer(state: AppState, action: ActionType): AppState {
   }
 }
 
-export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPracticeProps) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
-  const hasInitialized = useRef(false);
+export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
+  const [state, dispatch] = useReducer(problemReducer, initialState);
+  const initializationLock = useRef(false);
 
-  // ONE-TIME initialization on mount - STRICT CONTROL
+  // SINGLE initialization - strict control
   useEffect(() => {
-    let isMounted = true;
+    let mounted = true;
 
-    const initializeOnce = async () => {
-      // Absolute prevention of double execution
-      if (hasInitialized.current) {
-        console.log("Already initialized, blocking");
+    async function loadInitialProblem() {
+      // Absolute lock to prevent double execution
+      if (initializationLock.current) {
+        console.log("🔒 Initialization locked, skipping");
         return;
       }
 
-      hasInitialized.current = true;
-      console.log("🎯 SINGLE initialization for difficulty:", difficulty);
+      initializationLock.current = true;
+      console.log("🎯 Loading SINGLE initial problem for:", difficulty);
 
-      dispatch({ type: "START_LOADING" });
+      dispatch({ type: "LOAD_PROBLEM_START" });
 
       try {
         const response = await apiRequest("POST", "/api/problem", {
           difficultyLevel: difficulty,
         });
 
-        if (!isMounted) return;
+        if (!mounted) return;
 
         const data = await response.json();
-        console.log("✅ Single problem loaded:", data.japaneseSentence);
+        console.log("✅ Initial problem loaded:", data.japaneseSentence);
 
-        dispatch({ type: "PROBLEM_LOADED", payload: data.japaneseSentence });
+        dispatch({ 
+          type: "LOAD_PROBLEM_SUCCESS", 
+          problem: data.japaneseSentence 
+        });
       } catch (err: any) {
-        if (!isMounted) return;
+        if (!mounted) return;
 
-        console.error("❌ Problem generation failed:", err);
-        const errorMsg = err.message?.includes("429") || err.message?.includes("最大出題数")
+        console.error("❌ Initial problem load failed:", err);
+        const errorMessage = err.message?.includes("429") || err.message?.includes("最大出題数")
           ? "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
           : "問題の生成に失敗しました。しばらく待ってから再試行してください。";
 
-        dispatch({ type: "PROBLEM_ERROR", payload: errorMsg });
+        dispatch({ 
+          type: "LOAD_PROBLEM_ERROR", 
+          error: errorMessage 
+        });
       }
-    };
+    }
 
-    initializeOnce();
+    loadInitialProblem();
 
     return () => {
-      isMounted = false;
+      mounted = false;
     };
-  }, []); // EMPTY ARRAY - NO DEPENDENCIES
+  }, []); // CRITICAL: Empty dependency array
 
-  const handleSubmitAnswer = async () => {
+  const generateNextProblem = async () => {
+    console.log("🔄 User requested next problem");
+    
+    // Reset lock for new problem
+    initializationLock.current = false;
+    dispatch({ type: "PREPARE_NEXT_PROBLEM" });
+
+    // Delay to ensure clean state reset
+    setTimeout(async () => {
+      if (initializationLock.current) return;
+      
+      initializationLock.current = true;
+      dispatch({ type: "LOAD_PROBLEM_START" });
+
+      try {
+        const response = await apiRequest("POST", "/api/problem", {
+          difficultyLevel: difficulty,
+        });
+        const data = await response.json();
+
+        console.log("✅ Next problem loaded:", data.japaneseSentence);
+        dispatch({ 
+          type: "LOAD_PROBLEM_SUCCESS", 
+          problem: data.japaneseSentence 
+        });
+      } catch (err: any) {
+        console.error("❌ Next problem load failed:", err);
+        const errorMessage = err.message?.includes("429") || err.message?.includes("最大出題数")
+          ? "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
+          : "問題の生成に失敗しました。しばらく待ってから再試行してください。";
+
+        dispatch({ 
+          type: "LOAD_PROBLEM_ERROR", 
+          error: errorMessage 
+        });
+      }
+    }, 150);
+  };
+
+  const submitAnswer = async () => {
     if (!state.userAnswer.trim() || !state.problem) return;
 
-    dispatch({ type: "START_EVALUATING" });
+    console.log("📝 Submitting answer");
+    dispatch({ type: "EVALUATE_START" });
 
     try {
       const response = await apiRequest("POST", "/api/translate", {
@@ -174,47 +227,21 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
       });
       const data = await response.json();
 
-      dispatch({ type: "EVALUATION_COMPLETE", payload: data });
+      console.log("✅ Evaluation completed");
+      dispatch({ 
+        type: "EVALUATE_SUCCESS", 
+        evaluation: data 
+      });
     } catch (err: any) {
-      console.error("Evaluation failed:", err);
-      dispatch({ type: "EVALUATION_ERROR", payload: "評価に失敗しました。しばらく待ってから再試行してください。" });
+      console.error("❌ Evaluation failed:", err);
+      dispatch({ 
+        type: "EVALUATE_ERROR", 
+        error: "評価に失敗しました。しばらく待ってから再試行してください。" 
+      });
     }
   };
 
-  const handleNewProblem = async () => {
-    // Reset the initialization flag for new problem
-    hasInitialized.current = false;
-    dispatch({ type: "RESET_FOR_NEW_PROBLEM" });
-
-    // Small delay to ensure clean state reset
-    setTimeout(async () => {
-      if (hasInitialized.current) return;
-
-      hasInitialized.current = true;
-      console.log("🔄 Generating NEW problem for:", difficulty);
-
-      dispatch({ type: "START_LOADING" });
-
-      try {
-        const response = await apiRequest("POST", "/api/problem", {
-          difficultyLevel: difficulty,
-        });
-        const data = await response.json();
-
-        console.log("✅ New problem loaded:", data.japaneseSentence);
-        dispatch({ type: "PROBLEM_LOADED", payload: data.japaneseSentence });
-      } catch (err: any) {
-        console.error("❌ New problem generation failed:", err);
-        const errorMsg = err.message?.includes("429") || err.message?.includes("最大出題数")
-          ? "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
-          : "問題の生成に失敗しました。しばらく待ってから再試行してください。";
-
-        dispatch({ type: "PROBLEM_ERROR", payload: errorMsg });
-      }
-    }, 100);
-  };
-
-  const handleToggleBookmark = async () => {
+  const toggleBookmark = async () => {
     if (!state.evaluation?.sessionId) return;
 
     try {
@@ -228,9 +255,9 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey && state.currentState === "showing_problem" && state.userAnswer.trim()) {
+    if (e.key === "Enter" && !e.shiftKey && state.step === "waiting_user_input" && state.userAnswer.trim()) {
       e.preventDefault();
-      handleSubmitAnswer();
+      submitAnswer();
     }
   };
 
@@ -286,8 +313,8 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
             </div>
           )}
 
-          {/* Initial/Loading State */}
-          {(state.currentState === "initial" || state.currentState === "loading_problem") && (
+          {/* Loading State */}
+          {state.step === "loading" && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mx-auto mb-6 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-white animate-spin" />
@@ -302,7 +329,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
           )}
 
           {/* Error State */}
-          {state.currentState === "error" && (
+          {state.step === "error" && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-red-100 rounded-full mx-auto mb-6 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-red-600" />
@@ -314,7 +341,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
                 {state.error}
               </p>
               <Button
-                onClick={handleNewProblem}
+                onClick={generateNextProblem}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
               >
                 再試行
@@ -323,7 +350,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
           )}
 
           {/* Problem Display */}
-          {state.currentState === "showing_problem" && state.problem && (
+          {(state.step === "show_problem" || state.step === "waiting_user_input") && state.problem && (
             <>
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
                 <div className="flex items-start justify-between mb-2">
@@ -346,7 +373,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
                 </p>
                 <Textarea
                   value={state.userAnswer}
-                  onChange={(e) => dispatch({ type: "SET_ANSWER", payload: e.target.value })}
+                  onChange={(e) => dispatch({ type: "SET_USER_ANSWER", answer: e.target.value })}
                   onKeyPress={handleKeyPress}
                   placeholder="英訳を入力してください..."
                   className="resize-none min-h-[80px] bg-white"
@@ -356,7 +383,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
           )}
 
           {/* User Answer Display */}
-          {state.currentState === "showing_result" && state.userAnswer && (
+          {state.step === "show_result" && state.userAnswer && (
             <div className="bg-blue-600 text-white rounded-2xl px-4 py-3 ml-auto max-w-[85%]">
               <div className="text-sm sm:text-base leading-relaxed">
                 {state.userAnswer}
@@ -365,7 +392,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
           )}
 
           {/* Evaluation Display */}
-          {state.currentState === "showing_result" && state.evaluation && (
+          {state.step === "show_result" && state.evaluation && (
             <div className="bg-gray-100 text-gray-900 rounded-2xl px-4 py-3">
               <div className="space-y-3">
                 {/* Rating */}
@@ -377,7 +404,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
                     variant="ghost"
                     size="sm"
                     className="p-1 hover:bg-gray-200 ml-auto"
-                    onClick={handleToggleBookmark}
+                    onClick={toggleBookmark}
                   >
                     {state.isBookmarked ? (
                       <BookmarkCheck className="w-4 h-4 text-blue-600" />
@@ -468,7 +495,7 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
           )}
 
           {/* Evaluating State */}
-          {state.currentState === "evaluating" && (
+          {state.step === "evaluating" && (
             <div className="flex justify-center">
               <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
                 <div className="text-sm text-gray-600">
@@ -483,20 +510,20 @@ export function SimpleProblemPractice({ difficulty, onBack }: SimpleProblemPract
       {/* Action Area */}
       <div className="bg-white border-t border-gray-200 px-2 sm:px-4 py-3">
         <div className="max-w-2xl mx-auto">
-          {state.currentState === "showing_problem" && (
+          {(state.step === "waiting_user_input" || (state.step === "show_problem" && state.userAnswer.trim())) && (
             <Button
-              onClick={handleSubmitAnswer}
-              disabled={!state.userAnswer.trim() || state.currentState === "evaluating"}
+              onClick={submitAnswer}
+              disabled={!state.userAnswer.trim() || state.step === "evaluating"}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
             >
-              {state.currentState === "evaluating" ? "評価中..." : "回答を送信"}
+              {state.step === "evaluating" ? "評価中..." : "回答を送信"}
               <Send className="w-5 h-5 ml-2" />
             </Button>
           )}
           
-          {state.currentState === "showing_result" && (
+          {state.step === "show_result" && (
             <Button
-              onClick={handleNewProblem}
+              onClick={generateNextProblem}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
             >
               新しい問題に挑戦
