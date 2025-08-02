@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -71,117 +71,63 @@ export function TrainingInterface({
   const [currentProblem, setCurrentProblem] = useState<string>("");
   const [isWaitingForTranslation, setIsWaitingForTranslation] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
-  const [isRequestInProgress, setIsRequestInProgress] = useState(false);
   const [problemNumber, setProblemNumber] = useState(1);
-  const [hasInitializedProblemNumber, setHasInitializedProblemNumber] =
-    useState(false);
-  const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(
-    new Set(),
-  );
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
+  const [hasInitializedProblemNumber, setHasInitializedProblemNumber] = useState(false);
+  
+  // 状態追跡フラグ
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const { isAdmin } = useAuth();
+  const { user } = useAuth();
 
-  // Get user subscription status
-  const { data: userSubscription } = useQuery<UserSubscription>({
-    queryKey: ["/api/user-subscription"],
+  // Bookmark management
+  const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Load bookmarks from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("bookmarkedProblems");
+    if (saved) {
+      setBookmarkedProblems(new Set(JSON.parse(saved)));
+    }
+  }, []);
+
+  const saveBookmarks = (bookmarks: Set<string>) => {
+    localStorage.setItem("bookmarkedProblems", JSON.stringify([...bookmarks]));
+  };
+
+  // Get user subscription
+  const { data: subscription } = useQuery({
+    queryKey: ["/api/subscription"],
+    enabled: !!user,
   });
 
-  // Load bookmarks from localStorage and initialize problem number
-  useEffect(() => {
-    const saved = localStorage.getItem(`bookmarks-${difficulty}`);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setBookmarkedProblems(new Set(Array.isArray(parsed) ? parsed : []));
-      } catch (error) {
-        console.error("Error parsing bookmarks:", error);
-        setBookmarkedProblems(new Set());
-      }
-    }
-
-    // Reset problem number when difficulty changes
-    setProblemNumber(1);
-    setHasInitializedProblemNumber(false);
-  }, [difficulty]);
-
-  // Store training session IDs to enable database bookmark updates
-  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null);
-
-  // Save bookmarks to localStorage
-  const saveBookmarks = (bookmarks: Set<string>) => {
-    try {
-      localStorage.setItem(
-        `bookmarks-${difficulty}`,
-        JSON.stringify(Array.from(bookmarks)),
-      );
-    } catch (error) {
-      console.error("Error saving bookmarks:", error);
-    }
-  };
-
-  // Toggle bookmark for a problem and update database if training session exists
-  const toggleBookmark = async (problemText: string) => {
-    const newBookmarks = new Set(bookmarkedProblems);
-    const isBookmarked = !newBookmarks.has(problemText);
-
-    if (newBookmarks.has(problemText)) {
-      newBookmarks.delete(problemText);
-    } else {
-      newBookmarks.add(problemText);
-    }
-
-    setBookmarkedProblems(newBookmarks);
-    saveBookmarks(newBookmarks);
-
-    // Update database bookmark if we have a current session ID
-    if (currentSessionId) {
-      try {
-        await apiRequest("POST", `/api/sessions/${currentSessionId}/bookmark`, {
-          isBookmarked,
-        });
-        // Invalidate bookmarked sessions cache
-        queryClient.invalidateQueries({
-          queryKey: ["/api/bookmarked-sessions"],
-        });
-      } catch (error) {
-        console.error("Failed to update bookmark in database:", error);
-      }
-    }
-  };
-
-  // Get new problem
+  // Problem generation mutation
   const getProblemMutation = useMutation({
     mutationFn: async (): Promise<ProblemResponse> => {
-      if (isRequestInProgress) {
-        console.log("Request already in progress, skipping");
-        throw new Error("Request already in progress");
-      }
-      console.log("Starting problem generation request");
-      setIsRequestInProgress(true);
-      
-      try {
-        const response = await apiRequest("POST", "/api/problem", {
-          difficultyLevel: difficulty,
-        });
-        const data = await response.json();
-        console.log("Problem generation successful:", data);
-        return data;
-      } catch (error) {
-        console.error("Problem generation failed:", error);
-        setIsRequestInProgress(false);
-        throw error;
-      }
+      console.log("🔄 Making API request for new problem");
+      const response = await apiRequest("POST", "/api/problem", {
+        difficultyLevel: difficulty,
+      });
+      const data = await response.json();
+      console.log("✅ Problem generation successful");
+      return data;
     },
     retry: false,
+    onMutate: () => {
+      console.log("⏳ Problem generation started");
+      setIsLoading(true);
+    },
     onSuccess: (data) => {
-      console.log("getProblemMutation onSuccess called");
-      setIsRequestInProgress(false);
+      console.log("🎯 Problem generation onSuccess");
       setCurrentProblem(data.japaneseSentence);
 
-      // Extract problem number from hints if provided
       let currentProblemNum = problemNumber;
       if (data.hints && data.hints.length > 0) {
         const problemHint = data.hints.find((hint) => hint.startsWith("問題"));
@@ -201,35 +147,28 @@ export function TrainingInterface({
         problemNumber: currentProblemNum,
         isBookmarked: bookmarkedProblems.has(data.japaneseSentence),
       };
+      
       setMessages((prev) => [...prev, problemMessage]);
-      setCurrentProblem(data.japaneseSentence);
       setIsWaitingForTranslation(true);
       setShowNextButton(false);
+      setIsLoading(false);
     },
     onError: (error: any) => {
-      console.error("Problem generation error:", error);
-      setIsRequestInProgress(false);
-      
-      if (error.message === "Request already in progress") {
-        console.log("Skipping duplicate request");
-        return;
-      }
+      console.error("❌ Problem generation error:", error);
+      setIsLoading(false);
       
       if (
         error.message?.includes("429") ||
         error.message?.includes("最大出題数")
       ) {
-        // Daily limit reached
         const limitMessage: TrainingMessage = {
           type: "evaluation",
-          content:
-            "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
+          content: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。",
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, limitMessage]);
         setIsWaitingForTranslation(false);
       } else {
-        // Other errors - show generic error message
         const errorMessage: TrainingMessage = {
           type: "evaluation",
           content: "問題の生成に失敗しました。しばらく待ってから再試行してください。",
@@ -241,7 +180,7 @@ export function TrainingInterface({
     },
   });
 
-  // Evaluate translation
+  // Translation evaluation mutation
   const evaluateTranslationMutation = useMutation({
     mutationFn: async (userTranslation: string): Promise<TranslateResponse> => {
       const response = await apiRequest("POST", "/api/translate", {
@@ -252,15 +191,10 @@ export function TrainingInterface({
       return response.json();
     },
     onSuccess: (data) => {
-      // Store session ID if available for bookmark functionality
-      if (data.sessionId) {
-        setCurrentSessionId(data.sessionId);
-      }
-
-      // Show evaluation message with feedback
+      setCurrentSessionId(data.sessionId);
       const evaluationMessage: TrainingMessage = {
         type: "evaluation",
-        content: data.feedback,
+        content: data.feedback || "",
         rating: data.rating,
         feedback: data.feedback,
         correctTranslation: data.correctTranslation,
@@ -270,8 +204,6 @@ export function TrainingInterface({
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, evaluationMessage]);
-
-      // Show next problem button instead of auto-generating
       setIsWaitingForTranslation(false);
       setShowNextButton(true);
     },
@@ -280,6 +212,109 @@ export function TrainingInterface({
       setIsWaitingForTranslation(false);
     },
   });
+
+  // 初期化関数 - useCallbackで安定化
+  const initializeProblem = useCallback(() => {
+    console.log("🚀 Initializing problem for difficulty:", difficulty);
+    
+    if (hasInitialized || isLoading || getProblemMutation.isPending) {
+      console.log("⚠️ Skipping initialization - already done or in progress");
+      return;
+    }
+
+    setHasInitialized(true);
+
+    // Check for repeat practice mode
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
+
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+
+        if (currentIndex < sessions.length) {
+          const currentSession = sessions[currentIndex];
+          if (currentSession.difficultyLevel === difficulty) {
+            setCurrentProblem(currentSession.japaneseSentence);
+            setProblemNumber(currentIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: currentSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: currentIndex + 1,
+            };
+            setMessages([problemMessage]);
+            setIsWaitingForTranslation(true);
+            setShowNextButton(false);
+            return;
+          }
+        } else {
+          sessionStorage.removeItem("repeatPracticeMode");
+          sessionStorage.removeItem("repeatPracticeSessions");
+          sessionStorage.removeItem("repeatPracticeIndex");
+        }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
+      }
+    }
+
+    // Check for single review problem
+    const reviewProblem = sessionStorage.getItem("reviewProblem");
+    if (reviewProblem) {
+      try {
+        const problemData = JSON.parse(reviewProblem);
+        if (problemData.difficultyLevel === difficulty) {
+          setCurrentProblem(problemData.japaneseSentence);
+          setProblemNumber(1);
+          const problemMessage: TrainingMessage = {
+            type: "problem",
+            content: problemData.japaneseSentence,
+            timestamp: new Date().toISOString(),
+            problemNumber: 1,
+          };
+          setMessages([problemMessage]);
+          setIsWaitingForTranslation(true);
+          setShowNextButton(false);
+          sessionStorage.removeItem("reviewProblem");
+          return;
+        }
+      } catch (error) {
+        console.error("Error parsing review problem:", error);
+        sessionStorage.removeItem("reviewProblem");
+      }
+    }
+
+    // Get new problem
+    console.log("📥 Requesting new problem");
+    getProblemMutation.mutate();
+  }, [difficulty, hasInitialized, isLoading, getProblemMutation]);
+
+  // 難易度変更時の初期化
+  useEffect(() => {
+    console.log("🔄 Difficulty changed to:", difficulty);
+    
+    // 状態をリセット
+    setHasInitialized(false);
+    setIsLoading(false);
+    setMessages([]);
+    setShowNextButton(false);
+    setIsWaitingForTranslation(false);
+    setCurrentProblem("");
+    setProblemNumber(1);
+    setCurrentSessionId(null);
+    
+    // 少し遅延を入れて初期化実行
+    const timer = setTimeout(() => {
+      initializeProblem();
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [difficulty, initializeProblem]);
 
   const handleSubmit = () => {
     if (!input.trim() || !isWaitingForTranslation) return;
@@ -302,7 +337,92 @@ export function TrainingInterface({
     }
   };
 
+  const handleNextProblem = useCallback(() => {
+    console.log("⏭️ Next problem requested");
+    setShowNextButton(false);
+    
+    // Check repeat practice mode
+    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
+    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
+    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
 
+    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
+      try {
+        const sessions: SessionType[] = JSON.parse(repeatSessions);
+        const currentIndex = parseInt(repeatIndex);
+        const nextIndex = currentIndex + 1;
+
+        const filteredSessions = sessions.filter(
+          (s: SessionType) => s.difficultyLevel === difficulty,
+        );
+
+        if (nextIndex < filteredSessions.length) {
+          const nextSession = filteredSessions[nextIndex];
+          if (nextSession) {
+            sessionStorage.setItem("repeatPracticeIndex", nextIndex.toString());
+            setCurrentProblem(nextSession.japaneseSentence);
+            setProblemNumber(nextIndex + 1);
+            const problemMessage: TrainingMessage = {
+              type: "problem",
+              content: nextSession.japaneseSentence,
+              timestamp: new Date().toISOString(),
+              problemNumber: nextIndex + 1,
+            };
+            setMessages((prev) => [...prev, problemMessage]);
+            setIsWaitingForTranslation(true);
+            return;
+          }
+        } else {
+          sessionStorage.removeItem("repeatPracticeMode");
+          sessionStorage.removeItem("repeatPracticeSessions");
+          sessionStorage.removeItem("repeatPracticeIndex");
+        }
+      } catch (error) {
+        console.error("Error parsing repeat practice sessions:", error);
+        sessionStorage.removeItem("repeatPracticeMode");
+        sessionStorage.removeItem("repeatPracticeSessions");
+        sessionStorage.removeItem("repeatPracticeIndex");
+      }
+    }
+
+    // Regular mode - get new problem
+    if (!hasInitializedProblemNumber) {
+      setHasInitializedProblemNumber(true);
+    }
+    setProblemNumber((prev) => prev + 1);
+    
+    if (!isLoading && !getProblemMutation.isPending) {
+      console.log("📥 Getting next problem");
+      getProblemMutation.mutate();
+    }
+  }, [difficulty, hasInitializedProblemNumber, isLoading, getProblemMutation]);
+
+  const toggleBookmark = async (problemText: string) => {
+    const isBookmarked = bookmarkedProblems.has(problemText);
+    const newBookmarks = new Set(bookmarkedProblems);
+
+    if (newBookmarks.has(problemText)) {
+      newBookmarks.delete(problemText);
+    } else {
+      newBookmarks.add(problemText);
+    }
+
+    setBookmarkedProblems(newBookmarks);
+    saveBookmarks(newBookmarks);
+
+    if (currentSessionId) {
+      try {
+        await apiRequest("POST", `/api/sessions/${currentSessionId}/bookmark`, {
+          isBookmarked,
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/bookmarked-sessions"],
+        });
+      } catch (error) {
+        console.error("Failed to update bookmark in database:", error);
+      }
+    }
+  };
 
   // Auto-resize textarea
   useEffect(() => {
@@ -317,190 +437,6 @@ export function TrainingInterface({
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // Initialize problem on component mount and difficulty change
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  const initializeProblem = () => {
-    if (isInitialized || isRequestInProgress) {
-      console.log("Already initialized or request in progress, skipping");
-      return;
-    }
-    
-    console.log("Initializing problem for difficulty:", difficulty);
-    setIsInitialized(true); // Set this immediately to prevent re-runs
-    
-    // Check for repeat practice mode
-    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
-    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
-    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
-
-    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
-      try {
-        const sessions: SessionType[] = JSON.parse(repeatSessions);
-        const currentIndex = parseInt(repeatIndex);
-
-        if (currentIndex < sessions.length) {
-          const currentSession = sessions[currentIndex];
-          if (currentSession.difficultyLevel === difficulty) {
-            // Set up repeat practice problem
-            setCurrentProblem(currentSession.japaneseSentence);
-            setProblemNumber(currentIndex + 1);
-            const problemMessage: TrainingMessage = {
-              type: "problem",
-              content: currentSession.japaneseSentence,
-              timestamp: new Date().toISOString(),
-              problemNumber: currentIndex + 1,
-            };
-            setMessages([problemMessage]);
-            setIsWaitingForTranslation(true);
-            setShowNextButton(false);
-            return;
-          }
-        } else {
-          // All repeat practice problems completed, clear mode
-          sessionStorage.removeItem("repeatPracticeMode");
-          sessionStorage.removeItem("repeatPracticeSessions");
-          sessionStorage.removeItem("repeatPracticeIndex");
-        }
-      } catch (error) {
-        console.error("Error parsing repeat practice sessions:", error);
-        // Clear corrupted session storage
-        sessionStorage.removeItem("repeatPracticeMode");
-        sessionStorage.removeItem("repeatPracticeSessions");
-        sessionStorage.removeItem("repeatPracticeIndex");
-      }
-    }
-
-    // Check for single review problem
-    const reviewProblem = sessionStorage.getItem("reviewProblem");
-    if (reviewProblem) {
-      try {
-        const problemData = JSON.parse(reviewProblem);
-        if (problemData.difficultyLevel === difficulty) {
-          // Set up review problem - start from problem 1 for review mode
-          setCurrentProblem(problemData.japaneseSentence);
-          setProblemNumber(1);
-          const problemMessage: TrainingMessage = {
-            type: "problem",
-            content: problemData.japaneseSentence,
-            timestamp: new Date().toISOString(),
-            problemNumber: 1,
-          };
-          setMessages([problemMessage]);
-          setIsWaitingForTranslation(true);
-          setShowNextButton(false);
-
-          // Clear the review problem from sessionStorage
-          sessionStorage.removeItem("reviewProblem");
-          return;
-        }
-      } catch (error) {
-        console.error("Error parsing review problem:", error);
-        sessionStorage.removeItem("reviewProblem");
-      }
-    }
-
-    // No review problem or not for this difficulty, get new problem
-    console.log("Getting new problem via mutation");
-    if (!getProblemMutation.isPending && !isRequestInProgress) {
-      getProblemMutation.mutate();
-    } else {
-      console.log("Skipping mutation - already pending or in progress");
-    }
-  };
-
-  const handleNextProblem = () => {
-    setShowNextButton(false);
-    
-    // Check if we're in repeat practice mode
-    const isRepeatMode = sessionStorage.getItem("repeatPracticeMode");
-    const repeatSessions = sessionStorage.getItem("repeatPracticeSessions");
-    const repeatIndex = sessionStorage.getItem("repeatPracticeIndex");
-
-    if (isRepeatMode && repeatSessions && repeatIndex !== null) {
-      try {
-        const sessions: SessionType[] = JSON.parse(repeatSessions);
-        const currentIndex = parseInt(repeatIndex);
-        const nextIndex = currentIndex + 1;
-
-        // Filter sessions by current difficulty
-        const filteredSessions = sessions.filter(
-          (s: SessionType) => s.difficultyLevel === difficulty,
-        );
-
-        if (nextIndex < filteredSessions.length) {
-          const nextSession = filteredSessions[nextIndex];
-          if (nextSession) {
-            // Update index and show next repeat practice problem
-            sessionStorage.setItem(
-              "repeatPracticeIndex",
-              nextIndex.toString(),
-            );
-            setCurrentProblem(nextSession.japaneseSentence);
-            setProblemNumber(nextIndex + 1);
-            const problemMessage: TrainingMessage = {
-              type: "problem",
-              content: nextSession.japaneseSentence,
-              timestamp: new Date().toISOString(),
-              problemNumber: nextIndex + 1,
-            };
-            setMessages((prev) => [...prev, problemMessage]);
-            setIsWaitingForTranslation(true);
-            return;
-          }
-        } else {
-          // All repeat practice problems completed
-          sessionStorage.removeItem("repeatPracticeMode");
-          sessionStorage.removeItem("repeatPracticeSessions");
-          sessionStorage.removeItem("repeatPracticeIndex");
-        }
-      } catch (error) {
-        console.error("Error parsing repeat practice sessions:", error);
-        // Clear corrupted session storage
-        sessionStorage.removeItem("repeatPracticeMode");
-        sessionStorage.removeItem("repeatPracticeSessions");
-        sessionStorage.removeItem("repeatPracticeIndex");
-      }
-    }
-
-    // Regular mode - get new problem
-    if (!hasInitializedProblemNumber) {
-      setHasInitializedProblemNumber(true);
-    }
-    setProblemNumber((prev) => prev + 1);
-    
-    // Only call mutation if not already in progress
-    if (!getProblemMutation.isPending && !isRequestInProgress) {
-      getProblemMutation.mutate();
-    } else {
-      console.log("Skipping mutation - already pending or in progress");
-    }
-  };
-
-  // Initialize problem only once when component mounts or difficulty changes
-  useEffect(() => {
-    console.log("Difficulty effect triggered for:", difficulty);
-    
-    // Reset initialization state when difficulty changes
-    setIsInitialized(false);
-    setIsRequestInProgress(false);
-    
-    // Reset UI state immediately
-    setMessages([]);
-    setShowNextButton(false);
-    setIsWaitingForTranslation(false);
-    
-    // Use a small delay to ensure state updates have processed
-    const initTimer = setTimeout(() => {
-      console.log("Starting initialization for difficulty:", difficulty);
-      initializeProblem();
-    }, 10);
-    
-    return () => {
-      clearTimeout(initTimer);
-    };
-  }, [difficulty]); // Only depend on difficulty
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -526,167 +462,168 @@ export function TrainingInterface({
               className="p-2 rounded-full hover:bg-gray-100"
               onClick={onBack}
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </div>
-            <div className="hidden sm:block">
-              <h3 className="font-semibold text-gray-900 text-sm">
-                AI瞬間英作文チャット
-              </h3>
-              <p className="text-xs text-gray-600">
-                {DIFFICULTY_LEVELS[difficulty].name}
-              </p>
+            <div className="flex items-center space-x-2">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              <span className="font-semibold text-gray-900 text-sm sm:text-base">
+                {DIFFICULTY_LEVELS[difficulty]}
+              </span>
             </div>
           </div>
 
-          {/* Right section - buttons */}
-          <div className="flex items-center">
-            <div className="flex gap-2 flex-wrap items-center">
-              {isAdmin && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
-                  onClick={() => setLocation("/admin")}
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  管理者
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
-                onClick={() => setLocation("/")}
-              >
-                <Home className="w-4 h-4 mr-2" />
-                トップページ
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="px-4 py-2 text-sm border-gray-300 hover:bg-gray-50 whitespace-nowrap flex items-center rounded shadow"
-                onClick={() => setLocation("/my-page")}
-              >
-                <User className="w-4 h-4 mr-2" />
-                マイページ
-              </Button>
-            </div>
+          {/* Center section */}
+          <div className="flex-1 text-center">
+            {messages.length > 0 && (
+              <span className="text-xs sm:text-sm text-gray-600 font-medium">
+                問題 {problemNumber}
+              </span>
+            )}
+          </div>
+
+          {/* Right section */}
+          <div className="flex items-center space-x-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setLocation("/admin")}
+            >
+              <Shield className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setLocation("/mypage")}
+            >
+              <User className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 rounded-full hover:bg-gray-100"
+              onClick={() => setLocation("/")}
+            >
+              <Home className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        {messages.map((message, index) => (
-          <div key={index} className="animate-fade-in">
-            {message.type === "problem" && (
-              <div className="flex items-start space-x-2">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-medium text-blue-600">
-                      問題{message.problemNumber} - 翻訳してください
-                    </p>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-auto"
-                      onClick={() => toggleBookmark(message.content)}
-                    >
-                      {bookmarkedProblems.has(message.content) ? (
-                        <BookmarkCheck className="w-4 h-4 text-blue-500" />
-                      ) : (
-                        <Bookmark className="w-4 h-4 text-gray-400" />
-                      )}
-                    </Button>
-                  </div>
-                  <p className="text-base leading-relaxed text-gray-900">
-                    {message.content}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {message.type === "user" && (
-              <div className="flex justify-end">
-                <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-[85%] shadow-sm">
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                </div>
-              </div>
-            )}
-
-            {message.type === "evaluation" && (
-              <div className="flex items-start space-x-2">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Star className="w-4 h-4 text-white" />
-                </div>
-                <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border">
-                  {/* Rating */}
-                  {message.rating && (
-                    <div className="flex items-center space-x-1 mb-2">
-                      {renderStars(message.rating)}
-                      <span className="text-sm text-gray-600 ml-2">
-                        {message.rating}/5点
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 py-4">
+        <div className="max-w-2xl mx-auto space-y-4">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                message.type === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                  message.type === "user"
+                    ? "bg-blue-600 text-white"
+                    : message.type === "problem"
+                    ? "bg-white border border-gray-200 shadow-sm"
+                    : "bg-gray-100 text-gray-900"
+                }`}
+              >
+                {message.type === "problem" && (
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                        問題 {message.problemNumber}
                       </span>
                     </div>
-                  )}
+                    <div className="flex items-center space-x-1">
+                      <SpeechButton
+                        text={message.content}
+                        className="text-gray-400 hover:text-gray-600"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 hover:bg-gray-100"
+                        onClick={() => toggleBookmark(message.content)}
+                      >
+                        {bookmarkedProblems.has(message.content) ? (
+                          <BookmarkCheck className="w-4 h-4 text-blue-600" />
+                        ) : (
+                          <Bookmark className="w-4 h-4 text-gray-400" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
-                  {/* Correct Translation - Large Font */}
-                  {message.correctTranslation && (
-                    <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-green-700">
-                          模範解答
-                        </p>
-                        <SpeechButton
-                          text={message.correctTranslation}
-                          language="en-US"
-                          className="text-green-600 border-green-300 hover:bg-green-100"
-                        />
+                <div className="text-sm sm:text-base leading-relaxed">
+                  {message.content}
+                </div>
+
+                {message.type === "evaluation" && (
+                  <div className="mt-3 space-y-3">
+                    {message.rating && (
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs font-medium text-gray-600">
+                          評価:
+                        </span>
+                        <div className="flex space-x-1">
+                          {renderStars(message.rating)}
+                        </div>
+                        <span className="text-xs text-gray-600">
+                          ({message.rating}/5)
+                        </span>
                       </div>
-                      <p className="text-lg font-medium text-green-900 leading-relaxed">
-                        {message.correctTranslation}
-                      </p>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Explanation in Japanese */}
-                  {message.explanation && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm font-medium text-blue-700 mb-2">
-                        解説
-                      </p>
-                      <p className="text-sm text-blue-800 leading-relaxed">
-                        {message.explanation}
-                      </p>
-                    </div>
-                  )}
+                    {message.correctTranslation && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <span className="text-xs font-medium text-green-700 mb-1 block">
+                              模範解答:
+                            </span>
+                            <p className="text-sm text-green-800">
+                              {message.correctTranslation}
+                            </p>
+                          </div>
+                          <SpeechButton
+                            text={message.correctTranslation}
+                            className="text-green-600 hover:text-green-700 ml-2"
+                            lang="en-US"
+                            rate={0.8}
+                          />
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Similar Phrases */}
-                  {message.similarPhrases &&
-                    message.similarPhrases.length > 0 && (
-                      <div className="mb-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                        <p className="text-sm font-medium text-purple-700 mb-2">
-                          類似フレーズ
+                    {message.explanation && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <span className="text-xs font-medium text-blue-700 mb-1 block">
+                          解説:
+                        </span>
+                        <p className="text-sm text-blue-800">
+                          {message.explanation}
                         </p>
-                        <div className="space-y-2">
+                      </div>
+                    )}
+
+                    {message.similarPhrases && message.similarPhrases.length > 0 && (
+                      <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                        <span className="text-xs font-medium text-purple-700 mb-2 block">
+                          類似表現:
+                        </span>
+                        <div className="space-y-1">
                           {message.similarPhrases.map((phrase, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between"
-                            >
-                              <p className="text-sm text-purple-800 flex-1">
-                                • {phrase}
-                              </p>
+                            <div key={idx} className="flex items-center justify-between">
+                              <p className="text-sm text-purple-800">{phrase}</p>
                               <SpeechButton
                                 text={phrase}
-                                language="en-US"
-                                className="text-purple-600 border-purple-300 hover:bg-purple-100 ml-2"
+                                className="text-purple-600 hover:text-purple-700 ml-2"
+                                lang="en-US"
+                                rate={0.8}
                               />
                             </div>
                           ))}
@@ -694,89 +631,98 @@ export function TrainingInterface({
                       </div>
                     )}
 
-                  {/* Feedback */}
-                  <p className="text-sm leading-relaxed text-gray-700">
-                    {message.feedback}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-
-        {/* Loading Indicator */}
-        {(getProblemMutation.isPending ||
-          evaluateTranslationMutation.isPending) && (
-          <div className="flex items-start space-x-2 animate-fade-in">
-            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            </div>
-            <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-typing"></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-typing"
-                  style={{ animationDelay: "0.2s" }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-400 rounded-full animate-typing"
-                  style={{ animationDelay: "0.4s" }}
-                ></div>
+                    {message.improvements && message.improvements.length > 0 && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                        <span className="text-xs font-medium text-orange-700 mb-2 block">
+                          改善点:
+                        </span>
+                        <div className="space-y-1">
+                          {message.improvements.map((improvement, idx) => (
+                            <p key={idx} className="text-sm text-orange-800">
+                              • {improvement}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        )}
+          ))}
 
-        <div ref={messagesEndRef} />
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="flex justify-center">
+              <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
+                <div className="text-sm text-gray-600">問題を生成中...</div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
-        {showNextButton ? (
-          // Show Next Problem button after evaluation
-          <div className="flex justify-center">
+      {/* Input */}
+      <div className="bg-white border-t border-gray-200 px-2 sm:px-4 py-3">
+        <div className="max-w-2xl mx-auto">
+          {showNextButton ? (
             <Button
               onClick={handleNextProblem}
-              disabled={getProblemMutation.isPending}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full flex items-center space-x-2 disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl"
+              disabled={isLoading || getProblemMutation.isPending}
             >
-              <Sparkles className="w-5 h-5" />
-              <span>次の問題</span>
+              次の問題へ (1秒後)
             </Button>
-          </div>
-        ) : (
-          // Show input area when waiting for translation
-          <div className="flex items-end space-x-3">
-            <div className="flex-1 relative">
-              <Textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  isWaitingForTranslation
-                    ? "英語で翻訳を入力..."
-                    : "次の問題を準備中..."
-                }
-                disabled={!isWaitingForTranslation}
-                className="w-full px-4 py-3 bg-gray-100 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200 text-sm max-h-32 border-0 disabled:opacity-50"
-                rows={1}
-              />
+          ) : (
+            <div className="flex space-x-2">
+              <div className="flex-1 relative">
+                <Textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={
+                    isWaitingForTranslation
+                      ? "英訳を入力してください..."
+                      : "問題の読み込み中..."
+                  }
+                  disabled={!isWaitingForTranslation}
+                  className="resize-none pr-12 min-h-[44px] max-h-32"
+                  rows={1}
+                />
+              </div>
+              <Button
+                onClick={handleSubmit}
+                disabled={!input.trim() || !isWaitingForTranslation}
+                className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl"
+              >
+                <Send className="w-5 h-5" />
+              </Button>
             </div>
-            <Button
-              onClick={handleSubmit}
-              disabled={
-                !input.trim() ||
-                !isWaitingForTranslation ||
-                evaluateTranslationMutation.isPending
-              }
-              className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-0"
-            >
-              <Send className="w-5 h-5 text-white" />
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
+
+      {/* Auto-advance to next problem */}
+      {showNextButton && (
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2">
+          <div className="bg-black/75 text-white px-3 py-1 rounded-full text-sm">
+            1秒後に次の問題へ進みます
+          </div>
+        </div>
+      )}
+
+      {showNextButton && (
+        <div>
+          {setTimeout(() => {
+            if (showNextButton) {
+              handleNextProblem();
+            }
+          }, 1000)}
+        </div>
+      )}
     </div>
   );
 }
