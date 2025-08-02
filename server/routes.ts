@@ -57,6 +57,24 @@ router.use("/webhook", stripeWebhookRouter);
 router.get("/health", (req: Request, res: Response) => res.status(200).send("OK"));
 router.get("/ping", (req: Request, res: Response) => res.send("pong"));
 
+// Reset daily count for testing
+router.post("/reset-daily-count", async (req: Request, res: Response) => {
+  try {
+    await storage.resetDailyCount();
+    const currentCount = await storage.getDailyCount();
+    res.json({ 
+      message: "Daily count reset successfully", 
+      currentCount 
+    });
+  } catch (error) {
+    console.error('Reset daily count error:', error);
+    res.status(500).json({ 
+      message: "Failed to reset daily count",
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 // Simple auth middleware
 const requireActiveSubscription = async (req: Request, res: Response, next: NextFunction) => {
   try {

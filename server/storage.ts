@@ -42,6 +42,12 @@ function getDailyCount(userId: string = "bizmowa.com"): number {
   return counter.count;
 }
 
+// Add reset function for testing
+function resetDailyCount(userId: string = "bizmowa.com"): void {
+  console.log("🔄 Resetting daily count for user:", userId);
+  dailyCounters.delete(userId);
+}
+
 function incrementDailyCountInternal(userId: string = "bizmowa.com"): boolean {
   const today = getTodayString();
   const counter = dailyCounters.get(userId);
@@ -167,6 +173,11 @@ class Storage implements IStorage {
 
   async getDailyCount(userId: string = "bizmowa.com"): Promise<number> {
     return getDailyCount(userId);
+  }
+
+  // Reset daily count for testing
+  async resetDailyCount(userId: string = "bizmowa.com"): Promise<void> {
+    resetDailyCount(userId);
   }
 
   // Goals and progress

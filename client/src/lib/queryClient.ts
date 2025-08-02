@@ -90,8 +90,15 @@ export const queryClient = new QueryClient({
 export function useApiMutation<TData = unknown, TVariables = unknown>(
   mutationFn: (variables: TVariables) => Promise<TData>
 ) {
+  console.log("🔧 Creating mutation with retry: false");
   return useMutation({
     mutationFn,
     retry: false, // CRITICAL: No retry
+    onError: (error) => {
+      console.error("🚨 Mutation error caught:", error);
+    },
+    onSuccess: (data) => {
+      console.log("✅ Mutation success:", data);
+    },
   });
 }

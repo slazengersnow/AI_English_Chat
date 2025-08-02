@@ -116,8 +116,11 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   // Problem generation mutation - NO RETRY
   const generateProblem = useApiMutation<any, { difficultyLevel: string }>(
     async ({ difficultyLevel }) => {
+      console.log("🔄 generateProblem mutationFn called with:", difficultyLevel);
+      
       // Abort any previous request
       if (abortController.current) {
+        console.log("⚠️ Aborting previous request");
         abortController.current.abort();
       }
       
@@ -130,20 +133,30 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         signal: abortController.current.signal,
       });
 
+      console.log("📡 API Response status:", response.status);
+
       if (response.status === 429) {
+        console.warn("🛑 DAILY LIMIT 429 detected - checking response data");
         const data = await response.json();
+        console.log("📋 429 Response data:", data);
+        
         if (data.dailyLimitReached) {
+          console.error("🚨 DAILY LIMIT REACHED - stopping further generation");
           throw new Error("DAILY_LIMIT");
         }
       }
 
       if (!response.ok) {
+        console.error("❌ Response not OK:", response.status, await response.text());
         throw new Error(`${response.status}: ${await response.text()}`);
       }
 
       const data = await response.json();
+      console.log("✅ Problem data received:", data);
       
+      // Double check for daily limit
       if (data.dailyLimitReached) {
+        console.error("🚨 DAILY LIMIT in response data - stopping");
         throw new Error("DAILY_LIMIT");
       }
 
@@ -178,16 +191,32 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   // Initial problem load - ONLY ONCE
   useEffect(() => {
-    if (isInitialized.current) return;
+    console.log("🚀 useEffect initial load triggered");
+    console.log("🔍 isInitialized.current:", isInitialized.current);
+    
+    if (isInitialized.current) {
+      console.log("⏭️ Already initialized - skipping");
+      return;
+    }
+    
+    console.log("✨ First time initialization");
     isInitialized.current = true;
 
+    console.log("📤 Dispatching START_LOADING");
     dispatch({ type: "START_LOADING" });
+    
+    console.log("🎯 Calling generateProblem.mutate with difficulty:", difficulty);
     generateProblem.mutate({ difficultyLevel: difficulty });
   }, []); // EMPTY DEPENDENCY ARRAY
 
   // Handle problem generation result
   useEffect(() => {
+    console.log("🔄 useEffect: problem generation result check");
+    console.log("📊 generateProblem.isSuccess:", generateProblem.isSuccess);
+    console.log("📊 generateProblem.data:", generateProblem.data);
+    
     if (generateProblem.isSuccess && generateProblem.data) {
+      console.log("✅ Problem loaded successfully, dispatching PROBLEM_LOADED");
       dispatch({ 
         type: "PROBLEM_LOADED", 
         problem: generateProblem.data.japaneseSentence 
@@ -197,11 +226,19 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   // Handle problem generation error
   useEffect(() => {
+    console.log("🔄 useEffect: problem generation error check");
+    console.log("📊 generateProblem.isError:", generateProblem.isError);
+    console.log("📊 generateProblem.error:", generateProblem.error);
+    
     if (generateProblem.isError) {
       const error = generateProblem.error as Error;
+      console.log("❌ Error message:", error.message);
+      
       if (error.message === "DAILY_LIMIT") {
+        console.log("🛑 Setting daily limit state");
         dispatch({ type: "SET_DAILY_LIMIT" });
       } else {
+        console.log("⚠️ Setting general error state");
         dispatch({ 
           type: "SET_ERROR", 
           error: "問題の読み込みに失敗しました。" 
@@ -255,10 +292,16 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   };
 
   const handleNextProblem = () => {
+    console.log("🔄 handleNextProblem called manually by user");
     // Reset everything and get new problem
+    console.log("🔄 Dispatching RESET_FOR_NEXT");
     dispatch({ type: "RESET_FOR_NEXT" });
+    
+    console.log("🔄 Resetting mutations");
     generateProblem.reset();
     evaluateTranslation.reset();
+    
+    console.log("🔄 Manually triggering new problem generation");
     generateProblem.mutate({ difficultyLevel: difficulty });
   };
 
