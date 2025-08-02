@@ -1,4 +1,4 @@
-import { QueryClient, QueryFunction, useMutation } from "@tanstack/react-query";
+import { QueryClient, QueryFunction, useMutation, useQuery } from "@tanstack/react-query";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://xcjplyhqxgrbdhixmzse.supabase.co";
@@ -13,95 +13,66 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-async function getAuthHeaders() {
-  const { data: { session } } = await supabase.auth.getSession();
-  const headers: Record<string, string> = {};
-  
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
-  }
-  
-  if (session?.user?.email) {
-    headers['X-User-Email'] = session.user.email;
-  }
-  
-  return headers;
-}
-
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const authHeaders = await getAuthHeaders();
-  
-  const res = await fetch(url, {
-    method,
-    headers: {
-      ...(data ? { "Content-Type": "application/json" } : {}),
-      ...authHeaders,
-    },
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  await throwIfResNotOk(res);
-  return res;
-}
-
-type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const authHeaders = await getAuthHeaders();
-    
-    const res = await fetch(queryKey[0] as string, {
-      headers: authHeaders,
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    await throwIfResNotOk(res);
-    return await res.json();
+// Default query function with authentication
+const defaultQueryFn: QueryFunction = async ({ queryKey, signal }) => {
+  const token = (await supabase.auth.getSession()).data.session?.access_token;
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
   };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
-// CRITICAL: Absolutely no auto-retry for any operation
+  const url = Array.isArray(queryKey) ? queryKey.join("/") : String(queryKey);
+  const res = await fetch(url, { signal, headers });
+  await throwIfResNotOk(res);
+  return res.json();
+};
+
+// Query client with NO RETRY configuration
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
+      queryFn: defaultQueryFn,
+      retry: false, // CRITICAL: No retry for queries
+      staleTime: 5 * 60 * 1000, // 5 minutes
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false, // NO RETRY
     },
     mutations: {
-      retry: false, // NO RETRY
+      retry: false, // CRITICAL: No retry for mutations
     },
   },
 });
+
+// API request helper with authentication
+export async function apiRequest(url: string, options: RequestInit = {}) {
+  const token = (await supabase.auth.getSession()).data.session?.access_token;
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(options.headers as HeadersInit),
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  await throwIfResNotOk(res);
+  return res.json();
+}
 
 // Simple mutation helper with NO RETRY built-in
 export function useApiMutation<TData = unknown, TVariables = unknown>(
   mutationFn: (variables: TVariables) => Promise<TData>
 ) {
-  console.log("🔧 Creating mutation with retry: false");
   return useMutation({
     mutationFn,
     retry: false, // CRITICAL: No retry
-    // DO NOT add onSuccess/onError that could trigger additional calls
-    onError: (error) => {
-      console.error("🚨 Mutation error caught:", error);
-      // DO NOT call mutationFn again here
-    },
-    onSuccess: (data) => {
-      console.log("✅ Mutation success:", data);
-      // DO NOT call mutationFn again here
-    },
+    // No onSuccess/onError callbacks that could trigger additional calls
   });
 }
+
+export { supabase };

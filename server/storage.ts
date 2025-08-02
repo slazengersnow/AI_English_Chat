@@ -1,28 +1,32 @@
-import { eq, desc, and, gte, lt, count } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
-import {
-  userSubscriptions,
+import { drizzle } from "drizzle-orm/postgres-js";
+import { eq, desc, and, gte } from "drizzle-orm";
+import postgres from "postgres";
+import * as schema from "@shared/schema";
+import type {
+  TrainingSession,
+  InsertTrainingSession,
+  UserGoal,
+  InsertUserGoal,
+  DailyProgress,
+  InsertDailyProgress,
+  CustomScenario,
+  InsertCustomScenario,
+} from "@shared/schema";
+
+const {
   trainingSessions,
   userGoals,
   dailyProgress,
   customScenarios,
-  type UserSubscription,
-  type TrainingSession,
-  type UserGoal,
-  type DailyProgress,
-  type CustomScenario,
-  type InsertUserSubscription,
-  type InsertTrainingSession,
-  type InsertUserGoal,
-  type InsertDailyProgress,
-  type InsertCustomScenario,
-} from "@shared/schema";
+} = schema;
 
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+// Database connection
+const connectionString = process.env.DATABASE_URL!;
+const client = postgres(connectionString);
+const db = drizzle(client, { schema });
 
-// Daily counter for rate limiting - simple in-memory store
+// CRITICAL: Daily limit system - In-memory counter
+const DAILY_LIMIT = 100;
 const dailyCounters = new Map<string, { count: number; date: string }>();
 
 function getTodayString(): string {
@@ -42,95 +46,53 @@ function getDailyCount(userId: string = "bizmowa.com"): number {
   return counter.count;
 }
 
-// Add reset function for testing
-function resetDailyCount(userId: string = "bizmowa.com"): void {
-  console.log("🔄 Resetting daily count for user:", userId);
-  dailyCounters.delete(userId);
-}
-
 function incrementDailyCountInternal(userId: string = "bizmowa.com"): boolean {
   const today = getTodayString();
   const counter = dailyCounters.get(userId);
   
   if (!counter || counter.date !== today) {
-    // First problem of the day
+    // New day, reset counter
     dailyCounters.set(userId, { count: 1, date: today });
+    console.log(`✅ Problem count: 1/${DAILY_LIMIT} for ${userId}`);
     return true;
   }
   
-  if (counter.count >= 100) {
-    // Daily limit reached
+  if (counter.count >= DAILY_LIMIT) {
+    console.log(`🛑 Daily limit (${DAILY_LIMIT}) reached - returning 429`);
     return false;
   }
   
-  // Increment counter
   counter.count++;
   dailyCounters.set(userId, counter);
+  console.log(`✅ Problem count: ${counter.count}/${DAILY_LIMIT} for ${userId}`);
   return true;
 }
 
-export interface IStorage {
-  // User subscriptions
-  getUserSubscription(userId?: string): Promise<UserSubscription | null>;
-  updateUserSubscription(userId: string, data: Partial<InsertUserSubscription>): Promise<UserSubscription>;
-  
-  // Training sessions
-  addTrainingSession(data: InsertTrainingSession): Promise<TrainingSession>;
-  getUserAttemptedProblems(difficultyLevel: string, userId?: string): Promise<TrainingSession[]>;
-  getCurrentProblemNumber(userId: string, difficultyLevel: string): Promise<number>;
-  updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void>;
-  
-  // Daily limits - CRITICAL FUNCTIONS
-  incrementDailyCount(userId?: string): Promise<boolean>;
-  getDailyCount(userId?: string): Promise<number>;
-  
-  // Goals and progress
-  getUserGoals(userId: string): Promise<UserGoal[]>;
-  updateUserGoal(userId: string, data: Partial<InsertUserGoal>): Promise<UserGoal>;
-  getDailyProgress(userId: string): Promise<DailyProgress[]>;
-  updateDailyProgress(userId: string, data: Partial<InsertDailyProgress>): Promise<DailyProgress>;
-  
-  // Custom scenarios
-  getCustomScenarios(userId: string): Promise<CustomScenario[]>;
-  getCustomScenario(id: string): Promise<CustomScenario | null>;
-  createCustomScenario(data: InsertCustomScenario): Promise<CustomScenario>;
-  updateCustomScenario(id: string, data: Partial<InsertCustomScenario>): Promise<CustomScenario>;
-  deleteCustomScenario(id: string): Promise<void>;
+function resetDailyCount(userId: string = "bizmowa.com"): void {
+  console.log("🔄 Resetting daily count for user:", userId);
+  dailyCounters.delete(userId);
 }
 
-class Storage implements IStorage {
-  // User subscriptions
-  async getUserSubscription(userId: string = "bizmowa.com"): Promise<UserSubscription | null> {
+export class Storage {
+  // Training sessions
+  async getTrainingSessions(userId: string): Promise<TrainingSession[]> {
+    return await db
+      .select()
+      .from(trainingSessions)
+      .orderBy(desc(trainingSessions.createdAt));
+  }
+
+  async getTrainingSession(id: string): Promise<TrainingSession | null> {
     const result = await db
       .select()
-      .from(userSubscriptions)
-      .where(eq(userSubscriptions.userId, userId))
+      .from(trainingSessions)
+      .where(eq(trainingSessions.id, parseInt(id)))
       .limit(1);
     
     return result[0] || null;
   }
 
-  async updateUserSubscription(userId: string, data: Partial<InsertUserSubscription>): Promise<UserSubscription> {
-    const existingSubscription = await this.getUserSubscription(userId);
-    
-    if (existingSubscription) {
-      const result = await db
-        .update(userSubscriptions)
-        .set({ ...data, updatedAt: new Date() })
-        .where(eq(userSubscriptions.userId, userId))
-        .returning();
-      return result[0];
-    } else {
-      const result = await db
-        .insert(userSubscriptions)
-        .values({ ...data, userId })
-        .returning();
-      return result[0];
-    }
-  }
-
-  // Training sessions
-  async addTrainingSession(data: InsertTrainingSession): Promise<TrainingSession> {
+  async createTrainingSession(data: InsertTrainingSession): Promise<TrainingSession> {
     const result = await db
       .insert(trainingSessions)
       .values(data)
@@ -138,30 +100,44 @@ class Storage implements IStorage {
     return result[0];
   }
 
-  async getUserAttemptedProblems(difficultyLevel: string, userId: string = "bizmowa.com"): Promise<TrainingSession[]> {
+  async updateTrainingSession(id: string, data: Partial<InsertTrainingSession>): Promise<TrainingSession> {
+    const result = await db
+      .update(trainingSessions)
+      .set(data)
+      .where(eq(trainingSessions.id, parseInt(id)))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTrainingSession(id: string): Promise<void> {
+    await db
+      .delete(trainingSessions)
+      .where(eq(trainingSessions.id, parseInt(id)));
+  }
+
+  // Low-rated and review sessions
+  async getLowRatedSessions(userId: string): Promise<TrainingSession[]> {
     return await db
       .select()
       .from(trainingSessions)
-      .where(and(
-        eq(trainingSessions.userId, userId),
-        eq(trainingSessions.difficultyLevel, difficultyLevel)
-      ))
-      .orderBy(desc(trainingSessions.createdAt));
+      .orderBy(desc(trainingSessions.createdAt))
+      .limit(50);
   }
 
-  async getCurrentProblemNumber(userId: string, difficultyLevel: string): Promise<number> {
-    const result = await db
-      .select({ count: count() })
+  async getBookmarkedSessions(userId: string): Promise<TrainingSession[]> {
+    return await db
+      .select()
       .from(trainingSessions)
-      .where(and(
-        eq(trainingSessions.userId, userId),
-        eq(trainingSessions.difficultyLevel, difficultyLevel)
-      ));
-    
-    return (result[0]?.count || 0) + 1;
+      .orderBy(desc(trainingSessions.createdAt))
+      .limit(50);
   }
 
-  async updateProblemProgress(userId: string, difficultyLevel: string, problemNumber: number): Promise<void> {
+  async updateReviewCount(sessionId: string): Promise<void> {
+    // This is a placeholder for review count tracking
+    // Implementation depends on specific requirements
+  }
+
+  async updateProblemProgress(userId: string, progress: any): Promise<void> {
     // This is a placeholder for problem progress tracking
     // Implementation depends on specific requirements
   }

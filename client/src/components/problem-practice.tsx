@@ -11,98 +11,68 @@ interface ProblemPracticeProps {
   onBack: () => void;
 }
 
-// Simple state machine - NO COMPLEX TRANSITIONS
-type ProblemStep = 
-  | "loading" 
-  | "problem_ready" 
-  | "input_ready" 
-  | "evaluating" 
-  | "result_ready"
-  | "daily_limit"
-  | "error";
-
-interface ProblemState {
-  step: ProblemStep;
-  problem: string;
-  userAnswer: string;
+// State management with useReducer
+type ProblemState = {
+  step: "loading" | "show_problem" | "waiting_user_input" | "evaluating" | "show_result" | "daily_limit" | "error";
+  japaneseSentence: string;
+  userTranslation: string;
   evaluation: any;
-  error: string;
-  isBookmarked: boolean;
-}
+  dailyLimitReached: boolean;
+  error: string | null;
+  problemCount: number;
+};
 
-type ProblemAction =
+type ProblemAction = 
   | { type: "START_LOADING" }
   | { type: "PROBLEM_LOADED"; problem: string }
+  | { type: "USER_INPUT"; input: string }
+  | { type: "START_EVALUATION" }
+  | { type: "EVALUATION_LOADED"; evaluation: any }
   | { type: "SET_DAILY_LIMIT" }
   | { type: "SET_ERROR"; error: string }
-  | { type: "SET_USER_INPUT"; input: string }
-  | { type: "START_EVALUATION" }
-  | { type: "EVALUATION_DONE"; evaluation: any }
-  | { type: "TOGGLE_BOOKMARK" }
   | { type: "RESET_FOR_NEXT" };
 
 const initialState: ProblemState = {
   step: "loading",
-  problem: "",
-  userAnswer: "",
+  japaneseSentence: "",
+  userTranslation: "",
   evaluation: null,
-  error: "",
-  isBookmarked: false,
+  dailyLimitReached: false,
+  error: null,
+  problemCount: 0,
 };
 
 function problemReducer(state: ProblemState, action: ProblemAction): ProblemState {
   switch (action.type) {
     case "START_LOADING":
-      return { ...initialState, step: "loading" };
-    
+      return { ...state, step: "loading", error: null };
     case "PROBLEM_LOADED":
       return { 
         ...state, 
-        step: "problem_ready", 
-        problem: action.problem,
-        error: ""
+        step: "show_problem", 
+        japaneseSentence: action.problem,
+        problemCount: state.problemCount + 1,
+        error: null 
       };
-    
-    case "SET_DAILY_LIMIT":
-      return { 
-        ...state, 
-        step: "daily_limit",
-        error: "本日の最大出題数（100問）に達しました。明日また学習を再開できます。"
-      };
-    
-    case "SET_ERROR":
-      return { 
-        ...state, 
-        step: "error", 
-        error: action.error 
-      };
-    
-    case "SET_USER_INPUT":
-      return { 
-        ...state, 
-        userAnswer: action.input,
-        step: action.input.trim() ? "input_ready" : "problem_ready"
-      };
-    
+    case "USER_INPUT":
+      return { ...state, userTranslation: action.input };
     case "START_EVALUATION":
       return { ...state, step: "evaluating" };
-    
-    case "EVALUATION_DONE":
-      return { 
-        ...state, 
-        step: "result_ready", 
-        evaluation: action.evaluation 
-      };
-    
-    case "TOGGLE_BOOKMARK":
-      return { ...state, isBookmarked: !state.isBookmarked };
-    
+    case "EVALUATION_LOADED":
+      return { ...state, step: "show_result", evaluation: action.evaluation };
+    case "SET_DAILY_LIMIT":
+      return { ...state, step: "daily_limit", dailyLimitReached: true };
+    case "SET_ERROR":
+      return { ...state, step: "error", error: action.error };
     case "RESET_FOR_NEXT":
-      return { 
-        ...initialState, 
-        step: "loading" 
+      return {
+        ...state,
+        step: "loading",
+        japaneseSentence: "",
+        userTranslation: "",
+        evaluation: null,
+        error: null,
       };
-    
     default:
       return state;
   }
@@ -111,77 +81,77 @@ function problemReducer(state: ProblemState, action: ProblemAction): ProblemStat
 export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const [state, dispatch] = useReducer(problemReducer, initialState);
   const isInitialized = useRef(false);
-  const abortController = useRef<AbortController | null>(null);
+  const isGeneratingRef = useRef(false);
 
-  // Problem generation mutation - NO RETRY
+  // Problem generation mutation - MANUAL TRIGGER ONLY
   const generateProblem = useApiMutation<any, { difficultyLevel: string }>(
     async ({ difficultyLevel }) => {
-      console.log("🔄 generateProblem mutationFn called with:", difficultyLevel);
+      console.log("出題停止: generateProblem mutationFn called with:", difficultyLevel);
       
-      // Abort any previous request
-      if (abortController.current) {
-        console.log("⚠️ Aborting previous request");
-        abortController.current.abort();
-      }
-      
-      abortController.current = new AbortController();
-      
-      const response = await fetch("/api/problem", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ difficultyLevel }),
-        signal: abortController.current.signal,
-      });
-
-      console.log("📡 API Response status:", response.status);
-
-      if (response.status === 429) {
-        console.warn("🛑 DAILY LIMIT 429 detected - checking response data");
-        const data = await response.json();
-        console.log("📋 429 Response data:", data);
-        
-        if (data.dailyLimitReached) {
-          console.error("🚨 DAILY LIMIT REACHED - stopping further generation");
-          // Return null to stop the mutation chain completely
-          return null;
-        }
-      }
-
-      if (!response.ok) {
-        console.error("❌ Response not OK:", response.status);
-        const errorText = await response.text();
-        console.error("❌ Error text:", errorText);
-        throw new Error(`${response.status}: ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log("✅ Problem data received:", data);
-      
-      // Double check for daily limit in response
-      if (data.dailyLimitReached) {
-        console.error("🚨 DAILY LIMIT in response data - returning null");
+      if (isGeneratingRef.current) {
+        console.log("出題停止: Already generating, aborting");
         return null;
       }
+      
+      if (state.dailyLimitReached) {
+        console.log("出題停止: Daily limit reached, aborting");
+        return null;
+      }
+      
+      isGeneratingRef.current = true;
+      
+      try {
+        const response = await fetch("/api/problem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ difficultyLevel }),
+        });
 
-      return data;
+        console.log("出題停止: API Response status:", response.status);
+
+        if (response.status === 429) {
+          console.log("出題停止: 429エラー - Daily limit reached");
+          const data = await response.json();
+          
+          if (data.dailyLimitReached) {
+            console.log("出題停止: dailyLimitReached confirmed");
+            return null; // Stop here, don't throw error
+          }
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("出題停止: Response not OK:", response.status, errorText);
+          throw new Error(`${response.status}: ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log("出題停止: Problem data received:", data);
+        
+        // Check for daily limit in response
+        if (data.dailyLimitReached) {
+          console.log("出題停止: dailyLimitReached in response data");
+          return null;
+        }
+
+        return data;
+      } finally {
+        isGeneratingRef.current = false;
+      }
     }
   );
 
-  // Translation evaluation mutation - NO RETRY  
+  // Translation evaluation mutation
   const evaluateTranslation = useApiMutation<any, { 
     japaneseSentence: string; 
     userTranslation: string; 
     difficultyLevel: string; 
   }>(
     async ({ japaneseSentence, userTranslation, difficultyLevel }) => {
-      const response = await fetch("/api/translate", {
+      const response = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          japaneseSentence,
-          userTranslation,
-          difficultyLevel,
-        }),
+        body: JSON.stringify({ japaneseSentence, userTranslation, difficultyLevel }),
       });
 
       if (!response.ok) {
@@ -192,44 +162,14 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     }
   );
 
-  // Initial problem load - ONLY ONCE
-  useEffect(() => {
-    console.log("🚀 useEffect initial load triggered");
-    console.log("🔍 isInitialized.current:", isInitialized.current);
-    console.log("🔍 state.dailyLimitReached:", state.dailyLimitReached);
-    
-    if (isInitialized.current) {
-      console.log("⏭️ Already initialized - skipping");
-      return;
-    }
-    
-    if (state.dailyLimitReached) {
-      console.log("🛑 Daily limit already reached - skipping initial load");
-      return;
-    }
-    
-    console.log("✨ First time initialization");
-    isInitialized.current = true;
-
-    console.log("📤 Dispatching START_LOADING");
-    dispatch({ type: "START_LOADING" });
-    
-    console.log("🎯 Calling generateProblem.mutate with difficulty:", difficulty);
-    generateProblem.mutate({ difficultyLevel: difficulty });
-  }, []); // EMPTY DEPENDENCY ARRAY
-
   // Handle problem generation result
   useEffect(() => {
-    console.log("🔄 useEffect: problem generation result check");
-    console.log("📊 generateProblem.isSuccess:", generateProblem.isSuccess);
-    console.log("📊 generateProblem.data:", generateProblem.data);
-    
     if (generateProblem.isSuccess) {
       if (generateProblem.data === null) {
-        console.log("🛑 Received null data - daily limit reached");
+        console.log("出題停止: Received null data - daily limit reached");
         dispatch({ type: "SET_DAILY_LIMIT" });
       } else if (generateProblem.data) {
-        console.log("✅ Problem loaded successfully, dispatching PROBLEM_LOADED");
+        console.log("出題停止: Problem loaded successfully");
         dispatch({ 
           type: "PROBLEM_LOADED", 
           problem: generateProblem.data.japaneseSentence 
@@ -240,24 +180,13 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   // Handle problem generation error
   useEffect(() => {
-    console.log("🔄 useEffect: problem generation error check");
-    console.log("📊 generateProblem.isError:", generateProblem.isError);
-    console.log("📊 generateProblem.error:", generateProblem.error);
-    
     if (generateProblem.isError) {
       const error = generateProblem.error as Error;
-      console.log("❌ Error message:", error.message);
-      
-      if (error.message === "DAILY_LIMIT") {
-        console.log("🛑 Setting daily limit state");
-        dispatch({ type: "SET_DAILY_LIMIT" });
-      } else {
-        console.log("⚠️ Setting general error state");
-        dispatch({ 
-          type: "SET_ERROR", 
-          error: "問題の読み込みに失敗しました。" 
-        });
-      }
+      console.log("出題停止: Problem generation error:", error.message);
+      dispatch({ 
+        type: "SET_ERROR", 
+        error: "問題の読み込みに失敗しました。" 
+      });
     }
   }, [generateProblem.isError, generateProblem.error]);
 
@@ -265,7 +194,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   useEffect(() => {
     if (evaluateTranslation.isSuccess && evaluateTranslation.data) {
       dispatch({ 
-        type: "EVALUATION_DONE", 
+        type: "EVALUATION_LOADED", 
         evaluation: evaluateTranslation.data 
       });
     }
@@ -276,255 +205,241 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     if (evaluateTranslation.isError) {
       dispatch({ 
         type: "SET_ERROR", 
-        error: "翻訳の評価に失敗しました。" 
+        error: "評価の生成に失敗しました。" 
       });
     }
   }, [evaluateTranslation.isError]);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (abortController.current) {
-        abortController.current.abort();
-      }
-    };
-  }, []);
+  // Manual problem loading function - BUTTON TRIGGERED ONLY
+  const loadNewProblem = () => {
+    console.log("出題停止: Manual problem load triggered");
+    
+    if (state.dailyLimitReached) {
+      console.log("出題停止: Daily limit reached - preventing load");
+      return;
+    }
+    
+    if (isGeneratingRef.current) {
+      console.log("出題停止: Already generating - preventing load");
+      return;
+    }
 
-  const handleInputChange = (value: string) => {
-    dispatch({ type: "SET_USER_INPUT", input: value });
+    dispatch({ type: "START_LOADING" });
+    generateProblem.mutate({ difficultyLevel: difficulty });
   };
 
-  const handleSubmit = () => {
-    if (state.step !== "input_ready" || !state.userAnswer.trim()) return;
+  const handleSubmitTranslation = () => {
+    if (!state.userTranslation.trim()) return;
     
     dispatch({ type: "START_EVALUATION" });
     evaluateTranslation.mutate({
-      japaneseSentence: state.problem,
-      userTranslation: state.userAnswer.trim(),
+      japaneseSentence: state.japaneseSentence,
+      userTranslation: state.userTranslation,
       difficultyLevel: difficulty,
     });
   };
 
   const handleNextProblem = () => {
-    console.log("🔄 handleNextProblem called manually by user");
-    console.log("🔍 Current state.dailyLimitReached:", state.dailyLimitReached);
+    console.log("出題停止: Next problem button clicked");
     
     if (state.dailyLimitReached) {
-      console.log("🛑 Daily limit reached - preventing new problem generation");
+      console.log("出題停止: Daily limit reached - preventing next");
       return;
     }
     
-    // Reset everything and get new problem
-    console.log("🔄 Dispatching RESET_FOR_NEXT");
     dispatch({ type: "RESET_FOR_NEXT" });
-    
-    console.log("🔄 Resetting mutations");
     generateProblem.reset();
     evaluateTranslation.reset();
-    
-    console.log("🔄 Manually triggering new problem generation");
-    generateProblem.mutate({ difficultyLevel: difficulty });
+    loadNewProblem();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey && state.step === "input_ready") {
-      e.preventDefault();
-      handleSubmit();
-    }
+  const handleInputChange = (value: string) => {
+    dispatch({ type: "USER_INPUT", input: value });
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${
-          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-        }`}
-      />
-    ));
-  };
-
-  const isLoading = state.step === "loading" || generateProblem.isPending;
-  const isEvaluating = state.step === "evaluating" || evaluateTranslation.isPending;
+  const difficultyName = DIFFICULTY_LEVELS[difficulty]?.name || difficulty;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" onClick={onBack}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h3 className="font-semibold text-gray-900">
-                {DIFFICULTY_LEVELS[difficulty]}
-              </h3>
-            </div>
+      <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="font-semibold text-lg">{difficultyName}</h1>
+            <p className="text-sm text-gray-500">問題 #{state.problemCount}</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-4">
-        <div className="max-w-2xl mx-auto space-y-4">
-          
-          {/* Loading State */}
-          {isLoading && (
-            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-              <div className="text-gray-500">問題を読み込み中...</div>
-            </div>
-          )}
+      <div className="flex-1 flex flex-col">
+        {/* Initial state - Manual start only */}
+        {state.step === "loading" && isInitialized.current === false && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <h2 className="text-xl font-semibold mb-4">準備完了</h2>
+            <p className="text-gray-600 mb-6 text-center">
+              英作文の練習を始めましょう。<br/>
+              下のボタンを押して最初の問題を表示します。
+            </p>
+            <Button 
+              onClick={() => {
+                isInitialized.current = true;
+                loadNewProblem();
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3"
+            >
+              問題を表示する
+            </Button>
+          </div>
+        )}
 
-          {/* Problem Display */}
-          {(state.step === "problem_ready" || state.step === "input_ready") && (
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="text-gray-700 text-lg mb-4 leading-relaxed">
-                {state.problem}
-              </div>
-              <div className="flex items-center justify-end">
-                <SpeechButton text={state.problem} />
-              </div>
+        {/* Loading state */}
+        {state.step === "loading" && isInitialized.current === true && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">問題を読み込み中...</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Input Area */}
-          {(state.step === "problem_ready" || state.step === "input_ready") && (
-            <div className="bg-white rounded-lg shadow-sm p-6">
+        {/* Problem display */}
+        {state.step === "show_problem" && (
+          <div className="flex-1 flex flex-col p-6">
+            <div className="bg-blue-50 rounded-lg p-6 mb-6">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">日本語</h3>
+              <p className="text-lg text-blue-900 font-medium">{state.japaneseSentence}</p>
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                英訳を入力してください
+              </label>
               <Textarea
-                value={state.userAnswer}
+                value={state.userTranslation}
                 onChange={(e) => handleInputChange(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="英語で翻訳してください..."
-                className="min-h-[100px] mb-4"
+                placeholder="英語で翻訳を入力..."
+                className="min-h-[120px] resize-none"
+                disabled={state.step === "evaluating"}
               />
-              <div className="flex justify-end">
-                <Button 
-                  onClick={handleSubmit}
-                  disabled={state.step !== "input_ready"}
-                  className="flex items-center space-x-2"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>送信</span>
-                </Button>
+            </div>
+
+            <Button
+              onClick={handleSubmitTranslation}
+              disabled={!state.userTranslation.trim() || state.step === "evaluating"}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-3"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              回答を送信
+            </Button>
+          </div>
+        )}
+
+        {/* Evaluation loading */}
+        {state.step === "evaluating" && (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
+              <p className="text-gray-600">評価中...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Results display */}
+        {state.step === "show_result" && state.evaluation && (
+          <div className="flex-1 flex flex-col p-6">
+            <div className="bg-white rounded-lg border p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">評価結果</h3>
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-5 w-5 ${
+                        star <= (state.evaluation?.rating || 0)
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Evaluating State */}
-          {isEvaluating && (
-            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-              <div className="text-gray-500">翻訳を評価中...</div>
-            </div>
-          )}
-
-          {/* Result Display */}
-          {state.step === "result_ready" && state.evaluation && (
-            <div className="space-y-4">
-              {/* Rating */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-2">
-                    {renderStars(state.evaluation.rating)}
-                    <span className="font-semibold text-lg">
-                      {state.evaluation.rating}/5
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => dispatch({ type: "TOGGLE_BOOKMARK" })}
-                  >
-                    {state.isBookmarked ? (
-                      <BookmarkCheck className="w-5 h-5 text-blue-600" />
-                    ) : (
-                      <Bookmark className="w-5 h-5" />
-                    )}
-                  </Button>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">模範解答</h4>
+                  <p className="text-green-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
+                    {state.evaluation.modelAnswer}
+                  </p>
+                  <SpeechButton text={state.evaluation.modelAnswer} />
                 </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
-                      模範回答
-                    </h4>
-                    <div className="bg-green-50 p-3 rounded border-l-4 border-green-400">
-                      <div className="flex items-center justify-between">
-                        <span className="text-green-800">
-                          {state.evaluation.correctTranslation}
-                        </span>
-                        <SpeechButton 
-                          text={state.evaluation.correctTranslation} 
-                          size="sm" 
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
-                      フィードバック
-                    </h4>
-                    <p className="text-gray-700">
-                      {state.evaluation.feedback}
-                    </p>
-                  </div>
-
-                  {state.evaluation.explanation && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">
-                        詳細解説
-                      </h4>
-                      <p className="text-gray-700">
-                        {state.evaluation.explanation}
-                      </p>
-                    </div>
-                  )}
-
-                  {state.evaluation.similarPhrases?.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-2">
-                        類似フレーズ
-                      </h4>
-                      <div className="space-y-2">
-                        {state.evaluation.similarPhrases.map((phrase: string, index: number) => (
-                          <div key={index} className="bg-blue-50 p-3 rounded">
-                            <div className="flex items-center justify-between">
-                              <span className="text-blue-800">{phrase}</span>
-                              <SpeechButton text={phrase} size="sm" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">フィードバック</h4>
+                  <p className="text-gray-700 leading-relaxed">{state.evaluation.feedback}</p>
                 </div>
-              </div>
-
-              {/* Next Problem Button */}
-              <div className="flex justify-center">
-                <Button onClick={handleNextProblem} size="lg">
-                  次の問題
-                </Button>
+                
+                {state.evaluation.similarPhrases && (
+                  <div>
+                    <h4 className="font-medium text-sm text-gray-700 mb-2">類似表現</h4>
+                    <div className="space-y-2">
+                      {state.evaluation.similarPhrases.map((phrase: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <p className="text-gray-600">{phrase}</p>
+                          <SpeechButton text={phrase} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
 
-          {/* Error State */}
-          {(state.step === "error" || state.step === "daily_limit") && (
-            <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-              <div className="text-red-600 mb-4">{state.error}</div>
-              {state.step === "error" && (
-                <Button onClick={() => {
-                  dispatch({ type: "RESET_FOR_NEXT" });
-                  generateProblem.mutate({ difficultyLevel: difficulty });
-                }}>
+            <Button
+              onClick={handleNextProblem}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+            >
+              次の問題へ
+            </Button>
+          </div>
+        )}
+
+        {/* Daily limit reached */}
+        {state.step === "daily_limit" && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-red-600 mb-4">本日の学習完了</h2>
+              <p className="text-gray-600 mb-6">
+                本日の最大出題数（100問）に達しました。<br/>
+                明日またお試しください。
+              </p>
+              <Button onClick={onBack} variant="outline">
+                戻る
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {state.step === "error" && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold text-red-600 mb-4">エラーが発生しました</h2>
+              <p className="text-gray-600 mb-6">{state.error}</p>
+              <div className="space-x-3">
+                <Button onClick={loadNewProblem} variant="outline">
                   再試行
                 </Button>
-              )}
+                <Button onClick={onBack} variant="outline">
+                  戻る
+                </Button>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

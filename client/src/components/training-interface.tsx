@@ -8,5 +8,10 @@ interface TrainingInterfaceProps {
 }
 
 export function TrainingInterface({ difficulty, onBack }: TrainingInterfaceProps) {
-  return <ProblemPractice difficulty={difficulty} onBack={onBack} />;
+  return (
+    <ProblemPractice 
+      difficulty={difficulty}
+      onBack={onBack}
+    />
+  );
 }
