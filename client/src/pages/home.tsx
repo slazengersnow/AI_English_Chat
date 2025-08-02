@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { DifficultySelection } from "@/components/difficulty-selection";
 import { TrainingInterface } from "@/components/training-interface";
+import { SimpleTrainingTest } from "@/components/simple-training-test";
 import { PaymentModal } from "@/components/payment-modal";
 import { Button } from "@/components/ui/button";
 import { User, Shield } from "lucide-react";
@@ -11,7 +12,7 @@ import { useAuth } from "@/components/auth-provider";
 
 export default function Home() {
   const [location] = useLocation();
-  const [currentView, setCurrentView] = useState<'difficulty' | 'training'>('difficulty');
+  const [currentView, setCurrentView] = useState<'difficulty' | 'training' | 'test'>('difficulty');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const { isAdmin } = useAuth();
@@ -95,7 +96,18 @@ export default function Home() {
       )}
 
       {currentView === 'difficulty' && (
-        <DifficultySelection onDifficultySelect={handleDifficultySelect} />
+        <div>
+          <div className="mb-4 text-center">
+            <Button
+              onClick={() => setCurrentView('test')}
+              variant="outline"
+              className="mb-4"
+            >
+              シンプルテスト（1問のみ）
+            </Button>
+          </div>
+          <DifficultySelection onDifficultySelect={handleDifficultySelect} />
+        </div>
       )}
       
       {currentView === 'training' && selectedDifficulty && (
@@ -104,6 +116,10 @@ export default function Home() {
           onBack={handleBackToDifficulty}
           onShowPayment={handleShowPayment}
         />
+      )}
+      
+      {currentView === 'test' && (
+        <SimpleTrainingTest onBack={handleBackToDifficulty} />
       )}
       
       <PaymentModal 
