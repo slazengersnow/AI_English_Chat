@@ -1,5 +1,5 @@
 import React from "react";
-import { ProblemPractice } from "./problem-practice";
+import { ProblemPractice } from "./problem-practice.js";
 import { type DifficultyKey } from "@/lib/constants";
 
 interface TrainingInterfaceProps {

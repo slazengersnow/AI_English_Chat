@@ -3,8 +3,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
-import { registerRoutes } from "./routes/index.js";
-import { registerRoutes as registerMainRoutes } from "./routes.js";
+import { registerRoutes } from "./routes/index";
+import { registerRoutes as registerMainRoutes } from "./routes";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 // 環境変数読み込み
 dotenv.config();

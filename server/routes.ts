@@ -7,7 +7,7 @@ import {
 } from "express";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import type { User as SupabaseUser } from "@supabase/auth-js";
 import Anthropic from "@anthropic-ai/sdk";
 import {

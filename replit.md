@@ -49,6 +49,7 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - **Configuration**: TypeScript `"module": "esnext"`, Vite ESM-first build
 - **Recommendation**: Complete ESM standardization for consistency
 - **Issue Resolved**: Module format inconsistency between source and build identified
+- **ESM Migration**: Added `.js` extensions to 20 relative import paths for strict ESM compliance
 
 ### Frontend
 - **Framework**: React 18 with TypeScript

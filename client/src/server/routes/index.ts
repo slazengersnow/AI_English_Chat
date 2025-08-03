@@ -1,7 +1,7 @@
 import { Express } from "express";
-import chatRoutes from "./chat";
-import stripeWebhookRoutes from "./stripe-webhook";
-import userRoutes from "./user";
+import chatRoutes from "./chat.js";
+import stripeWebhookRoutes from "./stripe-webhook.js";
+import userRoutes from "./user.js";
 
 export async function registerRoutes(app: Express) {
   app.use("/api/chat", chatRoutes);

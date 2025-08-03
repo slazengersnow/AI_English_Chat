@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { useLocation } from 'wouter'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Label } from '../components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
-import { useToast } from '../hooks/use-toast'
+import { Button } from '../components/ui/button.js'
+import { Input } from '../components/ui/input.js'
+import { Label } from '../components/ui/label.js'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.js'
+import { useToast } from '../hooks/use-toast.js'
 import { supabase } from '@shared/supabase'
-import { useAuth } from '../components/auth-provider'
+import { useAuth } from '../components/auth-provider.js'
 import { Mail, Lock, Eye, EyeOff, TestTube, AlertTriangle } from 'lucide-react'
 
 export default function Login() {
