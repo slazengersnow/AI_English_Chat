@@ -1,6 +1,6 @@
 import { Router, } from "express";
 import { createInsertSchema } from "drizzle-zod";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { trainingSessions, userGoals, dailyProgress, customScenarios, } from "@shared/schema";
 // Stripe webhook router placeholder

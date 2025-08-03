@@ -1,8 +1,8 @@
 // server/routes/index.ts
 import { Router } from "express";
-import chatRoutes from "./chat";
-import userRoutes from "./user";
-import { testAuth, getSupabaseStatus } from './debug-auth';
+import chatRoutes from "./chat.js";
+import userRoutes from "./user.js";
+import { testAuth, getSupabaseStatus } from './debug-auth.js';
 export function registerRoutes(app) {
     const router = Router();
     router.use("/chat", chatRoutes);
