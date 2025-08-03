@@ -1,0 +1,129 @@
+options for a rate limit increase.\"}}"}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)このエラーを分析
+Console.js:61 Problem generation error: Error: 500: {"message":"問題の生成に失敗しました。","dailyLimitReached":false,"error":"429 {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed the rate limit for your organization (34df40c4-bcbd-4bd5-b6c8-d03d623a2b30) of 50 requests per minute. For details, refer to: https://docs.anthropic.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://www.anthropic.com/contact-sales to discuss your options for a rate limit increase.\"}}"}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)このエラーを分析
+Console.js:61 Problem generation error: Error: 500: {"message":"問題の生成に失敗しました。","dailyLimitReached":false,"error":"429 {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed the rate limit for your organization (34df40c4-bcbd-4bd5-b6c8-d03d623a2b30) of 50 requests per minute. For details, refer to: https://docs.anthropic.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://www.anthropic.com/contact-sales to discuss your options for a rate limit increase.\"}}"}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)このエラーを分析
+Console.js:61 Problem generation error: Error: 500: {"message":"問題の生成に失敗しました。","dailyLimitReached":false,"error":"429 {\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"This request would exceed the rate limit for your organization (34df40c4-bcbd-4bd5-b6c8-d03d623a2b30) of 50 requests per minute. For details, refer to: https://docs.anthropic.com/en/api/rate-limits. You can see the response headers for current usage. Please reduce the prompt length or the maximum tokens requested, or try again later. You may also contact sales at https://www.anthropic.com/contact-sales to discuss your options for a rate limit increase.\"}}"}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+6Console.js:61 Problem generation error: Error: 429: {"message":"本日の最大出題数に達しました。明日またお試しください。","dailyLimitReached":true,"currentCount":100,"dailyLimit":100}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61
+onError @ training-interface.js:118
+execute @ mutation.js:128このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+2Console.js:61 Problem generation error: Error: 429: {"message":"本日の最大出題数に達しました。明日またお試しください。","dailyLimitReached":true,"currentCount":100,"dailyLimit":100}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61
+onError @ training-interface.js:118
+execute @ mutation.js:128このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+4Console.js:61 Problem generation error: Error: 429: {"message":"本日の最大出題数に達しました。明日またお試しください。","dailyLimitReached":true,"currentCount":100,"dailyLimit":100}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61
+onError @ training-interface.js:118
+execute @ mutation.js:128このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+2Console.js:61 Problem generation error: Error: 429: {"message":"本日の最大出題数に達しました。明日またお試しください。","dailyLimitReached":true,"currentCount":100,"dailyLimit":100}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
+Mt.forEach.n.<computed> @ Console.js:61
+onError @ training-interface.js:118
+execute @ mutation.js:128このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 429 (Too Many Requests)このエラーを分析
+2Console.js:61 Problem generation error: Error: 429: {"message":"本日の最大出題数に達しました。明日またお試しください。","dailyLimitReached":true,"currentCount":100,"dailyLimit":100}
+    at S6 (queryClient.js:6:15)
+    at async Cn (queryClient.js:31:5)
+    at async Object.mutationFn (training-interface.js:88:30)
