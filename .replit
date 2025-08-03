@@ -6,7 +6,7 @@ entrypoint = "server/index.ts"
 
 [nix]
 channel = "stable-24_05"
-packages = ["q", "lsof", "fly", "psmisc"]
+packages = ["q", "lsof", "fly", "psmisc", "openssh"]
 
 [deployment]
 # Replit 上での自動ホスティングを無効化

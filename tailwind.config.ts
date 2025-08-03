@@ -78,5 +78,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    await import("tailwindcss-animate").then(m => m.default), 
+    await import("@tailwindcss/typography").then(m => m.default)
+  ],
 } satisfies Config;

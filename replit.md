@@ -44,6 +44,12 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 
 ## System Architecture
 
+### Module System Analysis (August 2, 2025)
+- **Current State**: 139 files (99.3%) use ESM syntax, 1 file (0.7%) uses CommonJS
+- **Configuration**: TypeScript `"module": "esnext"`, Vite ESM-first build
+- **Recommendation**: Complete ESM standardization for consistency
+- **Issue Resolved**: Module format inconsistency between source and build identified
+
 ### Frontend
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite
