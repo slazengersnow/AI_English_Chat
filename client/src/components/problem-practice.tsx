@@ -83,60 +83,76 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const isInitialized = useRef(false);
   const isGeneratingRef = useRef(false);
 
-  // Problem generation mutation - MANUAL TRIGGER ONLY
+  // CRITICAL: Global flag to prevent any duplicate calls
+  const isProcessingRef = useRef(false);
+  
+  // Problem generation mutation - MANUAL TRIGGER ONLY WITH ABSOLUTE PROTECTION
   const generateProblem = useApiMutation<any, { difficultyLevel: string }>(
     async ({ difficultyLevel }) => {
-      console.log("出題停止: generateProblem mutationFn called with:", difficultyLevel);
+      console.log("🔥 MUTATION START: generateProblem called with:", difficultyLevel);
+      
+      // ABSOLUTE PROTECTION - Multiple checks
+      if (isProcessingRef.current) {
+        console.log("🛑 ABORT: Already processing, blocking duplicate call");
+        throw new Error("DUPLICATE_CALL_BLOCKED");
+      }
       
       if (isGeneratingRef.current) {
-        console.log("出題停止: Already generating, aborting");
-        return null;
+        console.log("🛑 ABORT: Generation in progress, blocking call");
+        throw new Error("GENERATION_IN_PROGRESS");
       }
       
       if (state.dailyLimitReached) {
-        console.log("出題停止: Daily limit reached, aborting");
-        return null;
+        console.log("🛑 ABORT: Daily limit reached, blocking call");
+        throw new Error("DAILY_LIMIT_REACHED");
       }
       
+      // Set all flags to prevent any other execution
+      isProcessingRef.current = true;
       isGeneratingRef.current = true;
       
       try {
+        console.log("📡 API CALL: Sending request to /api/problem");
         const response = await fetch("/api/problem", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ difficultyLevel }),
         });
 
-        console.log("出題停止: API Response status:", response.status);
+        console.log("📡 API RESPONSE: Status =", response.status);
 
+        // CRITICAL: Handle 429 errors by throwing - DO NOT RETURN NULL
         if (response.status === 429) {
-          console.log("出題停止: 429エラー - Daily limit reached");
           const data = await response.json();
+          console.log("🛑 429 ERROR: Daily limit reached, server response:", data);
           
           if (data.dailyLimitReached) {
-            console.log("出題停止: dailyLimitReached confirmed");
-            return null; // Stop here, don't throw error
+            console.log("🛑 DAILY LIMIT CONFIRMED: Throwing error to stop mutation");
+            throw new Error("DAILY_LIMIT_429");
           }
         }
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error("出題停止: Response not OK:", response.status, errorText);
-          throw new Error(`${response.status}: ${errorText}`);
+          console.error("❌ API ERROR:", response.status, errorText);
+          throw new Error(`API_ERROR_${response.status}`);
         }
 
         const data = await response.json();
-        console.log("出題停止: Problem data received:", data);
+        console.log("✅ SUCCESS: Problem data received:", data);
         
-        // Check for daily limit in response
+        // Final check for daily limit in successful response
         if (data.dailyLimitReached) {
-          console.log("出題停止: dailyLimitReached in response data");
-          return null;
+          console.log("🛑 DAILY LIMIT IN DATA: Throwing error");
+          throw new Error("DAILY_LIMIT_IN_DATA");
         }
 
         return data;
       } finally {
+        // Always release flags
+        isProcessingRef.current = false;
         isGeneratingRef.current = false;
+        console.log("🔓 FLAGS RELEASED: Processing complete");
       }
     }
   );
@@ -164,29 +180,38 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   // Handle problem generation result
   useEffect(() => {
-    if (generateProblem.isSuccess) {
-      if (generateProblem.data === null) {
-        console.log("出題停止: Received null data - daily limit reached");
-        dispatch({ type: "SET_DAILY_LIMIT" });
-      } else if (generateProblem.data) {
-        console.log("出題停止: Problem loaded successfully");
-        dispatch({ 
-          type: "PROBLEM_LOADED", 
-          problem: generateProblem.data.japaneseSentence 
-        });
-      }
+    if (generateProblem.isSuccess && generateProblem.data) {
+      console.log("✅ MUTATION SUCCESS: Problem loaded");
+      dispatch({ 
+        type: "PROBLEM_LOADED", 
+        problem: generateProblem.data.japaneseSentence 
+      });
     }
   }, [generateProblem.isSuccess, generateProblem.data]);
 
-  // Handle problem generation error
+  // Handle problem generation error - INCLUDING DAILY LIMIT
   useEffect(() => {
     if (generateProblem.isError) {
       const error = generateProblem.error as Error;
-      console.log("出題停止: Problem generation error:", error.message);
-      dispatch({ 
-        type: "SET_ERROR", 
-        error: "問題の読み込みに失敗しました。" 
-      });
+      console.log("🛑 MUTATION ERROR:", error.message);
+      
+      // Handle specific error types
+      if (error.message === "DAILY_LIMIT_429" || 
+          error.message === "DAILY_LIMIT_REACHED" || 
+          error.message === "DAILY_LIMIT_IN_DATA") {
+        console.log("🛑 DAILY LIMIT ERROR: Setting daily limit state");
+        dispatch({ type: "SET_DAILY_LIMIT" });
+      } else if (error.message === "DUPLICATE_CALL_BLOCKED" || 
+                 error.message === "GENERATION_IN_PROGRESS") {
+        console.log("🛑 DUPLICATE CALL: Ignoring duplicate execution");
+        // Don't change state for duplicate calls
+      } else {
+        console.log("❌ GENERAL ERROR: Setting error state");
+        dispatch({ 
+          type: "SET_ERROR", 
+          error: "問題の読み込みに失敗しました。" 
+        });
+      }
     }
   }, [generateProblem.isError, generateProblem.error]);
 
@@ -210,20 +235,27 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     }
   }, [evaluateTranslation.isError]);
 
-  // Manual problem loading function - BUTTON TRIGGERED ONLY
+  // Manual problem loading function - BUTTON TRIGGERED ONLY WITH PROTECTION
   const loadNewProblem = () => {
-    console.log("出題停止: Manual problem load triggered");
+    console.log("🚀 BUTTON CLICK: Manual problem load triggered");
     
+    // Multiple protection layers
     if (state.dailyLimitReached) {
-      console.log("出題停止: Daily limit reached - preventing load");
+      console.log("🛑 BUTTON BLOCKED: Daily limit already reached");
       return;
     }
     
-    if (isGeneratingRef.current) {
-      console.log("出題停止: Already generating - preventing load");
+    if (isProcessingRef.current || isGeneratingRef.current) {
+      console.log("🛑 BUTTON BLOCKED: Already processing request");
       return;
     }
 
+    if (generateProblem.isPending) {
+      console.log("🛑 BUTTON BLOCKED: Mutation still pending");
+      return;
+    }
+
+    console.log("✅ BUTTON APPROVED: Starting problem generation");
     dispatch({ type: "START_LOADING" });
     generateProblem.mutate({ difficultyLevel: difficulty });
   };
@@ -240,17 +272,27 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   };
 
   const handleNextProblem = () => {
-    console.log("出題停止: Next problem button clicked");
+    console.log("🔄 NEXT BUTTON: Next problem clicked");
     
     if (state.dailyLimitReached) {
-      console.log("出題停止: Daily limit reached - preventing next");
+      console.log("🛑 NEXT BLOCKED: Daily limit reached");
       return;
     }
     
+    if (isProcessingRef.current || isGeneratingRef.current) {
+      console.log("🛑 NEXT BLOCKED: Still processing");
+      return;
+    }
+    
+    console.log("✅ NEXT APPROVED: Resetting and loading next problem");
     dispatch({ type: "RESET_FOR_NEXT" });
     generateProblem.reset();
     evaluateTranslation.reset();
-    loadNewProblem();
+    
+    // Add small delay to ensure cleanup
+    setTimeout(() => {
+      loadNewProblem();
+    }, 100);
   };
 
   const handleInputChange = (value: string) => {
