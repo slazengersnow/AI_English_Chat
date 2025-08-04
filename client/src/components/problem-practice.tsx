@@ -12,7 +12,14 @@ interface ProblemPracticeProps {
 }
 
 // Simple state type
-type AppState = "initial" | "loading" | "problem" | "evaluating" | "result" | "limit_reached" | "error";
+type AppState =
+  | "initial"
+  | "loading"
+  | "problem"
+  | "evaluating"
+  | "result"
+  | "limit_reached"
+  | "error";
 
 export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const [state, setState] = useState<AppState>("initial");
@@ -21,7 +28,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [problemCount, setProblemCount] = useState(0);
-  
+
   // CRITICAL: Prevent any duplicate execution
   const isExecutingRef = useRef(false);
   const hasStartedRef = useRef(false);
@@ -30,15 +37,16 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const generateMutation = useMutation({
     mutationFn: async () => {
       console.log("🔥 GENERATE MUTATION: Starting execution");
-      
+
       // ABSOLUTE BLOCK: Prevent any double execution
       if (isExecutingRef.current) {
         console.log("🛑 BLOCKED: Already executing");
         throw new Error("EXECUTION_BLOCKED");
       }
-      
+
+      // ✅ Set flag BEFORE try-catch-finally block
       isExecutingRef.current = true;
-      
+
       try {
         const response = await fetch("/api/problem", {
           method: "POST",
@@ -63,6 +71,8 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         const data = await response.json();
         console.log("✅ SUCCESS:", data);
         return data;
+      } catch (err) {
+        throw err;
       } finally {
         isExecutingRef.current = false;
       }
@@ -71,12 +81,12 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     onSuccess: (data) => {
       console.log("✅ MUTATION SUCCESS");
       setProblemData(data);
-      setProblemCount(prev => prev + 1);
+      setProblemCount((prev) => prev + 1);
       setState("problem");
     },
     onError: (error: any) => {
       console.log("🛑 MUTATION ERROR:", error.message);
-      
+
       if (error.message === "DAILY_LIMIT_REACHED") {
         setState("limit_reached");
       } else if (error.message === "EXECUTION_BLOCKED") {
@@ -86,7 +96,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         setErrorMessage("問題の生成に失敗しました。");
         setState("error");
       }
-    }
+    },
   });
 
   // Evaluation mutation
@@ -113,23 +123,23 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     onError: () => {
       setErrorMessage("評価に失敗しました。");
       setState("error");
-    }
+    },
   });
 
   // MANUAL BUTTON FUNCTIONS ONLY
   const handleStartPractice = () => {
     console.log("🚀 START BUTTON CLICKED");
-    
+
     if (hasStartedRef.current) {
       console.log("🛑 ALREADY STARTED");
       return;
     }
-    
+
     if (isExecutingRef.current) {
       console.log("🛑 EXECUTION IN PROGRESS");
       return;
     }
-    
+
     hasStartedRef.current = true;
     setState("loading");
     generateMutation.mutate();
@@ -143,12 +153,12 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
   const handleNextProblem = () => {
     console.log("🔄 NEXT BUTTON CLICKED");
-    
+
     if (isExecutingRef.current) {
       console.log("🛑 EXECUTION IN PROGRESS");
       return;
     }
-    
+
     setUserInput("");
     setEvaluation(null);
     setProblemData(null);
@@ -182,10 +192,11 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
           <div className="flex-1 flex flex-col items-center justify-center p-6">
             <h2 className="text-xl font-semibold mb-4">英作文練習</h2>
             <p className="text-gray-600 mb-6 text-center">
-              {difficultyName}レベルの問題で練習します。<br/>
+              {difficultyName}レベルの問題で練習します。
+              <br />
               準備ができたら下のボタンを押してください。
             </p>
-            <Button 
+            <Button
               onClick={handleStartPractice}
               className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3"
             >
@@ -213,7 +224,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
                 {problemData.japaneseSentence}
               </p>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 英訳を入力してください
@@ -266,31 +277,41 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
                   ))}
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-sm text-gray-700 mb-1">模範解答</h4>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">
+                    模範解答
+                  </h4>
                   <p className="text-green-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
                     {evaluation.modelAnswer}
                   </p>
                   <SpeechButton text={evaluation.modelAnswer} />
                 </div>
-                
+
                 <div>
-                  <h4 className="font-medium text-sm text-gray-700 mb-1">フィードバック</h4>
-                  <p className="text-gray-700 leading-relaxed">{evaluation.feedback}</p>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">
+                    フィードバック
+                  </h4>
+                  <p className="text-gray-700 leading-relaxed">
+                    {evaluation.feedback}
+                  </p>
                 </div>
-                
+
                 {evaluation.similarPhrases && (
                   <div>
-                    <h4 className="font-medium text-sm text-gray-700 mb-2">類似表現</h4>
+                    <h4 className="font-medium text-sm text-gray-700 mb-2">
+                      類似表現
+                    </h4>
                     <div className="space-y-2">
-                      {evaluation.similarPhrases.map((phrase: string, index: number) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <p className="text-gray-600">{phrase}</p>
-                          <SpeechButton text={phrase} />
-                        </div>
-                      ))}
+                      {evaluation.similarPhrases.map(
+                        (phrase: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <p className="text-gray-600">{phrase}</p>
+                            <SpeechButton text={phrase} />
+                          </div>
+                        ),
+                      )}
                     </div>
                   </div>
                 )}
@@ -310,9 +331,12 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         {state === "limit_reached" && (
           <div className="flex-1 flex flex-col items-center justify-center p-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-red-600 mb-4">本日の学習完了</h2>
+              <h2 className="text-xl font-semibold text-red-600 mb-4">
+                本日の学習完了
+              </h2>
               <p className="text-gray-600 mb-6">
-                本日の最大出題数（100問）に達しました。<br/>
+                本日の最大出題数（100問）に達しました。
+                <br />
                 明日またお試しください。
               </p>
               <Button onClick={onBack} variant="outline">
@@ -326,14 +350,16 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         {state === "error" && (
           <div className="flex-1 flex flex-col items-center justify-center p-6">
             <div className="text-center">
-              <h2 className="text-xl font-semibold text-red-600 mb-4">エラーが発生しました</h2>
+              <h2 className="text-xl font-semibold text-red-600 mb-4">
+                エラーが発生しました
+              </h2>
               <p className="text-gray-600 mb-6">{errorMessage}</p>
               <div className="space-x-3">
-                <Button 
+                <Button
                   onClick={() => {
                     setState("initial");
                     hasStartedRef.current = false;
-                  }} 
+                  }}
                   variant="outline"
                 >
                   最初から
