@@ -22,7 +22,7 @@ console.log(
 );
 
 const app = express();
-const port = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 8080;
 
 // ✅ CORS設定
 app.use(cors());
@@ -39,10 +39,10 @@ app.use(express.json());
 
 // ✅ ヘルスチェック
 app.get("/health", (_req, res) => {
-  res.status(200).json({ 
-    status: "healthy", 
+  res.status(200).json({
+    status: "healthy",
     timestamp: new Date().toISOString(),
-    port: port 
+    port: port,
   });
 });
 
@@ -56,6 +56,6 @@ if (process.env.NODE_ENV !== "production") {
   console.log("🚀 Vite development server configured");
 }
 
-const server = app.listen(port, "0.0.0.0", () => {
-  console.log(`✅ Server running at http://0.0.0.0:${port}`);
+const server = app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
