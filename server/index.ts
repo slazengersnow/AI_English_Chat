@@ -20,10 +20,19 @@ console.log(
 );
 
 const app = express();
-const PORT = Number(process.env.PORT) || 8080;
+const PORT = Number(process.env.PORT) || 5000;
 
-// ✅ CORS設定
-app.use(cors());
+// ✅ CORS設定（Replit環境対応）
+app.use(cors({
+  origin: [
+    /\.replit\.dev$/,
+    /\.kirk\.replit\.dev$/,
+    /\.fly\.dev$/,
+    "http://localhost:5000",
+    "http://0.0.0.0:5000"
+  ],
+  credentials: true
+}));
 
 // ✅ Stripe webhook（生のボディが必要）
 app.use(
