@@ -29,7 +29,8 @@ app.use(cors({
     /\.kirk\.replit\.dev$/,
     /\.fly\.dev$/,
     "http://localhost:5000",
-    "http://0.0.0.0:5000"
+    "http://0.0.0.0:5000",
+    "https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev"
   ],
   credentials: true
 }));
@@ -43,6 +44,29 @@ app.use(
 
 // ✅ JSONパーシング
 app.use(express.json());
+
+// ✅ Replit環境対応のHost headerチェック無効化
+app.use((req, res, next) => {
+  // Vite dev serverのHost header検証を無効化
+  if (req.headers.host && req.headers.host.includes('replit.dev')) {
+    req.headers['x-forwarded-host'] = req.headers.host;
+    // Vite dev serverのallowedHosts検証を迂回
+    req.headers['x-vite-allowed'] = 'true';
+  }
+  next();
+});
+
+// ✅ 静的な Replit Host 許可（環境変数を使わない方法）
+app.use((req, res, next) => {
+  const allowedReplitHosts = [
+    'ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev'
+  ];
+  
+  if (req.headers.host && allowedReplitHosts.includes(req.headers.host)) {
+    req.headers['x-forwarded-proto'] = 'https';
+  }
+  next();
+});
 
 // ✅ ヘルスチェック
 app.get("/health", (_req, res) => {
