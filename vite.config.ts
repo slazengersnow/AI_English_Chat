@@ -31,4 +31,9 @@ export default defineConfig({
       process.env.VITE_SUPABASE_ANON_KEY ?? "",
     ),
   },
+  server: {
+    allowedHosts: [".fly.dev", ".replit.dev"],
+    port: parseInt(process.env.PORT ?? "5173", 10), // Replit or ローカル用
+    host: true, // 0.0.0.0 で外部アクセスを許可
+  },
 });
