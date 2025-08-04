@@ -1,4 +1,3 @@
-// server/index.ts
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -6,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes/index.js";
 import stripeWebhookRouter from "./routes/stripe-webhook.js";
-import { setupVite } from "./vite.js";
 
 // ✅ __dirname の代替（ESM形式）
 const __filename = fileURLToPath(import.meta.url);
@@ -42,7 +40,7 @@ app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "healthy",
     timestamp: new Date().toISOString(),
-    port: port,
+    port: PORT, // 🔧 修正：port → PORT
   });
 });
 
@@ -51,7 +49,7 @@ registerRoutes(app);
 
 // ✅ Vite開発サーバー設定（開発環境のみ）
 if (process.env.NODE_ENV !== "production") {
-  const { setupVite } = await import("./vite.js");
+  const { setupVite } = await import("./vite.js"); // ✅ 動的importを使用
   await setupVite(app, null);
   console.log("🚀 Vite development server configured");
 }
