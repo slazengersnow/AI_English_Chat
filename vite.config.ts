@@ -1,4 +1,3 @@
-// vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -30,7 +29,7 @@ export default defineConfig({
     },
   },
 
-  // ✅ Supabase 環境変数の注入
+  // ✅ Supabase 環境変数の注入（ビルド時に埋め込む）
   define: {
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
       process.env.VITE_SUPABASE_URL ?? "",
@@ -40,10 +39,15 @@ export default defineConfig({
     ),
   },
 
-  // ✅ Replit/Fly.io対策：403防止のための allowedHosts 設定
+  // ✅ Replit/Fly.io対策：403防止（Vite dev server起動時に限る）
   server: {
-    allowedHosts: [".fly.dev", ".replit.dev"], // ✅ ← ここが超重要
-    port: parseInt(process.env.PORT ?? "5173", 10),
-    host: true, // 外部アクセスを許可（0.0.0.0）
+    allowedHosts: [
+      ".fly.dev",
+      ".replit.dev",
+      ".kirk.replit.dev",
+      "ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev", // Replitが要求してくるFQDNを明示
+    ],
+    host: true, // 外部アクセス（0.0.0.0）を許可
+    // ⚠️ ポートは指定しない → Expressサーバー（5000番）に統合されるため
   },
 });
