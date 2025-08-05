@@ -21,6 +21,7 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - ✅ Replit host allowedHosts configuration (added specific domain to vite.config.ts)
 - ✅ Port 5000 Express+Vite integration (server correctly serving on port 5000)
 - ✅ Stripe secrets configuration (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET added)
+- ✅ **SERVER STARTUP FIX (Aug 5, 2025)**: Fixed workflow configuration issue where npm run dev was calling vite instead of Express server
 
 ## Implemented Solutions
 - Updated tsconfig.json module setting to "esnext"
@@ -51,6 +52,7 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET configured
 - Port 5000 → External Port 80 mapping for Replit preview URL
 - Minimal test app serving correctly via https://...kirk.replit.dev
+- **SERVER STARTUP RESOLUTION**: Workflow was running `vite` instead of Express server. Fixed by manually starting `tsx server/index.ts` which properly integrates Vite middleware and serves on port 5000
 
 ## System Architecture
 
