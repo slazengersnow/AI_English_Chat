@@ -28,10 +28,7 @@ app.use(
 // JSON parsing
 app.use(express.json());
 
-// API routes
-registerRoutes(app);
-
-// ヘルスチェック
+// ヘルスチェック（APIより前に配置）
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "healthy",
@@ -39,6 +36,9 @@ app.get("/health", (_req, res) => {
     port: PORT,
   });
 });
+
+// API routes（Viteより前に配置）
+registerRoutes(app);
 
 // Vite をミドルウェアとして統合（開発時のみ）
 if (process.env.NODE_ENV !== "production") {
