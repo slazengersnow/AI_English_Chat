@@ -39,15 +39,13 @@ export default defineConfig({
     ),
   },
 
-  // ✅ Replit/Fly.io対策：403防止（Vite dev server起動時に限る）
+  // ✅ サーバー設定（開発環境用）
   server: {
+    port: 5000, // ✅ Expressサーバーのポートと合わせる
+    host: true, // ✅ 外部アクセス（0.0.0.0）を許可
     allowedHosts: [
-      ".fly.dev",
-      ".replit.dev",
-      ".kirk.replit.dev",
-      "ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev", // Replitが要求してくるFQDNを明示
+      ".replit.dev", // ✅ Replit用
+      ".fly.dev", // ✅ Fly.io用
     ],
-    host: true, // 外部アクセス（0.0.0.0）を許可
-    // ⚠️ ポートは指定しない → Expressサーバー（5000番）に統合されるため
   },
 });

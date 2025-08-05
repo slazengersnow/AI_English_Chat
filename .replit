@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
+run = "npx tsx server/index.ts"
 hidden = [".config", ".git", "node_modules", "dist"]
 language = "nodejs"
 entrypoint = "server/index.ts"
@@ -19,6 +19,10 @@ externalPort = 3001
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3003
 
 [[ports]]
 localPort = 5173
