@@ -3,8 +3,8 @@
 
 export const getReplitDomainConfig = () => {
   // サーバー側でREPLIT_DEV_DOMAINを取得
-  const replitDevDomain = process.env.REPLIT_DEV_DOMAIN || 'ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev';
-  const replitDomains = process.env.REPLIT_DOMAINS || replitDevDomain;
+  const replitDevDomain = import.meta.env.VITE_REPLIT_DEV_DOMAIN || 'ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev';
+  const replitDomains = import.meta.env.VITE_REPLIT_DOMAINS || replitDevDomain;
   
   return {
     devDomain: replitDevDomain,
