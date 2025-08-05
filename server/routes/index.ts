@@ -18,7 +18,7 @@ export function registerRoutes(app: Express) {
   router.get("/supabase-status", getSupabaseStatus);
   
   // Main API routes (problem generation, evaluation, etc.)
-  router.use("/", mainRouter);
+  router.use(mainRouter);
   
   app.use("/api", router);
 }

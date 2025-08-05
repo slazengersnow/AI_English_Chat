@@ -96,6 +96,7 @@ const handleResetDailyCount: RequestHandler = async (
 // CRITICAL: Problem generation handler with daily limit
 const handleProblem: RequestHandler = async (req, res) => {
   const authReq = req as AuthenticatedRequest;
+  console.log("🔥 Problem endpoint called with:", authReq.body);
   try {
     const { difficultyLevel } = authReq.body;
 
@@ -122,15 +123,15 @@ const handleProblem: RequestHandler = async (req, res) => {
     // Generate problem using Anthropic API
     const difficultyPrompts = {
       toeic: "TOEIC レベルのビジネス英語の文章",
-      "middle-school": "中学英語レベルの基本的な文章",
-      "high-school": "高校英語レベルの応用的な文章",
-      "basic-verbs": "基本動詞を使った日常会話の文章",
-      "business-email": "ビジネスメールで使われる実用的な文章",
+      middle_school: "中学英語レベルの基本的な文章",
+      high_school: "高校英語レベルの応用的な文章",
+      basic_verbs: "基本動詞を使った日常会話の文章",
+      business_email: "ビジネスメールで使われる実用的な文章",
     };
 
     const prompt =
       difficultyPrompts[difficultyLevel as keyof typeof difficultyPrompts] ||
-      difficultyPrompts["middle-school"];
+      difficultyPrompts["middle_school"];
 
     const response = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
