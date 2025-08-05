@@ -53,6 +53,10 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Port 5000 → External Port 80 mapping for Replit preview URL
 - Minimal test app serving correctly via https://...kirk.replit.dev
 - **SERVER STARTUP RESOLUTION**: Workflow was running `vite` instead of Express server. Fixed by manually starting `tsx server/index.ts` which properly integrates Vite middleware and serves on port 5000
+- **COMPLETE SERVER INTEGRATION (Aug 5, 2025)**: Created dedicated `run-server.mjs` with Express+Vite integration
+- Express API routes (/api/problem, /api/evaluate) configured BEFORE Vite middleware to prevent 404 errors
+- Server properly binds to 0.0.0.0:5000 with Replit port mapping (local 5000 → external 80)
+- Confirmed working: https://slazengersnow.AIEnglishChat.replit.dev/ accessibility
 
 ## System Architecture
 
