@@ -9,6 +9,9 @@ import { setupVite } from "./vite.js";
 
 dotenv.config();
 
+// ✅ Override host settings for Replit compatibility
+process.env.HOST = "0.0.0.0";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
