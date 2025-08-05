@@ -37,12 +37,9 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// API routes（Viteより前に配置）
-registerRoutes(app);
-
-// Direct routes for testing
+// API routes - DIRECT IMPLEMENTATION (bypassing complex routing)
 app.post("/api/problem", (req, res) => {
-  console.log("🔥 Direct problem endpoint hit:", req.body);
+  console.log("🔥 Problem endpoint hit:", req.body);
   res.json({
     japaneseSentence: "チームメンバーと連携を取ってください。",
     hints: ["問題1"],
@@ -53,7 +50,7 @@ app.post("/api/problem", (req, res) => {
 });
 
 app.post("/api/evaluate", (req, res) => {
-  console.log("🔥 Direct evaluate endpoint hit:", req.body);
+  console.log("🔥 Evaluate endpoint hit:", req.body);
   res.json({
     rating: 4,
     modelAnswer: "Please coordinate with your team members.",
@@ -64,6 +61,11 @@ app.post("/api/evaluate", (req, res) => {
       "Please cooperate with your team."
     ]
   });
+});
+
+app.get("/api/ping", (req, res) => {
+  console.log("🔥 Ping endpoint hit");
+  res.send("pong");
 });
 
 // Vite をミドルウェアとして統合（開発時のみ）
