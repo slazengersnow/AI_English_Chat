@@ -9,7 +9,7 @@ export const getReplitDomainConfig = () => {
   return {
     devDomain: replitDevDomain,
     domains: replitDomains,
-    isReplit: !!process.env.REPLIT_DEV_DOMAIN,
+    isReplit: !!import.meta.env.VITE_REPLIT_DEV_DOMAIN,
   };
 };
 
