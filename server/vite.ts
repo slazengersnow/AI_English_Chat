@@ -1,21 +1,24 @@
+// server/vite.ts
 import express, { Request, Response, NextFunction } from "express";
 import fs from "fs";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { nanoid } from "nanoid";
 
-// __dirname の代わりに process.cwd() を使用
+// ✅ プロジェクトルート（__dirname の代わり）
 const projectRoot = process.cwd();
 
 export async function setupVite(app: express.Express, server: any) {
   const vite = await createViteServer({
-    server: { middlewareMode: true },
+    server: { middlewareMode: "html" }, // ✅ 推奨される指定方法
     appType: "custom",
-    root: path.resolve(projectRoot, "client"), // 明示的にViteのルートを指定
+    root: path.resolve(projectRoot, "client"),
   });
 
+  // ✅ ViteのmiddlewareをExpressに統合
   app.use(vite.middlewares);
 
+  // ✅ 全リクエストを index.html にフォールバック
   app.use("*", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const url = req.originalUrl;
@@ -23,6 +26,7 @@ export async function setupVite(app: express.Express, server: any) {
       const templatePath = path.resolve(projectRoot, "client/index.html");
       let template = await fs.promises.readFile(templatePath, "utf-8");
 
+      // ✅ キャッシュ防止のために `main.tsx` にクエリを付与
       template = template.replace(
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,

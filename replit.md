@@ -18,6 +18,9 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - ✅ Agent-Preview sandbox restrictions preventing direct UI control
 - ✅ Build process failures due to module resolution conflicts
 - ✅ Critical: Frontend infinite loop in useEffect causing repeated API calls
+- ✅ Replit host allowedHosts configuration (added specific domain to vite.config.ts)
+- ✅ Port 5000 Express+Vite integration (server correctly serving on port 5000)
+- ✅ Stripe secrets configuration (STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET added)
 
 ## Implemented Solutions
 - Updated tsconfig.json module setting to "esnext"
@@ -41,6 +44,13 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Removed auto-generation from simulation-practice.tsx to prevent cross-file interference
 - Rebuilt chat-interface.tsx with minimal functionality to prevent side effects
 - Empty dependency arrays [] and strict mounted checks to prevent infinite loops
+- **REPLIT PREVIEW CONFIGURATION (Aug 5, 2025)**: Complete server integration
+- Express+Vite middleware integration on port 5000
+- Added specific Replit domain to vite.config.ts allowedHosts
+- SUPABASE_ANON_KEY synchronized with Replit Secrets
+- STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET configured
+- Port 5000 → External Port 80 mapping for Replit preview URL
+- Minimal test app serving correctly via https://...kirk.replit.dev
 
 ## System Architecture
 

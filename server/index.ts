@@ -42,8 +42,9 @@ app.get("/health", (_req, res) => {
 
 // Vite をミドルウェアとして統合（開発時のみ）
 if (process.env.NODE_ENV !== "production") {
+  const { setupVite } = await import("./vite.js");
   await setupVite(app, null);
-  console.log("🚀 Vite development server configured via middleware");
+  console.log("🚀 Vite development server configured");
 }
 
 // サーバー起動
