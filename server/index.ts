@@ -40,14 +40,7 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Vite をミドルウェアとして統合（開発時のみ）
-if (process.env.NODE_ENV !== "production") {
-  const { setupVite } = await import("./vite.js");
-  await setupVite(app, null);
-  console.log("🚀 Vite development server configured");
-}
-
-// API routes AFTER Vite to override fallback behavior
+// API routes BEFORE Vite middleware (CRITICAL ORDER)
 app.post("/api/problem", (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
   res.json({
@@ -77,6 +70,13 @@ app.get("/api/ping", (req, res) => {
   console.log("🔥 Ping endpoint hit");
   res.send("pong");
 });
+
+// Vite をミドルウェアとして統合（APIルートの後に配置）
+if (process.env.NODE_ENV !== "production") {
+  const { setupVite } = await import("./vite.js");
+  await setupVite(app, null);
+  console.log("🚀 Vite development server configured");
+}
 
 // サーバー起動
 app.listen(PORT, "0.0.0.0", () => {
