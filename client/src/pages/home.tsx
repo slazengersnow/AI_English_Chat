@@ -114,7 +114,6 @@ export default function Home() {
         <TrainingInterface 
           difficulty={selectedDifficulty}
           onBack={handleBackToDifficulty}
-          onShowPayment={handleShowPayment}
         />
       )}
       
