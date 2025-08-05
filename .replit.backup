@@ -1,0 +1,9 @@
+[[ports]]
+# Current configuration - local 5000 maps to external 80
+localPort = 5000
+externalPort = 80
+
+# If you want direct :5000 access, use:
+# [[ports]]
+# localPort = 5000  
+# externalPort = 5000
