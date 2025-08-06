@@ -66,32 +66,20 @@ export default function AdminDashboard({ onBackToMenu }: { onBackToMenu: () => v
       setIsLoading(true);
       
       // Load usage statistics
-      const usageResponse = await apiRequest('GET', '/api/admin/usage-stats');
-      if (usageResponse.ok) {
-        const usage = await usageResponse.json();
-        setUsageStats(usage);
-      }
+      const usage = await apiRequest('/api/admin/usage-stats', { method: 'GET' });
+      setUsageStats(usage);
 
       // Load subscription information
-      const subscriptionResponse = await apiRequest('GET', '/api/admin/subscription-info');
-      if (subscriptionResponse.ok) {
-        const subscription = await subscriptionResponse.json();
-        setSubscriptionInfo(subscription);
-      }
+      const subscription = await apiRequest('/api/admin/subscription-info', { method: 'GET' });
+      setSubscriptionInfo(subscription);
 
       // Load users list
-      const usersResponse = await apiRequest('GET', '/api/admin/users');
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json();
-        setUsers(usersData);
-      }
+      const usersData = await apiRequest('/api/admin/users', { method: 'GET' });
+      setUsers(usersData);
 
       // Load system status
-      const statusResponse = await apiRequest('GET', '/api/admin/system-status');
-      if (statusResponse.ok) {
-        const status = await statusResponse.json();
-        setSystemStatus(status);
-      }
+      const status = await apiRequest('/api/admin/system-status', { method: 'GET' });
+      setSystemStatus(status);
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -104,16 +92,13 @@ export default function AdminDashboard({ onBackToMenu }: { onBackToMenu: () => v
     if (!notification.trim()) return;
 
     try {
-      const response = await apiRequest('POST', '/api/admin/send-notification', {
-        message: notification
+      await apiRequest('/api/admin/send-notification', {
+        method: 'POST',
+        body: JSON.stringify({ message: notification })
       });
 
-      if (response.ok) {
-        alert('お知らせを送信しました');
-        setNotification('');
-      } else {
-        alert('送信に失敗しました');
-      }
+      alert('お知らせを送信しました');
+      setNotification('');
     } catch (error) {
       console.error('Failed to send notification:', error);
       alert('送信エラーが発生しました');
