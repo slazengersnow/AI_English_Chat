@@ -12,7 +12,7 @@ interface Problem {
 
 interface ChatMessage {
   id: string;
-  type: "problem" | "user_answer" | "evaluation" | "model_answer" | "explanation" | "similar_phrases" | "next_button";
+  type: "problem" | "user_answer" | "evaluation" | "overall_evaluation" | "model_answer" | "explanation" | "similar_phrases" | "next_button";
   content: string;
   rating?: number;
   phrases?: string[];
@@ -84,16 +84,46 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
       return await response.json();
     } catch (error) {
-      // Fallback to mock evaluation if API fails
-      console.warn('Claude API failed, using fallback evaluation');
+      // Enhanced fallback with proper similar phrases based on common problems
+      console.warn('Claude API failed, using enhanced fallback evaluation');
+      const fallbackSimilarPhrases = {
+        "会議の議題を事前に共有してください。": [
+          "Could you please share the meeting agenda beforehand?",
+          "Would you mind sharing the agenda in advance?"
+        ],
+        "私は毎日学校に歩いて行きます。": [
+          "I go to school on foot every day.",
+          "I walk to school daily."
+        ],
+        "環境問題について議論する必要があります。": [
+          "We should discuss environmental issues.",
+          "Environmental problems need to be discussed."
+        ],
+        "彼は毎朝コーヒーを飲みます。": [
+          "He has coffee every morning.",
+          "He enjoys coffee each morning."
+        ],
+        "添付ファイルをご確認ください。": [
+          "Please review the attached file.",
+          "Kindly check the attachment."
+        ],
+        "レストランで席を予約したいです。": [
+          "I'd like to make a restaurant reservation.",
+          "I want to book a table at the restaurant."
+        ],
+        "来月の売上目標を達成する必要があります。": [
+          "We must reach next month's sales goal.",
+          "We should meet our sales target for next month."
+        ]
+      };
+      
       return {
         rating: userAnswer.length > 10 ? 4 : 3,
         modelAnswer,
-        explanation: "文法的には正しいですが、より自然な表現を心がけましょう。",
-        similarPhrases: [
-          "Alternative expression 1",
-          "Alternative expression 2", 
-          "Alternative expression 3"
+        explanation: "文法的には正しいですが、より自然な表現を心がけましょう。語彙選択や文の構造を見直すことで、さらに洗練された英語表現に仕上がります。また、文脈に応じた適切な丁寧さレベルの選択も重要です。ビジネス場面では丁寧語を、カジュアルな場面では自然な表現を使い分けることが大切です。",
+        similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
+          "Please consider using more natural phrasing.",
+          "Try expressing this idea differently."
         ]
       };
     }
@@ -124,7 +154,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         currentProblem.modelAnswer
       );
 
-      // Add evaluation messages in sequence
+      // Add evaluation messages in sequence with overall evaluation first
       setTimeout(() => {
         const ratingMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
@@ -136,45 +166,55 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         setMessages(prev => [...prev, ratingMessage]);
 
         setTimeout(() => {
-          const modelAnswerMessage: ChatMessage = {
+          // Add overall evaluation before model answer
+          const overallEval = evaluation.rating >= 4 ? "素晴らしい！完璧な回答です。" : 
+                            evaluation.rating >= 3 ? "良い回答ですが、改善の余地があります。" : 
+                            "もう少し自然な表現を心がけましょう。";
+          
+          const overallMessage: ChatMessage = {
             id: (Date.now() + 2).toString(),
-            type: "model_answer",
-            content: evaluation.modelAnswer,
+            type: "overall_evaluation",
+            content: overallEval,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, modelAnswerMessage]);
+          setMessages(prev => [...prev, overallMessage]);
 
           setTimeout(() => {
-            const explanationMessage: ChatMessage = {
+            const modelAnswerMessage: ChatMessage = {
               id: (Date.now() + 3).toString(),
-              type: "explanation",
-              content: evaluation.explanation,
+              type: "model_answer",
+              content: evaluation.modelAnswer,
               timestamp: new Date()
             };
-            setMessages(prev => [...prev, explanationMessage]);
+            setMessages(prev => [...prev, modelAnswerMessage]);
 
             setTimeout(() => {
-              const phrasesMessage: ChatMessage = {
+              const explanationMessage: ChatMessage = {
                 id: (Date.now() + 4).toString(),
-                type: "similar_phrases",
-                content: "類似フレーズ",
-                phrases: evaluation.similarPhrases,
+                type: "explanation",
+                content: evaluation.explanation,
                 timestamp: new Date()
               };
-              setMessages(prev => [...prev, phrasesMessage]);
+              setMessages(prev => [...prev, explanationMessage]);
 
               setTimeout(() => {
-                const nextButtonMessage: ChatMessage = {
+                const phrasesMessage: ChatMessage = {
                   id: (Date.now() + 5).toString(),
-                  type: "next_button",
-                  content: "次の問題",
+                  type: "similar_phrases",
+                  content: "類似フレーズ",
+                  phrases: evaluation.similarPhrases,
                   timestamp: new Date()
                 };
-                setMessages(prev => [...prev, nextButtonMessage]);
-              }, 500);
-            }, 500);
-          }, 500);
-        }, 500);
+                setMessages(prev => [...prev, phrasesMessage]);
+
+                // Auto-generate next problem after 2 seconds instead of button
+                setTimeout(() => {
+                  loadNewProblem();
+                }, 2000);
+              }, 800);
+            }, 800);
+          }, 800);
+        }, 800);
       }, 500);
 
     } catch (error) {
@@ -227,6 +267,16 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
                 </div>
                 <div className="text-lg font-bold text-blue-600">{message.content}</div>
               </div>
+            </div>
+          </div>
+        );
+
+      case "overall_evaluation":
+        return (
+          <div key={message.id} className="flex justify-start mb-4">
+            <div className="ml-11 bg-yellow-50 rounded-lg px-4 py-3 max-w-lg border border-yellow-200">
+              <div className="text-sm font-medium text-yellow-800 mb-1">全体評価</div>
+              <div className="text-gray-800">{message.content}</div>
             </div>
           </div>
         );

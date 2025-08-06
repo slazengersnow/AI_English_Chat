@@ -130,7 +130,7 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
 {
   "rating": 1-5の数値評価,
   "modelAnswer": "${modelAnswer}",
-  "explanation": "詳細な解説（文法的な分析、表現の改善点、なぜ模範解答が適切なのか、より自然な表現方法など150-200文字で具体的に説明）",
+  "explanation": "詳細な解説を250-300文字で記述。必ず以下を含む：(1)文法的な分析と間違い指摘、(2)語彙選択の適切性、(3)なぜ模範解答がより良いのか、(4)より自然な表現にするための具体的アドバイス、(5)ビジネス/カジュアル場面での使い分け",
   "similarPhrases": ["英語の類似表現1", "英語の類似表現2"]
 }
 
@@ -141,7 +141,7 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
 2点: やや不十分
 1点: 大幅な改善が必要
 
-注意：similarPhrasesは必ず英語で2つの類似表現を提供してください。`;
+重要：similarPhrasesは必ず英語で実用的な2つの類似表現を提供してください。explanationは詳細で具体的な内容にしてください。`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
@@ -201,10 +201,10 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
     res.status(200).json({
       rating: userAnswer && userAnswer.length > 10 ? 4 : 3,
       modelAnswer: modelAnswer,
-      explanation: "文法的には正しいですが、より自然な表現を心がけましょう。語彙選択や文の構造を見直すことで、さらに洗練された英語表現に仕上がります。また、文脈に応じた適切な丁寧さレベルの選択も重要です。",
+      explanation: "文法的には基本的に正しいですが、より自然で洗練された英語表現を目指しましょう。語彙選択では、文脈に応じてフォーマル・カジュアルを使い分けることが重要です。構文面では、ネイティブが実際に使用する表現パターンを採用することで、より流暢な英語になります。ビジネス場面では丁寧語、日常会話では親しみやすい表現を選択し、相手や状況に応じた適切な敬語レベルを心がけてください。また、文章の流れとリズムも重要な要素です。",
       similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
-        "Consider alternative phrasing for more natural expression.",
-        "Try different word choices for better fluency."
+        "Please consider using more natural phrasing.",
+        "Try expressing this idea differently."
       ]
     });
   }

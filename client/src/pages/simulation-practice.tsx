@@ -16,15 +16,21 @@ export default function SimulationPracticePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">シミュレーション練習</h1>
-            <p className="text-gray-600 mt-1">実際のシーンを想定した英作文練習</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              シミュレーション練習
+            </h1>
+            <p className="text-gray-600 mt-1">
+              実際のシーンを想定した英作文練習
+            </p>
           </div>
         </div>
 
         {/* Placeholder Content */}
         <div className="text-center py-12">
           <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">シミュレーション機能</h2>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            シミュレーション機能
+          </h2>
           <p className="text-gray-500">この機能は現在開発中です。</p>
         </div>
       </div>
