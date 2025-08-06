@@ -40,6 +40,12 @@ app.get("/health", (_req, res) => {
   });
 });
 
+// Set response headers for API routes
+app.use('/api', (req, res, next) => {
+  res.setHeader('Content-Type', 'application/json');
+  next();
+});
+
 // API routes BEFORE Vite middleware (CRITICAL ORDER)
 app.post("/api/problem", (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
@@ -57,43 +63,60 @@ app.post("/api/problem", (req, res) => {
   
   const japaneseSentence = problems[difficultyLevel] || problems.middle_school;
   
-  res.json({
+  const response = {
     japaneseSentence,
     hints: [`${difficultyLevel}レベルの問題`],
     dailyLimitReached: false,
     currentCount: 1,
     dailyLimit: 100
-  });
+  };
+  
+  res.status(200).json(response);
 });
 
 app.post("/api/evaluate", (req, res) => {
   console.log("🔥 Evaluate endpoint hit:", req.body);
-  const { userTranslation } = req.body;
+  const { userTranslation, japaneseSentence } = req.body;
   
   // Simple evaluation based on length and basic patterns
   let rating = 3;
   let feedback = "良い回答です。";
+  let modelAnswer = "Please share the meeting agenda in advance.";
   
   if (userTranslation && userTranslation.length > 10) {
     rating = 4;
     feedback = "とても良い回答です。文法的に正確で、意味も適切に伝わります。";
   }
   
-  res.json({
+  // Different model answers based on Japanese sentence
+  const modelAnswers = {
+    "会議の議題を事前に共有してください。": "Please share the meeting agenda in advance.",
+    "私は毎日学校に歩いて行きます。": "I walk to school every day.",
+    "環境問題について議論する必要があります。": "We need to discuss environmental issues.",
+    "彼は毎朝コーヒーを飲みます。": "He drinks coffee every morning.",
+    "添付ファイルをご確認ください。": "Please check the attached file.",
+    "レストランで席を予約したいです。": "I would like to reserve a table at the restaurant."
+  };
+  
+  modelAnswer = modelAnswers[japaneseSentence] || modelAnswer;
+  
+  const response = {
     rating,
-    modelAnswer: "Please coordinate with your team members.",
+    modelAnswer,
     feedback,
     similarPhrases: [
       "Please work closely with your team members.",
       "Please collaborate with your teammates.",
       "Please cooperate with your team."
     ]
-  });
+  };
+  
+  res.status(200).json(response);
 });
 
 app.get("/api/ping", (req, res) => {
   console.log("🔥 Ping endpoint hit");
-  res.send("pong");
+  res.status(200).send("pong");
 });
 
 // Vite をミドルウェアとして統合（APIルートの後に配置）

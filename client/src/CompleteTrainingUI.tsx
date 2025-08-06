@@ -27,20 +27,32 @@ export default function CompleteTrainingUI() {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("Fetching problem for difficulty:", difficulty);
+      
       const response = await fetch("/api/problem", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify({ difficultyLevel: difficulty }),
       });
       
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Response error:", errorText);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const problem = await response.json();
+      console.log("Problem received:", problem);
       setCurrentProblem(problem);
     } catch (error) {
-      setError(`問題の取得に失敗しました: ${error}`);
+      console.error("Fetch problem error:", error);
+      setError(`問題の取得に失敗しました: ${error.message || error}`);
     } finally {
       setIsLoading(false);
     }
