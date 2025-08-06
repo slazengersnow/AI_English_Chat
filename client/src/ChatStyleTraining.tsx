@@ -341,12 +341,12 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         return (
           <div key={message.id} className="flex justify-start mb-6">
             <div 
-              className={`${isBookmarked ? 'bg-blue-500' : 'bg-blue-400'} rounded-full p-2 mr-3 flex-shrink-0 mt-1 cursor-pointer transition-colors hover:bg-blue-600`}
+              className={`${isBookmarked ? 'bg-blue-500' : 'bg-blue-400'} rounded-full w-12 h-8 flex items-center justify-center mr-3 flex-shrink-0 cursor-pointer transition-colors hover:bg-blue-600`}
               onClick={() => toggleBookmark(message.id)}
             >
-              <div className="w-5 h-5 text-white flex items-center justify-center">
+              <span className="text-white text-sm">
                 {isBookmarked ? '⭐' : '☆'}
-              </div>
+              </span>
             </div>
             <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border">
               <div className="text-sm font-medium text-gray-800 mb-1">問題 {messages.filter(m => m.type === "problem").findIndex(m => m.id === message.id) + 1} - 翻訳してください</div>
@@ -379,8 +379,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         
         return (
           <div key={message.id} className="flex justify-start mb-6">
-            <div className="bg-green-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
-              <div className="w-5 h-5 text-white">⭐</div>
+            <div className="bg-green-500 rounded-full w-12 h-8 flex items-center justify-center mr-3 flex-shrink-0">
+              <span className="text-white text-sm">⭐</span>
             </div>
             <div className="bg-white rounded-lg px-4 py-4 max-w-lg shadow-sm border space-y-4">
               {/* Star Rating - Fixed Height */}
@@ -474,8 +474,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         {messages.map((message) => renderMessage(message))}
         {isLoading && (
           <div className="flex justify-start mb-4">
-            <div className="bg-green-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
-              <div className="w-5 h-5 text-white">⭐</div>
+            <div className="bg-green-500 rounded-full w-12 h-8 flex items-center justify-center mr-3 flex-shrink-0">
+              <span className="text-white text-sm">⭐</span>
             </div>
             <div className="bg-white rounded-lg px-4 py-3 shadow-sm border">
               <div className="flex items-center space-x-2">
