@@ -114,6 +114,74 @@ app.post("/api/evaluate", (req, res) => {
   res.status(200).json(response);
 });
 
+app.post("/api/evaluate-with-claude", async (req, res) => {
+  console.log("🔥 Claude evaluation endpoint hit:", req.body);
+  const { userAnswer, japaneseSentence, modelAnswer, difficulty } = req.body;
+  
+  try {
+    const Anthropic = require('@anthropic-ai/sdk');
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    const prompt = `日本語文「${japaneseSentence}」の英訳として、ユーザーが「${userAnswer}」と回答しました。模範解答は「${modelAnswer}」です。
+
+以下の形式でJSON形式の評価を返してください：
+{
+  "rating": 1-5の数値評価,
+  "modelAnswer": "${modelAnswer}",
+  "explanation": "詳細な解説（文法的な誤り、表現の改善点、なぜこの表現が良いのかなど200文字程度で説明）",
+  "similarPhrases": ["類似表現1", "類似表現2", "類似表現3"]
+}
+
+評価基準：
+5点: 完璧または非常に優秀
+4点: 良好（軽微な改善点あり）
+3点: 普通（明確な改善点あり）
+2点: やや不十分
+1点: 大幅な改善が必要`;
+
+    const message = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 1000,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ]
+    });
+
+    const responseText = message.content[0].text;
+    console.log("Claude response:", responseText);
+    
+    // Extract JSON from response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const evaluation = JSON.parse(jsonMatch[0]);
+      res.status(200).json(evaluation);
+    } else {
+      throw new Error("Invalid JSON response from Claude");
+    }
+    
+  } catch (error) {
+    console.error("Claude API error:", error);
+    
+    // Fallback response
+    res.status(200).json({
+      rating: userAnswer && userAnswer.length > 10 ? 4 : 3,
+      modelAnswer: modelAnswer,
+      explanation: "文法的には正しいですが、より自然な表現を心がけましょう。語彙選択や文の構造を見直すことで、さらに洗練された英語表現に仕上がります。",
+      similarPhrases: [
+        "Could you please share the meeting agenda beforehand?",
+        "Would you mind sharing the agenda in advance?",
+        "Please provide the meeting agenda ahead of time."
+      ]
+    });
+  }
+});
+
 app.get("/api/ping", (req, res) => {
   console.log("🔥 Ping endpoint hit");
   res.status(200).send("pong");

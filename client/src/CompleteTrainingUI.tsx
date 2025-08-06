@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
+import ChatStyleTraining from "./ChatStyleTraining";
 
 type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
 
@@ -85,8 +86,18 @@ export default function CompleteTrainingUI() {
     setError(null);
   };
 
-  // Practice screen
-  if (selectedDifficulty && (currentProblem || isLoading)) {
+  // Chat-style practice screen
+  if (selectedDifficulty) {
+    return (
+      <ChatStyleTraining 
+        difficulty={selectedDifficulty} 
+        onBackToMenu={handleBackToMenu}
+      />
+    );
+  }
+
+  // Legacy practice screen (fallback)
+  if (false && selectedDifficulty && (currentProblem || isLoading)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="max-w-2xl mx-auto">
