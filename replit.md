@@ -24,6 +24,8 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - ✅ **SERVER STARTUP FIX (Aug 5, 2025)**: Fixed workflow configuration issue where npm run dev was calling vite instead of Express server
 - ✅ **CHAT UI TRANSFORMATION (Aug 6, 2025)**: Replaced static evaluation UI with LINE-style chat interface for natural conversation flow
 - ✅ **CLAUDE 3 HAIKU INTEGRATION (Aug 6, 2025)**: Implemented real-time AI evaluation with detailed explanations, grammar analysis, and alternative expressions
+- ✅ **CHAT HISTORY PERSISTENCE (Aug 6, 2025)**: Fixed chat message clearing issue - all problems, answers, evaluations remain visible in continuous scroll
+- ✅ **SEQUENTIAL PROBLEM NUMBERING (Aug 6, 2025)**: Implemented proper problem counter with dynamic numbering based on chat history
 
 ## Implemented Solutions
 - Updated tsconfig.json module setting to "esnext"

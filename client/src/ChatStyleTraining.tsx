@@ -35,6 +35,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   const [isLoading, setIsLoading] = useState(false);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [awaitingAnswer, setAwaitingAnswer] = useState(false);
+  const [problemCount, setProblemCount] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -47,7 +48,19 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
   useEffect(() => {
     // Load first problem
-    loadNewProblem();
+    const problem = getRandomProblem(difficulty);
+    setCurrentProblem(problem);
+    setAwaitingAnswer(true);
+    
+    const problemMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: "problem",
+      content: problem.japaneseSentence,
+      timestamp: new Date()
+    };
+    
+    // Initial problem setup
+    setMessages([problemMessage]);
   }, []);
 
   const loadNewProblem = () => {
@@ -62,7 +75,9 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       timestamp: new Date()
     };
     
-    setMessages([...messages, problemMessage]);
+    // Add new problem to existing messages (don't clear history)
+    setMessages(prev => [...prev, problemMessage]);
+    setProblemCount(prev => prev + 1);
   };
 
   const evaluateAnswerWithClaude = async (userAnswer: string, japaneseSentence: string, modelAnswer: string): Promise<EvaluationResult> => {
@@ -207,10 +222,10 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
                 };
                 setMessages(prev => [...prev, phrasesMessage]);
 
-                // Auto-generate next problem after 2 seconds instead of button
+                // Auto-generate next problem after 3 seconds to allow reading
                 setTimeout(() => {
                   loadNewProblem();
-                }, 2000);
+                }, 3000);
               }, 800);
             }, 800);
           }, 800);
@@ -237,7 +252,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
               <div className="w-5 h-5 text-white">⭐</div>
             </div>
             <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border">
-              <div className="text-sm font-medium text-gray-800 mb-1">問題 1 - 翻訳してください</div>
+              <div className="text-sm font-medium text-gray-800 mb-1">問題 {messages.filter(m => m.type === "problem").findIndex(m => m.id === message.id) + 1} - 翻訳してください</div>
               <div className="text-gray-800">{message.content}</div>
             </div>
           </div>
@@ -363,6 +378,13 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
                 <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                 <span className="text-gray-600">評価中...</span>
               </div>
+            </div>
+          </div>
+        )}
+        {awaitingAnswer && !isLoading && (
+          <div className="flex justify-center mb-4">
+            <div className="bg-gray-100 px-4 py-2 rounded-full text-sm text-gray-600">
+              英訳を入力してください...
             </div>
           </div>
         )}
