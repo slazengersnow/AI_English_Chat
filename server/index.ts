@@ -47,31 +47,122 @@ app.use('/api', (req, res, next) => {
 });
 
 // API routes BEFORE Vite middleware (CRITICAL ORDER)
-app.post("/api/problem", (req, res) => {
+app.post("/api/problem", async (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
   const { difficultyLevel } = req.body;
   
-  // Different problems based on difficulty
-  const problems = {
-    toeic: "会議の議題を事前に共有してください。",
-    middle_school: "私は毎日学校に歩いて行きます。",
-    high_school: "環境問題について議論する必要があります。",
-    basic_verbs: "彼は毎朝コーヒーを飲みます。",
-    business_email: "添付ファイルをご確認ください。",
-    simulation: "レストランで席を予約したいです。"
-  };
-  
-  const japaneseSentence = problems[difficultyLevel] || problems.middle_school;
-  
-  const response = {
-    japaneseSentence,
-    hints: [`${difficultyLevel}レベルの問題`],
-    dailyLimitReached: false,
-    currentCount: 1,
-    dailyLimit: 100
-  };
-  
-  res.status(200).json(response);
+  try {
+    const Anthropic = require('@anthropic-ai/sdk');
+    const anthropic = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    });
+
+    // Create difficulty-specific problem generation prompts
+    const difficultySpecs = {
+      toeic: "TOEIC頻出のビジネス語彙・表現（例：negotiate, submit, due to, in accordance with, quarterly report, meeting agenda）を含んだ日本語文を1つ作成してください。",
+      middle_school: "中学1-3年レベルの基本文法（現在形・過去形・未来形・進行形）と基本語彙（1200語程度）を使った日本語文を1つ作成してください。",
+      high_school: "高校レベルの複文構造と語彙（関係詞・分詞構文・仮定法など）を含んだ日本語文を1つ作成してください。",
+      basic_verbs: "基本動詞（go, come, take, get, make, do, have, be）を使った時制練習に適した日本語文を1つ作成してください。",
+      business_email: "ビジネスメールで使用する丁寧表現・敬語・フォーマルな言い回し（例：恐れ入りますが、ご確認ください、添付いたします）を含んだ日本語文を1つ作成してください。",
+      simulation: "日常会話・接客・旅行・レストランなど実用的な場面で使う自然な日本語文を1つ作成してください。"
+    };
+
+    const spec = difficultySpecs[difficultyLevel] || difficultySpecs.middle_school;
+
+    const prompt = `${spec}
+
+以下の形式でJSON形式で返してください：
+{
+  "japaneseSentence": "作成した日本語文",
+  "modelAnswer": "自然で適切な英訳",
+  "hints": ["重要キーワード1", "重要キーワード2", "重要キーワード3"]
+}
+
+要件：
+- 実用性が高く学習効果のある文を作成
+- 模範解答は自然で実際に使われる英語表現
+- hintsは翻訳に必要な重要語彙を3つ
+- 文の長さは10-25文字程度の適度な長さ`;
+
+    const message = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 300,
+      temperature: 0.7,
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ]
+    });
+
+    const responseText = message.content[0].text;
+    console.log("Claude problem generation response:", responseText);
+    
+    // Extract JSON from response
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const problemData = JSON.parse(jsonMatch[0]);
+      const response = {
+        ...problemData,
+        dailyLimitReached: false,
+        currentCount: 1,
+        dailyLimit: 100,
+        difficulty: difficultyLevel
+      };
+      res.status(200).json(response);
+    } else {
+      throw new Error("Invalid JSON response from Claude");
+    }
+    
+  } catch (error) {
+    console.error("Claude problem generation error:", error);
+    
+    // Enhanced fallback problems for each difficulty
+    const fallbackProblems = {
+      toeic: {
+        japaneseSentence: "四半期報告書の提出期限を確認してください。",
+        modelAnswer: "Please check the deadline for quarterly report submission.",
+        hints: ["deadline", "quarterly report", "submission"]
+      },
+      middle_school: {
+        japaneseSentence: "昨日友達と映画を見に行きました。",
+        modelAnswer: "I went to see a movie with my friend yesterday.",
+        hints: ["went", "movie", "yesterday"]
+      },
+      high_school: {
+        japaneseSentence: "もし時間があれば、図書館で勉強したいと思います。",
+        modelAnswer: "If I have time, I would like to study at the library.",
+        hints: ["if", "would like to", "library"]
+      },
+      basic_verbs: {
+        japaneseSentence: "毎朝6時に起きて朝食を作ります。",
+        modelAnswer: "I get up at 6 AM and make breakfast every morning.",
+        hints: ["get up", "make", "every morning"]
+      },
+      business_email: {
+        japaneseSentence: "会議資料を添付いたしましたのでご確認ください。",
+        modelAnswer: "I have attached the meeting materials, so please review them.",
+        hints: ["attached", "materials", "review"]
+      },
+      simulation: {
+        japaneseSentence: "すみません、この電車は新宿駅に止まりますか？",
+        modelAnswer: "Excuse me, does this train stop at Shinjuku Station?",
+        hints: ["excuse me", "train", "stop at"]
+      }
+    };
+
+    const fallback = fallbackProblems[difficultyLevel] || fallbackProblems.middle_school;
+    const response = {
+      ...fallback,
+      dailyLimitReached: false,
+      currentCount: 1,
+      dailyLimit: 100,
+      difficulty: difficultyLevel
+    };
+    
+    res.status(200).json(response);
+  }
 });
 
 app.post("/api/evaluate", (req, res) => {
@@ -124,24 +215,39 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    const prompt = `日本語文「${japaneseSentence}」の英訳として、ユーザーが「${userAnswer}」と回答しました。模範解答は「${modelAnswer}」です。
+    // Create difficulty-specific evaluation prompts
+    const difficultyPrompts = {
+      toeic: `あなたは経験豊富なTOEIC講師です。TOEIC頻出語彙・表現を重視して評価してください。`,
+      middle_school: `あなたは中学英語の専門教師です。基本文法と語順を重視して評価してください。`,
+      high_school: `あなたは高校英語の教師です。複文・語彙力・表現力を重視して評価してください。`,
+      basic_verbs: `あなたは基本動詞指導の専門家です。動詞の活用と時制を重視して評価してください。`,
+      business_email: `あなたはビジネス英語の専門家です。フォーマルな表現とビジネスマナーを重視して評価してください。`,
+      simulation: `あなたは実用英会話の専門家です。自然な会話表現と実際の使用場面を重視して評価してください。`
+    };
 
-以下の形式でJSON形式の評価を返してください：
+    const contextPrompt = difficultyPrompts[difficulty] || difficultyPrompts.middle_school;
+
+    const prompt = `${contextPrompt}
+
+日本語文「${japaneseSentence}」の英訳として、ユーザーが「${userAnswer}」と回答しました。模範解答は「${modelAnswer}」です。
+
+この回答の内容を詳細に分析し、以下の形式でJSON形式の評価を返してください：
 {
   "rating": 1-5の数値評価,
+  "overallEvaluation": "この回答に対する30文字以内の短い総合評価",
   "modelAnswer": "${modelAnswer}",
-  "explanation": "詳細な解説を250-300文字で記述。必ず以下を含む：(1)文法的な分析と間違い指摘、(2)語彙選択の適切性、(3)なぜ模範解答がより良いのか、(4)より自然な表現にするための具体的アドバイス、(5)ビジネス/カジュアル場面での使い分け",
-  "similarPhrases": ["英語の類似表現1", "英語の類似表現2"]
+  "explanation": "この回答の具体的な分析を200-250文字で記述。必ず以下を含む：(1)この回答の文法的な問題点または優れた点、(2)語彙選択の評価と改善提案、(3)なぜ模範解答がより適切なのかの理由、(4)今後の学習アドバイス",
+  "similarPhrases": ["実用的な英語類似表現1", "実用的な英語類似表現2"]
 }
 
-評価基準：
-5点: 完璧または非常に優秀
-4点: 良好（軽微な改善点あり）
-3点: 普通（明確な改善点あり）
-2点: やや不十分
-1点: 大幅な改善が必要
+厳格な評価基準：
+5点: 完璧または模範解答と同等レベル
+4点: 良好（軽微な改善点はあるが実用性高い）
+3点: 普通（文法・語彙に明確な改善点あり）
+2点: やや不十分（基本的な問題が複数）
+1点: 不適切（空回答・無意味な文字列・大幅な文法ミス）
 
-重要：similarPhrasesは必ず英語で実用的な2つの類似表現を提供してください。explanationは詳細で具体的な内容にしてください。`;
+重要：overallEvaluationは簡潔に、explanationは具体的で建設的に、similarPhrasesは実際に使える英語表現を2つ提供してください。`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
@@ -198,10 +304,20 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
       ]
     };
     
+    // Enhanced fallback evaluation with individual assessment
+    const rating = userAnswer && userAnswer.trim().length > 5 && 
+                  !['test', 'aaa', 'bbb', '123', 'hello'].includes(userAnswer.toLowerCase()) ? 
+                  (userAnswer.length > 15 ? 4 : 3) : 1;
+    
+    const overallEval = rating >= 4 ? "とても良い回答です！" : 
+                       rating >= 3 ? "基本的には正しい回答です。" : 
+                       "回答を見直してもう一度挑戦してみましょう。";
+
     res.status(200).json({
-      rating: userAnswer && userAnswer.length > 10 ? 4 : 3,
+      rating: rating,
+      overallEvaluation: overallEval,
       modelAnswer: modelAnswer,
-      explanation: "文法的には基本的に正しいですが、より自然で洗練された英語表現を目指しましょう。語彙選択では、文脈に応じてフォーマル・カジュアルを使い分けることが重要です。構文面では、ネイティブが実際に使用する表現パターンを採用することで、より流暢な英語になります。ビジネス場面では丁寧語、日常会話では親しみやすい表現を選択し、相手や状況に応じた適切な敬語レベルを心がけてください。また、文章の流れとリズムも重要な要素です。",
+      explanation: `この回答について詳しく解説します。文法的には${rating >= 3 ? '基本的に正しく構成されています' : '改善が必要な部分があります'}。語彙選択では、より${rating >= 4 ? '適切で自然な表現が使われています' : '自然な単語を選ぶことで表現力が向上します'}。模範解答と比較すると、${rating >= 3 ? '意味は適切に伝わりますが' : '基本的な構造から見直すことで'}、より実用的な英語表現に仕上がります。今後は文脈に応じた表現の使い分けを意識して練習を続けてください。`,
       similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
         "Please consider using more natural phrasing.",
         "Try expressing this idea differently."

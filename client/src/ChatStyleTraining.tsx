@@ -58,18 +58,18 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
   const renderStarRating = (rating: number) => {
     return (
-      <div className="flex items-center">
+      <div className="flex items-center space-x-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
-            className={`text-base ${
-              star <= rating ? 'text-yellow-400' : 'text-gray-300'
+            className={`text-sm ${
+              star <= rating ? 'text-yellow-500' : 'text-gray-300'
             }`}
           >
-            ⭐
+            {star <= rating ? '★' : '☆'}
           </span>
         ))}
-        <span className="text-sm text-gray-600 ml-2">{rating}/5点</span>
+        <span className="text-xs text-gray-600 ml-2">{rating}/5点</span>
       </div>
     );
   };
@@ -219,10 +219,11 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         setMessages(prev => [...prev, ratingMessage]);
 
         setTimeout(() => {
-          // Add overall evaluation before model answer
-          const overallEval = evaluation.rating >= 4 ? "素晴らしい！完璧な回答です。" : 
-                            evaluation.rating >= 3 ? "良い回答ですが、改善の余地があります。" : 
-                            "もう少し自然な表現を心がけましょう。";
+          // Use Claude's overallEvaluation if available, otherwise fallback to rating-based evaluation
+          const overallEval = evaluation.overallEvaluation || 
+                            (evaluation.rating >= 4 ? "素晴らしい！完璧な回答です。" : 
+                             evaluation.rating >= 3 ? "良い回答ですが、改善の余地があります。" : 
+                             "もう少し自然な表現を心がけましょう。");
           
           const overallMessage: ChatMessage = {
             id: (Date.now() + 2).toString(),
@@ -330,8 +331,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
               <div className="w-5 h-5 text-white">⭐</div>
             </div>
             <div className="bg-white rounded-lg px-4 py-4 max-w-lg shadow-sm border space-y-4">
-              {/* Star Rating */}
-              <div className="flex items-center">
+              {/* Star Rating - Fixed Height */}
+              <div className="rating-box flex items-center justify-center bg-yellow-50 border border-yellow-300 rounded-lg px-3 py-1 min-h-[2rem]">
                 {renderStarRating(message.rating || 0)}
               </div>
               
