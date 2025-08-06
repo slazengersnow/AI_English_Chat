@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import MinimalUI from "./MinimalUI.tsx";
+import AppWithLogin from "./AppWithLogin.tsx";
 import "./index.css";
 
-// Show the minimal UI that matches the screenshot
-createRoot(document.getElementById("root")!).render(<MinimalUI />);
+// Show login screen first, then the complete training UI
+createRoot(document.getElementById("root")!).render(<AppWithLogin />);
