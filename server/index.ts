@@ -43,9 +43,23 @@ app.get("/health", (_req, res) => {
 // API routes BEFORE Vite middleware (CRITICAL ORDER)
 app.post("/api/problem", (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
+  const { difficultyLevel } = req.body;
+  
+  // Different problems based on difficulty
+  const problems = {
+    toeic: "会議の議題を事前に共有してください。",
+    middle_school: "私は毎日学校に歩いて行きます。",
+    high_school: "環境問題について議論する必要があります。",
+    basic_verbs: "彼は毎朝コーヒーを飲みます。",
+    business_email: "添付ファイルをご確認ください。",
+    simulation: "レストランで席を予約したいです。"
+  };
+  
+  const japaneseSentence = problems[difficultyLevel] || problems.middle_school;
+  
   res.json({
-    japaneseSentence: "チームメンバーと連携を取ってください。",
-    hints: ["問題1"],
+    japaneseSentence,
+    hints: [`${difficultyLevel}レベルの問題`],
     dailyLimitReached: false,
     currentCount: 1,
     dailyLimit: 100
@@ -54,10 +68,21 @@ app.post("/api/problem", (req, res) => {
 
 app.post("/api/evaluate", (req, res) => {
   console.log("🔥 Evaluate endpoint hit:", req.body);
+  const { userTranslation } = req.body;
+  
+  // Simple evaluation based on length and basic patterns
+  let rating = 3;
+  let feedback = "良い回答です。";
+  
+  if (userTranslation && userTranslation.length > 10) {
+    rating = 4;
+    feedback = "とても良い回答です。文法的に正確で、意味も適切に伝わります。";
+  }
+  
   res.json({
-    rating: 4,
+    rating,
     modelAnswer: "Please coordinate with your team members.",
-    feedback: "良い回答です。文法的に正確で、意味も適切に伝わります。",
+    feedback,
     similarPhrases: [
       "Please work closely with your team members.",
       "Please collaborate with your teammates.",
