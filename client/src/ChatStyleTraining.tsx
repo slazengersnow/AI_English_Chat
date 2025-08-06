@@ -36,10 +36,41 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [awaitingAnswer, setAwaitingAnswer] = useState(false);
   const [problemCount, setProblemCount] = useState(1);
+  const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const toggleBookmark = (problemId: string) => {
+    setBookmarkedProblems(prev => {
+      const newBookmarks = new Set(prev);
+      if (newBookmarks.has(problemId)) {
+        newBookmarks.delete(problemId);
+      } else {
+        newBookmarks.add(problemId);
+      }
+      return newBookmarks;
+    });
+  };
+
+  const renderStarRating = (rating: number) => {
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`text-lg ${
+              star <= rating ? 'text-yellow-400' : 'text-gray-300'
+            }`}
+          >
+            ⭐
+          </span>
+        ))}
+        <span className="text-sm text-gray-600 ml-2">{rating}/5点</span>
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -246,10 +277,16 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   const renderMessage = (message: ChatMessage) => {
     switch (message.type) {
       case "problem":
+        const isBookmarked = bookmarkedProblems.has(message.id);
         return (
           <div key={message.id} className="flex justify-start mb-6">
-            <div className="bg-blue-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
-              <div className="w-5 h-5 text-white">⭐</div>
+            <div 
+              className={`${isBookmarked ? 'bg-blue-500' : 'bg-blue-400'} rounded-full p-2 mr-3 flex-shrink-0 mt-1 cursor-pointer transition-colors hover:bg-blue-600`}
+              onClick={() => toggleBookmark(message.id)}
+            >
+              <div className="w-5 h-5 text-white flex items-center justify-center">
+                {isBookmarked ? '⭐' : '☆'}
+              </div>
             </div>
             <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border">
               <div className="text-sm font-medium text-gray-800 mb-1">問題 {messages.filter(m => m.type === "problem").findIndex(m => m.id === message.id) + 1} - 翻訳してください</div>
@@ -268,67 +305,74 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         );
 
       case "evaluation":
+        // Unified evaluation box - find all related messages
+        const relatedMessages = messages.filter(m => 
+          m.timestamp && message.timestamp && 
+          Math.abs(m.timestamp.getTime() - message.timestamp.getTime()) < 5000 &&
+          ["evaluation", "overall_evaluation", "model_answer", "explanation", "similar_phrases"].includes(m.type)
+        );
+        
+        const overallEval = relatedMessages.find(m => m.type === "overall_evaluation");
+        const modelAnswer = relatedMessages.find(m => m.type === "model_answer");
+        const explanation = relatedMessages.find(m => m.type === "explanation");
+        const similarPhrases = relatedMessages.find(m => m.type === "similar_phrases");
+        
         return (
-          <div key={message.id} className="flex justify-start mb-2">
+          <div key={message.id} className="flex justify-start mb-6">
             <div className="bg-green-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
               <div className="w-5 h-5 text-white">⭐</div>
             </div>
-            <div className="bg-white px-4 py-2">
+            <div className="bg-white rounded-lg px-4 py-4 max-w-lg shadow-sm border space-y-4">
+              {/* Star Rating */}
               <div className="flex items-center">
-                <div className="text-yellow-500 mr-2">
-                  {Array.from({ length: 5 }, (_, i) => (
-                    <span key={i} className={i < (message.rating || 0) ? "text-yellow-500" : "text-gray-300"}>⭐</span>
-                  ))}
-                </div>
-                <div className="text-lg font-bold text-blue-600">{message.content}</div>
+                {renderStarRating(message.rating || 0)}
               </div>
+              
+              {/* Overall Evaluation */}
+              {overallEval && (
+                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                  <div className="text-sm font-medium text-green-800 mb-1">全体評価</div>
+                  <div className="text-gray-800">{overallEval.content}</div>
+                </div>
+              )}
+              
+              {/* Model Answer */}
+              {modelAnswer && (
+                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                  <div className="text-sm font-medium text-green-800 mb-1">模範解答</div>
+                  <div className="text-gray-800 font-medium">{modelAnswer.content}</div>
+                </div>
+              )}
+              
+              {/* Explanation */}
+              {explanation && (
+                <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                  <div className="text-sm font-medium text-blue-800 mb-1">解説</div>
+                  <div className="text-gray-800 whitespace-pre-line leading-relaxed">{explanation.content}</div>
+                </div>
+              )}
+              
+              {/* Similar Phrases */}
+              {similarPhrases && similarPhrases.phrases && (
+                <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                  <div className="text-sm font-medium text-purple-800 mb-2">類似フレーズ</div>
+                  <div className="space-y-1">
+                    {similarPhrases.phrases.map((phrase, index) => (
+                      <div key={index} className="text-gray-800 text-sm">• {phrase}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
 
       case "overall_evaluation":
-        return (
-          <div key={message.id} className="flex justify-start mb-4">
-            <div className="ml-11 bg-yellow-50 rounded-lg px-4 py-3 max-w-lg border border-yellow-200">
-              <div className="text-sm font-medium text-yellow-800 mb-1">全体評価</div>
-              <div className="text-gray-800">{message.content}</div>
-            </div>
-          </div>
-        );
-
       case "model_answer":
-        return (
-          <div key={message.id} className="flex justify-start mb-4">
-            <div className="ml-11 bg-green-50 rounded-lg px-4 py-3 max-w-lg border border-green-200">
-              <div className="text-sm font-medium text-green-800 mb-1">模範解答</div>
-              <div className="text-gray-800 font-medium">{message.content}</div>
-            </div>
-          </div>
-        );
-
       case "explanation":
-        return (
-          <div key={message.id} className="flex justify-start mb-4">
-            <div className="ml-11 bg-blue-50 rounded-lg px-4 py-3 max-w-lg border border-blue-200">
-              <div className="text-sm font-medium text-blue-800 mb-1">解説</div>
-              <div className="text-gray-800 whitespace-pre-line leading-relaxed">{message.content}</div>
-            </div>
-          </div>
-        );
-
       case "similar_phrases":
-        return (
-          <div key={message.id} className="flex justify-start mb-6">
-            <div className="ml-11 bg-purple-50 rounded-lg px-4 py-3 max-w-lg border border-purple-200">
-              <div className="text-sm font-medium text-purple-800 mb-2">類似フレーズ</div>
-              <div className="space-y-1">
-                {message.phrases?.map((phrase, index) => (
-                  <div key={index} className="text-gray-700">• {phrase}</div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
+        // These are now handled within the evaluation case - return null to avoid duplication
+        return null;
 
       case "next_button":
         return (
