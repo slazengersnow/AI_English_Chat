@@ -132,9 +132,23 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Added proper inappropriate answer detection (rejects "test", "aaa", etc. with 1-point scoring)
 - Improved problem generation system with difficulty-appropriate vocabulary and expressions
 
+**Admin Dashboard & Management System (August 6, 2025)**:
+- Added admin and "My Page" buttons to main menu interface (matching user screenshot requirements)
+- Implemented comprehensive AdminDashboard.tsx with 5 core sections:
+  - Usage Statistics: Daily users, problems, category breakdowns, real-time connections
+  - Problem Analysis: Category rankings, output statistics
+  - Subscription Info: Active subscribers, trial users, monthly revenue (Stripe integration)
+  - User Management: User list with search, subscription status, activity tracking
+  - Admin Settings: System status monitoring, notification broadcasting
+- Created MyPage.tsx with personal statistics, progress tracking, bookmarks, data export
+- Integrated server-side admin routes with mock data endpoints for all dashboard functions
+- Added UI components: Tabs, Progress bars, Badges for comprehensive management interface
+
 **Technical Implementation**:
 - Created `ChatStyleTraining.tsx` component with full chat state management
 - Added `/api/evaluate-with-claude` endpoint with robust error handling
 - Integrated ANTHROPIC_API_KEY for real-time AI evaluation
 - Enhanced fallback system with individualized assessment logic
 - Message types: problem, user_answer, evaluation, model_answer, explanation, similar_phrases, next_button
+- Built admin-routes.ts with comprehensive API endpoints for usage analytics and user management
+- Added page navigation system with menu/training/admin/mypage state management

@@ -46,6 +46,10 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+// Register admin routes
+const { registerAdminRoutes } = await import('./admin-routes.js');
+registerAdminRoutes(app);
+
 // API routes BEFORE Vite middleware (CRITICAL ORDER)
 app.post("/api/problem", async (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);

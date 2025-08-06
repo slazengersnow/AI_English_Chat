@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
 import ChatStyleTraining from "./ChatStyleTraining";
+import AdminDashboard from "./AdminDashboard";
+import MyPage from "./MyPage";
 
 type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
 
@@ -21,6 +23,7 @@ interface EvaluationResult {
 // スクリーンショットの完全な英作文トレーニング画面を再現
 export default function CompleteTrainingUI() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
+  const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage'>('menu');
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluation, setEvaluationResult] = useState<EvaluationResult | null>(null);
@@ -66,6 +69,7 @@ export default function CompleteTrainingUI() {
 
   const handleDifficultySelect = (difficulty: DifficultyLevel) => {
     setSelectedDifficulty(difficulty);
+    setCurrentPage('training');
     fetchProblem(difficulty);
   };
 
@@ -79,6 +83,7 @@ export default function CompleteTrainingUI() {
   };
 
   const handleBackToMenu = () => {
+    setCurrentPage('menu');
     setSelectedDifficulty(null);
     setCurrentProblem(null);
     setUserAnswer("");
@@ -86,8 +91,18 @@ export default function CompleteTrainingUI() {
     setError(null);
   };
 
+  // Admin Dashboard
+  if (currentPage === 'admin') {
+    return <AdminDashboard onBackToMenu={handleBackToMenu} />;
+  }
+
+  // My Page
+  if (currentPage === 'mypage') {
+    return <MyPage onBackToMenu={handleBackToMenu} />;
+  }
+
   // Chat-style practice screen
-  if (selectedDifficulty) {
+  if (currentPage === 'training' && selectedDifficulty) {
     return (
       <ChatStyleTraining 
         difficulty={selectedDifficulty} 
@@ -221,8 +236,26 @@ export default function CompleteTrainingUI() {
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">英作文トレーニング</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">AI瞬間英作文チャット</h1>
           <p className="text-gray-600 text-sm">AIが瞬時に添削・評価します</p>
+        </div>
+        
+        {/* Header Buttons */}
+        <div className="flex justify-end space-x-2 mt-6 px-4">
+          <button 
+            onClick={() => setCurrentPage('admin')}
+            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors flex items-center space-x-1"
+          >
+            <span>🛡️</span>
+            <span>管理者</span>
+          </button>
+          <button 
+            onClick={() => setCurrentPage('mypage')}
+            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors flex items-center space-x-1"
+          >
+            <span>👤</span>
+            <span>マイページ</span>
+          </button>
         </div>
       </div>
 
