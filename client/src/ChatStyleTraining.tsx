@@ -192,9 +192,12 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
     switch (message.type) {
       case "problem":
         return (
-          <div className="flex justify-start mb-4">
-            <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border">
-              <div className="text-sm font-medium text-gray-800 mb-1">問題 - 翻訳してください</div>
+          <div key={message.id} className="flex justify-start mb-6">
+            <div className="bg-blue-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
+              <div className="w-5 h-5 text-white">⭐</div>
+            </div>
+            <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border">
+              <div className="text-sm font-medium text-gray-800 mb-1">問題 1 - 翻訳してください</div>
               <div className="text-gray-800">{message.content}</div>
             </div>
           </div>
@@ -202,8 +205,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
       case "user_answer":
         return (
-          <div className="flex justify-end mb-4">
-            <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-xs">
+          <div key={message.id} className="flex justify-end mb-6">
+            <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-sm">
               {message.content}
             </div>
           </div>
@@ -211,18 +214,18 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
       case "evaluation":
         return (
-          <div className="flex justify-start mb-4">
-            <div className="bg-green-100 rounded-full p-3 mr-3">
-              <div className="w-6 h-6 text-green-600">⭐</div>
+          <div key={message.id} className="flex justify-start mb-2">
+            <div className="bg-green-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
+              <div className="w-5 h-5 text-white">⭐</div>
             </div>
-            <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-xs shadow-sm border">
+            <div className="bg-white px-4 py-2">
               <div className="flex items-center">
-                <div className="text-lg font-bold text-blue-600 mr-2">{message.content}</div>
-                <div className="text-yellow-400">
+                <div className="text-yellow-500 mr-2">
                   {Array.from({ length: 5 }, (_, i) => (
-                    <span key={i} className={i < (message.rating || 0) ? "text-yellow-400" : "text-gray-300"}>⭐</span>
+                    <span key={i} className={i < (message.rating || 0) ? "text-yellow-500" : "text-gray-300"}>⭐</span>
                   ))}
                 </div>
+                <div className="text-lg font-bold text-blue-600">{message.content}</div>
               </div>
             </div>
           </div>
@@ -230,28 +233,28 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
       case "model_answer":
         return (
-          <div className="flex justify-start mb-4">
-            <div className="bg-green-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border border-green-200">
+          <div key={message.id} className="flex justify-start mb-4">
+            <div className="ml-11 bg-green-50 rounded-lg px-4 py-3 max-w-lg border border-green-200">
               <div className="text-sm font-medium text-green-800 mb-1">模範解答</div>
-              <div className="text-gray-800">{message.content}</div>
+              <div className="text-gray-800 font-medium">{message.content}</div>
             </div>
           </div>
         );
 
       case "explanation":
         return (
-          <div className="flex justify-start mb-4">
-            <div className="bg-blue-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border border-blue-200">
+          <div key={message.id} className="flex justify-start mb-4">
+            <div className="ml-11 bg-blue-50 rounded-lg px-4 py-3 max-w-lg border border-blue-200">
               <div className="text-sm font-medium text-blue-800 mb-1">解説</div>
-              <div className="text-gray-800 whitespace-pre-line">{message.content}</div>
+              <div className="text-gray-800 whitespace-pre-line leading-relaxed">{message.content}</div>
             </div>
           </div>
         );
 
       case "similar_phrases":
         return (
-          <div className="flex justify-start mb-4">
-            <div className="bg-purple-50 rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border border-purple-200">
+          <div key={message.id} className="flex justify-start mb-6">
+            <div className="ml-11 bg-purple-50 rounded-lg px-4 py-3 max-w-lg border border-purple-200">
               <div className="text-sm font-medium text-purple-800 mb-2">類似フレーズ</div>
               <div className="space-y-1">
                 {message.phrases?.map((phrase, index) => (
@@ -264,10 +267,10 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
       case "next_button":
         return (
-          <div className="flex justify-center mb-4">
+          <div key={message.id} className="flex justify-center mb-6">
             <button
               onClick={handleNextProblem}
-              className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-full transition-colors"
+              className="bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-8 rounded-lg transition-colors shadow-sm"
             >
               次の問題
             </button>
@@ -280,7 +283,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white shadow-sm border-b px-4 py-3">
         <div className="flex items-center justify-between">
@@ -298,11 +301,14 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto px-4 py-6">
         {messages.map((message) => renderMessage(message))}
         {isLoading && (
           <div className="flex justify-start mb-4">
-            <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border">
+            <div className="bg-green-500 rounded-full p-2 mr-3 flex-shrink-0 mt-1">
+              <div className="w-5 h-5 text-white">⭐</div>
+            </div>
+            <div className="bg-white rounded-lg px-4 py-3 shadow-sm border">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                 <span className="text-gray-600">評価中...</span>

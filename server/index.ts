@@ -130,8 +130,8 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
 {
   "rating": 1-5の数値評価,
   "modelAnswer": "${modelAnswer}",
-  "explanation": "詳細な解説（文法的な誤り、表現の改善点、なぜこの表現が良いのかなど200文字程度で説明）",
-  "similarPhrases": ["類似表現1", "類似表現2", "類似表現3"]
+  "explanation": "詳細な解説（文法的な分析、表現の改善点、なぜ模範解答が適切なのか、より自然な表現方法など150-200文字で具体的に説明）",
+  "similarPhrases": ["英語の類似表現1", "英語の類似表現2"]
 }
 
 評価基準：
@@ -139,7 +139,9 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
 4点: 良好（軽微な改善点あり）
 3点: 普通（明確な改善点あり）
 2点: やや不十分
-1点: 大幅な改善が必要`;
+1点: 大幅な改善が必要
+
+注意：similarPhrasesは必ず英語で2つの類似表現を提供してください。`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
@@ -168,15 +170,41 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
   } catch (error) {
     console.error("Claude API error:", error);
     
-    // Fallback response
+    // Enhanced fallback response with proper similar phrases
+    const fallbackSimilarPhrases = {
+      "会議の議題を事前に共有してください。": [
+        "Could you please share the meeting agenda beforehand?",
+        "Would you mind sharing the agenda in advance?"
+      ],
+      "私は毎日学校に歩いて行きます。": [
+        "I go to school on foot every day.",
+        "I walk to school daily."
+      ],
+      "環境問題について議論する必要があります。": [
+        "We should discuss environmental issues.",
+        "Environmental problems need to be discussed."
+      ],
+      "彼は毎朝コーヒーを飲みます。": [
+        "He has coffee every morning.",
+        "He enjoys coffee each morning."
+      ],
+      "添付ファイルをご確認ください。": [
+        "Please review the attached file.",
+        "Kindly check the attachment."
+      ],
+      "レストランで席を予約したいです。": [
+        "I'd like to make a restaurant reservation.",
+        "I want to book a table at the restaurant."
+      ]
+    };
+    
     res.status(200).json({
       rating: userAnswer && userAnswer.length > 10 ? 4 : 3,
       modelAnswer: modelAnswer,
-      explanation: "文法的には正しいですが、より自然な表現を心がけましょう。語彙選択や文の構造を見直すことで、さらに洗練された英語表現に仕上がります。",
-      similarPhrases: [
-        "Could you please share the meeting agenda beforehand?",
-        "Would you mind sharing the agenda in advance?",
-        "Please provide the meeting agenda ahead of time."
+      explanation: "文法的には正しいですが、より自然な表現を心がけましょう。語彙選択や文の構造を見直すことで、さらに洗練された英語表現に仕上がります。また、文脈に応じた適切な丁寧さレベルの選択も重要です。",
+      similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
+        "Consider alternative phrasing for more natural expression.",
+        "Try different word choices for better fluency."
       ]
     });
   }
