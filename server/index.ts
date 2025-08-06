@@ -62,7 +62,7 @@ app.post("/api/problem", async (req, res) => {
     });
 
     // Create difficulty-specific problem generation prompts
-    const difficultySpecs = {
+    const difficultySpecs: Record<string, string> = {
       toeic: "TOEIC頻出のビジネス語彙・表現（例：negotiate, submit, due to, in accordance with, quarterly report, meeting agenda）を含んだ日本語文を1つ作成してください。",
       middle_school: "中学1-3年レベルの基本文法（現在形・過去形・未来形・進行形）と基本語彙（1200語程度）を使った日本語文を1つ作成してください。",
       high_school: "高校レベルの複文構造と語彙（関係詞・分詞構文・仮定法など）を含んだ日本語文を1つ作成してください。",
@@ -123,7 +123,13 @@ app.post("/api/problem", async (req, res) => {
     console.error("Claude problem generation error:", error);
     
     // Enhanced fallback problems for each difficulty
-    const fallbackProblems = {
+    interface FallbackProblem {
+      japaneseSentence: string;
+      modelAnswer: string;
+      hints: string[];
+    }
+    
+    const fallbackProblems: Record<string, FallbackProblem> = {
       toeic: {
         japaneseSentence: "四半期報告書の提出期限を確認してください。",
         modelAnswer: "Please check the deadline for quarterly report submission.",
@@ -184,7 +190,7 @@ app.post("/api/evaluate", (req, res) => {
   }
   
   // Different model answers based on Japanese sentence
-  const modelAnswers = {
+  const modelAnswers: Record<string, string> = {
     "会議の議題を事前に共有してください。": "Please share the meeting agenda in advance.",
     "私は毎日学校に歩いて行きます。": "I walk to school every day.",
     "環境問題について議論する必要があります。": "We need to discuss environmental issues.",
@@ -220,7 +226,7 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
     });
 
     // Create difficulty-specific evaluation prompts
-    const difficultyPrompts = {
+    const difficultyPrompts: Record<string, string> = {
       toeic: `あなたは経験豊富なTOEIC講師です。TOEIC頻出語彙・表現を重視して評価してください。`,
       middle_school: `あなたは中学英語の専門教師です。基本文法と語順を重視して評価してください。`,
       high_school: `あなたは高校英語の教師です。複文・語彙力・表現力を重視して評価してください。`,
@@ -281,7 +287,7 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
     console.error("Claude API error:", error);
     
     // Enhanced fallback response with proper similar phrases
-    const fallbackSimilarPhrases = {
+    const fallbackSimilarPhrases: Record<string, string[]> = {
       "会議の議題を事前に共有してください。": [
         "Could you please share the meeting agenda beforehand?",
         "Would you mind sharing the agenda in advance?"

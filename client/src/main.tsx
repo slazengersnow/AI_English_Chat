@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import AppWithLogin from "./AppWithLogin.tsx";
+import SimpleTest from "./SimpleTest.tsx";
 import "./index.css";
 
-// Show login screen first, then the complete training UI
-createRoot(document.getElementById("root")!).render(<AppWithLogin />);
+// Test component to verify React is working
+createRoot(document.getElementById("root")!).render(<SimpleTest />);

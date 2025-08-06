@@ -39,12 +39,17 @@ export default function CompleteTrainingUI() {
       // Use mock data instead of API
       const problem = getRandomProblem(difficulty);
       console.log("Problem generated:", problem);
-      setCurrentProblem(problem);
-      setSelectedDifficulty(difficulty);
+      if (problem) {
+        setCurrentProblem(problem);
+        setSelectedDifficulty(difficulty);
+      } else {
+        throw new Error("問題の生成に失敗しました");
+      }
       
     } catch (error) {
       console.error("Problem generation error:", error);
-      setError(`問題の生成に失敗しました: ${error.message || error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(`問題の生成に失敗しました: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -58,10 +63,14 @@ export default function CompleteTrainingUI() {
     try {
       // Use mock evaluation instead of API
       const result = mockEvaluateAnswer(userAnswer, currentProblem.modelAnswer);
-      result.modelAnswer = currentProblem.modelAnswer;
-      setEvaluationResult(result);
+      const evaluationWithModel: EvaluationResult = {
+        ...result,
+        modelAnswer: currentProblem.modelAnswer
+      };
+      setEvaluationResult(evaluationWithModel);
     } catch (error) {
-      setError(`評価の処理に失敗しました: ${error.message || error}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(`評価の処理に失敗しました: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -134,7 +143,7 @@ export default function CompleteTrainingUI() {
             <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">日本語文</h2>
               <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                {currentProblem.japaneseSentence}
+                {currentProblem?.japaneseSentence}
               </p>
               
               <h3 className="text-md font-semibold text-gray-800 mb-2">英訳してください：</h3>
@@ -161,7 +170,7 @@ export default function CompleteTrainingUI() {
             <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
               <div className="text-center mb-4">
                 <span className="text-3xl font-bold text-blue-600">
-                  {evaluation.rating}/5
+                  {evaluation?.rating}/5
                 </span>
                 <p className="text-gray-600">点</p>
               </div>
@@ -170,18 +179,18 @@ export default function CompleteTrainingUI() {
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">模範解答：</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
-                    {evaluation.modelAnswer}
+                    {evaluation?.modelAnswer}
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">フィードバック：</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">
-                    {evaluation.feedback}
+                    {evaluation?.feedback}
                   </p>
                 </div>
                 
-                {evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
+                {evaluation && evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-2">類似表現：</h4>
                     <ul className="bg-gray-50 p-3 rounded-lg space-y-1">
