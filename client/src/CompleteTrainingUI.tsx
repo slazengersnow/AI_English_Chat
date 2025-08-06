@@ -1,7 +1,217 @@
-import React from "react";
+import React, { useState } from "react";
+
+type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
+
+interface Problem {
+  japaneseSentence: string;
+  hints: string[];
+}
+
+interface EvaluationResult {
+  rating: number;
+  modelAnswer: string;
+  feedback: string;
+  similarPhrases: string[];
+}
 
 // スクリーンショットの完全な英作文トレーニング画面を再現
 export default function CompleteTrainingUI() {
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
+  const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [evaluation, setEvaluationResult] = useState<EvaluationResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProblem = async (difficulty: DifficultyLevel) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/problem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ difficultyLevel: difficulty }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const problem = await response.json();
+      setCurrentProblem(problem);
+    } catch (error) {
+      setError(`問題の取得に失敗しました: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const evaluateAnswer = async () => {
+    if (!currentProblem || !userAnswer.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          japaneseSentence: currentProblem.japaneseSentence,
+          userTranslation: userAnswer,
+          difficultyLevel: selectedDifficulty,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const evaluation = await response.json();
+      setEvaluationResult(evaluation);
+    } catch (error) {
+      setError(`評価の取得に失敗しました: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDifficultySelect = (difficulty: DifficultyLevel) => {
+    setSelectedDifficulty(difficulty);
+    fetchProblem(difficulty);
+  };
+
+  const handleNextProblem = () => {
+    setCurrentProblem(null);
+    setUserAnswer("");
+    setEvaluationResult(null);
+    if (selectedDifficulty) {
+      fetchProblem(selectedDifficulty);
+    }
+  };
+
+  const handleBackToMenu = () => {
+    setSelectedDifficulty(null);
+    setCurrentProblem(null);
+    setUserAnswer("");
+    setEvaluationResult(null);
+    setError(null);
+  };
+
+  // Practice screen
+  if (selectedDifficulty && (currentProblem || isLoading)) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
+            <div className="flex justify-between items-center">
+              <h1 className="text-xl font-bold text-gray-800">英作文トレーニング</h1>
+              <button 
+                onClick={handleBackToMenu}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ← メニューに戻る
+              </button>
+            </div>
+          </div>
+
+          {/* Problem Display */}
+          {currentProblem && (
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">日本語文</h2>
+              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
+                {currentProblem.japaneseSentence}
+              </p>
+              
+              <h3 className="text-md font-semibold text-gray-800 mb-2">英訳してください：</h3>
+              <textarea
+                value={userAnswer}
+                onChange={(e) => setUserAnswer(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                placeholder="英訳を入力してください..."
+              />
+              
+              <button
+                onClick={evaluateAnswer}
+                disabled={isLoading || !userAnswer.trim()}
+                className="mt-4 w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              >
+                {isLoading ? "評価中..." : "回答を送信"}
+              </button>
+            </div>
+          )}
+
+          {/* Evaluation Results */}
+          {evaluation && (
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
+              <div className="text-center mb-4">
+                <span className="text-3xl font-bold text-blue-600">
+                  {evaluation.rating}/5
+                </span>
+                <p className="text-gray-600">点</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">模範解答：</h4>
+                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
+                    {evaluation.modelAnswer}
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">フィードバック：</h4>
+                  <p className="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">
+                    {evaluation.feedback}
+                  </p>
+                </div>
+                
+                {evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-2">類似表現：</h4>
+                    <ul className="bg-gray-50 p-3 rounded-lg space-y-1">
+                      {evaluation.similarPhrases.map((phrase, index) => (
+                        <li key={index} className="text-gray-700">• {phrase}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              
+              <button
+                onClick={handleNextProblem}
+                className="mt-6 w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-lg transition-colors"
+              >
+                次の問題
+              </button>
+            </div>
+          )}
+
+          {/* Loading */}
+          {isLoading && !currentProblem && (
+            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+              <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600">問題を生成中...</p>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-red-700">{error}</p>
+              <button
+                onClick={() => setError(null)}
+                className="mt-2 text-red-600 hover:text-red-800 text-sm underline"
+              >
+                エラーを閉じる
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       {/* Header */}
@@ -22,7 +232,9 @@ export default function CompleteTrainingUI() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2">レベルを選択してください</h2>
         
         {/* TOEIC */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
+        <div 
+          onClick={() => handleDifficultySelect("toeic")}
+          className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,7 +252,9 @@ export default function CompleteTrainingUI() {
         </div>
 
         {/* 中学英語 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
+        <div 
+          onClick={() => handleDifficultySelect("middle_school")}
+          className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +272,9 @@ export default function CompleteTrainingUI() {
         </div>
 
         {/* 高校英語 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
+        <div 
+          onClick={() => handleDifficultySelect("high_school")}
+          className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +292,9 @@ export default function CompleteTrainingUI() {
         </div>
 
         {/* 基本動詞 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
+        <div 
+          onClick={() => handleDifficultySelect("basic_verbs")}
+          className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +312,9 @@ export default function CompleteTrainingUI() {
         </div>
 
         {/* ビジネスメール */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
+        <div 
+          onClick={() => handleDifficultySelect("business_email")}
+          className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +332,9 @@ export default function CompleteTrainingUI() {
         </div>
 
         {/* シミュレーション練習 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
+        <div 
+          onClick={() => handleDifficultySelect("simulation")}
+          className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
