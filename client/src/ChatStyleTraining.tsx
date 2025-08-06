@@ -58,7 +58,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
   const renderStarRating = (rating: number) => {
     return (
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center justify-start space-x-1 h-6">
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
@@ -332,7 +332,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
             </div>
             <div className="bg-white rounded-lg px-4 py-4 max-w-lg shadow-sm border space-y-4">
               {/* Star Rating - Fixed Height */}
-              <div className="rating-box flex items-center justify-center bg-yellow-50 border border-yellow-300 rounded-lg px-3 py-1 min-h-[2rem]">
+              <div className="rating-box flex items-center justify-start bg-white border border-gray-200 rounded-lg px-3 py-1 h-8">
                 {renderStarRating(message.rating || 0)}
               </div>
               

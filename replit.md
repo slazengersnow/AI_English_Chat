@@ -124,9 +124,17 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Alternative expression suggestions and contextual grammar analysis
 - Mobile-optimized chat experience with auto-scroll and bubble design
 
+**UI Improvements & Evaluation System Enhancement (August 6, 2025)**:
+- Fixed star rating box height to consistent 2rem (h-8) with left-aligned layout
+- Removed yellow background from star rating, changed to clean white background
+- Implemented difficulty-specific Claude evaluation prompts for personalized feedback
+- Enhanced fallback evaluation system with detailed answer analysis
+- Added proper inappropriate answer detection (rejects "test", "aaa", etc. with 1-point scoring)
+- Improved problem generation system with difficulty-appropriate vocabulary and expressions
+
 **Technical Implementation**:
 - Created `ChatStyleTraining.tsx` component with full chat state management
 - Added `/api/evaluate-with-claude` endpoint with robust error handling
 - Integrated ANTHROPIC_API_KEY for real-time AI evaluation
-- Fallback system ensures operation continuity if API fails
+- Enhanced fallback system with individualized assessment logic
 - Message types: problem, user_answer, evaluation, model_answer, explanation, similar_phrases, next_button

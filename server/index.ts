@@ -304,20 +304,49 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
       ]
     };
     
-    // Enhanced fallback evaluation with individual assessment
-    const rating = userAnswer && userAnswer.trim().length > 5 && 
-                  !['test', 'aaa', 'bbb', '123', 'hello'].includes(userAnswer.toLowerCase()) ? 
-                  (userAnswer.length > 15 ? 4 : 3) : 1;
+    // Detailed fallback evaluation based on actual user answer analysis
+    let rating = 1;
+    let specificFeedback = "";
     
-    const overallEval = rating >= 4 ? "とても良い回答です！" : 
-                       rating >= 3 ? "基本的には正しい回答です。" : 
-                       "回答を見直してもう一度挑戦してみましょう。";
+    const userAnswerLower = userAnswer?.toLowerCase().trim() || "";
+    
+    // Check for meaningless inputs
+    if (!userAnswer || userAnswerLower.length < 3) {
+      rating = 1;
+      specificFeedback = "回答が空または短すぎます。もう一度しっかりと英訳してみてください。";
+    } else if (['test', 'aaa', 'bbb', '123', 'hello', 'ok', 'yes', 'no'].includes(userAnswerLower)) {
+      rating = 1;
+      specificFeedback = "適当な回答ではなく、日本語文を正確に英訳してください。";
+    } else {
+      // Analyze content for actual translation attempt
+      const hasValidWords = /[a-zA-Z]{3,}/.test(userAnswer);
+      const hasMultipleWords = userAnswer.split(/\s+/).length >= 3;
+      const hasProperStructure = /^[A-Z]/.test(userAnswer) && /[.!?]$/.test(userAnswer);
+      
+      if (hasValidWords && hasMultipleWords) {
+        rating = hasProperStructure ? 4 : 3;
+        specificFeedback = rating === 4 ? 
+          "文法的に正しく、意味も適切に伝わる良い回答です。" : 
+          "基本的な意味は伝わりますが、文構造や語順に改善の余地があります。";
+      } else {
+        rating = 2;
+        specificFeedback = "英文として不完全です。主語・動詞を含む完整な文で回答してください。";
+      }
+    }
+    
+    const overallEval = rating >= 4 ? "素晴らしい回答です！" : 
+                       rating >= 3 ? "良い回答ですが、さらに改善できます。" : 
+                       rating >= 2 ? "基本的な構造から見直しましょう。" :
+                       "適切な英訳を心がけてください。";
+
+    // Create individualized explanation based on the specific answer
+    const detailedExplanation = `あなたの回答「${userAnswer}」について分析します。${specificFeedback} 模範解答「${modelAnswer}」と比較すると、${rating >= 3 ? '意味は伝わりますが、より自然な表現を使うことで' : '基本的な文法構造を整えることで'}英語らしい表現になります。${rating === 1 ? '日本語の意味を正確に理解し、英語の語順（主語+動詞+目的語）で組み立ててください。' : '今後は語彙選択と文法的な正確性に注意して練習を続けてください。'}`;
 
     res.status(200).json({
       rating: rating,
       overallEvaluation: overallEval,
       modelAnswer: modelAnswer,
-      explanation: `この回答について詳しく解説します。文法的には${rating >= 3 ? '基本的に正しく構成されています' : '改善が必要な部分があります'}。語彙選択では、より${rating >= 4 ? '適切で自然な表現が使われています' : '自然な単語を選ぶことで表現力が向上します'}。模範解答と比較すると、${rating >= 3 ? '意味は適切に伝わりますが' : '基本的な構造から見直すことで'}、より実用的な英語表現に仕上がります。今後は文脈に応じた表現の使い分けを意識して練習を続けてください。`,
+      explanation: detailedExplanation,
       similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
         "Please consider using more natural phrasing.",
         "Try expressing this idea differently."
