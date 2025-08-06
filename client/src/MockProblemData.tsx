@@ -12,6 +12,30 @@ export const mockProblems = {
       modelAnswer: "We need to achieve next month's sales target.",
       hints: ["achieve", "sales target", "next month"],
       difficulty: "toeic"
+    },
+    {
+      japaneseSentence: "このプロジェクトの進捗を報告してください。",
+      modelAnswer: "Please report the progress of this project.",
+      hints: ["report", "progress", "project"],
+      difficulty: "toeic"
+    },
+    {
+      japaneseSentence: "予算の承認が必要です。",
+      modelAnswer: "We need budget approval.",
+      hints: ["budget", "approval", "need"],
+      difficulty: "toeic"
+    },
+    {
+      japaneseSentence: "締切を延長できますか？",
+      modelAnswer: "Can we extend the deadline?",
+      hints: ["extend", "deadline", "can"],
+      difficulty: "toeic"
+    },
+    {
+      japaneseSentence: "このデータを分析してください。",
+      modelAnswer: "Please analyze this data.",
+      hints: ["analyze", "data", "please"],
+      difficulty: "toeic"
     }
   ],
   middle_school: [
@@ -62,50 +86,82 @@ export const mockProblems = {
   ]
 };
 
-export const getRandomProblem = (difficulty: string) => {
-  const problems = mockProblems[difficulty] || mockProblems.middle_school;
-  return problems[Math.floor(Math.random() * problems.length)];
+export const getRandomProblem = (difficulty: string, usedProblems: Set<string> = new Set()) => {
+  const problems = mockProblems[difficulty as keyof typeof mockProblems] || mockProblems.middle_school;
+  const availableProblems = problems.filter((p: any) => !usedProblems.has(p.japaneseSentence));
+  
+  // If all problems used, reset and start over
+  if (availableProblems.length === 0) {
+    return problems[Math.floor(Math.random() * problems.length)];
+  }
+  
+  return availableProblems[Math.floor(Math.random() * availableProblems.length)];
 };
 
 export const evaluateAnswer = (userAnswer: string, correctAnswer: string) => {
   if (!userAnswer || userAnswer.trim() === "") {
     return {
       rating: 1,
-      feedback: "回答を入力してください。",
-      similarPhrases: []
+      feedback: "回答を入力してください。回答が空です。",
+      similarPhrases: ["Please provide an answer", "Your response is empty", "Input required"]
     };
   }
-  
+
+  // More strict evaluation logic
   const userLower = userAnswer.toLowerCase().trim();
   const correctLower = correctAnswer.toLowerCase().trim();
   
-  let rating = 2;
-  let feedback = "もう一度挑戦してみましょう。";
-  
-  // Simple scoring based on word matching
-  const userWords = userLower.split(/\s+/);
-  const correctWords = correctLower.split(/\s+/);
-  const matchCount = userWords.filter(word => correctWords.includes(word)).length;
-  const matchRatio = matchCount / correctWords.length;
-  
-  if (matchRatio >= 0.8) {
-    rating = 5;
-    feedback = "素晴らしい！完璧な回答です。";
-  } else if (matchRatio >= 0.6) {
-    rating = 4;
-    feedback = "とても良い回答です。少し改善の余地があります。";
-  } else if (matchRatio >= 0.4) {
-    rating = 3;
-    feedback = "良い回答です。もう少し正確性を高めましょう。";
+  // Check for exact match
+  if (userLower === correctLower) {
+    return {
+      rating: 5,
+      feedback: "完璧です！正確な翻訳です。",
+      similarPhrases: ["Excellent work!", "Perfect translation!", "Outstanding!"]
+    };
   }
   
-  return {
-    rating,
-    feedback,
-    similarPhrases: [
-      "Alternative expression 1",
-      "Alternative expression 2",
-      "Alternative expression 3"
-    ]
-  };
+  // Check for key words and grammar structure
+  const correctWords = correctLower.split(/\s+/);
+  const userWords = userLower.split(/\s+/);
+  const matchedWords = userWords.filter(word => correctWords.includes(word));
+  
+  const matchRatio = matchedWords.length / correctWords.length;
+  const lengthDiff = Math.abs(userWords.length - correctWords.length);
+  
+  // Check for random/nonsense answers
+  const isRandomAnswer = userAnswer.length < 3 || 
+                         /^[a-z]{1,3}$/.test(userLower) || 
+                         userLower.includes("test") ||
+                         userLower.includes("aaa") ||
+                         userLower.includes("abc") ||
+                         userLower.includes("あ") ||
+                         userLower.includes("てきとう");
+  
+  if (isRandomAnswer || matchRatio < 0.2) {
+    return {
+      rating: 1,
+      feedback: "適切な英訳を入力してください。この回答は不適切です。",
+      similarPhrases: ["Please provide a proper translation", "Invalid response", "Try a real English sentence"]
+    };
+  }
+  
+  if (matchRatio > 0.8 && lengthDiff <= 2) {
+    return {
+      rating: 4,
+      feedback: "とても良い回答です！ほぼ正確な翻訳です。",
+      similarPhrases: ["Very good translation!", "Almost perfect!", "Great job!"]
+    };
+  } else if (matchRatio > 0.5) {
+    return {
+      rating: 3,
+      feedback: "良い努力です。いくつかの重要な単語が含まれています。",
+      similarPhrases: ["Good effort!", "Some correct elements", "Keep improving!"]
+    };
+  } else {
+    return {
+      rating: 2,
+      feedback: "もう一度挑戦してみましょう。正しい単語をより多く含めてください。",
+      similarPhrases: ["Try again with more accuracy", "Include more correct words", "Practice more!"]
+    };
+  }
 };

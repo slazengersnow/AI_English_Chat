@@ -37,6 +37,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   const [awaitingAnswer, setAwaitingAnswer] = useState(false);
   const [problemCount, setProblemCount] = useState(1);
   const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
+  const [usedProblems, setUsedProblems] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -57,11 +58,11 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
   const renderStarRating = (rating: number) => {
     return (
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center">
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
-            className={`text-lg ${
+            className={`text-base ${
               star <= rating ? 'text-yellow-400' : 'text-gray-300'
             }`}
           >
@@ -79,9 +80,12 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
   useEffect(() => {
     // Load first problem
-    const problem = getRandomProblem(difficulty);
+    const problem = getRandomProblem(difficulty, usedProblems);
     setCurrentProblem(problem);
     setAwaitingAnswer(true);
+    
+    // Track first problem
+    setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
     
     const problemMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -95,9 +99,12 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   }, []);
 
   const loadNewProblem = () => {
-    const problem = getRandomProblem(difficulty);
+    const problem = getRandomProblem(difficulty, usedProblems);
     setCurrentProblem(problem);
     setAwaitingAnswer(true);
+    
+    // Track used problems to avoid repetition
+    setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
     
     const problemMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -330,8 +337,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
               
               {/* Overall Evaluation */}
               {overallEval && (
-                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                  <div className="text-sm font-medium text-green-800 mb-1">全体評価</div>
+                <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                  <div className="text-sm font-medium text-yellow-800 mb-1">全体評価</div>
                   <div className="text-gray-800">{overallEval.content}</div>
                 </div>
               )}
@@ -340,7 +347,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
               {modelAnswer && (
                 <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                   <div className="text-sm font-medium text-green-800 mb-1">模範解答</div>
-                  <div className="text-gray-800 font-medium">{modelAnswer.content}</div>
+                  <div className="text-gray-800 font-bold">{modelAnswer.content}</div>
                 </div>
               )}
               
