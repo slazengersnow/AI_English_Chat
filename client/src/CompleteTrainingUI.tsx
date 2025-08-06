@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
 
 type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
 
 interface Problem {
   japaneseSentence: string;
   hints: string[];
+  modelAnswer: string;
+  difficulty: string;
 }
 
 interface EvaluationResult {
@@ -23,65 +26,38 @@ export default function CompleteTrainingUI() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProblem = async (difficulty: DifficultyLevel) => {
+  const fetchProblem = (difficulty: DifficultyLevel) => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching problem for difficulty:", difficulty);
+      console.log("Generating problem for difficulty:", difficulty);
       
-      const response = await fetch("/api/problem", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({ difficultyLevel: difficulty }),
-      });
-      
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Response error:", errorText);
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const problem = await response.json();
-      console.log("Problem received:", problem);
+      // Use mock data instead of API
+      const problem = getRandomProblem(difficulty);
+      console.log("Problem generated:", problem);
       setCurrentProblem(problem);
+      setSelectedDifficulty(difficulty);
+      
     } catch (error) {
-      console.error("Fetch problem error:", error);
-      setError(`問題の取得に失敗しました: ${error.message || error}`);
+      console.error("Problem generation error:", error);
+      setError(`問題の生成に失敗しました: ${error.message || error}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const evaluateAnswer = async () => {
+  const submitAnswer = () => {
     if (!currentProblem || !userAnswer.trim()) return;
     
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("/api/evaluate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          japaneseSentence: currentProblem.japaneseSentence,
-          userTranslation: userAnswer,
-          difficultyLevel: selectedDifficulty,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const evaluation = await response.json();
-      setEvaluationResult(evaluation);
+      // Use mock evaluation instead of API
+      const result = mockEvaluateAnswer(userAnswer, currentProblem.modelAnswer);
+      result.modelAnswer = currentProblem.modelAnswer;
+      setEvaluationResult(result);
     } catch (error) {
-      setError(`評価の取得に失敗しました: ${error}`);
+      setError(`評価の処理に失敗しました: ${error.message || error}`);
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +121,7 @@ export default function CompleteTrainingUI() {
               />
               
               <button
-                onClick={evaluateAnswer}
+                onClick={submitAnswer}
                 disabled={isLoading || !userAnswer.trim()}
                 className="mt-4 w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-medium py-3 px-6 rounded-lg transition-colors"
               >

@@ -1,0 +1,62 @@
+Failed to load resource: the server responded with a status of 404 (Not Found)このエラーを分析
+Console.js:61 Response status: 404
+Console.js:61 Response ok: false
+Console.js:61 Response error: 
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetch problem error: Error: HTTP 404: Not Found
+    at fetchProblem (CompleteTrainingUI.tsx:47:15)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetching problem for difficulty: toeic
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)このエラーを分析
+Console.js:61 Response status: 404
+Console.js:61 Response ok: false
+Console.js:61 Response error: 
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetch problem error: Error: HTTP 404: Not Found
+    at fetchProblem (CompleteTrainingUI.tsx:47:15)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetching problem for difficulty: toeic
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)このエラーを分析
+Console.js:61 Response status: 404
+Console.js:61 Response ok: false
+Console.js:61 Response error: 
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetch problem error: Error: HTTP 404: Not Found
+    at fetchProblem (CompleteTrainingUI.tsx:47:15)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetching problem for difficulty: toeic
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)このエラーを分析
+Console.js:61 Response status: 404
+Console.js:61 Response ok: false
+Console.js:61 Response error: 
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetch problem error: Error: HTTP 404: Not Found
+    at fetchProblem (CompleteTrainingUI.tsx:47:15)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetching problem for difficulty: toeic
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/problem:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)このエラーを分析
+Console.js:61 Response status: 404
+Console.js:61 Response ok: false
+Console.js:61 Response error: 
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+Console.js:61 Fetch problem error: Error: HTTP 404: Not Found
+    at fetchProblem (CompleteTrainingUI.tsx:47:15)
+Mt.forEach.n.<computed> @ Console.js:61このエラーを分析
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.
