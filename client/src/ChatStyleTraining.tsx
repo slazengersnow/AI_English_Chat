@@ -120,6 +120,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
   const evaluateAnswerWithClaude = async (userAnswer: string, japaneseSentence: string, modelAnswer: string): Promise<EvaluationResult> => {
     try {
+      console.log('Calling Claude API with:', { userAnswer, japaneseSentence, modelAnswer, difficulty });
+      
       const response = await fetch('/api/evaluate-with-claude', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -131,49 +133,99 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         })
       });
 
+      console.log('Claude API response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('API request failed');
+        const errorText = await response.text();
+        console.error('Claude API error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const evaluation = await response.json();
+      console.log('Claude API evaluation received:', evaluation);
+      return evaluation;
     } catch (error) {
-      // Enhanced fallback with proper similar phrases based on common problems
-      console.warn('Claude API failed, using enhanced fallback evaluation');
+      console.error('Claude API failed with error:', error);
+      console.warn('Using enhanced fallback evaluation');
+      
+      // Enhanced fallback with detailed analysis based on actual user input
+      let rating = 1;
+      let specificFeedback = "";
+      
+      const userAnswerLower = userAnswer?.toLowerCase().trim() || "";
+      
+      // Check for meaningless inputs
+      if (!userAnswer || userAnswerLower.length < 3) {
+        rating = 1;
+        specificFeedback = "回答が空または短すぎます。";
+      } else if (['test', 'aaa', 'bbb', '123', 'hello', 'ok', 'yes', 'no'].includes(userAnswerLower)) {
+        rating = 1;
+        specificFeedback = "適当な回答ではなく、日本語文を正確に英訳してください。";
+      } else {
+        // Analyze content for actual translation attempt
+        const hasValidWords = /[a-zA-Z]{3,}/.test(userAnswer);
+        const hasMultipleWords = userAnswer.split(/\s+/).length >= 3;
+        const hasProperStructure = /^[A-Z]/.test(userAnswer) && /[.!?]$/.test(userAnswer);
+        
+        if (hasValidWords && hasMultipleWords) {
+          // Compare similarity to model answer for better rating
+          const modelWords = modelAnswer.toLowerCase().split(/\s+/);
+          const userWords = userAnswer.toLowerCase().split(/\s+/);
+          const matchingWords = userWords.filter(word => modelWords.includes(word)).length;
+          const similarity = matchingWords / Math.max(modelWords.length, userWords.length);
+          
+          if (similarity > 0.7 && hasProperStructure) {
+            rating = 5;
+            specificFeedback = "完璧に近い回答です！文法・語彙ともに適切です。";
+          } else if (similarity > 0.5 || hasProperStructure) {
+            rating = 4;
+            specificFeedback = "良い回答です。意味も適切に伝わります。";
+          } else if (similarity > 0.3) {
+            rating = 3;
+            specificFeedback = "基本的な意味は伝わりますが、より自然な表現を心がけましょう。";
+          } else {
+            rating = 2;
+            specificFeedback = "翻訳としては不十分です。模範解答を参考に改善してください。";
+          }
+        } else {
+          rating = 2;
+          specificFeedback = "英文として不完全です。完整な文で回答してください。";
+        }
+      }
+      
+      const overallEvaluations = [
+        "完璧です！",
+        "素晴らしい回答です！",
+        "良い回答ですが、改善の余地があります。",
+        "基本的な構造から見直しましょう。",
+        "適切な英訳を心がけてください。"
+      ];
+      
+      const overallEval = overallEvaluations[5 - rating] || "回答を見直しましょう。";
+
+      // Create individualized explanation
+      const detailedExplanation = `あなたの回答「${userAnswer}」について分析します。${specificFeedback} 模範解答「${modelAnswer}」と比較すると、${rating >= 3 ? '意味は伝わりますが、より自然な表現を使うことで' : '基本的な文法構造を整えることで'}英語らしい表現になります。${rating === 1 ? '日本語の意味を正確に理解し、英語の語順で組み立ててください。' : '今後は語彙選択と文法的な正確性に注意して練習を続けてください。'}`;
+
       const fallbackSimilarPhrases = {
+        "このデータを分析してください。": [
+          "Could you analyze this data?",
+          "Would you please examine this data?"
+        ],
+        "予算の承認が必要です。": [
+          "Budget approval is required.",
+          "We require budget authorization."
+        ],
         "会議の議題を事前に共有してください。": [
           "Could you please share the meeting agenda beforehand?",
           "Would you mind sharing the agenda in advance?"
-        ],
-        "私は毎日学校に歩いて行きます。": [
-          "I go to school on foot every day.",
-          "I walk to school daily."
-        ],
-        "環境問題について議論する必要があります。": [
-          "We should discuss environmental issues.",
-          "Environmental problems need to be discussed."
-        ],
-        "彼は毎朝コーヒーを飲みます。": [
-          "He has coffee every morning.",
-          "He enjoys coffee each morning."
-        ],
-        "添付ファイルをご確認ください。": [
-          "Please review the attached file.",
-          "Kindly check the attachment."
-        ],
-        "レストランで席を予約したいです。": [
-          "I'd like to make a restaurant reservation.",
-          "I want to book a table at the restaurant."
-        ],
-        "来月の売上目標を達成する必要があります。": [
-          "We must reach next month's sales goal.",
-          "We should meet our sales target for next month."
         ]
       };
       
       return {
-        rating: userAnswer.length > 10 ? 4 : 3,
+        rating,
+        overallEvaluation: overallEval,
         modelAnswer,
-        explanation: "文法的には正しいですが、より自然な表現を心がけましょう。語彙選択や文の構造を見直すことで、さらに洗練された英語表現に仕上がります。また、文脈に応じた適切な丁寧さレベルの選択も重要です。ビジネス場面では丁寧語を、カジュアルな場面では自然な表現を使い分けることが大切です。",
+        explanation: detailedExplanation,
         similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
           "Please consider using more natural phrasing.",
           "Try expressing this idea differently."
