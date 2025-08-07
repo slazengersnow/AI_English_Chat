@@ -25,7 +25,10 @@ interface UserAccount {
   registeredAt: string;
 }
 
-export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
+export default function MyPage({ onBackToMenu, onStartTraining }: { 
+  onBackToMenu: () => void;
+  onStartTraining: (problem: string) => void;
+}) {
   const [dailyStats, setDailyStats] = useState<DailyStats>({
     streak: 0,
     todayProblems: 0,
@@ -264,15 +267,23 @@ export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
                       return (
                         <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:bg-yellow-100 transition-colors">
                           <div className="flex items-start justify-between">
-                            <div className="flex-1">
+                            <div 
+                              className="flex-1 cursor-pointer" 
+                              onClick={() => onStartTraining(problem)}
+                            >
                               <div className="flex items-center space-x-2 mb-2">
                                 <span className="text-yellow-500">⭐</span>
                                 <span className="text-sm font-medium text-gray-700">問題 {number || index + 1}</span>
+                                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">再挑戦</span>
                               </div>
-                              <div className="text-gray-800 font-medium">{problem}</div>
+                              <div className="text-gray-800 font-medium hover:text-blue-600 transition-colors">{problem}</div>
+                              <div className="text-xs text-gray-500 mt-1">クリックして再度練習する</div>
                             </div>
                             <button 
-                              onClick={() => removeBookmark(bookmark)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeBookmark(bookmark);
+                              }}
                               className="text-gray-400 hover:text-red-500 transition-colors ml-2"
                               title="ブックマークを削除"
                             >

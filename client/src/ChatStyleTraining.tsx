@@ -29,10 +29,11 @@ interface EvaluationResult {
   detailedComment?: string;
 }
 
-export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPage }: { 
+export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPage, initialProblem }: { 
   difficulty: DifficultyLevel;
   onBackToMenu: () => void;
   onGoToMyPage: () => void;
+  initialProblem?: { japaneseSentence: string; modelAnswer: string; };
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
@@ -103,26 +104,45 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
   }, [messages]);
 
   useEffect(() => {
-    // Load first problem
-    const problem = getRandomProblem(difficulty, usedProblems);
-    if (problem) {
-      setCurrentProblem(problem);
+    if (initialProblem) {
+      // Use the provided initial problem (from bookmark)
+      setCurrentProblem({
+        japaneseSentence: initialProblem.japaneseSentence,
+        modelAnswer: initialProblem.modelAnswer,
+        hints: [],
+        difficulty: difficulty
+      });
       setAwaitingAnswer(true);
-      
-      // Track first problem
-      setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
       
       const problemMessage: ChatMessage = {
         id: Date.now().toString(),
         type: "problem",
-        content: problem.japaneseSentence,
+        content: initialProblem.japaneseSentence,
         timestamp: new Date()
       };
-      
-      // Initial problem setup
       setMessages([problemMessage]);
+    } else {
+      // Load first problem normally
+      const problem = getRandomProblem(difficulty, usedProblems);
+      if (problem) {
+        setCurrentProblem(problem);
+        setAwaitingAnswer(true);
+        
+        // Track first problem
+        setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
+        
+        const problemMessage: ChatMessage = {
+          id: Date.now().toString(),
+          type: "problem",
+          content: problem.japaneseSentence,
+          timestamp: new Date()
+        };
+        
+        // Initial problem setup
+        setMessages([problemMessage]);
+      }
     }
-  }, []);
+  }, [initialProblem]);
 
   const loadNewProblem = () => {
     const problem = getRandomProblem(difficulty, usedProblems);

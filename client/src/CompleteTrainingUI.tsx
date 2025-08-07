@@ -116,7 +116,20 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
 
   // My Page
   if (currentPage === 'mypage') {
-    return <MyPage onBackToMenu={handleBackToMenu} />;
+    return <MyPage 
+      onBackToMenu={handleBackToMenu} 
+      onStartTraining={(problem) => {
+        // Create a mock problem with the bookmarked sentence
+        setCurrentProblem({
+          japaneseSentence: problem,
+          hints: [],
+          modelAnswer: "Please translate this sentence.",
+          difficulty: "toeic"
+        });
+        setSelectedDifficulty("toeic");
+        setCurrentPage('training');
+      }}
+    />;
   }
 
   // Chat-style practice screen
@@ -126,6 +139,10 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
         difficulty={selectedDifficulty} 
         onBackToMenu={handleBackToMenu}
         onGoToMyPage={() => setCurrentPage('mypage')}
+        initialProblem={currentProblem ? {
+          japaneseSentence: currentProblem.japaneseSentence,
+          modelAnswer: currentProblem.modelAnswer
+        } : undefined}
       />
     );
   }
