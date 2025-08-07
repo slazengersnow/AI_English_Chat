@@ -402,7 +402,7 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                     <span>✅</span>
                     <span>プラン変更</span>
                   </CardTitle>
-                  <p className="text-sm text-gray-600">サブスクリプションプランのアップグレード・ダウングレード</p>
+                  <p className="text-sm text-gray-600">プレミアムプランにアップグレード</p>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="border border-gray-200 rounded-lg p-4">
@@ -418,7 +418,7 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                       <span className="font-medium">年会費プランに変更</span>
                       <Button variant="outline" size="sm">年会費に変更</Button>
                     </div>
-                    <p className="text-sm text-gray-600">月額プランから12ヶ月プランに変更（16%割引で年間税込）</p>
+                    <p className="text-sm text-gray-600">月額プランから12ヶ月プランに変更（2ヶ月分お得）</p>
                   </div>
                 </CardContent>
               </Card>
@@ -442,50 +442,50 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                           <th className="text-center py-2">プレミアムプラン</th>
                         </tr>
                       </thead>
-                      <tbody className="space-y-2">
-                        <tr className="border-b">
+                      <tbody>
+                        <tr className="bg-orange-50 border-b">
+                          <td className="py-2 font-medium">機能</td>
+                          <td className="text-center font-medium">スタンダードプラン</td>
+                          <td className="text-center font-medium">プレミアムプラン</td>
+                        </tr>
+                        <tr className="bg-gray-50 border-b">
                           <td className="py-2">月額料金</td>
                           <td className="text-center">980円</td>
                           <td className="text-center">1,300円</td>
                         </tr>
-                        <tr className="border-b">
+                        <tr className="bg-white border-b">
                           <td className="py-2">年会費（2ヶ月分割引）</td>
                           <td className="text-center">9,800円</td>
                           <td className="text-center">13,000円</td>
                         </tr>
-                        <tr className="border-b">
-                          <td className="py-2">基本練習機能</td>
-                          <td className="text-center">-</td>
-                          <td className="text-center">-</td>
-                        </tr>
-                        <tr className="border-b">
+                        <tr className="bg-gray-50 border-b">
                           <td className="py-2">1日の練習回数上限</td>
                           <td className="text-center">50問</td>
                           <td className="text-center">100問</td>
                         </tr>
-                        <tr className="border-b">
+                        <tr className="bg-white border-b">
                           <td className="py-2">繰り返し練習</td>
                           <td className="text-center">×</td>
                           <td className="text-center">✓</td>
                         </tr>
-                        <tr className="border-b">
+                        <tr className="bg-gray-50 border-b">
                           <td className="py-2">シミュレーション練習</td>
                           <td className="text-center">×</td>
                           <td className="text-center">✓</td>
                         </tr>
-                        <tr className="border-b">
+                        <tr className="bg-white border-b">
                           <td className="py-2">進捗レポート</td>
-                          <td className="text-center">×</td>
+                          <td className="text-center">✓</td>
                           <td className="text-center">✓</td>
                         </tr>
-                        <tr className="border-b">
+                        <tr className="bg-gray-50 border-b">
                           <td className="py-2">ブックマーク機能</td>
-                          <td className="text-center">×</td>
+                          <td className="text-center">✓</td>
                           <td className="text-center">✓</td>
                         </tr>
-                        <tr className="border-b">
+                        <tr className="bg-white border-b">
                           <td className="py-2">音声読み上げ</td>
-                          <td className="text-center">×</td>
+                          <td className="text-center">✓</td>
                           <td className="text-center">✓</td>
                         </tr>
                       </tbody>
@@ -561,11 +561,8 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                   
                   <div className="mt-4 pt-4 border-t text-center">
                     <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                      ❤️ ログアウト
+                      ログアウト
                     </Button>
-                    <p className="text-xs text-gray-500 mt-2">
-                      サブスクリプション契約済ですアプリにログインして下さい
-                    </p>
                   </div>
                 </CardContent>
               </Card>
