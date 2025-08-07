@@ -1,17 +1,25 @@
-import React, { useState } from "react";
-import LoginWithBypass from "./LoginWithBypass";
-import CompleteTrainingUI from "./CompleteTrainingUI";
+import React, { useState } from 'react';
+import LoginScreen from './LoginScreen';
+import CompleteTrainingUI from './CompleteTrainingUI';
+
+interface UserInfo {
+  email: string;
+}
 
 export default function AppWithLogin() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<UserInfo | null>(null);
 
-  const handleBypassLogin = () => {
-    setIsLoggedIn(true);
+  const handleLogin = (userInfo: UserInfo) => {
+    setUser(userInfo);
   };
 
-  if (!isLoggedIn) {
-    return <LoginWithBypass onBypassLogin={handleBypassLogin} />;
+  const handleLogout = () => {
+    setUser(null);
+  };
+
+  if (!user) {
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
-  return <CompleteTrainingUI />;
+  return <CompleteTrainingUI user={user} onLogout={handleLogout} />;
 }

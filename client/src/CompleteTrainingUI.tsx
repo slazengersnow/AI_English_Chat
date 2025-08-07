@@ -20,8 +20,17 @@ interface EvaluationResult {
   similarPhrases: string[];
 }
 
+interface UserInfo {
+  email: string;
+}
+
+interface CompleteTrainingUIProps {
+  user: UserInfo;
+  onLogout: () => void;
+}
+
 // スクリーンショットの完全な英作文トレーニング画面を再現
-export default function CompleteTrainingUI() {
+export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingUIProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
   const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage'>('menu');
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
@@ -170,7 +179,7 @@ export default function CompleteTrainingUI() {
             <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
               <div className="text-center mb-4">
                 <span className="text-3xl font-bold text-blue-600">
-                  {evaluation?.rating}/5
+                  {evaluation.rating}/5
                 </span>
                 <p className="text-gray-600">点</p>
               </div>
@@ -179,18 +188,18 @@ export default function CompleteTrainingUI() {
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">模範解答：</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
-                    {evaluation?.modelAnswer}
+                    {evaluation.modelAnswer}
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">フィードバック：</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">
-                    {evaluation?.feedback}
+                    {evaluation.feedback}
                   </p>
                 </div>
                 
-                {evaluation && evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
+                {evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-2">類似表現：</h4>
                     <ul className="bg-gray-50 p-3 rounded-lg space-y-1">
@@ -249,22 +258,36 @@ export default function CompleteTrainingUI() {
           <p className="text-gray-600 text-sm">AIが瞬時に添削・評価します</p>
         </div>
         
-        {/* Header Buttons */}
-        <div className="flex justify-end space-x-2 mt-6 px-4">
-          <button 
-            onClick={() => setCurrentPage('admin')}
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors flex items-center space-x-1"
-          >
-            <span>🛡️</span>
-            <span>管理者</span>
-          </button>
-          <button 
-            onClick={() => setCurrentPage('mypage')}
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors flex items-center space-x-1"
-          >
-            <span>👤</span>
-            <span>マイページ</span>
-          </button>
+        {/* User Info and Header Buttons */}
+        <div className="mt-6 px-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm text-gray-600">
+              ログイン中: {user.email}
+            </div>
+            <button 
+              onClick={onLogout}
+              className="px-3 py-1 text-sm bg-red-100 hover:bg-red-200 rounded-md text-red-700 transition-colors"
+            >
+              ログアウト
+            </button>
+          </div>
+          
+          <div className="flex justify-end space-x-2">
+            <button 
+              onClick={() => setCurrentPage('admin')}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors flex items-center space-x-1"
+            >
+              <span>🛡️</span>
+              <span>管理者</span>
+            </button>
+            <button 
+              onClick={() => setCurrentPage('mypage')}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md text-gray-700 transition-colors flex items-center space-x-1"
+            >
+              <span>👤</span>
+              <span>マイページ</span>
+            </button>
+          </div>
         </div>
       </div>
 
