@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
+import { claudeApiRequest } from "@/lib/queryClient";
 import ChatStyleTraining from "./ChatStyleTraining";
 import AdminDashboard from "./AdminDashboard";
 import MyPage from "./MyPage";
@@ -43,18 +44,27 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchProblem = (difficulty: DifficultyLevel) => {
+  const fetchProblem = async (difficulty: DifficultyLevel) => {
     setIsLoading(true);
     setError(null);
     try {
       console.log("Generating problem for difficulty:", difficulty);
       
-      // Use mock data instead of API
-      const problem = getRandomProblem(difficulty);
-      console.log("Problem generated:", problem);
-      if (problem) {
-        setCurrentProblem(problem);
+      // Try Claude API first, fallback to mock data
+      const response = await claudeApiRequest("/api/problem", {
+        difficultyLevel: difficulty,
+        sessionId: `training_${Date.now()}`
+      });
+      
+      if (response) {
+        setCurrentProblem({
+          japaneseSentence: response.japaneseSentence,
+          hints: response.hints || [],
+          modelAnswer: response.modelAnswer,
+          difficulty: response.difficulty || difficulty
+        });
         setSelectedDifficulty(difficulty);
+        console.log("Claude API problem generated successfully");
       } else {
         throw new Error("問題の生成に失敗しました");
       }
@@ -68,22 +78,40 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     }
   };
 
-  const submitAnswer = () => {
+  const submitAnswer = async () => {
     if (!currentProblem || !userAnswer.trim()) return;
     
     setIsLoading(true);
     setError(null);
     try {
-      // Use mock evaluation instead of API
-      const result = mockEvaluateAnswer(userAnswer, currentProblem.modelAnswer);
-      const evaluationWithModel: EvaluationResult = {
-        ...result,
-        modelAnswer: currentProblem.modelAnswer
-      };
-      setEvaluationResult(evaluationWithModel);
+      console.log("Evaluating answer with Claude API");
+      
+      // Try Claude API evaluation first, fallback to mock
+      const evaluationResponse = await claudeApiRequest("/api/evaluate-with-claude", {
+        userAnswer: userAnswer.trim(),
+        japaneseSentence: currentProblem.japaneseSentence,
+        modelAnswer: currentProblem.modelAnswer,
+        difficulty: currentProblem.difficulty
+      });
+      
+      console.log("Claude evaluation response:", evaluationResponse);
+      
+      if (evaluationResponse) {
+        setEvaluationResult({
+          rating: evaluationResponse.rating,
+          modelAnswer: currentProblem.modelAnswer, // Use the original model answer
+          feedback: evaluationResponse.feedback,
+          similarPhrases: evaluationResponse.similarPhrases || []
+        });
+        console.log("Claude API evaluation completed successfully");
+      } else {
+        throw new Error("評価の取得に失敗しました");
+      }
+      
     } catch (error) {
+      console.error("Evaluation error:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
-      setError(`評価の処理に失敗しました: ${errorMessage}`);
+      setError(`評価の取得に失敗しました: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

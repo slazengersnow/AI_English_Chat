@@ -5,7 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes/index.js";
 import stripeWebhookRouter from "./routes/stripe-webhook.js";
-import { setupVite } from "./vite.js";
+// Remove broken setupVite import - using working pattern
 
 dotenv.config();
 
@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 3001;
 
 // CORS
 app.use(cors());
@@ -68,16 +68,26 @@ app.post("/api/problem", async (req, res) => {
   console.log("🔥 Problem route SUCCESS!", req.body);
   
   // Import and use the actual handler
-  const { handleProblemGeneration } = await import('./routes.js');
-  await handleProblemGeneration(req, res);
+  try {
+    const { handleProblemGeneration } = await import('./routes.js');
+    await handleProblemGeneration(req, res);
+  } catch (error) {
+    console.error("Problem generation error:", error);
+    res.status(500).json({ error: "Problem generation failed" });
+  }
 });
 
 app.post("/api/evaluate-with-claude", async (req, res) => {
   console.log("🔥 Claude evaluation route SUCCESS!", req.body);
   
   // Import and use the actual handler  
-  const { handleClaudeEvaluation } = await import('./routes.js');
-  await handleClaudeEvaluation(req, res);
+  try {
+    const { handleClaudeEvaluation } = await import('./routes.js');
+    await handleClaudeEvaluation(req, res);
+  } catch (error) {
+    console.error("Claude evaluation error:", error);
+    res.status(500).json({ error: "Evaluation failed" });
+  }
 });
 
 // Register all main routes directly to app
@@ -110,34 +120,34 @@ app.use("/api/*", (req, res, next) => {
   next();
 });
 
-// Use working server pattern with proper Vite integration
-if (process.env.NODE_ENV !== "production") {
-  console.log("🚀 Setting up working Vite integration...");
-  
-  const vite = await import("vite");
-  const path = await import("path");
-  
-  const viteServer = await vite.createServer({
-    server: { middlewareMode: true },
-    appType: "custom", 
-    root: path.resolve("client"),
-  });
-  
-  // Add Vite middleware
-  app.use(viteServer.middlewares);
-  
-  // Custom SPA fallback that EXCLUDES API routes
-  app.use("*", async (req, res, next) => {
-    const url = req.originalUrl;
+// WORKING: Proven Vite integration pattern that preserves API routes
+async function setupWorkingVite() {
+  if (process.env.NODE_ENV !== "production") {
+    console.log("🚀 Setting up working Vite integration...");
     
-    // CRITICAL: Skip API routes completely
-    if (url.startsWith("/api/")) {
-      console.log(`🚫 Vite fallback skipping API route: ${url}`);
-      return res.status(404).json({ error: "API endpoint not found" });
-    }
+    const { createServer } = await import("vite");
     
-    try {
-      const template = await viteServer.transformIndexHtml(url, `
+    const vite = await createServer({
+      server: { middlewareMode: true },
+      appType: "custom",
+      root: path.resolve("client"),
+    });
+    
+    // Add Vite middleware
+    app.use(vite.middlewares);
+    
+    // SPA fallback with proper API route exclusion
+    app.use("*", async (req, res, next) => {
+      const url = req.originalUrl;
+      
+      // Skip API routes - let Express handle them
+      if (url.startsWith("/api/")) {
+        console.log(`🚫 API route ${url} not handled by Vite fallback`);
+        return res.status(404).json({ error: "API endpoint not found" });
+      }
+      
+      try {
+        const template = await vite.transformIndexHtml(url, `
 <!doctype html>
 <html lang="ja">
   <head>
@@ -150,16 +160,20 @@ if (process.env.NODE_ENV !== "production") {
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-      `);
-      res.status(200).set({ "Content-Type": "text/html" }).end(template);
-    } catch (e) {
-      viteServer.ssrFixStacktrace(e);
-      next(e);
-    }
-  });
-  
-  console.log("🚀 Working Vite setup complete - API routes protected");
+        `);
+        res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } catch (e) {
+        vite.ssrFixStacktrace(e);
+        next(e);
+      }
+    });
+    
+    console.log("🚀 Working Vite setup complete - API routes protected");
+  }
 }
+
+// Call setup function immediately
+await setupWorkingVite();
 
 // サーバー起動
 app.listen(PORT, "0.0.0.0", () => {
