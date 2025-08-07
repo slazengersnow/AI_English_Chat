@@ -104,12 +104,61 @@ app.get("/api/test-working", (req, res) => {
   });
 });
 
-// Vite をミドルウェアとして統合（APIルートの後に配置）
+// API route protection middleware - CRITICAL for preventing Vite interference
+app.use("/api/*", (req, res, next) => {
+  console.log(`🛡️ API route protection: ${req.method} ${req.path}`);
+  next();
+});
+
+// Use working server pattern with proper Vite integration
 if (process.env.NODE_ENV !== "production") {
-  console.log("🚀 BEFORE Vite setup - API routes should be registered");
-  const { setupVite } = await import("./vite.js");
-  await setupVite(app, null);
-  console.log("🚀 AFTER Vite setup - Vite now handles remaining routes");
+  console.log("🚀 Setting up working Vite integration...");
+  
+  const vite = await import("vite");
+  const path = await import("path");
+  
+  const viteServer = await vite.createServer({
+    server: { middlewareMode: true },
+    appType: "custom", 
+    root: path.resolve("client"),
+  });
+  
+  // Add Vite middleware
+  app.use(viteServer.middlewares);
+  
+  // Custom SPA fallback that EXCLUDES API routes
+  app.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+    
+    // CRITICAL: Skip API routes completely
+    if (url.startsWith("/api/")) {
+      console.log(`🚫 Vite fallback skipping API route: ${url}`);
+      return res.status(404).json({ error: "API endpoint not found" });
+    }
+    
+    try {
+      const template = await viteServer.transformIndexHtml(url, `
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>AI English Chat</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+      `);
+      res.status(200).set({ "Content-Type": "text/html" }).end(template);
+    } catch (e) {
+      viteServer.ssrFixStacktrace(e);
+      next(e);
+    }
+  });
+  
+  console.log("🚀 Working Vite setup complete - API routes protected");
 }
 
 // サーバー起動
