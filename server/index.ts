@@ -56,22 +56,22 @@ app.get("/api/ping", (req, res) => {
   res.json({ message: "pong", timestamp: new Date().toISOString() });
 });
 
-app.post("/api/problem", async (req, res) => {
+app.post("/api/problem", async (req, res, next) => {
   console.log("🔥 Problem route SUCCESS!", req.body); // ✅ デバッグログ追加
   try {
     const { handleProblemGeneration } = await import("./routes.js");
-    await handleProblemGeneration(req, res);
+    await handleProblemGeneration(req, res, next);
   } catch (error) {
     console.error("Problem generation error:", error);
     res.status(500).json({ error: "Problem generation failed" });
   }
 });
 
-app.post("/api/evaluate-with-claude", async (req, res) => {
+app.post("/api/evaluate-with-claude", async (req, res, next) => {
   console.log("🔥 Claude evaluation route SUCCESS!", req.body); // ✅ デバッグログ追加
   try {
     const { handleClaudeEvaluation } = await import("./routes.js");
-    await handleClaudeEvaluation(req, res);
+    await handleClaudeEvaluation(req, res, next);
   } catch (error) {
     console.error("Claude evaluation error:", error);
     res.status(500).json({ error: "Evaluation failed" });

@@ -56,22 +56,28 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
 
 ## Recent Changes (August 2025)
 
-### Claude API Integration Final Solution
+### Claude API Integration Status Update
 **Date**: August 7, 2025
-**Status**: ✅ COMPLETED
+**Status**: 🚀 ACTIVE DEVELOPMENT - User Modified Server
 
-**Problem**: Vite middleware was intercepting all /api/ routes, causing 404 errors for Claude API calls.
+**Current Situation**:
+- User successfully modified `server/index.ts` to place all `/api/*` routes BEFORE Vite middleware
+- APIルート（重要！Viteより前に）: `/api/problem`, `/api/evaluate-with-claude`, `/api/status`
+- Vite middleware applied last with `setupVite(app, null)`
 
-**Solution Implemented**:
-1. **Client-Side API Integration**: Created `claudeApiRequest()` function in `client/src/lib/queryClient.ts`
-2. **Intelligent Fallback System**: High-quality fallback responses for all difficulty levels
-3. **Encouraging User Experience**: Maintains positive learning environment even during API issues
-4. **Error Handling**: Robust error handling with detailed logging for debugging
+**Implementation Status**:
+1. **Server-Side Routes**: ✅ API endpoints configured in server/index.ts before Vite
+2. **Client-Side Integration**: ✅ `claudeApiRequest()` function maintains fallback capability
+3. **ANTHROPIC_API_KEY**: ✅ Secret key configured and available
+4. **Intelligent Fallback**: ✅ High-quality backup responses for seamless learning
 
-**Technical Details**:
-- Modified `CompleteTrainingUI.tsx` to use Claude API for problem generation and evaluation
-- Implemented async/await pattern for API calls
-- Added comprehensive fallback data for all 6 difficulty levels (TOEIC, 中学英語, 高校英語, 基本動詞, ビジネスメール, シミュレーション)
-- Maintained encouraging feedback system with 4-5 star ratings in fallbacks
+**Next Steps**: Testing real Claude API functionality now that server routing is corrected.
 
-**Result**: Application now provides seamless AI-powered English learning experience with Claude integration while maintaining 100% uptime through intelligent fallbacks.
+**Technical Architecture**:
+```
+Request Flow:
+Client → server/index.ts → /api/* routes (BEFORE Vite) → Claude API → Response
+                        → Non-API routes → Vite middleware → React App
+```
+
+**Expected Result**: Real Claude API integration with server-side processing, maintaining fallback safety net.
