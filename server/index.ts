@@ -162,21 +162,6 @@ app.post("/api/problem", async (req, res) => {
         japaneseSentence: "すみません、駅への道を教えてください。",
         modelAnswer: "Excuse me, could you tell me the way to the station?",
         hints: ["excuse me", "tell me", "way to"]
-      },
-      basic_verbs: {
-        japaneseSentence: "毎朝6時に起きて朝食を作ります。",
-        modelAnswer: "I get up at 6 AM and make breakfast every morning.",
-        hints: ["get up", "make", "every morning"]
-      },
-      business_email: {
-        japaneseSentence: "会議資料を添付いたしましたのでご確認ください。",
-        modelAnswer: "I have attached the meeting materials, so please review them.",
-        hints: ["attached", "materials", "review"]
-      },
-      simulation: {
-        japaneseSentence: "すみません、この電車は新宿駅に止まりますか？",
-        modelAnswer: "Excuse me, does this train stop at Shinjuku Station?",
-        hints: ["excuse me", "train", "stop at"]
       }
     };
 
