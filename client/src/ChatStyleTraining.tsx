@@ -24,6 +24,7 @@ interface EvaluationResult {
   modelAnswer: string;
   explanation: string;
   similarPhrases: string[];
+  overallEvaluation?: string;
 }
 
 export default function ChatStyleTraining({ difficulty, onBackToMenu }: { 
@@ -81,41 +82,45 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   useEffect(() => {
     // Load first problem
     const problem = getRandomProblem(difficulty, usedProblems);
-    setCurrentProblem(problem);
-    setAwaitingAnswer(true);
-    
-    // Track first problem
-    setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
-    
-    const problemMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: "problem",
-      content: problem.japaneseSentence,
-      timestamp: new Date()
-    };
-    
-    // Initial problem setup
-    setMessages([problemMessage]);
+    if (problem) {
+      setCurrentProblem(problem);
+      setAwaitingAnswer(true);
+      
+      // Track first problem
+      setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
+      
+      const problemMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: "problem",
+        content: problem.japaneseSentence,
+        timestamp: new Date()
+      };
+      
+      // Initial problem setup
+      setMessages([problemMessage]);
+    }
   }, []);
 
   const loadNewProblem = () => {
     const problem = getRandomProblem(difficulty, usedProblems);
-    setCurrentProblem(problem);
-    setAwaitingAnswer(true);
-    
-    // Track used problems to avoid repetition
-    setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
-    
-    const problemMessage: ChatMessage = {
-      id: Date.now().toString(),
-      type: "problem",
-      content: problem.japaneseSentence,
-      timestamp: new Date()
-    };
-    
-    // Add new problem to existing messages (don't clear history)
-    setMessages(prev => [...prev, problemMessage]);
-    setProblemCount(prev => prev + 1);
+    if (problem) {
+      setCurrentProblem(problem);
+      setAwaitingAnswer(true);
+      
+      // Track used problems to avoid repetition
+      setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
+      
+      const problemMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: "problem",
+        content: problem.japaneseSentence,
+        timestamp: new Date()
+      };
+      
+      // Add new problem to existing messages (don't clear history)
+      setMessages(prev => [...prev, problemMessage]);
+      setProblemCount(prev => prev + 1);
+    }
   };
 
   const evaluateAnswerWithClaude = async (userAnswer: string, japaneseSentence: string, modelAnswer: string): Promise<EvaluationResult> => {
@@ -206,7 +211,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       // Create individualized explanation
       const detailedExplanation = `あなたの回答「${userAnswer}」について分析します。${specificFeedback} 模範解答「${modelAnswer}」と比較すると、${rating >= 3 ? '意味は伝わりますが、より自然な表現を使うことで' : '基本的な文法構造を整えることで'}英語らしい表現になります。${rating === 1 ? '日本語の意味を正確に理解し、英語の語順で組み立ててください。' : '今後は語彙選択と文法的な正確性に注意して練習を続けてください。'}`;
 
-      const fallbackSimilarPhrases = {
+      const fallbackSimilarPhrases: Record<string, string[]> = {
         "このデータを分析してください。": [
           "Could you analyze this data?",
           "Would you please examine this data?"
