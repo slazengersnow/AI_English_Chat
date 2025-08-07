@@ -245,24 +245,26 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     );
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen p-4" style={{ backgroundColor: '#e7effe' }}>
       <div className="max-w-md mx-auto">
         {/* Header with buttons */}
-        <div className="flex justify-end space-x-2 mb-6">
-          <button 
-            onClick={() => setCurrentPage('admin')}
-            className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
-          >
-            <span>🛡️</span>
-            <span>管理者</span>
-          </button>
-          <button 
-            onClick={() => setCurrentPage('mypage')}
-            className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
-          >
-            <span>👤</span>
-            <span>マイページ</span>
-          </button>
+        <div className="w-full mb-6">
+          <div className="flex justify-end space-x-2">
+            <button 
+              onClick={() => setCurrentPage('admin')}
+              className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
+            >
+              <span>🛡️</span>
+              <span>管理者</span>
+            </button>
+            <button 
+              onClick={() => setCurrentPage('mypage')}
+              className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
+            >
+              <span>👤</span>
+              <span>マイページ</span>
+            </button>
+          </div>
         </div>
 
         {/* Main Content */}
