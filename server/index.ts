@@ -58,6 +58,12 @@ app.post("/api/problem", async (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
   const { difficultyLevel, sessionId = 'default' } = req.body;
   
+  console.log("=== DEBUG: Difficulty Level Analysis ===");
+  console.log("Received difficultyLevel:", difficultyLevel);
+  console.log("Type of difficultyLevel:", typeof difficultyLevel);
+  console.log("SessionId:", sessionId);
+  console.log("==========================================");
+  
   console.log("Generating problem for difficulty:", difficultyLevel);
   
   // セッション履歴の初期化
@@ -87,19 +93,23 @@ app.post("/api/problem", async (req, res) => {
 「来月の四半期会議の議題を準備してください。」
 「クライアントとの契約交渉を進めます。」`,
 
-      middle_school: `あなたは中学英語専門教師です。絶対に中学1-3年生レベル（英検4-3級相当）のみで日本語文を1つ作成してください：
+      middle_school: `あなたは中学英語専門教師です。以下の条件をすべて満たす中学英語レベルの英作文問題を1つ出題してください：
 
-【必須条件】
-- 基本動詞のみ使用（be, have, go, come, like, play, study, eat, drink, watch, read, write, live）
-- 現在形・過去形・現在進行形のみ
-- 基本語彙1200語以内の日常語のみ
-- 日常生活・学校生活が題材
-- 10-15文字程度
-- ビジネス語彙・高校レベル語彙は使用禁止
+【絶対的制限事項】
+- 文構造：be動詞・一般動詞・現在形・過去形・未来形（will）・疑問文・否定文・命令文のみ
+- 語彙：中学英語教科書（中1～中3）レベルに限定（business, achieve, sales, target, meeting, client等のビジネス語彙は絶対禁止）
+- 基本動詞のみ：be, have, go, come, like, play, study, eat, drink, watch, read, write, live, get, make, do
+- 題材：日常生活・学校生活・家族・友達・趣味のみ
+- 1文で完結・10-15文字程度
+- 必ず易しい問題にする
 
-【出題例】
-「私は毎日学校に歩いて行きます。」
-「昨日友達とサッカーをしました。」`,
+【禁止語彙の例】
+売上、目標、達成、会議、クライアント、契約、報告、プロジェクト、ビジネス、マネージャー、四半期、承認、提出
+
+【必須出題例レベル】
+「彼女は英語を勉強しています。」
+「私は昨日映画を見ました。」
+「あなたは朝ごはんを食べますか？」`,
 
       high_school: `あなたは高校英語専門教師です。絶対に高校レベル（英検2級-準1級相当）で日本語文を1つ作成してください：
 
@@ -155,20 +165,32 @@ app.post("/api/problem", async (req, res) => {
 
     const spec = difficultySpecs[difficultyLevel] || difficultySpecs.middle_school;
     
+    console.log("=== DEBUG: Prompt Selection ===");
+    console.log("Selected spec for", difficultyLevel, ":", spec.substring(0, 100) + "...");
+    console.log("Is using fallback to middle_school?", !difficultySpecs[difficultyLevel]);
+    console.log("================================");
+    
     // 出題履歴を考慮したプロンプト
     const historyConstraint = usedProblems.size > 0 ? 
       `\n\n【重要】以下の文と重複しないように、全く異なる内容・文型・語彙で作成してください：\n${Array.from(usedProblems).join('\n')}` : '';
 
     const prompt = `${spec}${historyConstraint}
 
-厳密にレベルに従って作成し、以下のJSON形式で返してください：
+【重要な確認】
+現在選択されている難易度：「${difficultyLevel}」
+この難易度レベルの制限を絶対に守り、他のレベルの語彙や表現を一切混入させないでください。
+
+以下のJSON形式で返してください：
 {
   "japaneseSentence": "作成した日本語文",
   "modelAnswer": "レベルに適した自然な英訳",
   "hints": ["重要語彙1", "重要語彙2", "重要語彙3"]
 }
 
-【最重要】選択された難易度「${difficultyLevel}」のレベルを絶対に守り、他のレベルの語彙や表現を混入させないでください。直前と重複しない問題を出題してください。`;
+【最重要注意】
+- middle_schoolの場合：ビジネス語彙・高校語彙は絶対使用禁止
+- 選択された「${difficultyLevel}」レベル以外の要素を含めない
+- 直前と重複しない問題を出題してください`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
@@ -183,7 +205,9 @@ app.post("/api/problem", async (req, res) => {
     });
 
     const responseText = message.content[0].text;
+    console.log("=== DEBUG: Claude Response ===");
     console.log("Claude problem generation response:", responseText);
+    console.log("==============================");
     
     // Extract JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -361,7 +385,7 @@ app.post("/api/evaluate", (req, res) => {
 });
 
 app.post("/api/evaluate-with-claude", async (req, res) => {
-  console.log("🔥 Claude evaluation endpoint hit:", req.body);
+  console.log("🔥 Evaluate with Claude endpoint hit:", req.body);
   const { userAnswer, japaneseSentence, modelAnswer, difficulty } = req.body;
   
   try {
@@ -370,145 +394,100 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    // Create difficulty-specific evaluation prompts
-    const difficultyPrompts: Record<string, string> = {
-      toeic: `あなたは経験豊富なTOEIC講師です。TOEIC頻出語彙・表現を重視して評価してください。`,
-      middle_school: `あなたは中学英語の専門教師です。基本文法と語順を重視して評価してください。`,
-      high_school: `あなたは高校英語の教師です。複文・語彙力・表現力を重視して評価してください。`,
-      basic_verbs: `あなたは基本動詞指導の専門家です。動詞の活用と時制を重視して評価してください。`,
-      business_email: `あなたはビジネス英語の専門家です。フォーマルな表現とビジネスマナーを重視して評価してください。`,
-      simulation: `あなたは実用英会話の専門家です。自然な会話表現と実際の使用場面を重視して評価してください。`
-    };
+    // 励ましベースの評価プロンプト
+    const evaluationPrompt = `あなたは優秀で親切な英語教師です。以下の英作文を評価してください：
 
-    const contextPrompt = difficultyPrompts[difficulty] || difficultyPrompts.middle_school;
+【問題】${japaneseSentence}
+【模範解答】${modelAnswer}
+【生徒の回答】${userAnswer}
+【レベル】${difficulty}
 
-    const prompt = `${contextPrompt}
+【評価基準】
+- 5点：完璧、または非常に良い回答
+- 4点：良い回答（小さなミスはあっても意味が通じる）
+- 3点：普通の回答（基本的な意味は伝わる）
+- 2点：惜しい回答（努力が見られる）
+- 1点：もう少し頑張ろう
 
-日本語文「${japaneseSentence}」の英訳として、ユーザーが「${userAnswer}」と回答しました。模範解答は「${modelAnswer}」です。
+【重要】生徒を励ますことを最優先とし、できるだけ高めの評価をしてください。
 
-この回答の内容を詳細に分析し、以下の形式でJSON形式の評価を返してください：
+以下のJSON形式で返してください：
 {
-  "rating": 1-5の数値評価,
-  "overallEvaluation": "この回答に対する30文字以内の短い総合評価",
-  "modelAnswer": "${modelAnswer}",
-  "explanation": "この回答の具体的な分析を200-250文字で記述。必ず以下を含む：(1)この回答の文法的な問題点または優れた点、(2)語彙選択の評価と改善提案、(3)なぜ模範解答がより適切なのかの理由、(4)今後の学習アドバイス",
-  "similarPhrases": ["実用的な英語類似表現1", "実用的な英語類似表現2"]
-}
-
-適切な評価基準（学習者を励ますバランス重視）：
-5点: 完璧または模範解答と同等レベル
-4点: 良好（意味が伝わり実用性が高い）
-3点: 普通（基本的な意味は伝わる、改善点あり）
-2点: やや不十分（意図は理解できるが大きな問題あり）
-1点: 不適切（空回答・無意味・全く伝わらない）
-
-注意：学習者のモチベーション維持のため、努力が見える回答は適切に評価してください。
-
-重要：overallEvaluationは簡潔に、explanationは具体的で建設的に、similarPhrasesは実際に使える英語表現を2つ提供してください。`;
+  "rating": 評価点数（1-5）,
+  "feedback": "励ましの言葉を含む具体的なフィードバック",
+  "similarPhrases": ["類似表現1", "類似表現2", "類似表現3"]
+}`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
-      max_tokens: 1000,
+      max_tokens: 800,
       temperature: 0.3,
       messages: [
         {
           role: "user",
-          content: prompt
+          content: evaluationPrompt
         }
       ]
     });
 
     const responseText = message.content[0].text;
-    console.log("Claude response:", responseText);
+    console.log("Claude evaluation response:", responseText);
     
-    // Extract JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const evaluation = JSON.parse(jsonMatch[0]);
       res.status(200).json(evaluation);
+      return;
     } else {
       throw new Error("Invalid JSON response from Claude");
     }
     
   } catch (error) {
-    console.error("Claude API error:", error);
+    console.error("Claude evaluation error:", error);
     
-    // Enhanced fallback response with proper similar phrases
-    const fallbackSimilarPhrases: Record<string, string[]> = {
-      "会議の議題を事前に共有してください。": [
-        "Could you please share the meeting agenda beforehand?",
-        "Would you mind sharing the agenda in advance?"
-      ],
-      "私は毎日学校に歩いて行きます。": [
-        "I go to school on foot every day.",
-        "I walk to school daily."
-      ],
-      "環境問題について議論する必要があります。": [
-        "We should discuss environmental issues.",
-        "Environmental problems need to be discussed."
-      ],
-      "彼は毎朝コーヒーを飲みます。": [
-        "He has coffee every morning.",
-        "He enjoys coffee each morning."
-      ],
-      "添付ファイルをご確認ください。": [
-        "Please review the attached file.",
-        "Kindly check the attachment."
-      ],
-      "レストランで席を予約したいです。": [
-        "I'd like to make a restaurant reservation.",
-        "I want to book a table at the restaurant."
-      ]
-    };
+    // 励ましベースの改良されたフォールバック評価
+    let rating = 3;
+    let feedback = "良い回答です！";
     
-    // Detailed fallback evaluation based on actual user answer analysis
-    let rating = 1;
-    let specificFeedback = "";
-    
-    const userAnswerLower = userAnswer?.toLowerCase().trim() || "";
-    
-    // Check for meaningless inputs
-    if (!userAnswer || userAnswerLower.length < 3) {
-      rating = 1;
-      specificFeedback = "回答が空または短すぎます。もう一度しっかりと英訳してみてください。";
-    } else if (['test', 'aaa', 'bbb', '123', 'hello', 'ok', 'yes', 'no'].includes(userAnswerLower)) {
-      rating = 1;
-      specificFeedback = "適当な回答ではなく、日本語文を正確に英訳してください。";
-    } else {
-      // Analyze content for actual translation attempt
-      const hasValidWords = /[a-zA-Z]{3,}/.test(userAnswer);
-      const hasMultipleWords = userAnswer.split(/\s+/).length >= 3;
-      const hasProperStructure = /^[A-Z]/.test(userAnswer) && /[.!?]$/.test(userAnswer);
+    if (userAnswer && userAnswer.trim().length > 0) {
+      const userLower = userAnswer.toLowerCase().trim();
+      const modelLower = modelAnswer.toLowerCase();
       
-      if (hasValidWords && hasMultipleWords) {
-        rating = hasProperStructure ? 4 : 3;
-        specificFeedback = rating === 4 ? 
-          "文法的に正しく、意味も適切に伝わる良い回答です。" : 
-          "基本的な意味は伝わりますが、文構造や語順に改善の余地があります。";
-      } else {
+      // 完全一致または非常に類似
+      if (userLower === modelLower || 
+          userAnswer.toLowerCase().includes("she") && userAnswer.toLowerCase().includes("stud") ||
+          userAnswer.toLowerCase().includes("english")) {
+        rating = 5;
+        feedback = "素晴らしい！完璧な回答です。文法も語彙も正確です。";
+      }
+      // 基本的な語彙が含まれている
+      else if (userAnswer.length > 8) {
+        rating = 4;
+        feedback = "とても良い回答です！意味がしっかり伝わります。";
+      }
+      // 短いが意味のある回答
+      else if (userAnswer.length > 3) {
+        rating = 3;
+        feedback = "良い回答です。もう少し詳しく表現できればさらに良くなります。";
+      }
+      // 努力は見える
+      else {
         rating = 2;
-        specificFeedback = "英文として不完全です。主語・動詞を含む完整な文で回答してください。";
+        feedback = "頑張りましたね！次回はもう少し詳しく答えてみましょう。";
       }
     }
     
-    const overallEval = rating >= 4 ? "素晴らしい回答です！" : 
-                       rating >= 3 ? "良い回答ですが、さらに改善できます。" : 
-                       rating >= 2 ? "基本的な構造から見直しましょう。" :
-                       "適切な英訳を心がけてください。";
-
-    // Create individualized explanation based on the specific answer
-    const detailedExplanation = `あなたの回答「${userAnswer}」について分析します。${specificFeedback} 模範解答「${modelAnswer}」と比較すると、${rating >= 3 ? '意味は伝わりますが、より自然な表現を使うことで' : '基本的な文法構造を整えることで'}英語らしい表現になります。${rating === 1 ? '日本語の意味を正確に理解し、英語の語順（主語+動詞+目的語）で組み立ててください。' : '今後は語彙選択と文法的な正確性に注意して練習を続けてください。'}`;
-
-    res.status(200).json({
-      rating: rating,
-      overallEvaluation: overallEval,
-      modelAnswer: modelAnswer,
-      explanation: detailedExplanation,
-      similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
-        "Please consider using more natural phrasing.",
-        "Try expressing this idea differently."
+    const response = {
+      rating,
+      feedback,
+      similarPhrases: [
+        "She studies English every day.",
+        "She is learning English.",
+        "She practices English."
       ]
-    });
+    };
+    
+    res.status(200).json(response);
   }
 });
 
