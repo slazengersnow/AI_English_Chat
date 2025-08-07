@@ -16,6 +16,7 @@ interface ChatMessage {
   content: string;
   rating?: number;
   phrases?: string[];
+  detailedComment?: string;
   timestamp: Date;
 }
 
@@ -25,6 +26,7 @@ interface EvaluationResult {
   explanation: string;
   similarPhrases: string[];
   overallEvaluation?: string;
+  detailedComment?: string;
 }
 
 export default function ChatStyleTraining({ difficulty, onBackToMenu }: { 
@@ -64,13 +66,13 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
           <span
             key={star}
             className={`text-sm ${
-              star <= rating ? 'text-yellow-500' : 'text-gray-300'
+              star <= rating ? 'text-white' : 'text-gray-300'
             }`}
           >
             {star <= rating ? '★' : '☆'}
           </span>
         ))}
-        <span className="text-xs text-gray-600 ml-2">{rating}/5点</span>
+        <span className="text-xs text-white ml-2">{rating}/5点</span>
       </div>
     );
   };
@@ -199,17 +201,25 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       }
       
       const overallEvaluations = [
-        "完璧です！",
-        "素晴らしい回答です！",
-        "良い回答ですが、改善の余地があります。",
-        "基本的な構造から見直しましょう。",
-        "適切な英訳を心がけてください。"
+        ["完璧な英訳です！", "ネイティブレベルの表現力が身についています。この調子で更なる向上を目指しましょう。"],
+        ["素晴らしい回答です！", "文法・語彙ともに適切で、相手に正確に意図が伝わる表現です。"],
+        ["良い回答です。", "意味は十分伝わりますが、より自然な表現を意識すると更に良くなります。"],
+        ["基本的な構造から見直しましょう。", "英語の文法ルールを確認して、正確な文章作りを心がけてください。"],
+        ["英訳の基礎から練習しましょう。", "日本語の意味を正確に理解し、英語の語順で組み立てる練習を重ねてください。"]
       ];
       
-      const overallEval = overallEvaluations[5 - rating] || "回答を見直しましょう。";
+      const overallEval = overallEvaluations[5 - rating] || ["回答を見直しましょう。", "基本的な英語表現から確認してみてください。"];
 
-      // Create individualized explanation
-      const detailedExplanation = `あなたの回答「${userAnswer}」について分析します。${specificFeedback} 模範解答「${modelAnswer}」と比較すると、${rating >= 3 ? '意味は伝わりますが、より自然な表現を使うことで' : '基本的な文法構造を整えることで'}英語らしい表現になります。${rating === 1 ? '日本語の意味を正確に理解し、英語の語順で組み立ててください。' : '今後は語彙選択と文法的な正確性に注意して練習を続けてください。'}`;
+      // Create varied and direct explanations without "analyzing your answer" prefix
+      const explanationVariations = [
+        `${specificFeedback} ${rating >= 4 ? 'ネイティブに近い自然な表現ですね。' : rating >= 3 ? 'もう少し語彙を工夫すると更に良くなります。' : '基本的な文法構造の確認をおすすめします。'}`,
+        `${specificFeedback} ${rating >= 4 ? '文法・語彙選択が適切で読みやすい文章です。' : rating >= 3 ? '意味は明確に伝わる良い回答です。' : '英語の語順を意識して組み立ててみましょう。'}`,
+        `${specificFeedback} ${rating >= 4 ? 'ビジネスシーンでも使える実用的な表現です。' : rating >= 3 ? '相手に伝わりやすい表現を心がけましょう。' : '日本語の意味を正確に英語で表現する練習を続けてください。'}`,
+        `${specificFeedback} ${rating >= 4 ? '語彙選択・文法ともに申し分ありません。' : rating >= 3 ? '自然な英語表現により近づけることができそうです。' : '基本的な英文パターンの習得から始めてみましょう。'}`,
+        `${specificFeedback} ${rating >= 4 ? '流暢で正確な英語表現が身についています。' : rating >= 3 ? 'コミュニケーションには十分な表現力です。' : '英語らしい表現を身につけるため継続練習をおすすめします。'}`
+      ];
+      
+      const randomExplanation = explanationVariations[Math.floor(Math.random() * explanationVariations.length)];
 
       const fallbackSimilarPhrases: Record<string, string[]> = {
         "このデータを分析してください。": [
@@ -228,9 +238,10 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       
       return {
         rating,
-        overallEvaluation: overallEval,
+        overallEvaluation: overallEval[0],
+        detailedComment: overallEval[1],
         modelAnswer,
-        explanation: detailedExplanation,
+        explanation: randomExplanation,
         similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
           "Please consider using more natural phrasing.",
           "Try expressing this idea differently."
@@ -286,6 +297,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
             id: (Date.now() + 2).toString(),
             type: "overall_evaluation",
             content: overallEval,
+            detailedComment: evaluation.detailedComment,
             timestamp: new Date()
           };
           setMessages(prev => [...prev, overallMessage]);
@@ -389,7 +401,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
             </div>
             <div className="bg-white rounded-lg px-4 py-4 max-w-lg shadow-sm border space-y-4">
               {/* Star Rating - Fixed Height */}
-              <div className="rating-box flex items-center justify-start bg-white border border-gray-200 rounded-lg px-3 py-1 h-8">
+              <div className="rating-box flex items-center justify-start bg-green-500 border border-green-300 rounded-lg px-3 py-1 h-8">
                 {renderStarRating(message.rating || 0)}
               </div>
               
@@ -397,7 +409,10 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
               {overallEval && (
                 <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
                   <div className="text-sm font-medium text-yellow-800 mb-1">全体評価</div>
-                  <div className="text-gray-800">{overallEval.content}</div>
+                  <div className="text-gray-800 font-medium mb-2">{overallEval.content}</div>
+                  {overallEval.detailedComment && (
+                    <div className="text-gray-700 text-sm">{overallEval.detailedComment}</div>
+                  )}
                 </div>
               )}
               
