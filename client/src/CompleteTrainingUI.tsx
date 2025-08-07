@@ -125,6 +125,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
       <ChatStyleTraining 
         difficulty={selectedDifficulty} 
         onBackToMenu={handleBackToMenu}
+        onGoToMyPage={() => setCurrentPage('mypage')}
       />
     );
   }

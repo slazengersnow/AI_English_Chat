@@ -29,9 +29,10 @@ interface EvaluationResult {
   detailedComment?: string;
 }
 
-export default function ChatStyleTraining({ difficulty, onBackToMenu }: { 
+export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPage }: { 
   difficulty: DifficultyLevel;
   onBackToMenu: () => void;
+  onGoToMyPage: () => void;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
@@ -271,7 +272,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
 
         // Select random explanation from the matched template
         const randomIndex = Math.floor(Math.random() * selectedTemplate.explanations.length);
-        return selectedTemplate.explanations[randomIndex];
+        return selectedTemplate.explanations[randomIndex] || specificFeedback;
       };
 
       const detailedExplanation = getDetailedExplanation(userAnswer, japaneseSentence, modelAnswer, rating, specificFeedback);
@@ -293,8 +294,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       
       return {
         rating,
-        overallEvaluation: overallEval[0],
-        detailedComment: overallEval[1],
+        overallEvaluation: overallEval[0] || "良い回答です",
+        detailedComment: overallEval[1] || "継続的な練習で更に向上できます",
         modelAnswer,
         explanation: detailedExplanation,
         similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
@@ -478,7 +479,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
               {modelAnswer && (
                 <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                   <div className="text-sm font-medium text-green-800 mb-1">模範解答</div>
-                  <div className="text-gray-800 font-bold">{modelAnswer.content}</div>
+                  <div className="text-gray-800 text-lg">{modelAnswer.content}</div>
                 </div>
               )}
               
@@ -541,7 +542,10 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
             ← メニューに戻る
           </button>
           <h1 className="font-medium text-gray-900">英作文トレーニング</h1>
-          <button className="text-gray-600">
+          <button 
+            onClick={onGoToMyPage}
+            className="text-gray-600 hover:text-gray-800 transition-colors"
+          >
             👤 マイページ
           </button>
         </div>
