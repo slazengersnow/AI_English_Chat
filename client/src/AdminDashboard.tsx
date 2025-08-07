@@ -34,6 +34,11 @@ interface SystemStatus {
 }
 
 export default function AdminDashboard({ onBackToMenu }: { onBackToMenu: () => void }) {
+  // Record current page as admin dashboard for refresh persistence
+  useEffect(() => {
+    localStorage.setItem('englishTrainingCurrentPage', 'admin');
+  }, []);
+
   const [usageStats, setUsageStats] = useState<UsageStats>({
     todayUsers: 0,
     todayProblems: 0,

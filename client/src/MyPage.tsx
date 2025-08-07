@@ -29,6 +29,11 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
   onBackToMenu: () => void;
   onStartTraining: (problem: string) => void;
 }) {
+  // Record current page as my page for refresh persistence
+  useEffect(() => {
+    localStorage.setItem('englishTrainingCurrentPage', 'mypage');
+  }, []);
+
   const [dailyStats, setDailyStats] = useState<DailyStats>({
     streak: 0,
     todayProblems: 0,

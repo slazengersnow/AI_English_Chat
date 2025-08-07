@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
 import ChatStyleTraining from "./ChatStyleTraining";
 import AdminDashboard from "./AdminDashboard";
@@ -32,7 +32,11 @@ interface CompleteTrainingUIProps {
 // スクリーンショットの完全な英作文トレーニング画面を再現
 export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingUIProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
-  const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage'>('menu');
+  const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage'>(() => {
+    // Load saved page from localStorage on initial load
+    const savedPage = localStorage.getItem('englishTrainingCurrentPage');
+    return (savedPage as 'menu' | 'training' | 'admin' | 'mypage') || 'menu';
+  });
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluation, setEvaluationResult] = useState<EvaluationResult | null>(null);
@@ -107,7 +111,13 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     setUserAnswer("");
     setEvaluationResult(null);
     setError(null);
+    localStorage.setItem('englishTrainingCurrentPage', 'menu');
   };
+
+  // Save current page to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('englishTrainingCurrentPage', currentPage);
+  }, [currentPage]);
 
   // Admin Dashboard
   if (currentPage === 'admin') {
@@ -268,14 +278,20 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
       {/* Header with buttons - positioned absolutely to screen edge */}
       <div className="absolute top-4 right-4 flex space-x-2 z-10">
         <button 
-          onClick={() => setCurrentPage('admin')}
+          onClick={() => {
+            setCurrentPage('admin');
+            localStorage.setItem('englishTrainingCurrentPage', 'admin');
+          }}
           className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
         >
           <span>🛡️</span>
           <span>管理者</span>
         </button>
         <button 
-          onClick={() => setCurrentPage('mypage')}
+          onClick={() => {
+            setCurrentPage('mypage');
+            localStorage.setItem('englishTrainingCurrentPage', 'mypage');
+          }}
           className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
         >
           <span>👤</span>

@@ -119,6 +119,13 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 
 ## Recent Changes (August 7, 2025)
 
+**Page Persistence System Implementation (August 7, 2025)**:
+- Added localStorage-based page state persistence for admin dashboard and MyPage
+- Admin dashboard and MyPage now serve as main pages that persist through browser refresh
+- Implemented automatic page recording when switching between menu, admin, and mypage states
+- Users can now refresh browser while on admin/mypage and return to the same page instead of defaulting to menu
+- Enhanced user experience by maintaining navigation context across browser sessions
+
 **Main Page Design Finalization (August 7, 2025)**:
 - Established CompleteTrainingUI.tsx as the central main page of the application
 - Fixed background color to exact specification: #e7effe (light blue)
@@ -127,6 +134,12 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - Added premium restriction messaging for simulation practice feature
 - Created compact mobile-first design with reduced font sizes and spacing
 - This page serves as the primary entry point and hub for all application functionality
+
+**Bookmark Sequential Practice System (August 7, 2025)**:
+- Implemented bookmark-only practice mode with sequential problem delivery
+- Added system completion messages when all bookmark problems are finished
+- Enhanced bookmark system with dedicated practice flow separate from random problem generation
+- Users can now practice exclusively with their bookmarked problems in sequential order
 
 ## Previous Changes (August 6, 2025)
 
