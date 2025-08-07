@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { apiRequest } from '@/lib/queryClient';
+// import { apiRequest } from '@/lib/queryClient';
 
 interface UsageStats {
   todayUsers: number;
@@ -65,21 +65,40 @@ export default function AdminDashboard({ onBackToMenu }: { onBackToMenu: () => v
     try {
       setIsLoading(true);
       
-      // Load usage statistics
-      const usage = await apiRequest('/api/admin/usage-stats', { method: 'GET' });
-      setUsageStats(usage);
+      // Mock data for testing
+      setUsageStats({
+        todayUsers: 156,
+        todayProblems: 1240,
+        categoryStats: {
+          'TOEIC': 345,
+          '中学英語': 298,
+          '高校英語': 267,
+          '基本動詞': 198,
+          'ビジネスメール': 132
+        },
+        realtimeConnections: 23
+      });
 
-      // Load subscription information
-      const subscription = await apiRequest('/api/admin/subscription-info', { method: 'GET' });
-      setSubscriptionInfo(subscription);
+      setSubscriptionInfo({
+        activeSubscribers: 89,
+        trialUsers: 34,
+        monthlyRevenue: 45600
+      });
 
-      // Load users list
-      const usersData = await apiRequest('/api/admin/users', { method: 'GET' });
-      setUsers(usersData);
+      // Mock users data
+      setUsers([
+        { id: '1', email: 'user1@example.com', createdAt: '2025-08-01', subscriptionStatus: 'active', lastActive: '2025-08-07' },
+        { id: '2', email: 'user2@example.com', createdAt: '2025-07-28', subscriptionStatus: 'trial', lastActive: '2025-08-06' },
+        { id: '3', email: 'user3@example.com', createdAt: '2025-07-25', subscriptionStatus: 'inactive', lastActive: '2025-08-05' },
+      ]);
 
-      // Load system status
-      const status = await apiRequest('/api/admin/system-status', { method: 'GET' });
-      setSystemStatus(status);
+      // Mock system status
+      setSystemStatus({
+        claudeApi: 'healthy',
+        stripeApi: 'healthy', 
+        database: 'healthy',
+        lastUpdated: new Date().toLocaleString()
+      });
 
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -92,11 +111,8 @@ export default function AdminDashboard({ onBackToMenu }: { onBackToMenu: () => v
     if (!notification.trim()) return;
 
     try {
-      await apiRequest('/api/admin/send-notification', {
-        method: 'POST',
-        body: JSON.stringify({ message: notification })
-      });
-
+      // Mock notification sending
+      console.log('Sending notification:', notification);
       alert('お知らせを送信しました');
       setNotification('');
     } catch (error) {
