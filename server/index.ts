@@ -1,3 +1,4 @@
+// server/index.ts
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -26,7 +27,7 @@ app.use(
   stripeWebhookRouter,
 );
 
-// ヘルスチェック
+// Health check
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "healthy",
@@ -35,13 +36,13 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// Set JSON headers for all API routes
+// JSON header for all API routes
 app.use("/api", (req, res, next) => {
   res.setHeader("Content-Type", "application/json");
   next();
 });
 
-// Debug logger for API
+// Debug logging for API routes
 app.use("/api", (req, res, next) => {
   console.log(`🔍 API REQUEST: ${req.method} ${req.url}`);
   next();
@@ -51,31 +52,9 @@ app.use("/api", (req, res, next) => {
 const { registerAdminRoutes } = await import("./admin-routes.js");
 registerAdminRoutes(app);
 
-// Claude APIルート（重要！Viteより前に）
+// Claude API endpoints
 app.get("/api/ping", (req, res) => {
   res.json({ message: "pong", timestamp: new Date().toISOString() });
-});
-
-app.post("/api/problem", async (req, res, next) => {
-  console.log("🔥 Problem route SUCCESS!", req.body); // ✅ デバッグログ追加
-  try {
-    const { handleProblemGeneration } = await import("./routes.js");
-    await handleProblemGeneration(req, res, next);
-  } catch (error) {
-    console.error("Problem generation error:", error);
-    res.status(500).json({ error: "Problem generation failed" });
-  }
-});
-
-app.post("/api/evaluate-with-claude", async (req, res, next) => {
-  console.log("🔥 Claude evaluation route SUCCESS!", req.body); // ✅ デバッグログ追加
-  try {
-    const { handleClaudeEvaluation } = await import("./routes.js");
-    await handleClaudeEvaluation(req, res, next);
-  } catch (error) {
-    console.error("Claude evaluation error:", error);
-    res.status(500).json({ error: "Evaluation failed" });
-  }
 });
 
 app.get("/api/status", (req, res) => {
@@ -86,11 +65,33 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// メインルートの登録
+app.post("/api/problem", async (req, res, next) => {
+  console.log("🔥 Claude Problem API hit", req.body);
+  try {
+    const { handleProblemGeneration } = await import("./routes.js");
+    await handleProblemGeneration(req, res, next);
+  } catch (error) {
+    console.error("Claude problem generation error:", error);
+    res.status(500).json({ error: "Problem generation failed" });
+  }
+});
+
+app.post("/api/evaluate-with-claude", async (req, res, next) => {
+  console.log("🔥 Claude Evaluation API hit", req.body);
+  try {
+    const { handleClaudeEvaluation } = await import("./routes.js");
+    await handleClaudeEvaluation(req, res, next);
+  } catch (error) {
+    console.error("Claude evaluation error:", error);
+    res.status(500).json({ error: "Evaluation failed" });
+  }
+});
+
+// フロントのルートなど
 const { registerMainRoutes } = await import("./routes.js");
 registerMainRoutes(app);
 
-// ⚠️ Viteミドルウェアは最後に適用
+// Viteミドルウェア（必ず最後に）
 if (process.env.NODE_ENV !== "production") {
   const { setupVite } = await import("./vite.js");
   await setupVite(app, null);
