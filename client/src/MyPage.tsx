@@ -1,42 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { apiRequest } from '@/lib/queryClient';
 
-interface UserStats {
+interface PersonalStats {
   totalProblems: number;
   averageRating: number;
   streakDays: number;
-  favoriteCategory: string;
-  monthlyProgress: number;
-  dailyGoal: number;
-  weeklyStats: Array<{ day: string; problems: number }>;
+  categoryBreakdown: Record<string, number>;
+  monthlyProgress: Array<{ month: string; problems: number; averageRating: number }>;
 }
 
 interface BookmarkedProblem {
   id: string;
   japaneseSentence: string;
-  userTranslation: string;
-  correctTranslation: string;
-  rating: number;
+  modelAnswer: string;
   category: string;
-  createdAt: string;
+  bookmarkedAt: string;
+  personalRating?: number;
+}
+
+interface Goal {
+  id: string;
+  type: 'daily' | 'weekly' | 'monthly';
+  target: number;
+  current: number;
+  description: string;
 }
 
 export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
-  const [userStats, setUserStats] = useState<UserStats>({
+  const [personalStats, setPersonalStats] = useState<PersonalStats>({
     totalProblems: 0,
     averageRating: 0,
     streakDays: 0,
-    favoriteCategory: '',
-    monthlyProgress: 0,
-    dailyGoal: 30,
-    weeklyStats: []
+    categoryBreakdown: {},
+    monthlyProgress: []
   });
   const [bookmarkedProblems, setBookmarkedProblems] = useState<BookmarkedProblem[]>([]);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'trial' | 'active' | 'inactive'>('inactive');
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -47,26 +50,59 @@ export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
     try {
       setIsLoading(true);
       
-      // Load user statistics
-      const statsResponse = await apiRequest('GET', '/api/user/stats');
-      if (statsResponse.ok) {
-        const stats = await statsResponse.json();
-        setUserStats(stats);
-      }
+      // Mock personal statistics
+      setPersonalStats({
+        totalProblems: 287,
+        averageRating: 3.8,
+        streakDays: 12,
+        categoryBreakdown: {
+          'TOEIC': 89,
+          '中学英語': 76,
+          '高校英語': 64,
+          '基本動詞': 34,
+          'ビジネスメール': 24
+        },
+        monthlyProgress: [
+          { month: '6月', problems: 98, averageRating: 3.6 },
+          { month: '7月', problems: 134, averageRating: 3.9 },
+          { month: '8月', problems: 55, averageRating: 4.1 }
+        ]
+      });
 
-      // Load bookmarked problems
-      const bookmarksResponse = await apiRequest('GET', '/api/user/bookmarks');
-      if (bookmarksResponse.ok) {
-        const bookmarks = await bookmarksResponse.json();
-        setBookmarkedProblems(bookmarks);
-      }
+      // Mock bookmarked problems
+      setBookmarkedProblems([
+        {
+          id: '1',
+          japaneseSentence: 'このデータを分析してください。',
+          modelAnswer: 'Please analyze this data.',
+          category: 'ビジネスメール',
+          bookmarkedAt: '2025-08-05',
+          personalRating: 2
+        },
+        {
+          id: '2', 
+          japaneseSentence: '明日の会議に参加できません。',
+          modelAnswer: 'I cannot attend tomorrow\'s meeting.',
+          category: 'ビジネスメール',
+          bookmarkedAt: '2025-08-03',
+          personalRating: 3
+        },
+        {
+          id: '3',
+          japaneseSentence: '予算の承認が必要です。',
+          modelAnswer: 'Budget approval is required.',
+          category: 'TOEIC',
+          bookmarkedAt: '2025-08-01',
+          personalRating: 4
+        }
+      ]);
 
-      // Load subscription status
-      const subscriptionResponse = await apiRequest('GET', '/api/user/subscription');
-      if (subscriptionResponse.ok) {
-        const subscription = await subscriptionResponse.json();
-        setSubscriptionStatus(subscription.status);
-      }
+      // Mock personal goals
+      setGoals([
+        { id: '1', type: 'daily', target: 20, current: 12, description: '1日20問' },
+        { id: '2', type: 'weekly', target: 120, current: 78, description: '週120問' },
+        { id: '3', type: 'monthly', target: 500, current: 287, description: '月500問' }
+      ]);
 
     } catch (error) {
       console.error('Failed to load user data:', error);
@@ -75,248 +111,280 @@ export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
     }
   };
 
-  const exportData = async () => {
-    try {
-      const response = await apiRequest('GET', '/api/user/export-data');
-      if (response.ok) {
-        const data = await response.json();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `english-training-data-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-    } catch (error) {
-      console.error('Failed to export data:', error);
-      alert('データのエクスポートに失敗しました');
-    }
+  const exportData = () => {
+    const data = {
+      personalStats,
+      bookmarkedProblems,
+      goals,
+      exportedAt: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai_english_training_data_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
-  const removeBookmark = async (problemId: string) => {
-    try {
-      const response = await apiRequest('DELETE', `/api/user/bookmarks/${problemId}`);
-      if (response.ok) {
-        setBookmarkedProblems(prev => prev.filter(p => p.id !== problemId));
-      }
-    } catch (error) {
-      console.error('Failed to remove bookmark:', error);
-    }
+  const removeBookmark = (problemId: string) => {
+    setBookmarkedProblems(prev => prev.filter(p => p.id !== problemId));
   };
 
-  const getSubscriptionBadge = () => {
-    switch (subscriptionStatus) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800">有料会員</Badge>;
-      case 'trial':
-        return <Badge className="bg-orange-100 text-orange-800">トライアル中</Badge>;
-      default:
-        return <Badge variant="outline">無料会員</Badge>;
-    }
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 90) return 'bg-green-500';
+    if (percentage >= 70) return 'bg-blue-500';
+    if (percentage >= 50) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getRatingColor = (rating: number) => {
+    if (rating >= 4) return 'text-green-600';
+    if (rating >= 3) return 'text-blue-600';
+    if (rating >= 2) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">データを読み込み中...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="ghost"
-            onClick={onBackToMenu}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            ← メニューに戻る
-          </Button>
-          <h1 className="text-xl font-semibold text-gray-900">マイページ</h1>
-          <div className="flex items-center space-x-2">
-            {getSubscriptionBadge()}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center">
+                <span className="text-lg">👤</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">マイページ</h1>
+                <p className="text-sm text-gray-600">学習状況と目標管理</p>
+              </div>
+            </div>
+            <button 
+              onClick={onBackToMenu}
+              className="text-gray-500 hover:text-gray-700 px-3 py-1 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              ← メニューに戻る
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="p-6 space-y-6">
-        {/* 学習統計 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">総問題数</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {userStats.totalProblems.toLocaleString()}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">解答済み</p>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">概要</TabsTrigger>
+            <TabsTrigger value="progress">進捗</TabsTrigger>
+            <TabsTrigger value="bookmarks">ブックマーク</TabsTrigger>
+            <TabsTrigger value="settings">設定</TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">平均評価</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {userStats.averageRating.toFixed(1)}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">5点満点</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">連続学習日数</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {userStats.streakDays}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">日間継続</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">得意カテゴリ</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-purple-600">
-                {userStats.favoriteCategory || 'まだありません'}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">最高評価</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 今月の目標進捗 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>今月の学習目標</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">進捗状況</span>
-              <span className="text-sm text-gray-600">
-                {userStats.monthlyProgress}% ({Math.round(userStats.monthlyProgress * userStats.dailyGoal * 30 / 100)} / {userStats.dailyGoal * 30} 問)
-              </span>
-            </div>
-            <Progress value={userStats.monthlyProgress} className="h-3" />
-            <p className="text-xs text-gray-500">
-              1日の目標: {userStats.dailyGoal}問
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* 週間統計 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>今週の学習履歴</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-7 gap-2">
-              {userStats.weeklyStats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-xs text-gray-500 mb-1">{stat.day}</div>
-                  <div className="h-12 bg-gray-100 rounded flex items-end justify-center">
-                    <div 
-                      className="bg-blue-500 rounded-b w-full"
-                      style={{ 
-                        height: `${Math.max(8, (stat.problems / Math.max(...userStats.weeklyStats.map(s => s.problems))) * 100)}%` 
-                      }}
-                    />
+          {/* Overview Tab */}
+          <TabsContent value="overview">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Overall Stats */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">総合統計</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">{personalStats.totalProblems}</div>
+                    <p className="text-sm text-gray-600">解答済み問題数</p>
                   </div>
-                  <div className="text-xs mt-1 font-medium">{stat.problems}</div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600">{personalStats.averageRating.toFixed(1)}</div>
+                    <p className="text-sm text-gray-600">平均評価</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-orange-600">{personalStats.streakDays}</div>
+                    <p className="text-sm text-gray-600">連続学習日数</p>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* ブックマーク問題 */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>ブックマーク問題</CardTitle>
-            <Badge variant="secondary">{bookmarkedProblems.length}件</Badge>
-          </CardHeader>
-          <CardContent>
-            {bookmarkedProblems.length > 0 ? (
-              <div className="space-y-4">
-                {bookmarkedProblems.slice(0, 10).map((problem) => (
-                  <div key={problem.id} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline">{problem.category}</Badge>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span
-                              key={star}
-                              className={`text-sm ${
-                                star <= problem.rating ? 'text-yellow-500' : 'text-gray-300'
-                              }`}
-                            >
-                              ★
-                            </span>
-                          ))}
+              {/* Category Breakdown */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">カテゴリ別進捗</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {Object.entries(personalStats.categoryBreakdown).map(([category, count]) => (
+                    <div key={category} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-700">{category}</span>
+                      <Badge variant="secondary">{count}問</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Goals */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">目標達成状況</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {goals.map((goal) => {
+                    const percentage = Math.min((goal.current / goal.target) * 100, 100);
+                    return (
+                      <div key={goal.id} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-700">{goal.description}</span>
+                          <span className="text-sm text-gray-600">{goal.current}/{goal.target}</span>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeBookmark(problem.id)}
-                          className="text-red-500 hover:text-red-700"
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full ${getProgressColor(percentage)}`}
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Progress Tab */}
+          <TabsContent value="progress">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">月別進捗</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {personalStats.monthlyProgress.map((month, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-semibold">{month.month}</span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{month.problems}問解答</p>
+                          <p className="text-sm text-gray-600">平均評価: {month.averageRating.toFixed(1)}/5</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge 
+                          variant="secondary" 
+                          className={getRatingColor(month.averageRating)}
                         >
-                          削除
-                        </Button>
+                          {month.averageRating >= 4 ? '優秀' : month.averageRating >= 3 ? '良好' : '要改善'}
+                        </Badge>
                       </div>
                     </div>
-                    <div className="text-sm">
-                      <div className="font-medium text-gray-900">{problem.japaneseSentence}</div>
-                      <div className="text-gray-600 mt-1">あなたの回答: {problem.userTranslation}</div>
-                      <div className="text-green-600 mt-1">模範解答: {problem.correctTranslation}</div>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(problem.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                ))}
-                {bookmarkedProblems.length > 10 && (
-                  <div className="text-center text-sm text-gray-500">
-                    他 {bookmarkedProblems.length - 10} 件のブックマーク
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-8">
-                ブックマークした問題はありません
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* データエクスポート */}
-        <Card>
-          <CardHeader>
-            <CardTitle>データエクスポート</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                あなたの学習データ（解答履歴、ブックマーク、統計情報）をJSONファイルとしてダウンロードできます。
-              </p>
-              <Button onClick={exportData} variant="outline" className="w-full">
-                📁 学習データをエクスポート
-              </Button>
+          {/* Bookmarks Tab */}
+          <TabsContent value="bookmarks">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">ブックマーク問題 ({bookmarkedProblems.length}件)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {bookmarkedProblems.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">ブックマーク問題はありません</p>
+                  ) : (
+                    bookmarkedProblems.map((problem) => (
+                      <div key={problem.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="text-gray-900 font-medium">{problem.japaneseSentence}</p>
+                            <p className="text-gray-600 text-sm mt-1">{problem.modelAnswer}</p>
+                          </div>
+                          <button
+                            onClick={() => removeBookmark(problem.id)}
+                            className="text-red-500 hover:text-red-700 ml-2"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div className="flex space-x-2">
+                            <Badge variant="outline">{problem.category}</Badge>
+                            {problem.personalRating && (
+                              <Badge variant="secondary">
+                                評価: {problem.personalRating}/5
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">{problem.bookmarkedAt}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">データ管理</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button onClick={exportData} className="w-full">
+                    📥 学習データをエクスポート
+                  </Button>
+                  <p className="text-sm text-gray-600">
+                    学習履歴、ブックマーク、統計データをJSONファイルでダウンロードできます。
+                  </p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">学習設定</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">1日の目標問題数</label>
+                    <select className="w-full p-2 border border-gray-300 rounded-md">
+                      <option value="10">10問</option>
+                      <option value="20" selected>20問</option>
+                      <option value="30">30問</option>
+                      <option value="50">50問</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">通知設定</label>
+                    <div className="space-y-1">
+                      <label className="flex items-center">
+                        <input type="checkbox" className="mr-2" checked />
+                        <span className="text-sm">毎日の学習リマインダー</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input type="checkbox" className="mr-2" />
+                        <span className="text-sm">週次進捗レポート</span>
+                      </label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

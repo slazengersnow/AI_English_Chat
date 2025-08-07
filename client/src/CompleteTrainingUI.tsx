@@ -179,7 +179,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
             <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
               <div className="text-center mb-4">
                 <span className="text-3xl font-bold text-blue-600">
-                  {evaluation.rating}/5
+                  {evaluation?.rating || 0}/5
                 </span>
                 <p className="text-gray-600">点</p>
               </div>
@@ -188,18 +188,18 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">模範解答：</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg">
-                    {evaluation.modelAnswer}
+                    {evaluation?.modelAnswer || ''}
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-2">フィードバック：</h4>
                   <p className="text-gray-700 bg-gray-50 p-3 rounded-lg whitespace-pre-line">
-                    {evaluation.feedback}
+                    {evaluation?.feedback || ''}
                   </p>
                 </div>
                 
-                {evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
+                {evaluation?.similarPhrases && evaluation.similarPhrases.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-2">類似表現：</h4>
                     <ul className="bg-gray-50 p-3 rounded-lg space-y-1">
