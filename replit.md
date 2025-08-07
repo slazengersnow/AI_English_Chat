@@ -4,6 +4,8 @@
 
 This is a mobile-first English composition training application that helps users practice translating Japanese sentences to English. The app provides instant feedback and corrections using AI, with a LINE-style chat interface optimized for smartphone usage. The project's vision is to offer a comprehensive, engaging, and effective platform for English learners to improve their composition skills, leveraging AI for personalized and immediate feedback, thereby catering to a broad market of language learners.
 
+**MAIN PAGE**: The core of the application is the level selection page (CompleteTrainingUI.tsx) featuring 6 difficulty levels: TOEIC, 中学英語, 高校英語, 基本動詞, ビジネスメール, シミュレーション練習. This page uses background color #e7effe with admin/mypage buttons positioned at the absolute right edge of the screen. This is the central hub users return to after any debug/refresh scenarios.
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -115,7 +117,18 @@ Project focus: Mobile-optimized English learning app with instant feedback and c
 - **Authentication**: Supabase (for user authentication, including email/password and Google OAuth)
 - **Deployment**: Railway (production deployment)
 
-## Recent Changes (August 6, 2025)
+## Recent Changes (August 7, 2025)
+
+**Main Page Design Finalization (August 7, 2025)**:
+- Established CompleteTrainingUI.tsx as the central main page of the application
+- Fixed background color to exact specification: #e7effe (light blue)
+- Positioned admin/mypage buttons at absolute right edge using position absolute (top-4 right-4)
+- Implemented 6 level selection cards with proper sizing and spacing matching user screenshots
+- Added premium restriction messaging for simulation practice feature
+- Created compact mobile-first design with reduced font sizes and spacing
+- This page serves as the primary entry point and hub for all application functionality
+
+## Previous Changes (August 6, 2025)
 
 **Chat Interface Transformation**:
 - Implemented complete LINE-style messaging interface replacing static forms
