@@ -63,32 +63,58 @@ app.post("/api/problem", async (req, res) => {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    // Create difficulty-specific problem generation prompts
+    // Enhanced difficulty-specific prompts to ensure level-appropriate content
     const difficultySpecs: Record<string, string> = {
-      toeic: "TOEIC頻出のビジネス語彙・表現（例：negotiate, submit, due to, in accordance with, quarterly report, meeting agenda）を含んだ日本語文を1つ作成してください。",
-      middle_school: "中学1-3年レベルの基本文法（現在形・過去形・未来形・進行形）と基本語彙（1200語程度）を使った日本語文を1つ作成してください。",
-      high_school: "高校レベルの複文構造と語彙（関係詞・分詞構文・仮定法など）を含んだ日本語文を1つ作成してください。",
-      basic_verbs: "基本動詞（go, come, take, get, make, do, have, be）を使った時制練習に適した日本語文を1つ作成してください。",
-      business_email: "ビジネスメールで使用する丁寧表現・敬語・フォーマルな言い回し（例：恐れ入りますが、ご確認ください、添付いたします）を含んだ日本語文を1つ作成してください。",
-      simulation: "日常会話・接客・旅行・レストランなど実用的な場面で使う自然な日本語文を1つ作成してください。"
+      toeic: `あなたはTOEIC専門講師です。TOEIC600-800点レベルの受験者向けに、以下の条件で日本語文を1つ作成してください：
+- ビジネス語彙必須（例：negotiate, submit, quarterly, deadline, approval, conference, presentation）
+- ビジネスシーン（会議、報告、メール、スケジュール管理など）
+- TOEIC頻出表現を含む
+- 15-20文字程度`,
+      
+      middle_school: `あなたは中学英語専門教師です。中学1-3年生レベル（英検4-3級相当）で、以下の条件で日本語文を1つ作成してください：
+- 基本動詞（be, have, go, come, like, play, study, eat, drink）中心
+- 現在形・過去形・現在進行形のみ使用
+- 基本語彙1200語以内
+- 日常生活・学校生活が題材
+- 10-15文字程度`,
+      
+      high_school: `あなたは高校英語専門教師です。高校レベル（英検2級-準1級相当）で、以下の条件で日本語文を1つ作成してください：
+- 複文構造（関係詞、分詞構文、仮定法）を含む
+- 抽象的概念・社会問題を題材
+- 高校レベル語彙（2000-3000語レベル）
+- 15-25文字程度`,
+      
+      basic_verbs: `あなたは基本動詞指導の専門家です。以下8つの基本動詞のいずれかを中心とした日本語文を1つ作成してください：
+- 対象動詞：go, come, take, get, make, do, have, be
+- 時制練習重視（現在・過去・未来・進行形）
+- 日常生活シーン
+- 10-15文字程度`,
+      
+      business_email: `あなたはビジネス英語専門家です。実際のビジネスメールで使用される、以下の条件で日本語文を1つ作成してください：
+- 敬語・丁寧語必須（例：恐れ入りますが、ご確認ください、いたします、させていただきます）
+- メール定型表現を含む
+- フォーマルなビジネスシーン
+- 15-25文字程度`,
+      
+      simulation: `あなたは実用英会話専門家です。実際の生活場面で使用される、以下の条件で日本語文を1つ作成してください：
+- 場面：接客、旅行、レストラン、道案内、買い物、公共交通機関
+- 自然な日常会話表現
+- 実用性重視
+- 12-18文字程度`
     };
 
     const spec = difficultySpecs[difficultyLevel] || difficultySpecs.middle_school;
 
     const prompt = `${spec}
 
-以下の形式でJSON形式で返してください：
+厳密にレベルに従って作成し、以下のJSON形式で返してください：
 {
   "japaneseSentence": "作成した日本語文",
-  "modelAnswer": "自然で適切な英訳",
-  "hints": ["重要キーワード1", "重要キーワード2", "重要キーワード3"]
+  "modelAnswer": "レベルに適した自然な英訳",
+  "hints": ["重要語彙1", "重要語彙2", "重要語彙3"]
 }
 
-要件：
-- 実用性が高く学習効果のある文を作成
-- 模範解答は自然で実際に使われる英語表現
-- hintsは翻訳に必要な重要語彙を3つ
-- 文の長さは10-25文字程度の適度な長さ`;
+【重要】選択された難易度「${difficultyLevel}」のレベルを絶対に守り、他のレベルの語彙や表現を混入させないでください。`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
@@ -254,12 +280,14 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
   "similarPhrases": ["実用的な英語類似表現1", "実用的な英語類似表現2"]
 }
 
-厳格な評価基準：
+適切な評価基準（学習者を励ますバランス重視）：
 5点: 完璧または模範解答と同等レベル
-4点: 良好（軽微な改善点はあるが実用性高い）
-3点: 普通（文法・語彙に明確な改善点あり）
-2点: やや不十分（基本的な問題が複数）
-1点: 不適切（空回答・無意味な文字列・大幅な文法ミス）
+4点: 良好（意味が伝わり実用性が高い）
+3点: 普通（基本的な意味は伝わる、改善点あり）
+2点: やや不十分（意図は理解できるが大きな問題あり）
+1点: 不適切（空回答・無意味・全く伝わらない）
+
+注意：学習者のモチベーション維持のため、努力が見える回答は適切に評価してください。
 
 重要：overallEvaluationは簡潔に、explanationは具体的で建設的に、similarPhrasesは実際に使える英語表現を2つ提供してください。`;
 

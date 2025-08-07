@@ -325,18 +325,19 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
           const matchingWords = userWords.filter(word => modelWords.includes(word)).length;
           const similarity = matchingWords / Math.max(modelWords.length, userWords.length);
           
-          if (similarity > 0.7 && hasProperStructure) {
+          // More lenient evaluation similar to original system
+          if (similarity > 0.6 && hasProperStructure) {
             rating = 5;
             specificFeedback = "完璧に近い回答です！文法・語彙ともに適切です。";
-          } else if (similarity > 0.5 || hasProperStructure) {
+          } else if (similarity > 0.4 || (hasProperStructure && hasValidWords)) {
             rating = 4;
             specificFeedback = "良い回答です。意味も適切に伝わります。";
-          } else if (similarity > 0.3) {
+          } else if (similarity > 0.25 || hasValidWords) {
             rating = 3;
-            specificFeedback = "基本的な意味は伝わりますが、より自然な表現を心がけましょう。";
+            specificFeedback = "基本的な意味は伝わります。この調子で続けましょう。";
           } else {
-            rating = 2;
-            specificFeedback = "翻訳としては不十分です。模範解答を参考に改善してください。";
+            rating = 3;  // Default to 3 instead of 2 for more encouragement
+            specificFeedback = "良い回答です。継続して練習することで更に上達します。";
           }
         } else {
           rating = 2;
