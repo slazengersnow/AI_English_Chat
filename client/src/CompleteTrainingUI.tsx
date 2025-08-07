@@ -143,6 +143,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
           japaneseSentence: currentProblem.japaneseSentence,
           modelAnswer: currentProblem.modelAnswer
         } : undefined}
+        isBookmarkMode={!!currentProblem}
       />
     );
   }

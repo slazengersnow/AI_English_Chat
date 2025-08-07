@@ -12,7 +12,7 @@ interface Problem {
 
 interface ChatMessage {
   id: string;
-  type: "problem" | "user_answer" | "evaluation" | "overall_evaluation" | "model_answer" | "explanation" | "similar_phrases" | "next_button";
+  type: "problem" | "user_answer" | "evaluation" | "overall_evaluation" | "model_answer" | "explanation" | "similar_phrases" | "next_button" | "system";
   content: string;
   rating?: number;
   phrases?: string[];
@@ -29,11 +29,12 @@ interface EvaluationResult {
   detailedComment?: string;
 }
 
-export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPage, initialProblem }: { 
+export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPage, initialProblem, isBookmarkMode }: { 
   difficulty: DifficultyLevel;
   onBackToMenu: () => void;
   onGoToMyPage: () => void;
   initialProblem?: { japaneseSentence: string; modelAnswer: string; };
+  isBookmarkMode?: boolean;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
@@ -42,6 +43,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
   const [awaitingAnswer, setAwaitingAnswer] = useState(false);
   const [problemCount, setProblemCount] = useState(1);
   const [bookmarkedProblems, setBookmarkedProblems] = useState<Set<string>>(new Set());
+  const [availableBookmarks, setAvailableBookmarks] = useState<string[]>([]);
+  const [usedBookmarks, setUsedBookmarks] = useState<Set<string>>(new Set());
   const [usedProblems, setUsedProblems] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -71,11 +74,21 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
       try {
         const bookmarksArray = JSON.parse(savedBookmarks);
         setBookmarkedProblems(new Set(bookmarksArray));
+        
+        // If in bookmark mode, prepare available bookmarks for sequential solving
+        if (isBookmarkMode) {
+          const problems = bookmarksArray.map((bookmark: string) => bookmark.split('_')[0]);
+          setAvailableBookmarks(problems);
+          // If starting with a specific problem, mark it as used
+          if (initialProblem) {
+            setUsedBookmarks(new Set([initialProblem.japaneseSentence]));
+          }
+        }
       } catch (error) {
         console.error('Failed to load bookmarks:', error);
       }
     }
-  }, []);
+  }, [isBookmarkMode]);
 
   const renderStarRating = (rating: number) => {
     return (
@@ -145,24 +158,66 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
   }, [initialProblem]);
 
   const loadNewProblem = () => {
-    const problem = getRandomProblem(difficulty, usedProblems);
-    if (problem) {
-      setCurrentProblem(problem);
-      setAwaitingAnswer(true);
+    if (isBookmarkMode) {
+      // In bookmark mode, get next unused bookmark
+      const remainingBookmarks = availableBookmarks.filter(
+        bookmark => !usedBookmarks.has(bookmark)
+      );
       
-      // Track used problems to avoid repetition
-      setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
+      if (remainingBookmarks.length === 0) {
+        // No more bookmarks available - show completion message
+        const completionMessage: ChatMessage = {
+          id: Date.now().toString(),
+          type: "system",
+          content: "ブックマークした問題をすべて完了しました！お疲れ様でした。",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, completionMessage]);
+        return;
+      }
+      
+      // Select next bookmark problem
+      const nextBookmark = remainingBookmarks[0];
+      setUsedBookmarks(prev => new Set([...prev, nextBookmark]));
+      
+      setCurrentProblem({
+        japaneseSentence: nextBookmark,
+        modelAnswer: "Please translate this sentence.",
+        hints: [],
+        difficulty: difficulty
+      });
+      setAwaitingAnswer(true);
       
       const problemMessage: ChatMessage = {
         id: Date.now().toString(),
         type: "problem",
-        content: problem.japaneseSentence,
+        content: nextBookmark,
         timestamp: new Date()
       };
       
-      // Add new problem to existing messages (don't clear history)
       setMessages(prev => [...prev, problemMessage]);
       setProblemCount(prev => prev + 1);
+    } else {
+      // Normal mode - random problem generation
+      const problem = getRandomProblem(difficulty, usedProblems);
+      if (problem) {
+        setCurrentProblem(problem);
+        setAwaitingAnswer(true);
+        
+        // Track used problems to avoid repetition
+        setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
+        
+        const problemMessage: ChatMessage = {
+          id: Date.now().toString(),
+          type: "problem",
+          content: problem.japaneseSentence,
+          timestamp: new Date()
+        };
+        
+        // Add new problem to existing messages (don't clear history)
+        setMessages(prev => [...prev, problemMessage]);
+        setProblemCount(prev => prev + 1);
+      }
     }
   };
 
@@ -542,6 +597,23 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
             >
               次の問題
             </button>
+          </div>
+        );
+
+      case "system":
+        return (
+          <div key={message.id} className="flex justify-center mb-6">
+            <div className="bg-blue-100 rounded-lg px-4 py-3 text-center">
+              <div className="text-blue-800 font-medium">{message.content}</div>
+              {message.content.includes("完了しました") && (
+                <button
+                  onClick={onBackToMenu}
+                  className="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                >
+                  メニューに戻る
+                </button>
+              )}
+            </div>
           </div>
         );
 
