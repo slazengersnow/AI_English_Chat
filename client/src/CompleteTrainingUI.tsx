@@ -246,26 +246,25 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
   }
   return (
     <div className="min-h-screen p-4" style={{ backgroundColor: '#e7effe' }}>
-      <div className="max-w-md mx-auto">
-        {/* Header with buttons */}
-        <div className="w-full mb-6">
-          <div className="flex justify-end space-x-2">
-            <button 
-              onClick={() => setCurrentPage('admin')}
-              className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
-            >
-              <span>🛡️</span>
-              <span>管理者</span>
-            </button>
-            <button 
-              onClick={() => setCurrentPage('mypage')}
-              className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
-            >
-              <span>👤</span>
-              <span>マイページ</span>
-            </button>
-          </div>
-        </div>
+      {/* Header with buttons - positioned absolutely to screen edge */}
+      <div className="absolute top-4 right-4 flex space-x-2 z-10">
+        <button 
+          onClick={() => setCurrentPage('admin')}
+          className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
+        >
+          <span>🛡️</span>
+          <span>管理者</span>
+        </button>
+        <button 
+          onClick={() => setCurrentPage('mypage')}
+          className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
+        >
+          <span>👤</span>
+          <span>マイページ</span>
+        </button>
+      </div>
+
+      <div className="max-w-md mx-auto pt-16">
 
         {/* Main Content */}
         <div className="text-center mb-6">
