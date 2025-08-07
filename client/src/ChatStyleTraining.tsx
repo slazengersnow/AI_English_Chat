@@ -189,13 +189,15 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
     setIsLoading(true);
     try {
       console.log("Fetching problem with difficulty:", difficulty);
+      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const response = await fetch('/api/problem', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          difficultyLevel: difficulty
+          difficultyLevel: difficulty,
+          sessionId: sessionId
         })
       });
       

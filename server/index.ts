@@ -50,12 +50,21 @@ app.use('/api', (req, res, next) => {
 const { registerAdminRoutes } = await import('./admin-routes.js');
 registerAdminRoutes(app);
 
+// セッション別出題履歴管理
+const sessionHistory = new Map<string, Set<string>>();
+
 // API routes BEFORE Vite middleware (CRITICAL ORDER)
 app.post("/api/problem", async (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
-  const { difficultyLevel } = req.body;
+  const { difficultyLevel, sessionId = 'default' } = req.body;
   
   console.log("Generating problem for difficulty:", difficultyLevel);
+  
+  // セッション履歴の初期化
+  if (!sessionHistory.has(sessionId)) {
+    sessionHistory.set(sessionId, new Set());
+  }
+  const usedProblems = sessionHistory.get(sessionId)!;
   
   try {
     const Anthropic = require('@anthropic-ai/sdk');
@@ -63,49 +72,94 @@ app.post("/api/problem", async (req, res) => {
       apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
-    // Enhanced difficulty-specific prompts to ensure level-appropriate content
+    // 厳密なレベル別プロンプト（ユーザー要件に基づく）
     const difficultySpecs: Record<string, string> = {
-      toeic: `あなたはTOEIC専門講師です。TOEIC600-800点レベルの受験者向けに、以下の条件で日本語文を1つ作成してください：
-- ビジネス語彙必須（例：negotiate, submit, quarterly, deadline, approval, conference, presentation）
-- ビジネスシーン（会議、報告、メール、スケジュール管理など）
-- TOEIC頻出表現を含む
-- 15-20文字程度`,
-      
-      middle_school: `あなたは中学英語専門教師です。中学1-3年生レベル（英検4-3級相当）で、以下の条件で日本語文を1つ作成してください：
-- 基本動詞（be, have, go, come, like, play, study, eat, drink）中心
-- 現在形・過去形・現在進行形のみ使用
-- 基本語彙1200語以内
+      toeic: `あなたはTOEIC専門講師です。TOEIC600-800点レベルの受験者向けに、絶対にTOEICレベルの日本語文を1つ作成してください：
+
+【必須条件】
+- TOEIC頻出ビジネス語彙を必ず含む（例：negotiate, submit, quarterly, deadline, approval, conference, presentation, client, contract, schedule, follow up）
+- ビジネスシーン限定（会議・報告・メール・プロジェクト管理・契約・面接など）
+- フォーマルな敬語表現を含む
+- 15-20文字程度
+- 中学・高校レベルの簡単な語彙は使用禁止
+
+【出題例】
+「来月の四半期会議の議題を準備してください。」
+「クライアントとの契約交渉を進めます。」`,
+
+      middle_school: `あなたは中学英語専門教師です。絶対に中学1-3年生レベル（英検4-3級相当）のみで日本語文を1つ作成してください：
+
+【必須条件】
+- 基本動詞のみ使用（be, have, go, come, like, play, study, eat, drink, watch, read, write, live）
+- 現在形・過去形・現在進行形のみ
+- 基本語彙1200語以内の日常語のみ
 - 日常生活・学校生活が題材
-- 10-15文字程度`,
-      
-      high_school: `あなたは高校英語専門教師です。高校レベル（英検2級-準1級相当）で、以下の条件で日本語文を1つ作成してください：
-- 複文構造（関係詞、分詞構文、仮定法）を含む
+- 10-15文字程度
+- ビジネス語彙・高校レベル語彙は使用禁止
+
+【出題例】
+「私は毎日学校に歩いて行きます。」
+「昨日友達とサッカーをしました。」`,
+
+      high_school: `あなたは高校英語専門教師です。絶対に高校レベル（英検2級-準1級相当）で日本語文を1つ作成してください：
+
+【必須条件】
+- 複文構造必須（関係詞・分詞構文・仮定法のいずれかを含む）
 - 抽象的概念・社会問題を題材
 - 高校レベル語彙（2000-3000語レベル）
-- 15-25文字程度`,
-      
+- 15-25文字程度
+- 中学レベルの簡単すぎる語彙は避ける
+
+【出題例】
+「もし時間があれば、図書館で勉強したいと思います。」
+「環境問題について議論する必要があります。」`,
+
       basic_verbs: `あなたは基本動詞指導の専門家です。以下8つの基本動詞のいずれかを中心とした日本語文を1つ作成してください：
-- 対象動詞：go, come, take, get, make, do, have, be
+
+【必須条件】
+- 対象動詞：go, come, take, get, make, do, have, be のいずれか1つを主要動詞として使用
 - 時制練習重視（現在・過去・未来・進行形）
 - 日常生活シーン
-- 10-15文字程度`,
-      
-      business_email: `あなたはビジネス英語専門家です。実際のビジネスメールで使用される、以下の条件で日本語文を1つ作成してください：
-- 敬語・丁寧語必須（例：恐れ入りますが、ご確認ください、いたします、させていただきます）
-- メール定型表現を含む
+- 10-15文字程度
+- 難しい語彙は使用禁止
+
+【出題例】
+「彼は毎朝コーヒーを作ります。」（make）
+「私は昨日新しい本を手に入れました。」（get）`,
+
+      business_email: `あなたはビジネス英語専門家です。実際のビジネスメールで使用される日本語文を1つ作成してください：
+
+【必須条件】
+- 敬語・丁寧語必須（ご確認ください、いたします、させていただきます等）
+- ビジネスメール定型表現を含む
+- 以下のシーンのいずれか：会議依頼、スケジュール調整、契約確認、面接調整、議事録送付
 - フォーマルなビジネスシーン
-- 15-25文字程度`,
-      
-      simulation: `あなたは実用英会話専門家です。実際の生活場面で使用される、以下の条件で日本語文を1つ作成してください：
-- 場面：接客、旅行、レストラン、道案内、買い物、公共交通機関
+- 15-25文字程度
+
+【出題例】
+「会議資料を添付いたしましたのでご確認ください。」
+「来週の面接日程を調整させていただきたく存じます。」`,
+
+      simulation: `あなたは実用英会話専門家です。実際の生活場面で使用される日本語文を1つ作成してください：
+
+【必須条件】
+- 場面：接客、旅行、レストラン、道案内、買い物、公共交通機関のいずれか
 - 自然な日常会話表現
 - 実用性重視
-- 12-18文字程度`
+- 12-18文字程度
+
+【出題例】
+「すみません、駅への道を教えてください。」
+「テーブルを2名で予約したいです。」`
     };
 
     const spec = difficultySpecs[difficultyLevel] || difficultySpecs.middle_school;
+    
+    // 出題履歴を考慮したプロンプト
+    const historyConstraint = usedProblems.size > 0 ? 
+      `\n\n【重要】以下の文と重複しないように、全く異なる内容・文型・語彙で作成してください：\n${Array.from(usedProblems).join('\n')}` : '';
 
-    const prompt = `${spec}
+    const prompt = `${spec}${historyConstraint}
 
 厳密にレベルに従って作成し、以下のJSON形式で返してください：
 {
@@ -114,12 +168,12 @@ app.post("/api/problem", async (req, res) => {
   "hints": ["重要語彙1", "重要語彙2", "重要語彙3"]
 }
 
-【重要】選択された難易度「${difficultyLevel}」のレベルを絶対に守り、他のレベルの語彙や表現を混入させないでください。`;
+【最重要】選択された難易度「${difficultyLevel}」のレベルを絶対に守り、他のレベルの語彙や表現を混入させないでください。直前と重複しない問題を出題してください。`;
 
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
-      max_tokens: 300,
-      temperature: 0.7,
+      max_tokens: 1000,
+      temperature: 0.8,
       messages: [
         {
           role: "user",
@@ -135,6 +189,11 @@ app.post("/api/problem", async (req, res) => {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const problemData = JSON.parse(jsonMatch[0]);
+      problemData.difficulty = difficultyLevel;
+      
+      // 出題履歴に追加
+      usedProblems.add(problemData.japaneseSentence);
+      
       console.log("Problem generated:", problemData);
       const response = {
         ...problemData,
@@ -151,47 +210,103 @@ app.post("/api/problem", async (req, res) => {
   } catch (error) {
     console.error("Claude problem generation error:", error);
     
-    // Enhanced fallback problems for each difficulty
+    // 改良されたレベル別フォールバック
     interface FallbackProblem {
       japaneseSentence: string;
       modelAnswer: string;
       hints: string[];
     }
     
-    const fallbackProblems: Record<string, FallbackProblem> = {
-      toeic: {
-        japaneseSentence: "四半期報告書の提出期限を確認してください。",
-        modelAnswer: "Please check the deadline for quarterly report submission.",
-        hints: ["deadline", "quarterly report", "submission"]
-      },
-      middle_school: {
-        japaneseSentence: "昨日友達と映画を見に行きました。",
-        modelAnswer: "I went to see a movie with my friend yesterday.",
-        hints: ["went", "movie", "yesterday"]
-      },
-      high_school: {
-        japaneseSentence: "もし時間があれば、図書館で勉強したいと思います。",
-        modelAnswer: "If I have time, I would like to study at the library.",
-        hints: ["if", "have time", "would like to"]
-      },
-      basic_verbs: {
-        japaneseSentence: "母は毎朝コーヒーを作ります。",
-        modelAnswer: "My mother makes coffee every morning.",
-        hints: ["makes", "coffee", "every morning"]
-      },
-      business_email: {
-        japaneseSentence: "ご確認いただき、ありがとうございます。",
-        modelAnswer: "Thank you for your confirmation.",
-        hints: ["thank you", "confirmation", "for"]
-      },
-      simulation: {
-        japaneseSentence: "すみません、駅への道を教えてください。",
-        modelAnswer: "Excuse me, could you tell me the way to the station?",
-        hints: ["excuse me", "tell me", "way to"]
-      }
+    const levelSpecificFallbacks: Record<string, FallbackProblem[]> = {
+      toeic: [
+        {
+          japaneseSentence: "四半期報告書の提出期限を確認してください。",
+          modelAnswer: "Please check the deadline for quarterly report submission.",
+          hints: ["deadline", "quarterly", "submission"]
+        },
+        {
+          japaneseSentence: "来月のクライアントとの会議を準備します。",
+          modelAnswer: "I will prepare for next month's meeting with the client.",
+          hints: ["prepare", "meeting", "client"]
+        },
+        {
+          japaneseSentence: "契約書の承認プロセスを進めてください。",
+          modelAnswer: "Please proceed with the contract approval process.",
+          hints: ["proceed", "contract", "approval"]
+        }
+      ],
+      middle_school: [
+        {
+          japaneseSentence: "私は毎日学校に歩いて行きます。",
+          modelAnswer: "I walk to school every day.",
+          hints: ["walk", "school", "every day"]
+        },
+        {
+          japaneseSentence: "昨日友達とサッカーをしました。",
+          modelAnswer: "I played soccer with my friend yesterday.",
+          hints: ["played", "soccer", "yesterday"]
+        },
+        {
+          japaneseSentence: "母は今日買い物に行きます。",
+          modelAnswer: "My mother will go shopping today.",
+          hints: ["go", "shopping", "today"]
+        }
+      ],
+      high_school: [
+        {
+          japaneseSentence: "もし時間があれば、図書館で勉強したいと思います。",
+          modelAnswer: "If I have time, I would like to study at the library.",
+          hints: ["if", "would like", "study"]
+        },
+        {
+          japaneseSentence: "環境問題について議論する必要があります。",
+          modelAnswer: "We need to discuss environmental issues.",
+          hints: ["discuss", "environmental", "issues"]
+        }
+      ],
+      basic_verbs: [
+        {
+          japaneseSentence: "母は毎朝コーヒーを作ります。",
+          modelAnswer: "My mother makes coffee every morning.",
+          hints: ["makes", "coffee", "morning"]
+        },
+        {
+          japaneseSentence: "私は昨日新しい本を手に入れました。",
+          modelAnswer: "I got a new book yesterday.",
+          hints: ["got", "book", "yesterday"]
+        }
+      ],
+      business_email: [
+        {
+          japaneseSentence: "会議資料を添付いたしましたのでご確認ください。",
+          modelAnswer: "I have attached the meeting materials, so please review them.",
+          hints: ["attached", "materials", "review"]
+        },
+        {
+          japaneseSentence: "来週の面接日程を調整させていただきます。",
+          modelAnswer: "I will arrange the interview schedule for next week.",
+          hints: ["arrange", "interview", "schedule"]
+        }
+      ],
+      simulation: [
+        {
+          japaneseSentence: "すみません、駅への道を教えてください。",
+          modelAnswer: "Excuse me, could you tell me the way to the station?",
+          hints: ["excuse me", "way", "station"]
+        },
+        {
+          japaneseSentence: "テーブルを2名で予約したいです。",
+          modelAnswer: "I would like to reserve a table for two people.",
+          hints: ["reserve", "table", "two people"]
+        }
+      ]
     };
 
-    const fallback = fallbackProblems[difficultyLevel] || fallbackProblems.middle_school;
+    const fallbacks = levelSpecificFallbacks[difficultyLevel] || levelSpecificFallbacks.middle_school;
+    const fallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    
+    // 出題履歴に追加
+    usedProblems.add(fallback.japaneseSentence);
     console.log("Using fallback problem for difficulty:", difficultyLevel, fallback);
     const response = {
       ...fallback,
