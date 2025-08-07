@@ -65,14 +65,15 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         {[1, 2, 3, 4, 5].map((star) => (
           <span
             key={star}
-            className={`text-sm ${
+            className={`text-lg ${
               star <= rating ? 'text-white' : 'text-gray-300'
             }`}
+            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
           >
-            {star <= rating ? '★' : '☆'}
+            ★
           </span>
         ))}
-        <span className="text-xs text-white ml-2">{rating}/5点</span>
+        <span className="text-sm text-white ml-2 font-medium">{rating}/5点</span>
       </div>
     );
   };
@@ -210,16 +211,51 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
       
       const overallEval = overallEvaluations[5 - rating] || ["回答を見直しましょう。", "基本的な英語表現から確認してみてください。"];
 
-      // Create varied and direct explanations without "analyzing your answer" prefix
-      const explanationVariations = [
-        `${specificFeedback} ${rating >= 4 ? 'ネイティブに近い自然な表現ですね。' : rating >= 3 ? 'もう少し語彙を工夫すると更に良くなります。' : '基本的な文法構造の確認をおすすめします。'}`,
-        `${specificFeedback} ${rating >= 4 ? '文法・語彙選択が適切で読みやすい文章です。' : rating >= 3 ? '意味は明確に伝わる良い回答です。' : '英語の語順を意識して組み立ててみましょう。'}`,
-        `${specificFeedback} ${rating >= 4 ? 'ビジネスシーンでも使える実用的な表現です。' : rating >= 3 ? '相手に伝わりやすい表現を心がけましょう。' : '日本語の意味を正確に英語で表現する練習を続けてください。'}`,
-        `${specificFeedback} ${rating >= 4 ? '語彙選択・文法ともに申し分ありません。' : rating >= 3 ? '自然な英語表現により近づけることができそうです。' : '基本的な英文パターンの習得から始めてみましょう。'}`,
-        `${specificFeedback} ${rating >= 4 ? '流暢で正確な英語表現が身についています。' : rating >= 3 ? 'コミュニケーションには十分な表現力です。' : '英語らしい表現を身につけるため継続練習をおすすめします。'}`
-      ];
-      
-      const randomExplanation = explanationVariations[Math.floor(Math.random() * explanationVariations.length)];
+      // Create detailed explanations with problem-specific variations (minimum 4 lines)
+      const getDetailedExplanation = (userAnswer: string, japaneseSentence: string, modelAnswer: string, rating: number, specificFeedback: string) => {
+        const explanationTemplates = [
+          // Business/Professional contexts
+          {
+            keywords: ["会議", "議題", "プロジェクト", "チーム", "売上", "目標", "承認", "予算", "スケジュール", "報告"],
+            explanations: [
+              `${specificFeedback}\n模範解答「${modelAnswer}」と比較すると、${rating >= 4 ? 'ビジネス英語として適切な敬語表現が使われています。' : rating >= 3 ? '意味は伝わりますが、よりフォーマルな表現を心がけると良いでしょう。' : 'ビジネスシーンでは相手への配慮を示す表現が重要です。'}\n${rating >= 3 ? 'この表現は実際の職場でも使える実用的なフレーズです。' : '「Could you」や「Would you mind」などの丁寧な依頼表現を覚えましょう。'}\n継続的な練習により、国際的なビジネス環境で通用する英語力が身につきます。`,
+              
+              `${specificFeedback}\n文法的には${rating >= 4 ? '完璧で、ネイティブスピーカーにも自然に聞こえる表現です。' : rating >= 3 ? '基本構造は正しく、相手に意図が明確に伝わります。' : '基本的な文法ルールの確認が必要です。'}\n語彙選択の観点から見ると、${rating >= 4 ? '場面に適した専門用語が適切に使われています。' : rating >= 3 ? 'より具体的で専門的な単語を使うと印象が良くなります。' : '日常会話レベルの基本単語から段階的に覚えていきましょう。'}\n${rating >= 2 ? 'この調子で練習を続ければ、必ず上達します。' : '基本的な文型パターンの反復練習をおすすめします。'}`,
+              
+              `${specificFeedback}\n英語の自然さという点では、${rating >= 4 ? 'ネイティブが実際に使う表現に非常に近く、素晴らしい語感をお持ちです。' : rating >= 3 ? '意味は通じますが、もう少し英語らしい語順や表現を意識してみましょう。' : '日本語的な発想から脱却し、英語独特の表現方法を身につけることが重要です。'}\nコミュニケーション効果を考えると、${rating >= 3 ? 'このレベルなら実際のビジネス場面で十分通用します。' : '相手に誤解を与えないよう、より明確で簡潔な表現を心がけましょう。'}\n今後は類似表現のバリエーションを増やすことで、より柔軟な英語表現力が身につくでしょう。`
+            ]
+          },
+          // Academic/Educational contexts
+          {
+            keywords: ["分析", "データ", "研究", "学習", "理解", "説明", "資料", "情報", "知識"],
+            explanations: [
+              `${specificFeedback}\n学術的な表現として見ると、${rating >= 4 ? '正確性と明確性を兼ね備えた優秀な英訳です。' : rating >= 3 ? '基本的な意味は伝わりますが、より学術的な語彙を使うと良いでしょう。' : '学術英語の基本構造から学び直すことをおすすめします。'}\n語彙の選択では、${rating >= 4 ? '専門性の高い適切な用語が使われており、読み手に正確な情報を伝えています。' : rating >= 3 ? '一般的な単語で意味は通じますが、専門用語を使うとより説得力が増します。' : '基本的な学術用語の習得から始めましょう。'}\n文章構造については${rating >= 2 ? '論理的な組み立てができており、さらなる向上が期待できます。' : '主語・述語・目的語の関係を明確にする練習が必要です。'}\n継続的な学習により、国際的な学術環境でも通用する英語力を身につけることができます。`
+            ]
+          },
+          // Daily conversation contexts
+          {
+            keywords: ["お疲れ", "ありがとう", "すみません", "お願い", "確認", "連絡", "時間", "場所"],
+            explanations: [
+              `${specificFeedback}\n日常会話としては、${rating >= 4 ? '自然で親しみやすい表現が使われており、相手との良好な関係性を築けます。' : rating >= 3 ? '基本的なコミュニケーションは取れますが、もう少し自然な表現を心がけましょう。' : '日常的によく使われる基本フレーズの習得が必要です。'}\n感情表現の観点では、${rating >= 4 ? '相手への配慮や感謝の気持ちが適切に表現されています。' : rating >= 3 ? '気持ちは伝わりますが、より豊かな感情表現を身につけると良いでしょう。' : '基本的な感情を表す単語や表現から覚えていきましょう。'}\n実用性を考えると、${rating >= 3 ? 'この表現は実際の場面でそのまま使える便利なフレーズです。' : '日常生活でよく使う基本的な表現パターンを覚えることから始めましょう。'}\n毎日の練習を通じて、より自然で流暢な英語コミュニケーション能力を向上させることができます。`
+            ]
+          }
+        ];
+
+        // Find matching template based on keywords
+        let selectedTemplate = explanationTemplates[2]; // Default to daily conversation
+        for (const template of explanationTemplates) {
+          if (template.keywords.some(keyword => japaneseSentence.includes(keyword))) {
+            selectedTemplate = template;
+            break;
+          }
+        }
+
+        // Select random explanation from the matched template
+        const randomIndex = Math.floor(Math.random() * selectedTemplate.explanations.length);
+        return selectedTemplate.explanations[randomIndex];
+      };
+
+      const detailedExplanation = getDetailedExplanation(userAnswer, japaneseSentence, modelAnswer, rating, specificFeedback);
 
       const fallbackSimilarPhrases: Record<string, string[]> = {
         "このデータを分析してください。": [
@@ -241,7 +277,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
         overallEvaluation: overallEval[0],
         detailedComment: overallEval[1],
         modelAnswer,
-        explanation: randomExplanation,
+        explanation: detailedExplanation,
         similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
           "Please consider using more natural phrasing.",
           "Try expressing this idea differently."
