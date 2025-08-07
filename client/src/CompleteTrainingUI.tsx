@@ -245,20 +245,20 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     );
   }
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+      <div className="max-w-md mx-auto">
         {/* Header with buttons */}
-        <div className="flex justify-end space-x-2 mb-8">
+        <div className="flex justify-end space-x-2 mb-6">
           <button 
             onClick={() => setCurrentPage('admin')}
-            className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+            className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
           >
             <span>🛡️</span>
             <span>管理者</span>
           </button>
           <button 
             onClick={() => setCurrentPage('mypage')}
-            className="px-4 py-2 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+            className="px-3 py-1.5 bg-white rounded-lg shadow-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-1 text-sm"
           >
             <span>👤</span>
             <span>マイページ</span>
@@ -266,34 +266,34 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
         </div>
 
         {/* Main Content */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-blue-500 rounded-full mx-auto mb-6 flex items-center justify-center">
-            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI瞬間英作文チャット</h1>
-          <p className="text-gray-600">AIが瞬時に添削・評価します</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">AI瞬間英作文チャット</h1>
+          <p className="text-gray-600 text-sm">AIが瞬時に添削・評価します</p>
         </div>
 
-        <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">レベルを選択してください</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4 text-center">レベルを選択してください</h2>
         
-        <div className="space-y-4 mb-8">
+        <div className="space-y-3 mb-6">
           {/* TOEIC */}
           <div 
             onClick={() => handleDifficultySelect("toeic")}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0H8m8 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2V6"/>
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">TOEIC</h3>
+                <h3 className="font-semibold text-gray-900">TOEIC</h3>
                 <p className="text-sm text-gray-600">ビジネス英語・資格対策</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
@@ -302,18 +302,18 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
           {/* 中学英語 */}
           <div 
             onClick={() => handleDifficultySelect("middle_school")}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">中学英語</h3>
+                <h3 className="font-semibold text-gray-900">中学英語</h3>
                 <p className="text-sm text-gray-600">基本的な文法と語彙</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
@@ -322,18 +322,18 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
           {/* 高校英語 */}
           <div 
             onClick={() => handleDifficultySelect("high_school")}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">高校英語</h3>
+                <h3 className="font-semibold text-gray-900">高校英語</h3>
                 <p className="text-sm text-gray-600">応用文法と表現</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
@@ -342,18 +342,18 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
           {/* 基本動詞 */}
           <div 
             onClick={() => handleDifficultySelect("basic_verbs")}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">基本動詞</h3>
+                <h3 className="font-semibold text-gray-900">基本動詞</h3>
                 <p className="text-sm text-gray-600">日常動詞の使い分け</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
@@ -362,36 +362,36 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
           {/* ビジネスメール */}
           <div 
             onClick={() => handleDifficultySelect("business_email")}
-            className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">ビジネスメール</h3>
+                <h3 className="font-semibold text-gray-900">ビジネスメール</h3>
                 <p className="text-sm text-gray-600">実務メール作成</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
               </svg>
             </div>
           </div>
 
           {/* シミュレーション練習 */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">シミュレーション練習</h3>
-                <p className="text-sm text-gray-500">この機能はプレミアム会員向けです。この機能により特定のシチュエーションを想定した瞬間英作文を練習することができます。</p>
+                <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
+                <p className="text-xs text-gray-500">この機能はプレミアム会員向けです。この機能により特定のシチュエーションを想定した瞬間英作文を練習することができます。</p>
               </div>
-              <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
             </div>
@@ -399,14 +399,14 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
         </div>
 
         {/* Premium CTA */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 text-white text-center">
-          <h3 className="text-xl font-bold mb-4">最短で英語力アップ</h3>
-          <ul className="text-sm space-y-1 mb-6">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-5 text-white text-center">
+          <h3 className="text-lg font-bold mb-3">最短で英語力アップ</h3>
+          <ul className="text-xs space-y-1 mb-4">
             <li>• ネイティブ水準の添削フィードバック</li>
             <li>• あなた専用の進捗レポートで実力が見える</li>
             <li>• 中学生英語レベル〜TOEIC対策まで対応</li>
           </ul>
-          <button className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+          <button className="bg-white text-blue-600 px-5 py-2.5 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm">
             今すぐ本登録する
           </button>
         </div>
