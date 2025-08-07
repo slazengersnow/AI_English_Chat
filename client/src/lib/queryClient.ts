@@ -26,36 +26,58 @@ export const apiRequest = async (url: string, options?: RequestInit) => {
   return response.json();
 };
 
-// Claude API integration with fallback support
+// Claude API integration with comprehensive logging and fallback support
 export const claudeApiRequest = async (endpoint: string, data: any) => {
+  console.log(`🔥 Calling Claude API with:`, data);
+  console.log(`🌐 API endpoint: ${endpoint}`);
+  
   try {
     // First try the main API endpoint
-    return await apiRequest(endpoint, {
+    const response = await apiRequest(endpoint, {
       method: 'POST',
       body: JSON.stringify(data)
     });
+    
+    console.log(`✅ Claude API SUCCESS:`, response);
+    
+    // Check if response indicates source
+    if (response.source === 'claude_api') {
+      console.log("🤖 USING CLAUDE AI - Real AI response");
+    } else {
+      console.log("📋 Using server fallback data");
+    }
+    
+    return response;
+    
   } catch (error) {
-    console.error(`API error for ${endpoint}:`, error);
+    console.error(`❌ Claude API failed with error:`, error);
+    console.warn("🔄 Using enhanced fallback evaluation");
     
     // Return encouraging fallback responses based on endpoint
     if (endpoint.includes('problem')) {
-      return {
+      const fallbackResponse = {
         japaneseSentence: generateJapaneseSentence(data.difficultyLevel),
         modelAnswer: generateModelAnswer(data.difficultyLevel),
         hints: generateHints(data.difficultyLevel),
         difficulty: data.difficultyLevel || "middle_school",
         dailyLimitReached: false,
         currentCount: Math.floor(Math.random() * 20) + 1,
-        dailyLimit: 100
+        dailyLimit: 100,
+        source: "client_fallback"
       };
+      console.log("📋 CLIENT FALLBACK - Using pre-generated problem data");
+      return fallbackResponse;
     }
     
     if (endpoint.includes('evaluate')) {
-      return {
+      const fallbackResponse = {
         rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
         feedback: generateEncouragingFeedback(data.userAnswer),
-        similarPhrases: generateSimilarPhrases(data.modelAnswer)
+        similarPhrases: generateSimilarPhrases(data.modelAnswer),
+        source: "client_fallback"
       };
+      console.log("📋 CLIENT FALLBACK - Using pre-generated evaluation");
+      return fallbackResponse;
     }
     
     throw error;

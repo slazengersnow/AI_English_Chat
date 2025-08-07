@@ -90,7 +90,16 @@ app.post("/api/evaluate-with-claude", async (req, res) => {
   }
 });
 
-// Register all main routes directly to app
+// CRITICAL: Test if API routes work before Vite setup
+app.get("/api/test-before-vite", (req, res) => {
+  console.log("🔥 API TEST - Before Vite setup");
+  res.json({ 
+    message: "API working before Vite", 
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Register all main routes directly to app FIRST
 const { registerMainRoutes } = await import('./routes.js');
 registerMainRoutes(app);
 
@@ -104,76 +113,23 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-// CRITICAL: API routes working test
-app.get("/api/test-working", (req, res) => {
-  console.log("🔥 TEST ROUTE - API is working!");
-  res.json({ 
-    message: "API routes are working", 
-    timestamp: new Date().toISOString(),
-    routes: "before-vite"
-  });
-});
+// CRITICAL: Add explicit API routes BEFORE Vite
+console.log("🔧 Setting up API routes BEFORE Vite...");
 
-// API route protection middleware - CRITICAL for preventing Vite interference
-app.use("/api/*", (req, res, next) => {
-  console.log(`🛡️ API route protection: ${req.method} ${req.path}`);
-  next();
-});
-
-// WORKING: Proven Vite integration pattern that preserves API routes
-async function setupWorkingVite() {
-  if (process.env.NODE_ENV !== "production") {
-    console.log("🚀 Setting up working Vite integration...");
-    
-    const { createServer } = await import("vite");
-    
-    const vite = await createServer({
-      server: { middlewareMode: true },
-      appType: "custom",
-      root: path.resolve("client"),
-    });
-    
-    // Add Vite middleware
-    app.use(vite.middlewares);
-    
-    // SPA fallback with proper API route exclusion
-    app.use("*", async (req, res, next) => {
-      const url = req.originalUrl;
-      
-      // Skip API routes - let Express handle them
-      if (url.startsWith("/api/")) {
-        console.log(`🚫 API route ${url} not handled by Vite fallback`);
-        return res.status(404).json({ error: "API endpoint not found" });
-      }
-      
-      try {
-        const template = await vite.transformIndexHtml(url, `
-<!doctype html>
-<html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>AI English Chat</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-        `);
-        res.status(200).set({ "Content-Type": "text/html" }).end(template);
-      } catch (e) {
-        vite.ssrFixStacktrace(e);
-        next(e);
-      }
-    });
-    
-    console.log("🚀 Working Vite setup complete - API routes protected");
-  }
+// Apply existing Vite integration that works correctly with API routes
+if (process.env.NODE_ENV !== "production") {
+  const { setupVite } = await import("./vite.js");
+  await setupVite(app, null);
 }
 
-// Call setup function immediately
-await setupWorkingVite();
+// Final API test after Vite
+app.get("/api/test-after-vite", (req, res) => {
+  console.log("🔥 API TEST - After Vite setup");
+  res.json({ 
+    message: "API working after Vite", 
+    timestamp: new Date().toISOString()
+  });
+});
 
 // サーバー起動
 app.listen(PORT, "0.0.0.0", () => {

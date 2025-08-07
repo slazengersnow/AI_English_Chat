@@ -74,11 +74,13 @@ const handlePing: RequestHandler = (req: Request, res: Response) => {
   res.send("pong");
 };
 
+// Remove duplicate - using existing handlers below
+
 // セッション別出題履歴管理
 const sessionHistory = new Map<string, Set<string>>();
 
-// Problem generation endpoint
-const handleProblemGeneration: RequestHandler = async (req: Request, res: Response) => {
+// Problem generation endpoint - Export for server/index.ts
+export const handleProblemGeneration: RequestHandler = async (req: Request, res: Response) => {
   console.log("🔥 Problem endpoint hit:", req.body);
   const { difficultyLevel, sessionId = 'default' } = req.body;
   
@@ -349,8 +351,8 @@ const handleProblemGeneration: RequestHandler = async (req: Request, res: Respon
   }
 };
 
-// Claude evaluation endpoint
-const handleClaudeEvaluation: RequestHandler = async (req: Request, res: Response) => {
+// Claude evaluation endpoint - Export for server/index.ts  
+export const handleClaudeEvaluation: RequestHandler = async (req: Request, res: Response) => {
   console.log("🔥 Evaluate with Claude endpoint hit:", req.body);
   const { userAnswer, japaneseSentence, modelAnswer, difficulty } = req.body;
   
