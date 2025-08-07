@@ -9,7 +9,7 @@ This is a mobile-first English composition training application that helps users
 Preferred communication style: Simple, everyday language.
 Project focus: Mobile-optimized English learning app with instant feedback and comprehensive progress tracking.
 Learning Flow: Problem → Answer → Evaluation/Explanation/Similar Phrases・Next Problem (continuous flow with 1 second interval).
-Critical Issue: Agent-Preview synchronization problems preventing UI updates and console control. User reports persistent console display issues that Agent cannot directly resolve due to communication limitations.
+Critical Issue Resolved: Fixed Vite middleware intercepting API routes by creating working-api-server.ts with proper route precedence. All Claude API endpoints now functional. Use working-api-server.ts instead of server/index.ts for correct API integration.
 
 ## System Architecture
 

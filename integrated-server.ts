@@ -8,34 +8,58 @@ const PORT = 5000;
 
 app.use(express.json());
 
+// Dynamic imports to avoid issues
+async function setupRoutes() {
+  const { handleProblemGeneration, handleClaudeEvaluation } = await import('./server/routes.js');
+  const { registerAdminRoutes } = await import('./server/admin-routes.js');
+  
+  return { handleProblemGeneration, handleClaudeEvaluation, registerAdminRoutes };
+}
+
 // API endpoints BEFORE Vite middleware
-app.post("/api/problem", (req, res) => {
-  console.log("🔥 Problem endpoint hit:", req.body);
-  res.json({
-    japaneseSentence: "チームメンバーと連携を取ってください。",
-    hints: ["問題1"],
-    dailyLimitReached: false,
-    currentCount: 1,
-    dailyLimit: 100
-  });
+app.get("/api/ping", (req, res) => {
+  console.log("🔥 Ping endpoint hit");
+  res.json({ message: "pong", timestamp: new Date().toISOString() });
 });
 
-app.post("/api/evaluate", (req, res) => {
-  console.log("🔥 Evaluate endpoint hit:", req.body);
-  res.json({
-    rating: 4,
-    modelAnswer: "Please coordinate with your team members.",
-    feedback: "良い回答です。文法的に正確で、意味も適切に伝わります。",
-    similarPhrases: [
-      "Please work closely with your team members.",
-      "Please collaborate with your teammates.",
-      "Please cooperate with your team."
-    ]
+// API routes will be setup after dynamic imports
+async function setupApiRoutes() {
+  const { handleProblemGeneration, handleClaudeEvaluation, registerAdminRoutes } = await setupRoutes();
+  
+  app.post("/api/problem", async (req, res) => {
+    console.log("🔥 Problem endpoint hit:", req.body);
+    await handleProblemGeneration(req, res);
   });
-});
+
+  app.post("/api/evaluate-with-claude", async (req, res) => {
+    console.log("🔥 Claude evaluation endpoint hit:", req.body);
+    await handleClaudeEvaluation(req, res);
+  });
+
+  app.post("/api/evaluate", (req, res) => {
+    console.log("🔥 Evaluate endpoint hit:", req.body);
+    res.json({
+      rating: 4,
+      modelAnswer: "Please coordinate with your team members.",
+      feedback: "良い回答です。文法的に正確で、意味も適切に伝わります。",
+      similarPhrases: [
+        "Please work closely with your team members.",
+        "Please collaborate with your teammates.",
+        "Please cooperate with your team."
+      ]
+    });
+  });
+
+  // Register admin routes
+  registerAdminRoutes(app);
+  
+  console.log("🔥 API routes registered successfully");
+}
 
 // Vite integration
 async function startServer() {
+  // Setup API routes first
+  await setupApiRoutes();
   const vite = await createViteServer({
     server: { middlewareMode: true },
     appType: "custom",
