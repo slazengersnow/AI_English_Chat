@@ -122,11 +122,12 @@ const handleProblem: RequestHandler = async (req, res) => {
 
     // Generate problem using Anthropic API
     const difficultyPrompts = {
-      toeic: "TOEIC レベルのビジネス英語の文章",
-      middle_school: "中学英語レベルの基本的な文章",
-      high_school: "高校英語レベルの応用的な文章",
-      basic_verbs: "基本動詞を使った日常会話の文章",
-      business_email: "ビジネスメールで使われる実用的な文章",
+      toeic: "TOEIC頻出のビジネス語彙・表現（例：negotiate, submit, due to, in accordance with, quarterly report, meeting agenda）を含んだ日本語文を1つ作成してください。",
+      middle_school: "中学1-3年レベルの基本文法（現在形・過去形・未来形・進行形）と基本語彙（1200語程度）を使った日本語文を1つ作成してください。",
+      high_school: "高校レベルの複文構造と語彙（関係詞・分詞構文・仮定法など）を含んだ日本語文を1つ作成してください。",
+      basic_verbs: "基本動詞（go, come, take, get, make, do, have, be）を使った時制練習に適した日本語文を1つ作成してください。",
+      business_email: "ビジネスメールで使用する丁寧表現・敬語・フォーマルな言い回し（例：恐れ入りますが、ご確認ください、添付いたします）を含んだ日本語文を1つ作成してください。",
+      simulation: "日常会話・接客・旅行・レストランなど実用的な場面で使う自然な日本語文を1つ作成してください。"
     };
 
     const prompt =

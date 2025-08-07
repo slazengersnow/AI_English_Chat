@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from "react";
-import { getRandomProblem } from "./MockProblemData";
 
 type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
 
@@ -135,25 +134,8 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
       };
       setMessages([problemMessage]);
     } else {
-      // Load first problem normally
-      const problem = getRandomProblem(difficulty, usedProblems);
-      if (problem) {
-        setCurrentProblem(problem);
-        setAwaitingAnswer(true);
-        
-        // Track first problem
-        setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
-        
-        const problemMessage: ChatMessage = {
-          id: Date.now().toString(),
-          type: "problem",
-          content: problem.japaneseSentence,
-          timestamp: new Date()
-        };
-        
-        // Initial problem setup
-        setMessages([problemMessage]);
-      }
+      // Load first problem from API
+      loadNewProblemFromAPI();
     }
   }, [initialProblem]);
 
@@ -198,26 +180,92 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu, onGoToMyPa
       setMessages(prev => [...prev, problemMessage]);
       setProblemCount(prev => prev + 1);
     } else {
-      // Normal mode - random problem generation
-      const problem = getRandomProblem(difficulty, usedProblems);
-      if (problem) {
-        setCurrentProblem(problem);
-        setAwaitingAnswer(true);
-        
-        // Track used problems to avoid repetition
-        setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
-        
-        const problemMessage: ChatMessage = {
-          id: Date.now().toString(),
-          type: "problem",
-          content: problem.japaneseSentence,
-          timestamp: new Date()
-        };
-        
-        // Add new problem to existing messages (don't clear history)
-        setMessages(prev => [...prev, problemMessage]);
-        setProblemCount(prev => prev + 1);
+      // Normal mode - get problem from API
+      loadNewProblemFromAPI();
+    }
+  };
+
+  const loadNewProblemFromAPI = async () => {
+    setIsLoading(true);
+    try {
+      console.log("Fetching problem with difficulty:", difficulty);
+      const response = await fetch('/api/problem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          difficultyLevel: difficulty
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
+      const problemData = await response.json();
+      console.log("Received problem data:", problemData);
+      
+      const problem: Problem = {
+        japaneseSentence: problemData.japaneseSentence,
+        modelAnswer: problemData.modelAnswer || "Please translate this sentence.",
+        hints: problemData.hints || [],
+        difficulty: difficulty
+      };
+      
+      setCurrentProblem(problem);
+      setAwaitingAnswer(true);
+      
+      // Track used problems to avoid repetition
+      setUsedProblems(prev => new Set([...prev, problem.japaneseSentence]));
+      
+      const problemMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: "problem",
+        content: problem.japaneseSentence,
+        timestamp: new Date()
+      };
+      
+      // Add new problem to existing messages (don't clear history)
+      setMessages(prev => [...prev, problemMessage]);
+      setProblemCount(prev => prev + 1);
+      
+    } catch (error) {
+      console.error("Failed to fetch problem:", error);
+      
+      // Fallback problem for each difficulty level
+      const fallbackProblems = {
+        toeic: "四半期報告書の提出期限を確認してください。",
+        middle_school: "昨日友達と映画を見に行きました。",
+        high_school: "もし時間があれば、図書館で勉強したいと思います。",
+        basic_verbs: "母は毎朝コーヒーを作ります。",
+        business_email: "ご確認いただき、ありがとうございます。",
+        simulation: "すみません、駅への道を教えてください。"
+      };
+      
+      const fallbackProblem = fallbackProblems[difficulty] || fallbackProblems.middle_school;
+      
+      const problem: Problem = {
+        japaneseSentence: fallbackProblem,
+        modelAnswer: "Please translate this sentence.",
+        hints: [],
+        difficulty: difficulty
+      };
+      
+      setCurrentProblem(problem);
+      setAwaitingAnswer(true);
+      
+      const problemMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: "problem",
+        content: problem.japaneseSentence,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, problemMessage]);
+      setProblemCount(prev => prev + 1);
+    } finally {
+      setIsLoading(false);
     }
   };
 

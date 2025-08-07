@@ -55,6 +55,8 @@ app.post("/api/problem", async (req, res) => {
   console.log("🔥 Problem endpoint hit:", req.body);
   const { difficultyLevel } = req.body;
   
+  console.log("Generating problem for difficulty:", difficultyLevel);
+  
   try {
     const Anthropic = require('@anthropic-ai/sdk');
     const anthropic = new Anthropic({
@@ -107,6 +109,7 @@ app.post("/api/problem", async (req, res) => {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const problemData = JSON.parse(jsonMatch[0]);
+      console.log("Problem generated:", problemData);
       const response = {
         ...problemData,
         dailyLimitReached: false,
@@ -143,7 +146,22 @@ app.post("/api/problem", async (req, res) => {
       high_school: {
         japaneseSentence: "もし時間があれば、図書館で勉強したいと思います。",
         modelAnswer: "If I have time, I would like to study at the library.",
-        hints: ["if", "would like to", "library"]
+        hints: ["if", "have time", "would like to"]
+      },
+      basic_verbs: {
+        japaneseSentence: "母は毎朝コーヒーを作ります。",
+        modelAnswer: "My mother makes coffee every morning.",
+        hints: ["makes", "coffee", "every morning"]
+      },
+      business_email: {
+        japaneseSentence: "ご確認いただき、ありがとうございます。",
+        modelAnswer: "Thank you for your confirmation.",
+        hints: ["thank you", "confirmation", "for"]
+      },
+      simulation: {
+        japaneseSentence: "すみません、駅への道を教えてください。",
+        modelAnswer: "Excuse me, could you tell me the way to the station?",
+        hints: ["excuse me", "tell me", "way to"]
       },
       basic_verbs: {
         japaneseSentence: "毎朝6時に起きて朝食を作ります。",
@@ -163,6 +181,7 @@ app.post("/api/problem", async (req, res) => {
     };
 
     const fallback = fallbackProblems[difficultyLevel] || fallbackProblems.middle_school;
+    console.log("Using fallback problem for difficulty:", difficultyLevel, fallback);
     const response = {
       ...fallback,
       dailyLimitReached: false,
