@@ -402,15 +402,14 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                     <span>✅</span>
                     <span>プラン変更</span>
                   </CardTitle>
-                  <p className="text-sm text-gray-600">プレミアムプランにアップグレード</p>
+
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">スタンダードプランをダウングレード</span>
-                      <Button variant="outline" size="sm">ダウングレード</Button>
+                      <span className="font-medium">プレミアムプランにアップグレード</span>
+                      <Button variant="outline" size="sm">アップグレード</Button>
                     </div>
-                    <p className="text-sm text-gray-600">基本機能のみ利用（1日5問まで・月末に課金停止）</p>
                   </div>
                   
                   <div className="border border-gray-200 rounded-lg p-4">
@@ -436,18 +435,13 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2">機能</th>
-                          <th className="text-center py-2">スタンダードプラン</th>
-                          <th className="text-center py-2">プレミアムプラン</th>
+                        <tr className="bg-orange-50 border-b">
+                          <th className="text-left py-2 font-bold">機能</th>
+                          <th className="text-center py-2 font-bold">スタンダードプラン</th>
+                          <th className="text-center py-2 font-bold">プレミアムプラン</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr className="bg-orange-50 border-b">
-                          <td className="py-2 font-medium">機能</td>
-                          <td className="text-center font-medium">スタンダードプラン</td>
-                          <td className="text-center font-medium">プレミアムプラン</td>
-                        </tr>
                         <tr className="bg-gray-50 border-b">
                           <td className="py-2">月額料金</td>
                           <td className="text-center">980円</td>
