@@ -45,10 +45,30 @@ export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
     registeredAt: ''
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
 
   useEffect(() => {
     loadUserData();
+    loadBookmarks();
   }, []);
+
+  const loadBookmarks = () => {
+    const savedBookmarks = localStorage.getItem('englishTrainingBookmarks');
+    if (savedBookmarks) {
+      try {
+        const bookmarksArray = JSON.parse(savedBookmarks);
+        setBookmarks(bookmarksArray);
+      } catch (error) {
+        console.error('Failed to load bookmarks:', error);
+      }
+    }
+  };
+
+  const removeBookmark = (bookmarkToRemove: string) => {
+    const updatedBookmarks = bookmarks.filter(bookmark => bookmark !== bookmarkToRemove);
+    setBookmarks(updatedBookmarks);
+    localStorage.setItem('englishTrainingBookmarks', JSON.stringify(updatedBookmarks));
+  };
 
   const loadUserData = async () => {
     try {
@@ -226,13 +246,44 @@ export default function MyPage({ onBackToMenu }: { onBackToMenu: () => void }) {
                 <p className="text-sm text-gray-600">重要な問題や復習したい問題をブックマークして管理</p>
               </CardHeader>
               <CardContent>
-                <div className="h-64 flex flex-col items-center justify-center text-gray-500">
-                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                    <span>📖</span>
+                {bookmarks.length === 0 ? (
+                  <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+                      <span>📖</span>
+                    </div>
+                    <p className="font-medium">ブックマークした問題がありません</p>
+                    <p className="text-sm">練習中に重要な問題をブックマークしてみましょう</p>
                   </div>
-                  <p className="font-medium">ブックマークした問題がありません</p>
-                  <p className="text-sm">練習中に重要な問題をブックマークしてみましょう</p>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-600 mb-4">
+                      ブックマーク済み: {bookmarks.length}件
+                    </div>
+                    {bookmarks.map((bookmark, index) => {
+                      const [problem, number] = bookmark.split('_');
+                      return (
+                        <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 hover:bg-yellow-100 transition-colors">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <span className="text-yellow-500">⭐</span>
+                                <span className="text-sm font-medium text-gray-700">問題 {number || index + 1}</span>
+                              </div>
+                              <div className="text-gray-800 font-medium">{problem}</div>
+                            </div>
+                            <button 
+                              onClick={() => removeBookmark(bookmark)}
+                              className="text-gray-400 hover:text-red-500 transition-colors ml-2"
+                              title="ブックマークを削除"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

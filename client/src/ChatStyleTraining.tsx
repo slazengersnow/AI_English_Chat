@@ -47,17 +47,33 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const toggleBookmark = (problemId: string) => {
+  const toggleBookmark = (bookmarkKey: string) => {
     setBookmarkedProblems(prev => {
       const newBookmarks = new Set(prev);
-      if (newBookmarks.has(problemId)) {
-        newBookmarks.delete(problemId);
+      if (newBookmarks.has(bookmarkKey)) {
+        newBookmarks.delete(bookmarkKey);
       } else {
-        newBookmarks.add(problemId);
+        newBookmarks.add(bookmarkKey);
       }
+      
+      // Save to localStorage for persistence
+      localStorage.setItem('englishTrainingBookmarks', JSON.stringify([...newBookmarks]));
       return newBookmarks;
     });
   };
+
+  // Load bookmarks from localStorage on component mount
+  useEffect(() => {
+    const savedBookmarks = localStorage.getItem('englishTrainingBookmarks');
+    if (savedBookmarks) {
+      try {
+        const bookmarksArray = JSON.parse(savedBookmarks);
+        setBookmarkedProblems(new Set(bookmarksArray));
+      } catch (error) {
+        console.error('Failed to load bookmarks:', error);
+      }
+    }
+  }, []);
 
   const renderStarRating = (rating: number) => {
     return (
@@ -66,14 +82,17 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
           <span
             key={star}
             className={`text-lg ${
-              star <= rating ? 'text-white' : 'text-gray-300'
+              star <= rating ? 'text-yellow-400' : 'text-gray-300'
             }`}
-            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
+            style={{ 
+              filter: star <= rating ? 'drop-shadow(0 1px 3px rgba(255,193,7,0.4))' : 'none',
+              textShadow: star <= rating ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
+            }}
           >
-            ★
+            ⭐
           </span>
         ))}
-        <span className="text-sm text-white ml-2 font-medium">{rating}/5点</span>
+        <span className="text-sm text-gray-700 ml-2 font-medium">{rating}/5点</span>
       </div>
     );
   };
@@ -390,19 +409,22 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
   const renderMessage = (message: ChatMessage) => {
     switch (message.type) {
       case "problem":
-        const isBookmarked = bookmarkedProblems.has(message.id);
+        const problemNumber = messages.filter(m => m.type === "problem").findIndex(m => m.id === message.id) + 1;
+        const bookmarkKey = `${message.content}_${problemNumber}`;
+        const isBookmarked = bookmarkedProblems.has(bookmarkKey);
         return (
           <div key={message.id} className="flex justify-start mb-6">
             <div 
-              className={`${isBookmarked ? 'bg-blue-500' : 'bg-blue-400'} rounded-full w-12 h-8 flex items-center justify-center mr-3 flex-shrink-0 cursor-pointer transition-colors hover:bg-blue-600`}
-              onClick={() => toggleBookmark(message.id)}
+              className={`${isBookmarked ? 'bg-yellow-400' : 'bg-blue-400'} rounded-full w-12 h-8 flex items-center justify-center mr-3 flex-shrink-0 cursor-pointer transition-colors hover:bg-yellow-500`}
+              onClick={() => toggleBookmark(bookmarkKey)}
+              title={isBookmarked ? "ブックマークを解除" : "ブックマークに追加"}
             >
               <span className="text-white text-sm">
                 {isBookmarked ? '⭐' : '☆'}
               </span>
             </div>
             <div className="bg-white rounded-2xl rounded-tl-md px-4 py-3 max-w-sm shadow-sm border">
-              <div className="text-sm font-medium text-gray-800 mb-1">問題 {messages.filter(m => m.type === "problem").findIndex(m => m.id === message.id) + 1} - 翻訳してください</div>
+              <div className="text-sm font-medium text-gray-800 mb-1">問題 {problemNumber} - 翻訳してください</div>
               <div className="text-gray-800">{message.content}</div>
             </div>
           </div>
@@ -437,7 +459,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
             </div>
             <div className="bg-white rounded-lg px-4 py-4 max-w-lg shadow-sm border space-y-4">
               {/* Star Rating - Fixed Height */}
-              <div className="rating-box flex items-center justify-start bg-green-500 border border-green-300 rounded-lg px-3 py-1 h-8">
+              <div className="rating-box flex items-center justify-start bg-transparent border border-gray-200 rounded-lg px-3 py-1 h-8">
                 {renderStarRating(message.rating || 0)}
               </div>
               
@@ -474,7 +496,7 @@ export default function ChatStyleTraining({ difficulty, onBackToMenu }: {
                   <div className="text-sm font-medium text-purple-800 mb-2">類似フレーズ</div>
                   <div className="space-y-1">
                     {similarPhrases.phrases.map((phrase, index) => (
-                      <div key={index} className="text-gray-800 text-sm">• {phrase}</div>
+                      <div key={index} className="text-gray-800 text-base">• {phrase}</div>
                     ))}
                   </div>
                 </div>
