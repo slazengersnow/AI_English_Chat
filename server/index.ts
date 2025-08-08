@@ -36,23 +36,11 @@ app.get("/health", (_req, res) => {
   });
 });
 
-// JSON header for all API routes
-app.use("/api", (req, res, next) => {
-  res.setHeader("Content-Type", "application/json");
-  next();
-});
-
-// Debug logging for API routes
-app.use("/api", (req, res, next) => {
-  console.log(`🔍 API REQUEST: ${req.method} ${req.url}`);
-  next();
-});
-
 // 管理系ルート登録
 const { registerAdminRoutes } = await import("./admin-routes.js");
 registerAdminRoutes(app);
 
-// Claude API endpoints
+// ✅ Claude API endpoints（必ず /api ミドルウェアより前に配置）
 app.get("/api/ping", (req, res) => {
   res.json({ message: "pong", timestamp: new Date().toISOString() });
 });
@@ -65,33 +53,44 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-app.post("/api/problem", async (req, res, next) => {
+app.post("/api/problem", async (req, res) => {
   console.log("🔥 Claude Problem API hit", req.body);
   try {
     const { handleProblemGeneration } = await import("./routes.js");
-    await handleProblemGeneration(req, res, next);
+    await handleProblemGeneration(req, res);
   } catch (error) {
     console.error("Claude problem generation error:", error);
     res.status(500).json({ error: "Problem generation failed" });
   }
 });
 
-app.post("/api/evaluate-with-claude", async (req, res, next) => {
+app.post("/api/evaluate-with-claude", async (req, res) => {
   console.log("🔥 Claude Evaluation API hit", req.body);
   try {
     const { handleClaudeEvaluation } = await import("./routes.js");
-    await handleClaudeEvaluation(req, res, next);
+    await handleClaudeEvaluation(req, res);
   } catch (error) {
     console.error("Claude evaluation error:", error);
     res.status(500).json({ error: "Evaluation failed" });
   }
 });
 
+// ✅ ここでAPI全体の共通処理を適用（Claude APIに干渉しない位置）
+app.use("/api", (req, res, next) => {
+  res.setHeader("Content-Type", "application/json");
+  next();
+});
+
+app.use("/api", (req, res, next) => {
+  console.log(`🔍 API REQUEST: ${req.method} ${req.url}`);
+  next();
+});
+
 // フロントのルートなど
 const { registerMainRoutes } = await import("./routes.js");
 registerMainRoutes(app);
 
-// Viteミドルウェア（必ず最後に）
+// Viteミドルウェア（最後に）
 if (process.env.NODE_ENV !== "production") {
   const { setupVite } = await import("./vite.js");
   await setupVite(app, null);
@@ -100,4 +99,6 @@ if (process.env.NODE_ENV !== "production") {
 // サーバー起動
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+ on port ${PORT}`);
 });

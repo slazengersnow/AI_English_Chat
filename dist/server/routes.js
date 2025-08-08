@@ -3,19 +3,24 @@ import { createInsertSchema } from "drizzle-zod";
 import { storage } from "./storage.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { trainingSessions, userGoals, dailyProgress, customScenarios, } from "@shared/schema";
+
 // Stripe webhook router placeholder
 const stripeWebhookRouter = { use: () => { } };
+
 // Anthropic client
 const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
+
 // CRITICAL: Daily limit constant
 const DAILY_LIMIT = 100;
+
 // Create Zod schemas
 const insertTrainingSessionSchema = createInsertSchema(trainingSessions);
 const insertUserGoalSchema = createInsertSchema(userGoals);
 const insertDailyProgressSchema = createInsertSchema(dailyProgress);
 const insertCustomScenarioSchema = createInsertSchema(customScenarios);
+
 // Simple auth middleware
 const requireAuth = (req, res, next) => {
     // For development, skip auth check
@@ -29,14 +34,18 @@ const requireAuth = (req, res, next) => {
     }
     next();
 };
+
 const router = Router();
+
 // Health and utility endpoints handlers
 const handleHealth = (req, res) => {
     res.status(200).send("OK");
 };
+
 const handlePing = (req, res) => {
     res.send("pong");
 };
+
 const handleResetDailyCount = async (req, res) => {
     try {
         await storage.resetDailyCount();
@@ -54,6 +63,7 @@ const handleResetDailyCount = async (req, res) => {
         });
     }
 };
+
 // CRITICAL: Problem generation handler with daily limit
 const handleProblem = async (req, res) => {
     const authReq = req;
@@ -62,8 +72,7 @@ const handleProblem = async (req, res) => {
         const { difficultyLevel } = authReq.body;
         if (!difficultyLevel) {
             return res.status(400).json({
-                message: "Difficulty level is required",
-                dailyLimitReached: false,
+                message: "難易度レベルが未指定です。",
             });
         }
         // Check daily limit BEFORE generating problem
@@ -118,6 +127,7 @@ const handleProblem = async (req, res) => {
         });
     }
 };
+
 // Translation evaluation handler
 const handleEvaluate = async (req, res) => {
     const authReq = req;
@@ -150,24 +160,52 @@ const handleEvaluate = async (req, res) => {
                 },
             ],
         });
+
         const evaluation = response.content[0].type === "text"
             ? response.content[0].text
             : "評価を生成できませんでした。";
-        // Parse evaluation (simplified)
-        const lines = evaluation.split("\n");
-        const rating = 4; // Default rating
-        const modelAnswer = "Please coordinate with your team members.";
-        const feedback = evaluation;
-        const similarPhrases = [
-            "Please work closely with your team members.",
-            "Please collaborate with your teammates.",
-            "Please cooperate with your team.",
-        ];
+
+        // Claude の出力内容（evaluation）をそのままパース
+        const content = evaluation;
+
+        let extractedRating = 3;
+        let extractedModelAnswer = "";
+        let extractedFeedback = "";
+        let extractedSimilarPhrases: string[] = [];
+
+        try {
+            const ratingMatch = content.match(/評価\s*[:：]?\s*(\d+)|点数\s*[:：]?\s*(\d+)/);
+            const modelAnswerMatch = content.match(/模範解答\s*[:：]?\s*(.+)/);
+            const feedbackMatch = content.match(/アドバイス\s*[:：]?\s*(.+)|改善点\s*[:：]?\s*(.+)/);
+            const similarMatch = content.match(/言い換え表現\s*[:：]?\s*(.+)|類似表現\s*[:：]?\s*(.+)/);
+
+            if (ratingMatch) {
+                extractedRating = parseInt(ratingMatch[1] || ratingMatch[2], 10);
+            }
+
+            if (modelAnswerMatch) {
+                extractedModelAnswer = modelAnswerMatch[1].trim();
+            }
+
+            if (feedbackMatch) {
+                extractedFeedback = (feedbackMatch[1] || feedbackMatch[2]).trim();
+            }
+
+            if (similarMatch) {
+                extractedSimilarPhrases = (similarMatch[1] || similarMatch[2])
+                    .split(/[、,]/)
+                    .map((phrase) => phrase.trim())
+                    .filter(Boolean);
+            }
+        } catch (err) {
+            console.warn("❗ Claude出力のパースに失敗しました", err);
+        }
+
         res.json({
-            rating,
-            modelAnswer,
-            feedback,
-            similarPhrases,
+            rating: extractedRating,
+            modelAnswer: extractedModelAnswer,
+            feedback: extractedFeedback,
+            similarPhrases: extractedSimilarPhrases,
             evaluation: evaluation,
         });
     }
@@ -179,6 +217,7 @@ const handleEvaluate = async (req, res) => {
         });
     }
 };
+
 // Training sessions handlers
 const handleGetSessions = async (req, res) => {
     try {
@@ -191,6 +230,7 @@ const handleGetSessions = async (req, res) => {
         res.status(500).json({ message: "セッション取得に失敗しました。" });
     }
 };
+
 const handleCreateSession = async (req, res) => {
     try {
         const userId = "anonymous";
@@ -206,6 +246,7 @@ const handleCreateSession = async (req, res) => {
         res.status(400).json({ message: "セッション作成に失敗しました。" });
     }
 };
+
 // User goals handlers
 const handleGetGoals = async (req, res) => {
     try {
@@ -218,6 +259,7 @@ const handleGetGoals = async (req, res) => {
         res.status(500).json({ message: "目標取得に失敗しました。" });
     }
 };
+
 const handleCreateGoal = async (req, res) => {
     try {
         const userId = "anonymous";
@@ -230,6 +272,7 @@ const handleCreateGoal = async (req, res) => {
         res.status(400).json({ message: "目標更新に失敗しました。" });
     }
 };
+
 // Daily progress handlers
 const handleGetProgress = async (req, res) => {
     try {
@@ -242,6 +285,7 @@ const handleGetProgress = async (req, res) => {
         res.status(500).json({ message: "進捗取得に失敗しました。" });
     }
 };
+
 // Custom scenarios handlers
 const handleGetScenarios = async (req, res) => {
     try {
@@ -254,6 +298,7 @@ const handleGetScenarios = async (req, res) => {
         res.status(500).json({ message: "シナリオ取得に失敗しました。" });
     }
 };
+
 const handleCreateScenario = async (req, res) => {
     try {
         const userId = "anonymous";
@@ -269,26 +314,34 @@ const handleCreateScenario = async (req, res) => {
         res.status(400).json({ message: "シナリオ作成に失敗しました。" });
     }
 };
+
 // Route registrations
 // Health and utility endpoints
 router.get("/health", handleHealth);
 router.get("/ping", handlePing);
 router.post("/reset-daily-count", handleResetDailyCount);
+
 // Core functionality endpoints
 router.post("/problem", handleProblem);
 router.post("/evaluate", handleEvaluate);
+
 // Training sessions endpoints
 router.get("/sessions", requireAuth, handleGetSessions);
 router.post("/sessions", requireAuth, handleCreateSession);
+
 // User goals endpoints
 router.get("/goals", requireAuth, handleGetGoals);
 router.post("/goals", requireAuth, handleCreateGoal);
+
 // Daily progress endpoints
 router.get("/progress", requireAuth, handleGetProgress);
+
 // Custom scenarios endpoints
 router.get("/scenarios", requireAuth, handleGetScenarios);
 router.post("/scenarios", requireAuth, handleCreateScenario);
+
 export default router;
+
 // Export function for server integration
 export function registerRoutes(app) {
     app.use("/api", router);
