@@ -89,4 +89,4 @@ Client → Direct Claude API (with fallback) → Response
 Client → Vite middleware → React App (for UI routes)
 ```
 
-**Current Status**: User updated server/index.ts and dist/server/routes.js - testing if Claude API now functions properly via server-side endpoints with latest modifications.
+**Current Status**: User fixed consecutive problem generation bug by implementing registerRoutes in server/index.ts. Application now provides stable single problem generation with intelligent fallback system maintaining seamless learning experience.
