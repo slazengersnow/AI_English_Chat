@@ -256,11 +256,11 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
                   </p>
                 </div>
                 
-                {evaluation?.similarPhrases && evaluation.similarPhrases.length > 0 && (
+                {evaluation?.similarPhrases && evaluation?.similarPhrases.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-2">類似表現：</h4>
                     <ul className="bg-gray-50 p-3 rounded-lg space-y-1">
-                      {evaluation.similarPhrases.map((phrase, index) => (
+                      {evaluation?.similarPhrases?.map((phrase, index) => (
                         <li key={index} className="text-gray-700">• {phrase}</li>
                       ))}
                     </ul>

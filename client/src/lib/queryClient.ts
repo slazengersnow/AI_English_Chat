@@ -1,5 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -11,9 +13,11 @@ export const queryClient = new QueryClient({
 });
 
 export const apiRequest = async (url: string, options?: RequestInit) => {
-  const response = await fetch(url, {
+  const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
+
+  const response = await fetch(fullUrl, {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...options?.headers,
     },
     ...options,
@@ -30,31 +34,30 @@ export const apiRequest = async (url: string, options?: RequestInit) => {
 export const claudeApiRequest = async (endpoint: string, data: any) => {
   console.log(`🔥 Calling Claude API with:`, data);
   console.log(`🌐 API endpoint: ${endpoint}`);
-  
+
   try {
     // First try the main API endpoint
     const response = await apiRequest(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(data)
+      method: "POST",
+      body: JSON.stringify(data),
     });
-    
+
     console.log(`✅ Claude API SUCCESS:`, response);
-    
+
     // Check if response indicates source
-    if (response.source === 'claude_api') {
+    if (response.source === "claude_api") {
       console.log("🤖 USING CLAUDE AI - Real AI response");
     } else {
       console.log("📋 Using server fallback data");
     }
-    
+
     return response;
-    
   } catch (error) {
     console.error(`❌ Claude API failed with error:`, error);
     console.warn("🔄 Using enhanced fallback evaluation");
-    
+
     // Return encouraging fallback responses based on endpoint
-    if (endpoint.includes('problem')) {
+    if (endpoint.includes("problem")) {
       const fallbackResponse = {
         japaneseSentence: generateJapaneseSentence(data.difficultyLevel),
         modelAnswer: generateModelAnswer(data.difficultyLevel),
@@ -63,23 +66,23 @@ export const claudeApiRequest = async (endpoint: string, data: any) => {
         dailyLimitReached: false,
         currentCount: Math.floor(Math.random() * 20) + 1,
         dailyLimit: 100,
-        source: "client_fallback"
+        source: "client_fallback",
       };
       console.log("📋 CLIENT FALLBACK - Using pre-generated problem data");
       return fallbackResponse;
     }
-    
-    if (endpoint.includes('evaluate')) {
+
+    if (endpoint.includes("evaluate")) {
       const fallbackResponse = {
         rating: Math.floor(Math.random() * 2) + 4, // 4 or 5 stars
         feedback: generateEncouragingFeedback(data.userAnswer),
         similarPhrases: generateSimilarPhrases(data.modelAnswer),
-        source: "client_fallback"
+        source: "client_fallback",
       };
       console.log("📋 CLIENT FALLBACK - Using pre-generated evaluation");
       return fallbackResponse;
     }
-    
+
     throw error;
   }
 };
@@ -92,25 +95,26 @@ const generateJapaneseSentence = (level: string) => {
       "彼は音楽が大好きです。",
       "今日は天気がいいですね。",
       "私たちは公園で遊びました。",
-      "母は料理を作っています。"
+      "母は料理を作っています。",
     ],
     high_school: [
       "環境問題について考える必要があります。",
       "技術の発達により生活が便利になりました。",
       "文化の違いを理解することは重要です。",
       "将来の計画について話し合いました。",
-      "国際的な協力が求められています。"
+      "国際的な協力が求められています。",
     ],
     toeic: [
       "会議の資料を準備する必要があります。",
       "売上報告書を月曜日までに提出してください。",
       "新製品の市場調査を実施しました。",
       "プロジェクトの進捗状況を確認しています。",
-      "顧客満足度の向上を目指しています。"
-    ]
+      "顧客満足度の向上を目指しています。",
+    ],
   };
-  
-  const levelSentences = sentences[level as keyof typeof sentences] || sentences.middle_school;
+
+  const levelSentences =
+    sentences[level as keyof typeof sentences] || sentences.middle_school;
   return levelSentences[Math.floor(Math.random() * levelSentences.length)];
 };
 
@@ -122,25 +126,26 @@ const generateModelAnswer = (level: string) => {
       "He loves music very much.",
       "The weather is nice today.",
       "We played in the park.",
-      "My mother is cooking."
+      "My mother is cooking.",
     ],
     high_school: [
       "We need to think about environmental issues.",
       "Life has become convenient due to technological development.",
       "Understanding cultural differences is important.",
       "We discussed future plans.",
-      "International cooperation is required."
+      "International cooperation is required.",
     ],
     toeic: [
       "We need to prepare the meeting materials.",
       "Please submit the sales report by Monday.",
       "We conducted market research on the new product.",
       "I am checking the project progress.",
-      "We aim to improve customer satisfaction."
-    ]
+      "We aim to improve customer satisfaction.",
+    ],
   };
-  
-  const levelAnswers = answers[level as keyof typeof answers] || answers.middle_school;
+
+  const levelAnswers =
+    answers[level as keyof typeof answers] || answers.middle_school;
   return levelAnswers[Math.floor(Math.random() * levelAnswers.length)];
 };
 
@@ -151,24 +156,24 @@ const generateHints = (level: string) => {
       ["love", "music", "very much"],
       ["weather", "nice", "today"],
       ["play", "park", "we"],
-      ["mother", "cooking", "make"]
+      ["mother", "cooking", "make"],
     ],
     high_school: [
       ["environmental", "issues", "think about"],
       ["technology", "convenient", "development"],
       ["cultural", "differences", "important"],
       ["future", "plans", "discuss"],
-      ["international", "cooperation", "required"]
+      ["international", "cooperation", "required"],
     ],
     toeic: [
       ["prepare", "materials", "meeting"],
       ["submit", "report", "deadline"],
       ["market research", "product", "conduct"],
       ["project", "progress", "check"],
-      ["customer satisfaction", "improve", "aim"]
-    ]
+      ["customer satisfaction", "improve", "aim"],
+    ],
   };
-  
+
   const levelHints = hints[level as keyof typeof hints] || hints.middle_school;
   return levelHints[Math.floor(Math.random() * levelHints.length)];
 };
@@ -180,9 +185,9 @@ const generateEncouragingFeedback = (userAnswer: string) => {
     "よくできました！このまま練習を続けていきましょう。",
     "excellent work! 文法も語彙選択も適切です。",
     "Good job! 意味がしっかり伝わる英文になっています。",
-    "Great! ネイティブにも通じる自然な表現です。"
+    "Great! ネイティブにも通じる自然な表現です。",
   ];
-  
+
   return feedbacks[Math.floor(Math.random() * feedbacks.length)];
 };
 
@@ -191,8 +196,10 @@ const generateSimilarPhrases = (modelAnswer: string) => {
   const variations = [
     modelAnswer,
     modelAnswer.replace(/I /g, "I ").replace(/every day/g, "daily"),
-    modelAnswer.replace(/study/g, "learn").replace(/English/g, "the English language"),
+    modelAnswer
+      .replace(/study/g, "learn")
+      .replace(/English/g, "the English language"),
   ];
-  
+
   return variations.slice(0, 3);
 };

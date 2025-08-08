@@ -80,28 +80,34 @@ const handlePing: RequestHandler = (req: Request, res: Response) => {
 const sessionHistory = new Map<string, Set<string>>();
 
 // Problem generation endpoint - Export for server/index.ts
-export const handleProblemGeneration: RequestHandler = async (req: Request, res: Response) => {
+export const handleProblemGeneration: RequestHandler = async (
+  req: Request,
+  res: Response,
+) => {
   console.log("🔥 Problem endpoint hit:", req.body);
-  const { difficultyLevel, sessionId = 'default' } = req.body;
-  
+  const { difficultyLevel, sessionId = "default" } = req.body;
+
   console.log("=== DEBUG: Difficulty Level Analysis ===");
   console.log("Received difficultyLevel:", difficultyLevel);
   console.log("Type of difficultyLevel:", typeof difficultyLevel);
   console.log("SessionId:", sessionId);
   console.log("==========================================");
-  
+
   // セッション履歴の初期化
   if (!sessionHistory.has(sessionId)) {
     sessionHistory.set(sessionId, new Set());
   }
   const usedProblems = sessionHistory.get(sessionId)!;
-  
+
   try {
     console.log("=== DEBUG: API Configuration ===");
     console.log("API Key exists:", !!process.env.ANTHROPIC_API_KEY);
-    console.log("API Key first 10 chars:", process.env.ANTHROPIC_API_KEY?.substring(0, 10));
+    console.log(
+      "API Key first 10 chars:",
+      process.env.ANTHROPIC_API_KEY?.substring(0, 10),
+    );
     console.log("===============================");
-    
+
     // 厳密なレベル別プロンプト（ユーザー要件に基づく）
     const difficultySpecs: Record<string, string> = {
       toeic: `あなたはTOEIC専門講師です。TOEIC600-800点レベルの受験者向けに、絶対にTOEICレベルの日本語文を1つ作成してください：
@@ -184,19 +190,30 @@ export const handleProblemGeneration: RequestHandler = async (req: Request, res:
 
 【出題例】
 「すみません、駅への道を教えてください。」
-「テーブルを2名で予約したいです。」`
+「テーブルを2名で予約したいです。」`,
     };
 
-    const spec = difficultySpecs[difficultyLevel] || difficultySpecs.middle_school;
-    
+    const spec =
+      difficultySpecs[difficultyLevel] || difficultySpecs.middle_school;
+
     console.log("=== DEBUG: Prompt Selection ===");
-    console.log("Selected spec for", difficultyLevel, ":", spec.substring(0, 100) + "...");
-    console.log("Is using fallback to middle_school?", !difficultySpecs[difficultyLevel]);
+    console.log(
+      "Selected spec for",
+      difficultyLevel,
+      ":",
+      spec.substring(0, 100) + "...",
+    );
+    console.log(
+      "Is using fallback to middle_school?",
+      !difficultySpecs[difficultyLevel],
+    );
     console.log("================================");
-    
+
     // 出題履歴を考慮したプロンプト
-    const historyConstraint = usedProblems.size > 0 ? 
-      `\n\n【重要】以下の文と重複しないように、全く異なる内容・文型・語彙で作成してください：\n${Array.from(usedProblems).join('\n')}` : '';
+    const historyConstraint =
+      usedProblems.size > 0
+        ? `\n\n【重要】以下の文と重複しないように、全く異なる内容・文型・語彙で作成してください：\n${Array.from(usedProblems).join("\n")}`
+        : "";
 
     const prompt = `${spec}${historyConstraint}
 
@@ -221,7 +238,7 @@ export const handleProblemGeneration: RequestHandler = async (req: Request, res:
     console.log("Model:", "claude-3-haiku-20240307");
     console.log("Prompt length:", prompt.length);
     console.log("========================");
-    
+
     const message = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
       max_tokens: 1000,
@@ -229,133 +246,141 @@ export const handleProblemGeneration: RequestHandler = async (req: Request, res:
       messages: [
         {
           role: "user",
-          content: prompt
-        }
-      ]
+          content: prompt,
+        },
+      ],
     });
-    
+
     console.log("=== DEBUG: API Success ===");
     console.log("Claude API request successful!");
     console.log("========================");
 
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    const responseText =
+      message.content[0].type === "text" ? message.content[0].text : "";
     console.log("=== DEBUG: Claude Response ===");
     console.log("Claude problem generation response:", responseText);
     console.log("==============================");
-    
+
     // Extract JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const problemData = JSON.parse(jsonMatch[0]);
       problemData.difficulty = difficultyLevel;
-      
+
       // 出題履歴に追加
       usedProblems.add(problemData.japaneseSentence);
-      
+
       console.log("Problem generated:", problemData);
       const response = {
         ...problemData,
         dailyLimitReached: false,
         currentCount: 1,
         dailyLimit: 100,
-        difficulty: difficultyLevel
+        difficulty: difficultyLevel,
       };
       res.status(200).json(response);
     } else {
       throw new Error("Invalid JSON response from Claude");
     }
-    
   } catch (error) {
     console.error("Claude problem generation error:", error);
-    
+
     // 改良されたレベル別フォールバック
     interface FallbackProblem {
       japaneseSentence: string;
       modelAnswer: string;
       hints: string[];
     }
-    
+
     const levelSpecificFallbacks: Record<string, FallbackProblem[]> = {
       toeic: [
         {
           japaneseSentence: "来月の四半期会議の議題を準備してください。",
-          modelAnswer: "Please prepare the agenda for next month's quarterly meeting.",
-          hints: ["prepare", "agenda", "quarterly meeting"]
+          modelAnswer:
+            "Please prepare the agenda for next month's quarterly meeting.",
+          hints: ["prepare", "agenda", "quarterly meeting"],
         },
         {
           japaneseSentence: "クライアントとの契約交渉を進めます。",
-          modelAnswer: "We will proceed with contract negotiations with the client.",
-          hints: ["proceed", "contract", "negotiation"]
-        }
+          modelAnswer:
+            "We will proceed with contract negotiations with the client.",
+          hints: ["proceed", "contract", "negotiation"],
+        },
       ],
       middle_school: [
         {
           japaneseSentence: "彼女は英語を勉強しています。",
           modelAnswer: "She is studying English.",
-          hints: ["study", "English", "present continuous"]
+          hints: ["study", "English", "present continuous"],
         },
         {
           japaneseSentence: "私は昨日映画を見ました。",
           modelAnswer: "I watched a movie yesterday.",
-          hints: ["watch", "movie", "past tense"]
+          hints: ["watch", "movie", "past tense"],
         },
         {
           japaneseSentence: "あなたは朝ごはんを食べますか？",
           modelAnswer: "Do you eat breakfast?",
-          hints: ["eat", "breakfast", "question"]
-        }
+          hints: ["eat", "breakfast", "question"],
+        },
       ],
       high_school: [
         {
           japaneseSentence: "環境問題について議論する必要があります。",
           modelAnswer: "We need to discuss environmental issues.",
-          hints: ["discuss", "environmental", "issues"]
-        }
+          hints: ["discuss", "environmental", "issues"],
+        },
       ],
       basic_verbs: [
         {
           japaneseSentence: "彼は毎朝コーヒーを作ります。",
           modelAnswer: "He makes coffee every morning.",
-          hints: ["make", "coffee", "every morning"]
-        }
+          hints: ["make", "coffee", "every morning"],
+        },
       ],
       business_email: [
         {
           japaneseSentence: "添付ファイルをご確認ください。",
           modelAnswer: "Please check the attached file.",
-          hints: ["check", "attached", "file"]
-        }
+          hints: ["check", "attached", "file"],
+        },
       ],
       simulation: [
         {
           japaneseSentence: "レストランで席を予約したいです。",
           modelAnswer: "I would like to reserve a table at the restaurant.",
-          hints: ["reserve", "table", "restaurant"]
-        }
-      ]
+          hints: ["reserve", "table", "restaurant"],
+        },
+      ],
     };
-    
+
     // フォールバック問題の選択
-    const fallbackProblems = levelSpecificFallbacks[difficultyLevel] || levelSpecificFallbacks.middle_school;
-    const selectedProblem = fallbackProblems[Math.floor(Math.random() * fallbackProblems.length)];
-    
+    const fallbackProblems =
+      levelSpecificFallbacks[difficultyLevel] ||
+      levelSpecificFallbacks.middle_school;
+    const selectedProblem =
+      fallbackProblems[Math.floor(Math.random() * fallbackProblems.length)];
+
     const response = {
       ...selectedProblem,
       dailyLimitReached: false,
       currentCount: 1,
       dailyLimit: 100,
-      difficulty: difficultyLevel
+      difficulty: difficultyLevel,
     };
-    
+
     res.status(200).json(response);
   }
 };
 
-// Claude evaluation endpoint - Export for server/index.ts  
-export const handleClaudeEvaluation: RequestHandler = async (req: Request, res: Response) => {
+// Claude evaluation endpoint - Export for server/index.ts
+export const handleClaudeEvaluation: RequestHandler = async (
+  req: Request,
+  res: Response,
+) => {
   console.log("🔥 Evaluate with Claude endpoint hit:", req.body);
   const { userAnswer, japaneseSentence, modelAnswer, difficulty } = req.body;
-  
+
   try {
     // 励ましベースの評価プロンプト
     const evaluationPrompt = `あなたは優秀で親切な英語教師です。以下の英作文を評価してください：
@@ -388,14 +413,15 @@ export const handleClaudeEvaluation: RequestHandler = async (req: Request, res: 
       messages: [
         {
           role: "user",
-          content: evaluationPrompt
-        }
-      ]
+          content: evaluationPrompt,
+        },
+      ],
     });
 
-    const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+    const responseText =
+      message.content[0].type === "text" ? message.content[0].text : "";
     console.log("Claude evaluation response:", responseText);
-    
+
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const evaluation = JSON.parse(jsonMatch[0]);
@@ -404,22 +430,24 @@ export const handleClaudeEvaluation: RequestHandler = async (req: Request, res: 
     } else {
       throw new Error("Invalid JSON response from Claude");
     }
-    
   } catch (error) {
     console.error("Claude evaluation error:", error);
-    
+
     // 励ましベースの改良されたフォールバック評価
     let rating = 3;
     let feedback = "良い回答です！";
-    
+
     if (userAnswer && userAnswer.trim().length > 0) {
       const userLower = userAnswer.toLowerCase().trim();
       const modelLower = modelAnswer.toLowerCase();
-      
+
       // 完全一致または非常に類似
-      if (userLower === modelLower || 
-          userAnswer.toLowerCase().includes("she") && userAnswer.toLowerCase().includes("stud") ||
-          userAnswer.toLowerCase().includes("english")) {
+      if (
+        userLower === modelLower ||
+        (userAnswer.toLowerCase().includes("she") &&
+          userAnswer.toLowerCase().includes("stud")) ||
+        userAnswer.toLowerCase().includes("english")
+      ) {
         rating = 5;
         feedback = "素晴らしい！完璧な回答です。文法も語彙も正確です。";
       }
@@ -431,7 +459,8 @@ export const handleClaudeEvaluation: RequestHandler = async (req: Request, res: 
       // 短いが意味のある回答
       else if (userAnswer.length > 3) {
         rating = 3;
-        feedback = "良い回答です。もう少し詳しく表現できればさらに良くなります。";
+        feedback =
+          "良い回答です。もう少し詳しく表現できればさらに良くなります。";
       }
       // 努力は見える
       else {
@@ -439,17 +468,17 @@ export const handleClaudeEvaluation: RequestHandler = async (req: Request, res: 
         feedback = "頑張りましたね！次回はもう少し詳しく答えてみましょう。";
       }
     }
-    
+
     const response = {
       rating,
       feedback,
       similarPhrases: [
         "She studies English every day.",
         "She is learning English.",
-        "She practices English."
-      ]
+        "She practices English.",
+      ],
     };
-    
+
     res.status(200).json(response);
   }
 };
@@ -503,12 +532,18 @@ const handleProblem: RequestHandler = async (req, res) => {
 
     // Generate problem using Anthropic API
     const difficultyPrompts = {
-      toeic: "TOEIC頻出のビジネス語彙・表現（例：negotiate, submit, due to, in accordance with, quarterly report, meeting agenda）を含んだ日本語文を1つ作成してください。",
-      middle_school: "中学1-3年レベルの基本文法（現在形・過去形・未来形・進行形）と基本語彙（1200語程度）を使った日本語文を1つ作成してください。",
-      high_school: "高校レベルの複文構造と語彙（関係詞・分詞構文・仮定法など）を含んだ日本語文を1つ作成してください。",
-      basic_verbs: "基本動詞（go, come, take, get, make, do, have, be）を使った時制練習に適した日本語文を1つ作成してください。",
-      business_email: "ビジネスメールで使用する丁寧表現・敬語・フォーマルな言い回し（例：恐れ入りますが、ご確認ください、添付いたします）を含んだ日本語文を1つ作成してください。",
-      simulation: "日常会話・接客・旅行・レストランなど実用的な場面で使う自然な日本語文を1つ作成してください。"
+      toeic:
+        "TOEIC頻出のビジネス語彙・表現（例：negotiate, submit, due to, in accordance with, quarterly report, meeting agenda）を含んだ日本語文を1つ作成してください。",
+      middle_school:
+        "中学1-3年レベルの基本文法（現在形・過去形・未来形・進行形）と基本語彙（1200語程度）を使った日本語文を1つ作成してください。",
+      high_school:
+        "高校レベルの複文構造と語彙（関係詞・分詞構文・仮定法など）を含んだ日本語文を1つ作成してください。",
+      basic_verbs:
+        "基本動詞（go, come, take, get, make, do, have, be）を使った時制練習に適した日本語文を1つ作成してください。",
+      business_email:
+        "ビジネスメールで使用する丁寧表現・敬語・フォーマルな言い回し（例：恐れ入りますが、ご確認ください、添付いたします）を含んだ日本語文を1つ作成してください。",
+      simulation:
+        "日常会話・接客・旅行・レストランなど実用的な場面で使う自然な日本語文を1つ作成してください。",
     };
 
     const prompt =
@@ -754,10 +789,7 @@ router.get("/progress", requireAuth, handleGetProgress);
 router.get("/scenarios", requireAuth, handleGetScenarios);
 router.post("/scenarios", requireAuth, handleCreateScenario);
 
-// Export individual handlers for direct use
-export { handleProblemGeneration, handleClaudeEvaluation };
-
-// Export function to register routes directly to app  
+// Export function to register routes directly to app
 export function registerMainRoutes(app: any) {
   // Health and utility endpoints
   app.get("/api/health", handleHealth);
@@ -783,7 +815,7 @@ export function registerMainRoutes(app: any) {
   // Custom scenarios endpoints
   app.get("/api/scenarios", requireAuth, handleGetScenarios);
   app.post("/api/scenarios", requireAuth, handleCreateScenario);
-  
+
   console.log("🔥 Direct routes registered to app");
 }
 
