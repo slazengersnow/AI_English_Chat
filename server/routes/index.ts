@@ -4,13 +4,11 @@ import chatRoutes from "./chat.js";
 import userRoutes from "./user.js";
 import { testAuth, getSupabaseStatus } from "./debug-auth.js";
 
-// Claudeハンドラは routes.ts から関数を直接インポートして明示登録する
+// Claudeハンドラは simple-routes.ts から関数を直接インポートして明示登録する
 import {
   handleProblemGeneration,
   handleClaudeEvaluation,
-  // もし /api/evaluate（Claudeなしの従来評価）も使うなら、routes.ts でエクスポートした上で次行のコメントを外す
-  // handleEvaluate,
-} from "../routes.js";
+} from "../simple-routes.js";
 
 /**
  * /api 配下のルーティングを一括登録する

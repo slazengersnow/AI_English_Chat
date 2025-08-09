@@ -433,7 +433,7 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
 router.post("/problem", requireActiveSubscription, handleProblemGeneration);
 
 // Evaluate user translation using Claude Haiku
-router.post("/translate", async (req: Request, res: Response) => {
+export const handleClaudeEvaluation = async (req: Request, res: Response) => {
   try {
     const { japaneseSentence, userTranslation, difficultyLevel } =
       translateRequestSchema.parse(req.body);
@@ -627,7 +627,10 @@ router.post("/translate", async (req: Request, res: Response) => {
     console.error("Translation error:", error);
     res.status(400).json({ message: "Invalid request data" });
   }
-});
+};
+
+// Register the route
+router.post("/translate", handleClaudeEvaluation);
 
 // Get available Stripe prices
 router.get("/stripe-prices", async (req: Request, res: Response) => {

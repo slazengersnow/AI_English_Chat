@@ -17,5 +17,5 @@
     // }
   },
   "include": ["server/**/*", "shared/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "server/routes.ts", "server/admin-routes.ts"]
 }
