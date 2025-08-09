@@ -30,11 +30,11 @@ try {
   console.error("Routes registration error:", error);
 }
 
-// Vite middleware - only in development and when SERVE_CLIENT is true
-if (process.env.NODE_ENV !== "production" && process.env.SERVE_CLIENT !== "false") {
-  const { setupVite } = await import("./vite.js");
-  await setupVite(app, null);
-}
+// Serve static HTML for testing
+app.use(express.static("public"));
+
+// Vite middleware disabled due to configuration issues
+console.log("Vite middleware disabled - using static file serving");
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);

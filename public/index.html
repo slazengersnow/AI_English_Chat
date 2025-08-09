@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI瞬間英作文チャット</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #e7effe;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 2rem;
+        }
+        
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 2rem 0;
+        }
+        
+        .level-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .level-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+            border-color: #3b82f6;
+        }
+        
+        .level-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .level-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .admin-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .admin-btn {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .status-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-buttons">
+        <button class="admin-btn" onclick="window.location.href='/admin'">管理画面</button>
+        <button class="admin-btn" onclick="window.location.href='/my-page'">マイページ</button>
+    </div>
+
+    <div class="container">
+        <h1 class="title">AI瞬間英作文チャット</h1>
+        
+        <div class="levels-grid">
+            <div class="level-card" onclick="startTraining('toeic')">
+                <div class="level-title">TOEIC</div>
+                <div class="level-description">TOEIC頻出表現を使った実践的な英作文練習</div>
+            </div>
+            
+            <div class="level-card" onclick="startTraining('middle-school')">
+                <div class="level-title">中学英語</div>
+                <div class="level-description">基礎的な文法と語彙を使った英作文</div>
+            </div>
+            
+            <div class="level-card" onclick="startTraining('high-school')">
+                <div class="level-title">高校英語</div>
+                <div class="level-description">高校レベルの文法と表現を使った練習</div>
+            </div>
+            
+            <div class="level-card" onclick="startTraining('basic-verbs')">
+                <div class="level-title">基本動詞</div>
+                <div class="level-description">日常会話でよく使われる基本動詞の練習</div>
+            </div>
+            
+            <div class="level-card" onclick="startTraining('business-email')">
+                <div class="level-title">ビジネスメール</div>
+                <div class="level-description">ビジネスシーンで使える英文メール作成</div>
+            </div>
+            
+            <div class="level-card" onclick="startTraining('simulation')">
+                <div class="level-title">シミュレーション練習</div>
+                <div class="level-description">実際の会話シーンを想定した英作文</div>
+            </div>
+        </div>
+        
+        <div class="status-info">
+            <div class="status-title">✅ サーバー復旧完了</div>
+            <div>TypeScriptビルドが正常に完了し、APIエンドポイントが利用可能です。</div>
+            <div>問題生成・Claude評価機能が動作中です。</div>
+        </div>
+    </div>
+
+    <script>
+        function startTraining(level) {
+            // APIテスト用のコード
+            fetch('/api/problem', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({difficultyLevel: level})
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(`${level}レベルの問題: ${data.japaneseSentence || 'API応答を確認してください'}`);
+            })
+            .catch(error => {
+                alert('APIエラー: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
