@@ -1,22 +1,28 @@
+// server/index.ts
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+// /api/* を一括登録する関数（routes/index.ts がエクスポート）
+import { registerRoutes } from "./routes/index.js";
+// Stripe webhook は raw body 必須
 import stripeWebhookRouter from "./routes/stripe-webhook.js";
-import { registerRoutes } from "./routes.js"; // ← ここが最重要（Claude API用）
 dotenv.config();
-process.env.HOST = "0.0.0.0";
+process.env.HOST = process.env.HOST || "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-const PORT = Number(process.env.PORT) || 3001;
-// Middlewares
+// Fly.io は 8080 が標準。PORT 未設定なら 8080
+const PORT = Number(process.env.PORT) || 8080;
+/* ---------- ミドルウェア順序が重要 ---------- */
+// 1) CORS
 app.use(cors());
-app.use(express.json());
-// Stripe webhook (raw body)
+// 2) Stripe Webhook は raw body を json より前に！
 app.use("/api/stripe-webhook", express.raw({ type: "application/json" }), stripeWebhookRouter);
-// Health check
+// 3) それ以外の JSON パーサ
+app.use(express.json());
+/* ---------- ヘルスチェック ---------- */
 app.get("/health", (_req, res) => {
     res.status(200).json({
         status: "healthy",
@@ -24,62 +30,35 @@ app.get("/health", (_req, res) => {
         port: PORT,
     });
 });
-// 管理系ルート登録
-const { registerAdminRoutes } = await import("./admin-routes.js");
-registerAdminRoutes(app);
-// ✅ Claude API endpoints（手動ルート）
-app.get("/api/ping", (req, res) => {
-    res.json({ message: "pong", timestamp: new Date().toISOString() });
-});
-app.get("/api/status", (req, res) => {
-    res.status(200).json({
-        status: "ok",
-        timestamp: new Date().toISOString(),
-        apiKey: !!process.env.ANTHROPIC_API_KEY,
-    });
-});
-app.post("/api/problem", async (req, res, next) => {
-    console.log("🔥 Claude Problem API hit", req.body);
-    try {
-        const { handleProblemGeneration } = await import("./routes.js");
-        await handleProblemGeneration(req, res, next);
-    }
-    catch (error) {
-        console.error("Claude problem generation error:", error);
-        res.status(500).json({ error: "Problem generation failed" });
-    }
-});
-app.post("/api/evaluate-with-claude", async (req, res, next) => {
-    console.log("🔥 Claude Evaluation API hit", req.body);
-    try {
-        const { handleClaudeEvaluation } = await import("./routes.js");
-        await handleClaudeEvaluation(req, res, next);
-    }
-    catch (error) {
-        console.error("Claude evaluation error:", error);
-        res.status(500).json({ error: "Evaluation failed" });
-    }
-});
-// ✅ Claude API含む全APIルートをまとめて登録（最重要！）
-registerRoutes(app); // ← これがないと他の /api/* が全部 404
-// ✅ API共通ミドルウェア（Claude API後に適用）
-app.use("/api", (req, res, next) => {
-    res.setHeader("Content-Type", "application/json");
-    next();
-});
-app.use("/api", (req, res, next) => {
+/* ---------- API共通ログ ---------- */
+app.use("/api", (req, _res, next) => {
     console.log(`🔍 API REQUEST: ${req.method} ${req.url}`);
     next();
 });
-// フロントエンドルートの登録
-const { registerMainRoutes } = await import("./routes.js");
-registerMainRoutes(app);
-// Vite ミドルウェア（必ず最後に）
+/* ---------- 管理系 ---------- */
+const { registerAdminRoutes } = await import("./admin-routes.js");
+registerAdminRoutes(app);
+/* ---------- /api/* を一括登録（最重要） ---------- */
+// Claude用や他のAPIハンドラは routes/index.ts 側に集約
+registerRoutes(app);
+/* ---------- フロント配信/Vite ミドルウェア ---------- */
 if (process.env.NODE_ENV !== "production") {
+    // 開発時は Vite ミドルウェア
     const { setupVite } = await import("./vite.js");
     await setupVite(app, null);
 }
-// サーバー起動
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+else {
+    // 本番: 環境変数で静的配信をガード
+    if (process.env.SERVE_CLIENT === "true") {
+        const clientDist = path.resolve(process.cwd(), "client/dist");
+        app.use(express.static(clientDist));
+        app.get("*", (_req, res) => {
+            res.sendFile(path.join(clientDist, "index.html"));
+        });
+    }
+    // Fly 本番では SERVE_CLIENT=false に設定し、API専用運用
+}
+/* ---------- サーバ起動 ---------- */
+app.listen(PORT, process.env.HOST, () => {
+    console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
 });

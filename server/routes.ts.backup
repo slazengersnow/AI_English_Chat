@@ -10,7 +10,7 @@ import {
   type TranslateResponse,
   type ProblemResponse,
   type CheckoutSessionResponse,
-} from "@shared/schema";
+} from "../shared/schema.js";
 import stripeWebhookRouter from "./routes/stripe-webhook";
 
 // Session-based problem tracking to prevent duplicates

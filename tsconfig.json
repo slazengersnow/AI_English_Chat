@@ -11,10 +11,10 @@
     "strict": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["shared/*"]
-    }
+    "baseUrl": "."
+    // "paths": {
+    //   "@shared/*": ["shared/*"]
+    // }
   },
   "include": ["server/**/*", "shared/**/*"],
   "exclude": ["node_modules"]

@@ -2,17 +2,30 @@
 import { Router } from "express";
 import chatRoutes from "./chat.js";
 import userRoutes from "./user.js";
-import { testAuth, getSupabaseStatus } from './debug-auth.js';
-// Import main routes from routes.ts
-import mainRouter from "../routes.js";
+import { testAuth, getSupabaseStatus } from "./debug-auth.js";
+// Claudeハンドラは routes.ts から関数を直接インポートして明示登録する
+import { handleProblemGeneration, handleClaudeEvaluation,
+// もし /api/evaluate（Claudeなしの従来評価）も使うなら、routes.ts でエクスポートした上で次行のコメントを外す
+// handleEvaluate,
+ } from "../routes.js";
+/**
+ * /api 配下のルーティングを一括登録する
+ * 重要：ここで「だけ」/api/problem 等を定義し、他の場所で重複定義しないこと
+ */
 export function registerRoutes(app) {
     const router = Router();
+    // ---- サブリソース（そのまま維持） ----
     router.use("/chat", chatRoutes);
     router.use("/user", userRoutes);
-    // Debug auth routes
+    // ---- デバッグ用 ----
     router.post("/test-auth", testAuth);
     router.get("/supabase-status", getSupabaseStatus);
-    // Main API routes (problem generation, evaluation, etc.)
-    router.use(mainRouter);
+    // ---- Claude関連のコアAPI（明示登録）----
+    // ここで /api/problem と /api/evaluate-with-claude を唯一の定義にする
+    router.post("/problem", handleProblemGeneration);
+    router.post("/evaluate-with-claude", handleClaudeEvaluation);
+    // 従来の評価エンドポイントが必要なら有効化（routes.ts に export が必要）
+    // router.post("/evaluate", handleEvaluate);
+    // すべて /api 配下にぶら下げる
     app.use("/api", router);
 }

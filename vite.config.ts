@@ -1,7 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+
+// ✅ ES modules での __dirname 対応
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ✅ 環境変数の読み込み（.env.local → .env の順）
 dotenv.config({ path: ".env.local" });
@@ -21,10 +26,10 @@ export default defineConfig({
     sourcemap: true,
   },
 
-  // ✅ パスエイリアス
+  // ✅ パスエイリアス（絶対パスで統一）
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
+      "@": path.resolve(__dirname, "client/src"), // ✅ client/src に固定
       "@shared": path.resolve(__dirname, "shared"),
     },
   },
@@ -43,6 +48,7 @@ export default defineConfig({
   server: {
     port: 5000, // ✅ Expressサーバーのポートと合わせる
     host: true, // ✅ 外部アクセス（0.0.0.0）を許可
+    middlewareMode: true, // ✅ Vite 6 以降での非推奨対応: boolean に統一
     allowedHosts: [
       ".replit.dev", // ✅ Replit用
       ".fly.dev", // ✅ Fly.io用

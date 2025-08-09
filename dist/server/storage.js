@@ -1,8 +1,8 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, desc, gte } from "drizzle-orm";
 import postgres from "postgres";
-import * as schema from "@shared/schema";
-const { trainingSessions, userGoals, dailyProgress, customScenarios, } = schema;
+import * as schema from "../shared/schema.js";
+const { trainingSessions, userGoals, dailyProgress, customScenarios } = schema;
 // Database connection
 const connectionString = process.env.DATABASE_URL;
 const client = postgres(connectionString);
@@ -11,7 +11,7 @@ const db = drizzle(client, { schema });
 const DAILY_LIMIT = 100;
 const dailyCounters = new Map();
 function getTodayString() {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
 }
 function getDailyCount(userId = "bizmowa.com") {
     const today = getTodayString();
@@ -62,10 +62,7 @@ export class Storage {
         return result[0] || null;
     }
     async createTrainingSession(data) {
-        const result = await db
-            .insert(trainingSessions)
-            .values(data)
-            .returning();
+        const result = await db.insert(trainingSessions).values(data).returning();
         return result[0];
     }
     async updateTrainingSession(id, data) {
@@ -117,16 +114,10 @@ export class Storage {
     }
     // Goals and progress
     async getUserGoals(userId) {
-        return await db
-            .select()
-            .from(userGoals)
-            .orderBy(desc(userGoals.createdAt));
+        return await db.select().from(userGoals).orderBy(desc(userGoals.createdAt));
     }
     async updateUserGoal(userId, data) {
-        const existingGoal = await db
-            .select()
-            .from(userGoals)
-            .limit(1);
+        const existingGoal = await db.select().from(userGoals).limit(1);
         if (existingGoal.length > 0) {
             const result = await db
                 .update(userGoals)
@@ -135,10 +126,7 @@ export class Storage {
             return result[0];
         }
         else {
-            const result = await db
-                .insert(userGoals)
-                .values(data)
-                .returning();
+            const result = await db.insert(userGoals).values(data).returning();
             return result[0];
         }
     }
@@ -148,11 +136,11 @@ export class Storage {
         return await db
             .select()
             .from(dailyProgress)
-            .where(gte(dailyProgress.date, thirtyDaysAgo.toISOString().split('T')[0]))
+            .where(gte(dailyProgress.date, thirtyDaysAgo.toISOString().split("T")[0]))
             .orderBy(desc(dailyProgress.date));
     }
     async updateDailyProgress(userId, data) {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         const existingProgress = await db
             .select()
             .from(dailyProgress)
@@ -190,10 +178,7 @@ export class Storage {
         return result[0] || null;
     }
     async createCustomScenario(data) {
-        const result = await db
-            .insert(customScenarios)
-            .values(data)
-            .returning();
+        const result = await db.insert(customScenarios).values(data).returning();
         return result[0];
     }
     async updateCustomScenario(id, data) {

@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, desc, and, gte } from "drizzle-orm";
 import postgres from "postgres";
-import * as schema from "@shared/schema";
+import * as schema from "../shared/schema.js";
 import type {
   TrainingSession,
   InsertTrainingSession,
@@ -11,14 +11,9 @@ import type {
   InsertDailyProgress,
   CustomScenario,
   InsertCustomScenario,
-} from "@shared/schema";
+} from "../shared/schema.js";
 
-const {
-  trainingSessions,
-  userGoals,
-  dailyProgress,
-  customScenarios,
-} = schema;
+const { trainingSessions, userGoals, dailyProgress, customScenarios } = schema;
 
 // Database connection
 const connectionString = process.env.DATABASE_URL!;
@@ -30,41 +25,43 @@ const DAILY_LIMIT = 100;
 const dailyCounters = new Map<string, { count: number; date: string }>();
 
 function getTodayString(): string {
-  return new Date().toISOString().split('T')[0];
+  return new Date().toISOString().split("T")[0];
 }
 
 function getDailyCount(userId: string = "bizmowa.com"): number {
   const today = getTodayString();
   const counter = dailyCounters.get(userId);
-  
+
   if (!counter || counter.date !== today) {
     // Reset counter for new day
     dailyCounters.set(userId, { count: 0, date: today });
     return 0;
   }
-  
+
   return counter.count;
 }
 
 function incrementDailyCountInternal(userId: string = "bizmowa.com"): boolean {
   const today = getTodayString();
   const counter = dailyCounters.get(userId);
-  
+
   if (!counter || counter.date !== today) {
     // New day, reset counter
     dailyCounters.set(userId, { count: 1, date: today });
     console.log(`✅ Problem count: 1/${DAILY_LIMIT} for ${userId}`);
     return true;
   }
-  
+
   if (counter.count >= DAILY_LIMIT) {
     console.log(`🛑 Daily limit (${DAILY_LIMIT}) reached - returning 429`);
     return false;
   }
-  
+
   counter.count++;
   dailyCounters.set(userId, counter);
-  console.log(`✅ Problem count: ${counter.count}/${DAILY_LIMIT} for ${userId}`);
+  console.log(
+    `✅ Problem count: ${counter.count}/${DAILY_LIMIT} for ${userId}`,
+  );
   return true;
 }
 
@@ -88,19 +85,21 @@ export class Storage {
       .from(trainingSessions)
       .where(eq(trainingSessions.id, parseInt(id)))
       .limit(1);
-    
+
     return result[0] || null;
   }
 
-  async createTrainingSession(data: InsertTrainingSession): Promise<TrainingSession> {
-    const result = await db
-      .insert(trainingSessions)
-      .values(data)
-      .returning();
+  async createTrainingSession(
+    data: InsertTrainingSession,
+  ): Promise<TrainingSession> {
+    const result = await db.insert(trainingSessions).values(data).returning();
     return result[0];
   }
 
-  async updateTrainingSession(id: string, data: Partial<InsertTrainingSession>): Promise<TrainingSession> {
+  async updateTrainingSession(
+    id: string,
+    data: Partial<InsertTrainingSession>,
+  ): Promise<TrainingSession> {
     const result = await db
       .update(trainingSessions)
       .set(data)
@@ -158,17 +157,14 @@ export class Storage {
 
   // Goals and progress
   async getUserGoals(userId: string): Promise<UserGoal[]> {
-    return await db
-      .select()
-      .from(userGoals)
-      .orderBy(desc(userGoals.createdAt));
+    return await db.select().from(userGoals).orderBy(desc(userGoals.createdAt));
   }
 
-  async updateUserGoal(userId: string, data: Partial<InsertUserGoal>): Promise<UserGoal> {
-    const existingGoal = await db
-      .select()
-      .from(userGoals)
-      .limit(1);
+  async updateUserGoal(
+    userId: string,
+    data: Partial<InsertUserGoal>,
+  ): Promise<UserGoal> {
+    const existingGoal = await db.select().from(userGoals).limit(1);
 
     if (existingGoal.length > 0) {
       const result = await db
@@ -177,10 +173,7 @@ export class Storage {
         .returning();
       return result[0];
     } else {
-      const result = await db
-        .insert(userGoals)
-        .values(data)
-        .returning();
+      const result = await db.insert(userGoals).values(data).returning();
       return result[0];
     }
   }
@@ -192,13 +185,16 @@ export class Storage {
     return await db
       .select()
       .from(dailyProgress)
-      .where(gte(dailyProgress.date, thirtyDaysAgo.toISOString().split('T')[0]))
+      .where(gte(dailyProgress.date, thirtyDaysAgo.toISOString().split("T")[0]))
       .orderBy(desc(dailyProgress.date));
   }
 
-  async updateDailyProgress(userId: string, data: Partial<InsertDailyProgress>): Promise<DailyProgress> {
-    const today = new Date().toISOString().split('T')[0];
-    
+  async updateDailyProgress(
+    userId: string,
+    data: Partial<InsertDailyProgress>,
+  ): Promise<DailyProgress> {
+    const today = new Date().toISOString().split("T")[0];
+
     const existingProgress = await db
       .select()
       .from(dailyProgress)
@@ -235,19 +231,21 @@ export class Storage {
       .from(customScenarios)
       .where(eq(customScenarios.id, parseInt(id)))
       .limit(1);
-    
+
     return result[0] || null;
   }
 
-  async createCustomScenario(data: InsertCustomScenario): Promise<CustomScenario> {
-    const result = await db
-      .insert(customScenarios)
-      .values(data)
-      .returning();
+  async createCustomScenario(
+    data: InsertCustomScenario,
+  ): Promise<CustomScenario> {
+    const result = await db.insert(customScenarios).values(data).returning();
     return result[0];
   }
 
-  async updateCustomScenario(id: string, data: Partial<InsertCustomScenario>): Promise<CustomScenario> {
+  async updateCustomScenario(
+    id: string,
+    data: Partial<InsertCustomScenario>,
+  ): Promise<CustomScenario> {
     const result = await db
       .update(customScenarios)
       .set(data)
