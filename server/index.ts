@@ -21,14 +21,14 @@ app.get("/health", (_req, res) => {
 
 // Register main routes
 try {
-  const { registerRoutes } = await import("./routes.js");
-  await registerRoutes(app);
+  const { registerRoutes } = await import("./simple-routes.js");
+  registerRoutes(app);
 } catch (error) {
   console.error("Routes registration error:", error);
 }
 
-// Vite middleware
-if (process.env.NODE_ENV !== "production") {
+// Vite middleware - only in development and when SERVE_CLIENT is true
+if (process.env.NODE_ENV !== "production" && process.env.SERVE_CLIENT !== "false") {
   const { setupVite } = await import("./vite.js");
   await setupVite(app, null);
 }

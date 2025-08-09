@@ -71,6 +71,14 @@ function resetDailyCount(userId: string = "bizmowa.com"): void {
 }
 
 export class Storage {
+  // Daily count methods
+  async incrementDailyCount(userId: string = "bizmowa.com"): Promise<boolean> {
+    const currentCount = getDailyCount(userId);
+    if (currentCount >= DAILY_LIMIT) {
+      return false;
+    }
+    return incrementDailyCountInternal(userId);
+  }
   // Training sessions
   async getTrainingSessions(userId: string): Promise<TrainingSession[]> {
     return await db

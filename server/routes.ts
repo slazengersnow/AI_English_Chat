@@ -258,10 +258,8 @@ router.get("/user-subscription", async (req: Request, res: Response) => {
 });
 
 // Generate Japanese problem for translation
-router.post(
-  "/problem",
-  requireActiveSubscription,
-  async (req: Request, res: Response) => {
+// Extract handler for registerRoutes
+export const handleProblemGeneration = async (req: Request, res: Response) => {
     try {
       console.log('Problem generation request body:', req.body);
       
@@ -429,8 +427,10 @@ router.post(
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
-  },
-);
+};
+
+// Register the route
+router.post("/problem", requireActiveSubscription, handleProblemGeneration);
 
 // Evaluate user translation using Claude Haiku
 router.post("/translate", async (req: Request, res: Response) => {
