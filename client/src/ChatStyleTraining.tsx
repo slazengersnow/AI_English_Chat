@@ -1,5 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 
+// Web Speech API utility function
+const speakText = (text: string) => {
+  if ('speechSynthesis' in window) {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 0.8; // Slightly slower for learning
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+    
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
 type DifficultyLevel =
   | "toeic"
   | "middle_school"
@@ -866,8 +882,17 @@ export default function ChatStyleTraining({
               {/* Model Answer */}
               {modelAnswer && (
                 <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                  <div className="text-sm font-medium text-green-800 mb-1">
-                    模範解答
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm font-medium text-green-800">
+                      模範解答
+                    </div>
+                    <button
+                      onClick={() => speakText(modelAnswer.content)}
+                      className="text-green-600 hover:text-green-800 p-1 rounded transition-colors"
+                      title="音声で聞く"
+                    >
+                      🔊
+                    </button>
                   </div>
                   <div className="text-gray-800 text-lg">
                     {modelAnswer.content}
@@ -895,8 +920,15 @@ export default function ChatStyleTraining({
                   </div>
                   <div className="space-y-1">
                     {similarPhrases.phrases.map((phrase, index) => (
-                      <div key={index} className="text-gray-800 text-base">
-                        • {phrase}
+                      <div key={index} className="flex items-center justify-between text-gray-800 text-base">
+                        <span>• {phrase}</span>
+                        <button
+                          onClick={() => speakText(phrase)}
+                          className="text-purple-600 hover:text-purple-800 p-1 rounded transition-colors ml-2"
+                          title="音声で聞く"
+                        >
+                          🔊
+                        </button>
                       </div>
                     ))}
                   </div>
