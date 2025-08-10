@@ -127,7 +127,7 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
           monthlyProblems: progressData.monthlyProblems || 0,
           averageRating: parseFloat(progressData.averageRating) || 0,
           todayProblems: progressData.todayProblems || 0,
-          dailyLimit: progressData.dailyLimit || 100
+          dailyLimit: progressData.dailyLimit || 50
         });
       } else {
         console.warn('Failed to load progress data, using defaults');
@@ -136,17 +136,26 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
           monthlyProblems: 0,
           averageRating: 0,
           todayProblems: 0,
-          dailyLimit: 100
+          dailyLimit: 50
         });
       }
 
-      // Mock plan information
+      // Update plan information based on membership
+      const membershipType = progressData?.membershipType || 'standard';
       setPlanInfo({
-        currentPlan: 'スタンダード',
-        monthlyFee: 980,
-        yearlyFee: 9800,
-        features: [
-          '月間利用 50問',
+        currentPlan: membershipType === 'premium' ? 'プレミアム' : 'スタンダード',
+        monthlyFee: membershipType === 'premium' ? 1980 : 980,
+        yearlyFee: membershipType === 'premium' ? 19800 : 9800,
+        features: membershipType === 'premium' ? [
+          '月間利用 制限なし',
+          '1日の練習回数上限 100問',
+          '繰り返し練習 ○',
+          'シミュレーション練習 ○',
+          '進捗レポート ○',
+          'ブックマーク機能 ○',
+          '音声読み上げ ○'
+        ] : [
+          '月間利用 100問',
           '1日の練習回数上限 50問',
           '繰り返し練習 ×',
           'シミュレーション練習 ×',
@@ -260,36 +269,7 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
               </Card>
             </div>
 
-            {/* Accuracy Chart */}
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <span>📈</span>
-                  <span>正答率の推移</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex space-x-2 mb-4">
-                  <Button variant="default" size="sm" className="bg-blue-500 text-white">日</Button>
-                  <Button variant="outline" size="sm">月</Button>
-                </div>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-500">チャートエリア（今後実装予定）</span>
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Level Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle>レベル別進捗</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-32 bg-gray-50 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-500">レベル別データ（今後実装予定）</span>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Repetitive Practice Tab */}

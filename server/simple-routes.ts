@@ -6,6 +6,7 @@ import {
   type ProblemResponse,
   type TranslateResponse,
   trainingSessions,
+  userSubscriptions,
 } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
@@ -517,13 +518,27 @@ export function registerRoutes(app: Express): void {
         }
       }
 
+      // Get user subscription info to determine daily limit
+      const [subscription] = await db
+        .select()
+        .from(userSubscriptions)
+        .where(eq(userSubscriptions.userId, "default_user"))
+        .limit(1);
+
+      // Determine daily limit based on subscription
+      let dailyLimit = 50; // Standard default
+      if (subscription && subscription.subscriptionType === 'premium') {
+        dailyLimit = 100;
+      }
+
       const progressReport = {
         streak: streak,
         monthlyProblems: monthlyCount,
         averageRating: avgRating.toFixed(1),
         todayProblems: todayCount,
-        dailyLimit: 100,
-        totalProblems: totalSessions
+        dailyLimit: dailyLimit,
+        totalProblems: totalSessions,
+        membershipType: subscription?.subscriptionType || 'standard'
       };
 
       res.json(progressReport);
