@@ -56,6 +56,25 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
 
 ## Recent Changes (August 2025)
 
+### Review System Implementation - August 10, 2025
+**Status**: ✅ COMPLETED
+- Implemented scoring-based review system for repetitive practice
+- ★2以下 → "要復習リスト" (Review List) - top 10 problems requiring review
+- ★3 → "再挑戦リスト" (Retry List) - top 10 problems for retry challenges  
+- Added API endpoints: `/api/review-list` and `/api/retry-list`
+- Updated MyPage with new "繰り返し練習" tab displaying review/retry lists
+- Training sessions automatically saved to database with ratings for review tracking
+- Visual distinction: red cards for review problems, orange cards for retry problems
+
+### Audio Feature Enhancement - August 10, 2025
+**Status**: ✅ COMPLETED
+- Enhanced Web Speech API integration with colorful button design
+- Model answers: Green "🎵 音声" buttons with hover effects
+- Similar phrases: Purple "🎵" buttons with compact design
+- Speech synthesis optimized: en-US voice, 0.8x speed for learning
+
+## Recent Changes (August 2025)
+
 ### Major Architecture Update - August 8, 2025
 **Status**: ⚠️ NEEDS USER INPUT
 - User attempted major restructuring with new routes directory system

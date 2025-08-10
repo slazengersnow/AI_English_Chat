@@ -5,8 +5,11 @@ import {
   translateRequestSchema,
   type ProblemResponse,
   type TranslateResponse,
+  trainingSessions,
 } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
+import { db } from "./db.js";
+import { eq, lte, desc } from "drizzle-orm";
 
 const router = Router();
 
@@ -286,7 +289,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           !parsedResult.correctTranslation || 
           parsedResult.correctTranslation === "Translation evaluation failed") {
         console.log("Using enhanced fallback due to invalid Claude response");
-        const fallbackResponse = generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel);
+        const fallbackResponse = generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
         res.json(fallbackResponse);
         return;
       }
@@ -303,6 +306,24 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           ? parsedResult.similarPhrases
           : [],
       };
+
+      // Save training session to database
+      try {
+        const sessionData = {
+          difficultyLevel: normalized.difficultyLevel || "middle-school",
+          japaneseSentence: japaneseSentence,
+          userTranslation: normalized.userTranslation || "",
+          correctTranslation: response.correctTranslation,
+          feedback: response.feedback,
+          rating: response.rating,
+        };
+        
+        const insertResult = await db.insert(trainingSessions).values([sessionData]).returning();
+        response.sessionId = insertResult[0]?.id;
+      } catch (dbError) {
+        console.error('Database save error:', dbError);
+        // Continue without sessionId if database save fails
+      }
 
       res.json(response);
     } catch (error) {
@@ -401,5 +422,39 @@ export function registerRoutes(app: Express): void {
   const router = Router();
   router.post("/problem", handleProblemGeneration);
   router.post("/evaluate-with-claude", handleClaudeEvaluation);
+  
+  // Review system endpoints
+  router.get("/review-list", async (req: Request, res: Response) => {
+    try {
+      const reviewProblems = await db
+        .select()
+        .from(trainingSessions)
+        .where(lte(trainingSessions.rating, 2))
+        .orderBy(desc(trainingSessions.createdAt))
+        .limit(10);
+      
+      res.json(reviewProblems);
+    } catch (error) {
+      console.error('Error fetching review list:', error);
+      res.status(500).json({ error: 'Failed to fetch review list' });
+    }
+  });
+
+  router.get("/retry-list", async (req: Request, res: Response) => {
+    try {
+      const retryProblems = await db
+        .select()
+        .from(trainingSessions)
+        .where(eq(trainingSessions.rating, 3))
+        .orderBy(desc(trainingSessions.createdAt))
+        .limit(10);
+      
+      res.json(retryProblems);
+    } catch (error) {
+      console.error('Error fetching retry list:', error);
+      res.status(500).json({ error: 'Failed to fetch retry list' });
+    }
+  });
+
   app.use("/api", router);
 }

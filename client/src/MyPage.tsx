@@ -54,11 +54,39 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const [reviewList, setReviewList] = useState<any[]>([]);
+  const [retryList, setRetryList] = useState<any[]>([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
 
   useEffect(() => {
     loadUserData();
     loadBookmarks();
+    loadReviewData();
   }, []);
+
+  const loadReviewData = async () => {
+    setReviewLoading(true);
+    try {
+      const [reviewResponse, retryResponse] = await Promise.all([
+        fetch('/api/review-list'),
+        fetch('/api/retry-list')
+      ]);
+      
+      if (reviewResponse.ok) {
+        const reviewData = await reviewResponse.json();
+        setReviewList(reviewData);
+      }
+      
+      if (retryResponse.ok) {
+        const retryData = await retryResponse.json();
+        setRetryList(retryData);
+      }
+    } catch (error) {
+      console.error('Failed to load review data:', error);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
   const loadBookmarks = () => {
     const savedBookmarks = localStorage.getItem('englishTrainingBookmarks');
@@ -243,6 +271,107 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
             </Card>
           </TabsContent>
 
+          {/* Repetitive Practice Tab */}
+          <TabsContent value="practice">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Review List (★2以下) */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span className="text-red-500">⚠️</span>
+                    <span>要復習リスト (★2以下)</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">評価が低かった問題を再度挑戦して理解を深めましょう</p>
+                </CardHeader>
+                <CardContent>
+                  {reviewLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full"></div>
+                    </div>
+                  ) : reviewList.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">🎉</div>
+                      <p>要復習の問題はありません！</p>
+                      <p className="text-sm">素晴らしい成績です</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {reviewList.slice(0, 10).map((item, index) => (
+                        <div key={item.id || index} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <span className="text-red-500">★{item.rating}</span>
+                                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">{item.difficultyLevel}</span>
+                              </div>
+                              <div className="text-gray-800 font-medium mb-1">{item.japaneseSentence}</div>
+                              <div className="text-sm text-gray-600 mb-2">あなたの回答: {item.userTranslation}</div>
+                              <div className="text-sm text-green-700">模範解答: {item.correctTranslation}</div>
+                            </div>
+                            <button 
+                              onClick={() => onStartTraining(item.japaneseSentence)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors ml-2"
+                            >
+                              再挑戦
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Retry List (★3) */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span className="text-orange-500">🔄</span>
+                    <span>再挑戦リスト (★3)</span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">もう一度挑戦して更なる向上を目指しましょう</p>
+                </CardHeader>
+                <CardContent>
+                  {reviewLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full"></div>
+                    </div>
+                  ) : retryList.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">✨</div>
+                      <p>再挑戦の問題はありません！</p>
+                      <p className="text-sm">全て高評価でした</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {retryList.slice(0, 10).map((item, index) => (
+                        <div key={item.id || index} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <span className="text-orange-500">★{item.rating}</span>
+                                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">{item.difficultyLevel}</span>
+                              </div>
+                              <div className="text-gray-800 font-medium mb-1">{item.japaneseSentence}</div>
+                              <div className="text-sm text-gray-600 mb-2">あなたの回答: {item.userTranslation}</div>
+                              <div className="text-sm text-green-700">模範解答: {item.correctTranslation}</div>
+                            </div>
+                            <button 
+                              onClick={() => onStartTraining(item.japaneseSentence)}
+                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors ml-2"
+                            >
+                              再挑戦
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* Bookmarks Tab */}
           <TabsContent value="bookmarks">
             <Card>
@@ -304,55 +433,7 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
             </Card>
           </TabsContent>
 
-          {/* Practice Tab */}
-          <TabsContent value="practice">
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>🔄</span>
-                    <span>繰り返し練習</span>
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">過去1週間に解いた問題をランダムに練習できます。復習に最適です。</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-32 flex flex-col items-center justify-center text-gray-500">
-                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-                      <span>🔄</span>
-                    </div>
-                    <p className="font-medium">直近1週間の練習履歴がありません</p>
-                    <p className="text-sm">練習を開始して復習を蓄積しましょう</p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>⭐</span>
-                    <span>要復習リスト (★2以下)</span>
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">評価が低い問題を復習しましょう。クリックして再挑戦できます。</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-20 bg-gray-50 rounded-lg"></div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>📈</span>
-                    <span>再挑戦リスト (★3)</span>
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">もう一度チャレンジしてスコアアップを目指しましょう。クリックして再挑戦できます。</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-20 bg-gray-50 rounded-lg"></div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
 
           {/* Simulation Tab */}
           <TabsContent value="simulation">
