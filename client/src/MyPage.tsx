@@ -74,15 +74,23 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
       
       if (reviewResponse.ok) {
         const reviewData = await reviewResponse.json();
-        setReviewList(reviewData);
+        setReviewList(reviewData || []);
+      } else {
+        console.warn('Failed to load review list:', reviewResponse.status);
+        setReviewList([]);
       }
       
       if (retryResponse.ok) {
         const retryData = await retryResponse.json();
-        setRetryList(retryData);
+        setRetryList(retryData || []);
+      } else {
+        console.warn('Failed to load retry list:', retryResponse.status);
+        setRetryList([]);
       }
     } catch (error) {
       console.error('Failed to load review data:', error);
+      setReviewList([]);
+      setRetryList([]);
     } finally {
       setReviewLoading(false);
     }
@@ -295,26 +303,14 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                       <p className="text-sm">素晴らしい成績です</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {reviewList.slice(0, 10).map((item, index) => (
-                        <div key={item.id || index} className="bg-red-50 border border-red-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <span className="text-red-500">★{item.rating}</span>
-                                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">{item.difficultyLevel}</span>
-                              </div>
-                              <div className="text-gray-800 font-medium mb-1">{item.japaneseSentence}</div>
-                              <div className="text-sm text-gray-600 mb-2">あなたの回答: {item.userTranslation}</div>
-                              <div className="text-sm text-green-700">模範解答: {item.correctTranslation}</div>
-                            </div>
-                            <button 
-                              onClick={() => onStartTraining(item.japaneseSentence)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors ml-2"
-                            >
-                              再挑戦
-                            </button>
-                          </div>
+                        <div 
+                          key={item.id || index} 
+                          className="bg-red-50 border border-red-200 rounded-lg p-3 hover:bg-red-100 cursor-pointer transition-colors"
+                          onClick={() => onStartTraining(item.japaneseSentence)}
+                        >
+                          <div className="text-gray-800 font-medium">{item.japaneseSentence}</div>
                         </div>
                       ))}
                     </div>
@@ -343,26 +339,14 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                       <p className="text-sm">全て高評価でした</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {retryList.slice(0, 10).map((item, index) => (
-                        <div key={item.id || index} className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <span className="text-orange-500">★{item.rating}</span>
-                                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">{item.difficultyLevel}</span>
-                              </div>
-                              <div className="text-gray-800 font-medium mb-1">{item.japaneseSentence}</div>
-                              <div className="text-sm text-gray-600 mb-2">あなたの回答: {item.userTranslation}</div>
-                              <div className="text-sm text-green-700">模範解答: {item.correctTranslation}</div>
-                            </div>
-                            <button 
-                              onClick={() => onStartTraining(item.japaneseSentence)}
-                              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors ml-2"
-                            >
-                              再挑戦
-                            </button>
-                          </div>
+                        <div 
+                          key={item.id || index} 
+                          className="bg-orange-50 border border-orange-200 rounded-lg p-3 hover:bg-orange-100 cursor-pointer transition-colors"
+                          onClick={() => onStartTraining(item.japaneseSentence)}
+                        >
+                          <div className="text-gray-800 font-medium">{item.japaneseSentence}</div>
                         </div>
                       ))}
                     </div>

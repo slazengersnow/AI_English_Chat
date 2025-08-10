@@ -318,7 +318,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           rating: response.rating,
         };
         
-        const insertResult = await db.insert(trainingSessions).values([sessionData]).returning();
+        const insertResult = await db.insert(trainingSessions).values(sessionData).returning();
         response.sessionId = insertResult[0]?.id;
       } catch (dbError) {
         console.error('Database save error:', dbError);
@@ -328,7 +328,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
       res.json(response);
     } catch (error) {
       console.error("Claude API error:", error);
-      // Fallback
+      // Fallback with database save
       const fallback: TranslateResponse = {
         correctTranslation: "Please coordinate with your team members.",
         feedback: `お疲れ様でした！「${normalized.userTranslation ?? ""}」という回答をいただきました。現在AI評価システムに一時的な問題が発生していますが、継続して学習を続けましょう。`,
@@ -343,6 +343,24 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           "Collaborate with your team.",
         ],
       };
+      
+      // Save fallback training session to database
+      try {
+        const sessionData = {
+          difficultyLevel: normalized.difficultyLevel || "middle-school",
+          japaneseSentence: japaneseSentence,
+          userTranslation: normalized.userTranslation || "",
+          correctTranslation: fallback.correctTranslation,
+          feedback: fallback.feedback,
+          rating: fallback.rating,
+        };
+        
+        const insertResult = await db.insert(trainingSessions).values(sessionData).returning();
+        fallback.sessionId = insertResult[0]?.id;
+      } catch (dbError) {
+        console.error('Database save error for fallback:', dbError);
+      }
+      
       res.json(fallback);
     }
   } catch (error) {
