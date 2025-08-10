@@ -7,8 +7,10 @@ import "./index.css";
 const mockUser = { email: 'admin@example.com' };
 
 createRoot(document.getElementById("root")!).render(
-  <CompleteTrainingUI 
-    user={mockUser} 
-    onLogout={() => console.log('Logout')} 
-  />
+  <React.StrictMode>
+    <CompleteTrainingUI 
+      user={mockUser} 
+      onLogout={() => console.log('Logout')} 
+    />
+  </React.StrictMode>
 );
