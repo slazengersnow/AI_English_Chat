@@ -1,0 +1,152 @@
+
+
+> **目的**：Vite 開発サーバーをやめて「本番ビルド（vite build）を Express で配信」に統一します。
+> **判定基準**：`https://<replit-preview-url>/` にアクセスして **難易度選択のトップ画面** が表示されること。
+
+---
+
+## ① ビルド成果物の存在を確認
+
+```bash
+ls -l dist/server/index.js || true
+ls -l dist/client/index.html || true
+```
+
+* どちらかが **無ければ** 次の ② を実行。
+
+---
+
+## ② 両方ビルドを必ず作る
+
+```bash
+npm run build:server
+npm run build:client
+# 再確認
+ls -l dist/server/index.js
+ls -l dist/client/index.html
+```
+
+> どちらも存在することを確認してください。
+
+---
+
+## ③ server/index.ts の静的配信ブロックを「dist/client」を指すように修正
+
+**server/index.ts の “本番時の静的配信” の箇所を以下のようにしてください。**
+（既に近い形なら **必ず `dist/client` を指しているか** を確認）
+
+### Before（例：パスがズレている悪い例）
+
+```ts
+// ❌ 間違い例: client/dist を見ていたり、二重 dist になっている
+const clientDist = path.resolve(__dirname, "../client/dist");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
+```
+
+### After（正）
+
+```ts
+// ✅ 正: Vite の出力先は dist/client
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
+```
+
+> ※ `process.cwd()` を使うと、TSC で `dist/server` に変換された後でも **リポジトリルートの dist/client** を素直に参照できます。
+
+**修正後に再ビルド：**
+
+```bash
+npm run build:server
+```
+
+---
+
+## ④ 環境変数を本番配信モードへ（Replit）
+
+```bash
+export NODE_ENV=production
+export SERVE_CLIENT=true
+export PORT=5000
+```
+
+> Replit は 5000 を好むので `PORT=5000` 固定でOK。
+> ※ `.env` が編集不可なら **上記 export で十分** です。
+
+---
+
+## ⑤ サーバー起動と動作確認
+
+```bash
+node dist/server/index.js &
+sleep 2
+curl -s http://localhost:5000/health
+```
+
+* `{"status":"healthy", ...}` が返ればOK。
+
+次に **Webビュー/プレビューURL** でトップ画面が出るか確認してください。
+403 が出る場合は、一度 **「Stop」→「Run」** し直し、**「Expose web server」相当の Replit 設定（デフォルトで有効）** を確認してください。
+
+---
+
+## ⑥ `/api/problem` の疎通を確認（404対策）
+
+**Replit のコンソールに以下を貼って** エンドポイントが生きているか確認：
+
+```bash
+curl -i -X POST http://localhost:5000/api/problem \
+  -H 'Content-Type: application/json' \
+  -d '{"difficultyLevel":"toeic"}'
+```
+
+* 200 または 429（上限到達）が返ればOK。
+* もし **404 が返る** 場合は、`server/routes/index.ts` を以下のように **唯一の登録先** にしてください（他で /api を定義しない）。
+
+```ts
+// server/routes/index.ts
+import { Router, type Express } from "express";
+import chatRoutes from "./chat.js";
+import userRoutes from "./user.js";
+import { testAuth, getSupabaseStatus } from "./debug-auth.js";
+import { handleProblemGeneration, handleClaudeEvaluation } from "../routes.js";
+
+export function registerRoutes(app: Express) {
+  const router = Router();
+
+  router.use("/chat", chatRoutes);
+  router.use("/user", userRoutes);
+
+  router.post("/test-auth", testAuth);
+  router.get("/supabase-status", getSupabaseStatus);
+
+  // ✅ /api/problem はここ“だけ”で定義
+  router.post("/problem", handleProblemGeneration);
+  router.post("/evaluate-with-claude", handleClaudeEvaluation);
+
+  app.use("/api", router);
+}
+```
+
+そして **server/index.ts では `/api` を個別に定義せず**、この一行だけでOK：
+
+```ts
+import { registerRoutes } from "./routes/index.js";
+...
+registerRoutes(app);
+```
+
+> 変更後は `npm run build:server` → `node dist/server/index.js &` を実行し直してください。
+
+---
+
+## ⑦ それでもプレビューが 403 / 表示されない時のチェック
+
+* `curl -s http://localhost:5000 | head` で **HTML が返っているか** 確認
+  → 返っていれば、Replit のプレビュー側（ブラウザ側の権限/接続）問題の可能性が高いです。**新しいタブで開く**／**ブラウザ拡張を一時無効**／**Replit を再読み込み** を試してください。
+* `dimensions` の JS エラーは UI レイアウト由来で **致命ではない** 場合が多いです。サーバ配信が直れば画面は出る想定です。
