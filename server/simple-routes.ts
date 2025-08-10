@@ -9,7 +9,7 @@ import {
 } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
-import { eq, lte, desc } from "drizzle-orm";
+import { eq, lte, desc, gte } from "drizzle-orm";
 
 const router = Router();
 
@@ -471,6 +471,106 @@ export function registerRoutes(app: Express): void {
     } catch (error) {
       console.error('Error fetching retry list:', error);
       res.status(500).json({ error: 'Failed to fetch retry list' });
+    }
+  });
+
+  // Progress report endpoint
+  router.get("/progress-report", async (req: Request, res: Response) => {
+    try {
+      // Use Drizzle ORM queries for better type safety
+      const today = new Date();
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      // Get all sessions for calculations
+      const allSessions = await db.select().from(trainingSessions);
+      
+      // Calculate statistics
+      const totalSessions = allSessions.length;
+      const avgRating = allSessions.length > 0 ? 
+        allSessions.reduce((sum, s) => sum + s.rating, 0) / allSessions.length : 0;
+      
+      const todayCount = allSessions.filter(s => 
+        s.createdAt && s.createdAt >= startOfToday).length;
+      
+      const monthlyCount = allSessions.filter(s => 
+        s.createdAt && s.createdAt >= startOfMonth).length;
+      
+      // Calculate streak (consecutive days of practice)
+      const uniqueDates = [...new Set(allSessions
+        .filter(s => s.createdAt)
+        .map(s => s.createdAt!.toDateString()))]
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+      
+      let streak = 0;
+      const todayString = today.toDateString();
+      
+      if (uniqueDates.includes(todayString) || uniqueDates.length === 0) {
+        let currentDate = new Date(today);
+        for (const dateStr of uniqueDates) {
+          if (dateStr === currentDate.toDateString()) {
+            streak++;
+            currentDate.setDate(currentDate.getDate() - 1);
+          } else {
+            break;
+          }
+        }
+      }
+
+      const progressReport = {
+        streak: streak,
+        monthlyProblems: monthlyCount,
+        averageRating: avgRating.toFixed(1),
+        todayProblems: todayCount,
+        dailyLimit: 100,
+        totalProblems: totalSessions
+      };
+
+      res.json(progressReport);
+    } catch (error) {
+      console.error('Error fetching progress report:', error);
+      res.status(500).json({ error: 'Failed to fetch progress report' });
+    }
+  });
+
+  // Weekly progress chart data endpoint
+  router.get("/weekly-progress", async (req: Request, res: Response) => {
+    try {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      const recentSessions = await db
+        .select()
+        .from(trainingSessions)
+        .where(gte(trainingSessions.createdAt, weekAgo))
+        .orderBy(desc(trainingSessions.createdAt));
+      
+      // Group by date
+      const dailyProgress: Record<string, any> = {};
+      recentSessions.forEach(session => {
+        if (session.createdAt) {
+          const dateKey = session.createdAt.toDateString();
+          if (!dailyProgress[dateKey]) {
+            dailyProgress[dateKey] = {
+              date: dateKey,
+              count: 0,
+              totalRating: 0,
+              avgRating: 0
+            };
+          }
+          dailyProgress[dateKey].count++;
+          dailyProgress[dateKey].totalRating += session.rating;
+          dailyProgress[dateKey].avgRating = dailyProgress[dateKey].totalRating / dailyProgress[dateKey].count;
+        }
+      });
+
+      const chartData = Object.values(dailyProgress).sort((a: any, b: any) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      res.json(chartData);
+    } catch (error) {
+      console.error('Error fetching weekly progress:', error);
+      res.status(500).json({ error: 'Failed to fetch weekly progress' });
     }
   });
 

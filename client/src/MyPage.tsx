@@ -118,14 +118,27 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
     try {
       setIsLoading(true);
       
-      // Mock daily statistics
-      setDailyStats({
-        streak: 0,
-        todayProblems: 0,
-        monthlyProblems: 0,
-        averageRating: 0,
-        dailyLimit: 100
-      });
+      // Fetch real progress data from API
+      const progressResponse = await fetch('/api/progress-report');
+      if (progressResponse.ok) {
+        const progressData = await progressResponse.json();
+        setDailyStats({
+          streak: progressData.streak || 0,
+          monthlyProblems: progressData.monthlyProblems || 0,
+          averageRating: parseFloat(progressData.averageRating) || 0,
+          todayProblems: progressData.todayProblems || 0,
+          dailyLimit: progressData.dailyLimit || 100
+        });
+      } else {
+        console.warn('Failed to load progress data, using defaults');
+        setDailyStats({
+          streak: 0,
+          monthlyProblems: 0,
+          averageRating: 0,
+          todayProblems: 0,
+          dailyLimit: 100
+        });
+      }
 
       // Mock plan information
       setPlanInfo({
@@ -242,7 +255,7 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                 <CardContent className="p-4">
                   <div className="text-sm text-gray-600 mb-1">今日の問題数</div>
                   <div className="text-3xl font-bold text-orange-600">{dailyStats.todayProblems}/{dailyStats.dailyLimit}</div>
-                  <div className="text-xs text-gray-500">残り {dailyStats.dailyLimit}問</div>
+                  <div className="text-xs text-gray-500">残り {dailyStats.dailyLimit - dailyStats.todayProblems}問</div>
                 </CardContent>
               </Card>
             </div>
