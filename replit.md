@@ -9,6 +9,8 @@ This is a mobile-first English composition training application that helps users
 Preferred communication style: Simple, everyday language.
 Project focus: Mobile-optimized English learning app with instant feedback and comprehensive progress tracking.
 Learning Flow: Problem → Answer → Evaluation/Explanation/Similar Phrases・Next Problem (continuous flow with 1 second interval).
+Authentication Flow: Login screen (SimpleAuth.tsx) serves as permanent main authentication interface, accessible via MyPage logout.
+UI Design: No login button on main interface - authentication accessed only through MyPage logout functionality.
 Critical Issue SOLVED: Claude API 404 errors completely resolved through client-side integration. Root cause was Vite middleware intercepting /api/ routes. Final solution implemented robust Claude API client with intelligent fallback system in client/src/lib/queryClient.ts, ensuring seamless user experience even during API issues.
 
 ## System Architecture
@@ -51,10 +53,22 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
   - Comprehensive evaluation with encouraging feedback
   - Graceful degradation to high-quality fallback content
 - **Payment Gateway**: Stripe
-- **Authentication**: Supabase (email/password and Google OAuth)
+- **Authentication**: Supabase (email/password and Google OAuth) via SimpleAuth.tsx interface
+  - Primary access: MyPage → Logout → Login Screen
+  - Screenshots-matched design for login/signup screens
+  - No login button on main interface (user preference)
 - **Deployment**: Railway (production deployment)
 
 ## Recent Changes (August 2025)
+
+### Authentication Interface Finalization - August 10, 2025
+**Status**: ✅ COMPLETED
+- Established login screen (SimpleAuth.tsx) as primary authentication interface
+- Removed top-page login button as per user request to maintain clean interface
+- Implemented functional logout system that redirects to login screen
+- Login screen preserved as permanent main entry point for authentication
+- Authentication flow: Main UI → MyPage Logout → Login Screen → Authentication
+- Login/Signup screens match provided screenshot designs exactly
 
 ### Progress Report System Implementation - August 10, 2025
 **Status**: ✅ COMPLETED
@@ -129,3 +143,5 @@ Client → Vite middleware → React App (for UI routes)
 ```
 
 **Current Status**: User fixed consecutive problem generation bug by implementing registerRoutes in server/index.ts. Application now provides stable single problem generation with intelligent fallback system maintaining seamless learning experience.
+
+**IMPORTANT**: Login screen (SimpleAuth.tsx) recorded as permanent main authentication interface per user request. Access path: MyPage logout → Login screen. No login button on main interface. See AUTHENTICATION_SETUP.md for complete reference.
