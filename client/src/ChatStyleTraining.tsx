@@ -157,18 +157,14 @@ export default function ChatStyleTraining({
   const renderStarRating = (rating: number) => {
     return (
       <div className="flex items-center justify-start space-x-1 h-6">
-        {[1, 2, 3, 4, 5].map((star) => (
+        {/* Only show the number of stars equal to the rating */}
+        {Array.from({ length: rating }, (_, index) => (
           <span
-            key={star}
-            className={`text-lg ${
-              star <= rating ? "text-yellow-400" : "text-gray-300"
-            }`}
+            key={index}
+            className="text-lg text-yellow-400"
             style={{
-              filter:
-                star <= rating
-                  ? "drop-shadow(0 1px 3px rgba(255,193,7,0.4))"
-                  : "none",
-              textShadow: star <= rating ? "0 1px 2px rgba(0,0,0,0.1)" : "none",
+              filter: "drop-shadow(0 1px 3px rgba(255,193,7,0.4))",
+              textShadow: "0 1px 2px rgba(0,0,0,0.1)",
             }}
           >
             ⭐
