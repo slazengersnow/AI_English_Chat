@@ -179,6 +179,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
         setSelectedDifficulty("toeic");
         setCurrentPage('training');
       }}
+      onShowAuth={() => setShowAuth(true)}
     />;
   }
 
@@ -315,13 +316,6 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     <div className="min-h-screen p-4" style={{ backgroundColor: '#e7effe' }}>
       {/* Header with buttons - positioned absolutely to screen edge */}
       <div className="absolute top-4 right-4 flex space-x-2 z-10">
-        <button 
-          onClick={() => setShowAuth(true)}
-          className="px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition-colors flex items-center space-x-1 text-sm"
-        >
-          <span>🔐</span>
-          <span>ログイン</span>
-        </button>
         <button 
           onClick={() => {
             setCurrentPage('admin');

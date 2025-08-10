@@ -25,9 +25,10 @@ interface UserAccount {
   registeredAt: string;
 }
 
-export default function MyPage({ onBackToMenu, onStartTraining }: { 
+export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: { 
   onBackToMenu: () => void;
   onStartTraining: (problem: string) => void;
+  onShowAuth?: () => void;
 }) {
   // Record current page as my page for refresh persistence
   useEffect(() => {
@@ -612,7 +613,23 @@ export default function MyPage({ onBackToMenu, onStartTraining }: {
                   </div>
                   
                   <div className="mt-4 pt-4 border-t text-center">
-                    <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                    <Button 
+                      variant="outline" 
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                      onClick={() => {
+                        // Clear any stored data
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        
+                        // If onShowAuth is provided, show auth screen
+                        if (onShowAuth) {
+                          onShowAuth();
+                        } else {
+                          // Fallback: reload page
+                          window.location.reload();
+                        }
+                      }}
+                    >
                       ログアウト
                     </Button>
                   </div>
