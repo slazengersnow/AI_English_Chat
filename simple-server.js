@@ -1,85 +1,40 @@
-// Simple Express server for Replit port 5000
-import express from 'express';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
-const PORT = 5000;
-
-// Middleware
-app.use(express.json());
-app.use(express.static('dist/client'));
-
-console.log('🚀 Starting simple server on port', PORT);
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', port: PORT });
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+// Minimal Express server for testing API endpoints
+var express_1 = require("express");
+var cors_1 = require("cors");
+var app = (0, express_1.default)();
+var PORT = 5000;
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+// Test endpoint
+app.get("/", function (req, res) {
+    res.send("Express Server Running!");
 });
-
 // API endpoints
-app.post('/api/problem', (req, res) => {
-  console.log('🔥 Problem API called');
-  res.json({
-    japaneseSentence: "チームメンバーと連携を取ってください。",
-    hints: ["問題1"],
-    dailyLimitReached: false,
-    currentCount: 1,
-    dailyLimit: 100
-  });
+app.post("/api/problem", function (req, res) {
+    console.log("🔥 Problem endpoint hit:", req.body);
+    res.json({
+        japaneseSentence: "チームメンバーと連携を取ってください。",
+        hints: ["問題1"],
+        dailyLimitReached: false,
+        currentCount: 1,
+        dailyLimit: 100
+    });
 });
-
-app.post('/api/evaluate', (req, res) => {
-  console.log('🔥 Evaluate API called');
-  res.json({
-    rating: 4,
-    modelAnswer: "Please coordinate with your team members.",
-    feedback: "良い回答です。",
-    similarPhrases: ["Please work with your team."]
-  });
+app.post("/api/evaluate", function (req, res) {
+    console.log("🔥 Evaluate endpoint hit:", req.body);
+    res.json({
+        rating: 4,
+        modelAnswer: "Please coordinate with your team members.",
+        feedback: "良い回答です。文法的に正確で、意味も適切に伝わります。",
+        similarPhrases: [
+            "Please work closely with your team members.",
+            "Please collaborate with your teammates.",
+            "Please cooperate with your team."
+        ]
+    });
 });
-
-// Serve index.html for all other routes
-app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, 'dist', 'client', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.send(`
-      <html>
-        <head><title>AI English Chat</title></head>
-        <body>
-          <h1>AI English Chat</h1>
-          <p>Server running on port 5000</p>
-          <button onclick="testAPI()">Test API</button>
-          <div id="result"></div>
-          <script>
-            async function testAPI() {
-              try {
-                const response = await fetch('/api/problem', {
-                  method: 'POST',
-                  headers: {'Content-Type': 'application/json'},
-                  body: JSON.stringify({difficultyLevel: 'toeic'})
-                });
-                const data = await response.json();
-                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-              } catch (e) {
-                document.getElementById('result').innerHTML = 'Error: ' + e.message;
-              }
-            }
-          </script>
-        </body>
-      </html>
-    `);
-  }
-});
-
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Access via Replit URL`);
+app.listen(PORT, "0.0.0.0", function () {
+    console.log("\uD83D\uDE80 Server running on http://0.0.0.0:".concat(PORT));
 });

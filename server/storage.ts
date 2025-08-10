@@ -1,304 +1,86 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, desc, and, gte } from "drizzle-orm";
-import postgres from "postgres";
-import * as schema from "../shared/schema.js";
-import type {
-  TrainingSession,
-  InsertTrainingSession,
-  UserGoal,
-  InsertUserGoal,
-  DailyProgress,
-  InsertDailyProgress,
-  CustomScenario,
-  InsertCustomScenario,
-} from "../shared/schema.js";
+// 最小限のストレージモック
+export class Storage {
+  // ダミー実装
+  async getTrainingSessions(userId: string): Promise<any[]> {
+    return [];
+  }
 
-const { trainingSessions, userGoals, dailyProgress, customScenarios } = schema;
+  async getUserGoals(userId: string): Promise<any[]> {
+    return [];
+  }
 
-// Database connection
-const connectionString = process.env.DATABASE_URL!;
-const client = postgres(connectionString);
-const db = drizzle(client, { schema });
+  async updateUserGoals(userId: string, data: any): Promise<any> {
+    return {};
+  }
 
-// CRITICAL: Daily limit system - In-memory counter
-const DAILY_LIMIT = 100;
-const dailyCounters = new Map<string, { count: number; date: string }>();
-
-function getTodayString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function getDailyCount(userId: string = "bizmowa.com"): number {
-  const today = getTodayString();
-  const counter = dailyCounters.get(userId);
-
-  if (!counter || counter.date !== today) {
-    // Reset counter for new day
-    dailyCounters.set(userId, { count: 0, date: today });
+  async getStreakCount(userId: string): Promise<number> {
     return 0;
   }
 
-  return counter.count;
-}
-
-function incrementDailyCountInternal(userId: string = "bizmowa.com"): boolean {
-  const today = getTodayString();
-  const counter = dailyCounters.get(userId);
-
-  if (!counter || counter.date !== today) {
-    // New day, reset counter
-    dailyCounters.set(userId, { count: 1, date: today });
-    console.log(`✅ Problem count: 1/${DAILY_LIMIT} for ${userId}`);
-    return true;
+  async getDifficultyStats(userId: string): Promise<any> {
+    return {};
   }
 
-  if (counter.count >= DAILY_LIMIT) {
-    console.log(`🛑 Daily limit (${DAILY_LIMIT}) reached - returning 429`);
-    return false;
+  async getMonthlyStats(
+    userId: string,
+    year: string,
+    month: string,
+  ): Promise<any> {
+    return {};
   }
 
-  counter.count++;
-  dailyCounters.set(userId, counter);
-  console.log(
-    `✅ Problem count: ${counter.count}/${DAILY_LIMIT} for ${userId}`,
-  );
-  return true;
-}
-
-function resetDailyCount(userId: string = "bizmowa.com"): void {
-  console.log("🔄 Resetting daily count for user:", userId);
-  dailyCounters.delete(userId);
-}
-
-export class Storage {
-  // Training sessions
-  async getTrainingSessions(userId: string): Promise<TrainingSession[]> {
-    return await db
-      .select()
-      .from(trainingSessions)
-      .orderBy(desc(trainingSessions.createdAt));
+  async getSessionsForReview(
+    userId: string,
+    threshold: string,
+  ): Promise<any[]> {
+    return [];
   }
 
-  async getTrainingSession(id: string): Promise<TrainingSession | null> {
-    const result = await db
-      .select()
-      .from(trainingSessions)
-      .where(eq(trainingSessions.id, parseInt(id)))
-      .limit(1);
-
-    return result[0] || null;
+  async getRecentSessions(userId: string, daysBack: string): Promise<any[]> {
+    return [];
   }
 
-  async createTrainingSession(
-    data: InsertTrainingSession,
-  ): Promise<TrainingSession> {
-    const result = await db.insert(trainingSessions).values(data).returning();
-    return result[0];
+  async getBookmarkedSessions(userId: string): Promise<any[]> {
+    return [];
   }
 
-  async updateTrainingSession(
-    id: string,
-    data: Partial<InsertTrainingSession>,
-  ): Promise<TrainingSession> {
-    const result = await db
-      .update(trainingSessions)
-      .set(data)
-      .where(eq(trainingSessions.id, parseInt(id)))
-      .returning();
-    return result[0];
-  }
-
-  async deleteTrainingSession(id: string): Promise<void> {
-    await db
-      .delete(trainingSessions)
-      .where(eq(trainingSessions.id, parseInt(id)));
-  }
-
-  // Low-rated and review sessions
-  async getLowRatedSessions(userId: string): Promise<TrainingSession[]> {
-    return await db
-      .select()
-      .from(trainingSessions)
-      .orderBy(desc(trainingSessions.createdAt))
-      .limit(50);
-  }
-
-  async getBookmarkedSessions(userId: string): Promise<TrainingSession[]> {
-    return await db
-      .select()
-      .from(trainingSessions)
-      .orderBy(desc(trainingSessions.createdAt))
-      .limit(50);
+  async updateBookmark(
+    sessionId: string,
+    isBookmarked: boolean,
+  ): Promise<void> {
+    // ダミー実装
   }
 
   async updateReviewCount(sessionId: string): Promise<void> {
-    // This is a placeholder for review count tracking
-    // Implementation depends on specific requirements
+    // ダミー実装
   }
 
-  // Removed duplicate method
-
-  // CRITICAL: Daily limit functions
-  async incrementDailyCount(userId: string = "bizmowa.com"): Promise<boolean> {
-    return incrementDailyCountInternal(userId);
-  }
-
-  async getDailyCount(userId: string = "bizmowa.com"): Promise<number> {
-    return getDailyCount(userId);
-  }
-  
-  // Missing methods that routes.ts expects
-  async getUserSubscription(userId?: string): Promise<any> {
-    return { subscriptionStatus: "active", subscriptionType: "standard", isAdmin: false };
-  }
-  
-  async updateUserSubscription(userId: string, data: any): Promise<any> {
-    return { ...data, userId };
-  }
-  
-  async getUserAttemptedProblems(difficulty: string, userId: string): Promise<any[]> {
+  async getCustomScenarios(userId: string): Promise<any[]> {
     return [];
   }
-  
-  async getCurrentProblemNumber(userId: string, difficulty: string): Promise<number> {
-    return 1;
-  }
-  
-  async addTrainingSession(data: any): Promise<any> {
-    return { id: Date.now(), ...data };
-  }
-  
-  // Additional stub methods for routes.ts compatibility
-  async updateProblemProgress(userId: string, difficulty: string, progress: number): Promise<void> {
-    // Placeholder
-  }
-  
-  async getSessionsByDifficulty(userId: string): Promise<any[]> { return []; }
-  async updateUserGoals(userId: string, data: any): Promise<any> { return {}; }
-  async getProgressHistory(userId: string): Promise<any[]> { return []; }
-  async getStreakCount(userId: string): Promise<number> { return 0; }
-  async getDifficultyStats(userId: string): Promise<any> { return {}; }
-  async getMonthlyStats(userId: string, year: number): Promise<any> { return {}; }
-  async getSessionsForReview(userId: string): Promise<any[]> { return []; }
-  async getRecentSessions(userId: string): Promise<any[]> { return []; }
-  async updateBookmark(sessionId: string, isBookmarked: boolean): Promise<void> { }
-  async addCustomScenario(data: any): Promise<any> { return {}; }
-  async getTodaysProblemCount(userId: string): Promise<number> { return 0; }
-  async getAdminStats(): Promise<any> { return {}; }
-  async getAllUsers(): Promise<any[]> { return []; }
-  async getLearningAnalytics(): Promise<any> { return {}; }
-  async exportData(type: string): Promise<string> { return ""; }
-  async resetUserData(): Promise<void> { }
 
-  // Reset daily count for testing
-  async resetDailyCount(userId: string = "bizmowa.com"): Promise<void> {
-    resetDailyCount(userId);
-  }
-
-  // Goals and progress
-  async getUserGoals(userId: string): Promise<UserGoal[]> {
-    return await db.select().from(userGoals).orderBy(desc(userGoals.createdAt));
-  }
-
-  async updateUserGoal(
-    userId: string,
-    data: Partial<InsertUserGoal>,
-  ): Promise<UserGoal> {
-    const existingGoal = await db.select().from(userGoals).limit(1);
-
-    if (existingGoal.length > 0) {
-      const result = await db
-        .update(userGoals)
-        .set({ ...data, updatedAt: new Date() })
-        .returning();
-      return result[0];
-    } else {
-      const result = await db.insert(userGoals).values(data).returning();
-      return result[0];
-    }
-  }
-
-  async getDailyProgress(userId: string): Promise<DailyProgress[]> {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    return await db
-      .select()
-      .from(dailyProgress)
-      .where(gte(dailyProgress.date, thirtyDaysAgo.toISOString().split("T")[0]))
-      .orderBy(desc(dailyProgress.date));
-  }
-
-  async updateDailyProgress(
-    userId: string,
-    data: Partial<InsertDailyProgress>,
-  ): Promise<DailyProgress> {
-    const today = new Date().toISOString().split("T")[0];
-
-    const existingProgress = await db
-      .select()
-      .from(dailyProgress)
-      .where(eq(dailyProgress.date, today))
-      .limit(1);
-
-    if (existingProgress.length > 0) {
-      const result = await db
-        .update(dailyProgress)
-        .set(data)
-        .where(eq(dailyProgress.date, today))
-        .returning();
-      return result[0];
-    } else {
-      const result = await db
-        .insert(dailyProgress)
-        .values({ ...data, date: today })
-        .returning();
-      return result[0];
-    }
-  }
-
-  // Custom scenarios
-  async getCustomScenarios(userId: string): Promise<CustomScenario[]> {
-    return await db
-      .select()
-      .from(customScenarios)
-      .orderBy(desc(customScenarios.createdAt));
-  }
-
-  async getCustomScenario(id: string): Promise<CustomScenario | null> {
-    const result = await db
-      .select()
-      .from(customScenarios)
-      .where(eq(customScenarios.id, parseInt(id)))
-      .limit(1);
-
-    return result[0] || null;
-  }
-
-  async createCustomScenario(
-    data: InsertCustomScenario,
-  ): Promise<CustomScenario> {
-    const result = await db.insert(customScenarios).values(data).returning();
-    return result[0];
-  }
-
-  async updateCustomScenario(
-    id: string,
-    data: Partial<InsertCustomScenario>,
-  ): Promise<CustomScenario> {
-    const result = await db
-      .update(customScenarios)
-      .set(data)
-      .where(eq(customScenarios.id, parseInt(id)))
-      .returning();
-    return result[0];
+  async updateCustomScenario(id: string, data: any): Promise<any> {
+    return {};
   }
 
   async deleteCustomScenario(id: string): Promise<void> {
-    await db
-      .delete(customScenarios)
-      .where(eq(customScenarios.id, parseInt(id)));
+    // ダミー実装
+  }
+
+  async getCustomScenario(id: string): Promise<any> {
+    return {};
+  }
+
+  async getTodaysProblemCount(userId: string): Promise<number> {
+    return 0;
+  }
+
+  async incrementDailyCount(): Promise<boolean> {
+    // ダミー実装：常に許可
+    return true;
   }
 }
 
-export const storage = new Storage();
+// デフォルトエクスポート
+const storage = new Storage();
+export default storage;

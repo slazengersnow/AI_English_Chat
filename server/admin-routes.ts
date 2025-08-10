@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { storage } from "./storage.js";
+import storage from "./storage.js";
 
 export function registerAdminRoutes(app: Express) {
   // Usage Statistics

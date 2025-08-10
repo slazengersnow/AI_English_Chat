@@ -3,8 +3,11 @@ import { Router } from "express";
 import chatRoutes from "./chat.js";
 import userRoutes from "./user.js";
 import { testAuth, getSupabaseStatus } from "./debug-auth.js";
-// Claudeハンドラは simple-routes.ts から関数を直接インポートして明示登録する
-import { handleProblemGeneration, handleClaudeEvaluation, } from "../simple-routes.js";
+// Claude系ハンドラをroutes.tsからインポート
+import { handleProblemGeneration, handleClaudeEvaluation,
+// 従来評価が必要ならroutes.ts側でexportして以下をアンコメント
+// handleEvaluate,
+ } from "../routes.js";
 /**
  * /api 配下のルーティングを一括登録する
  * 重要：ここで「だけ」/api/problem 等を定義し、他の場所で重複定義しないこと

@@ -13,7 +13,7 @@ if (!stripeSecretKey || !webhookSecret) {
 } else {
   // Stripeインスタンスを初期化
   const stripe = new Stripe(stripeSecretKey, {
-    apiVersion: "2025-07-30.basil",
+    apiVersion: "2024-06-20",
   });
 
   // Webhookルート

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
-import { claudeApiRequest } from "@/lib/queryClient";
+import { claudeApiRequest } from "./lib/queryClient";
 import ChatStyleTraining from "./ChatStyleTraining";
 import AdminDashboard from "./AdminDashboard";
 import MyPage from "./MyPage";

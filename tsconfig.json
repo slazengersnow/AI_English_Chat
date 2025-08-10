@@ -1,21 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "esnext",
-    "moduleResolution": "Node",
-    "outDir": "dist",
-    "rootDir": ".",
-    "esModuleInterop": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
     "strict": true,
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true,
-    "baseUrl": "."
-    // "paths": {
-    //   "@shared/*": ["shared/*"]
-    // }
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
+    }
   },
-  "include": ["server/**/*", "shared/**/*"],
-  "exclude": ["node_modules", "server/routes.ts", "server/admin-routes.ts"]
+  "include": [
+    "client/src",
+    "shared"
+  ]
 }

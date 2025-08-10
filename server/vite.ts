@@ -10,7 +10,7 @@ const projectRoot = process.cwd();
 
 export async function setupVite(app: express.Express, server: any) {
   const vite = await createViteServer({
-    server: { middlewareMode: "html" }, // ✅ 推奨される指定方法
+    server: { middlewareMode: true }, // ✅ 推奨される指定方法
     appType: "custom",
     root: path.resolve(projectRoot, "client"),
   });
