@@ -41,6 +41,8 @@ interface EvaluationResult {
   similarPhrases: string[];
   overallEvaluation?: string;
   detailedComment?: string;
+  correctTranslation?: string;  // API response field
+  feedback?: string;            // API response field
 }
 
 export default function ChatStyleTraining({
@@ -681,7 +683,7 @@ export default function ChatStyleTraining({
             const modelAnswerMessage: ChatMessage = {
               id: (Date.now() + 3).toString(),
               type: "model_answer",
-              content: evaluation.modelAnswer,
+              content: evaluation.correctTranslation || evaluation.modelAnswer || currentProblem.modelAnswer,
               timestamp: new Date(),
             };
             setMessages((prev) => [...prev, modelAnswerMessage]);
@@ -690,7 +692,7 @@ export default function ChatStyleTraining({
               const explanationMessage: ChatMessage = {
                 id: (Date.now() + 4).toString(),
                 type: "explanation",
-                content: evaluation.explanation,
+                content: evaluation.explanation || evaluation.feedback || "Good effort! Keep practicing to improve.",
                 timestamp: new Date(),
               };
               setMessages((prev) => [...prev, explanationMessage]);
@@ -700,7 +702,7 @@ export default function ChatStyleTraining({
                   id: (Date.now() + 5).toString(),
                   type: "similar_phrases",
                   content: "類似フレーズ",
-                  phrases: evaluation.similarPhrases,
+                  phrases: evaluation.similarPhrases || [],
                   timestamp: new Date(),
                 };
                 setMessages((prev) => [...prev, phrasesMessage]);
