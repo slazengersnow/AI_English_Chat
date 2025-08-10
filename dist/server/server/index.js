@@ -8,9 +8,18 @@ process.env.HOST = process.env.HOST || "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-const PORT = Number(process.env.PORT) || 8080;
+const PORT = Number(process.env.PORT) || 5000;
 /* ---------- middlewares ---------- */
-app.use(cors());
+app.use(cors({
+    origin: [
+        'http://localhost:3000',
+        'http://localhost:5000',
+        'https://*.replit.dev',
+        'https://*.fly.dev',
+        'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev'
+    ],
+    credentials: true
+}));
 // Stripe webhook用のraw bodyハンドリング（必要な場合）
 try {
     const stripeWebhookRouter = await import("./routes/stripe-webhook.js");
@@ -73,7 +82,7 @@ if (process.env.NODE_ENV !== "production") {
 else {
     // 本番時：SERVE_CLIENT=true の場合のみ静的ファイル配信
     if (process.env.SERVE_CLIENT === "true") {
-        const clientDist = path.resolve(process.cwd(), "client/dist");
+        const clientDist = path.resolve(process.cwd(), "dist/client");
         app.use(express.static(clientDist));
         app.get("*", (_req, res) => {
             res.sendFile(path.join(clientDist, "index.html"));

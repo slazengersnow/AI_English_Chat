@@ -1,0 +1,160 @@
+# Replit宛・そのまま送る指示
+
+**方針：** Vite開発サーバは使いません。`vite build` で静的出力を作り、Expressで配信します。/api は `server/routes/index.ts` に一元化し、`/api/problem` が404にならないようにします。
+
+### 1) スクリプト修正（dev→本番配信に）
+
+**`package.json` を以下に変更してください（scriptsのみ）**
+
+* build は「サーバ＋クライアント」を一括ビルド
+* start は「ビルド済みJS」を実行
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:server": "tsc",
+    "build:client": "vite build",
+    "start": "node dist/server/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  }
+}
+```
+
+### 2) 環境変数設定（Replit側）
+
+`.env` に以下を追記してください（存在するものは上書き不要）:
+
+```
+NODE_ENV=production
+SERVE_CLIENT=true
+PORT=5000
+```
+
+※ Replitは5000を好むためPORT=5000でOK（Expressは `Number(process.env.PORT) || 8080` で拾えます）
+
+### 3) サーバの配信ガードを本番静的配信へ
+
+**`server/index.ts` は “静的配信ガード版” を使います。**
+※ すでに適用済みであればこの手順は確認のみ
+
+```ts
+// 末尾付近の静的配信ブロック（production時）
+if (process.env.NODE_ENV !== "production") {
+  const { setupVite } = await import("./vite.js");
+  await setupVite(app, null);
+} else {
+  if (process.env.SERVE_CLIENT === "true") {
+    const clientDist = path.resolve(process.cwd(), "client/dist");
+    app.use(express.static(clientDist));
+    app.get("*", (_req, res) => {
+      res.sendFile(path.join(clientDist, "index.html"));
+    });
+  }
+}
+```
+
+> Fly本番では `SERVE_CLIENT=false` ですが、**Replitでは true にして** 表示確認します。
+
+### 4) ルートを一元化し、二重定義を排除
+
+* **`server/routes/index.ts`** に `/api/problem` と `/api/evaluate-with-claude` を **唯一** 定義してください（このファイルだけでOK）。
+* **`server/index.ts`** で `/api/*` を手動で定義しないでください。**`registerRoutes(app)` の一回だけ** で読み込みます。
+
+例（確認用）：`server/routes/index.ts`
+
+```ts
+import { Router, type Express } from "express";
+import chatRoutes from "./chat.js";
+import userRoutes from "./user.js";
+import { testAuth, getSupabaseStatus } from "./debug-auth.js";
+import { handleProblemGeneration, handleClaudeEvaluation } from "../routes.js";
+
+export function registerRoutes(app: Express) {
+  const router = Router();
+
+  router.use("/chat", chatRoutes);
+  router.use("/user", userRoutes);
+
+  router.post("/test-auth", testAuth);
+  router.get("/supabase-status", getSupabaseStatus);
+
+  router.post("/problem", handleProblemGeneration);
+  router.post("/evaluate-with-claude", handleClaudeEvaluation);
+
+  app.use("/api", router);
+}
+```
+
+> これで `Cannot POST /api/problem` は解消されるはずです。
+
+### 5) TSパスエイリアスを無効化（ビルド後実行時の解決失敗を回避）
+
+**`tsconfig.json` の `paths` を一旦コメントアウト** してください（相対importに統一するため）。
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "esnext",
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "rootDir": ".",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "baseUrl": "."
+    // "paths": { "@shared/*": ["shared/*"] }
+  },
+  "include": ["server/**/*", "shared/**/*"],
+  "exclude": ["node_modules"]
+}
+```
+
+> これに合わせて、**サーバ側の `@shared/schema` などのimportは相対パスに直してください**。
+> 例: `import { xxx } from "../../shared/schema.js";`
+
+### 6) ビルド → 起動（Replitで実行）
+
+```
+npm ci
+npm run build
+npm start
+```
+
+* 起動後、Replitコンソールで **`/health` にアクセス** して200が返るか確認してください：
+  `curl -s http://localhost:5000/health`
+
+* UIはReplitのWebViewで **難易度選択画面が出るか** を確認します。
+
+### 7) もしまだ表示されない／404が出る場合
+
+**確認ポイント（Replit側で実施してください）**
+
+* `dist/server/index.js` が存在するか：
+  `ls -l dist/server/index.js`
+
+* クライアントのビルド結果があるか：
+  `ls -l client/dist/index.html`
+
+* ルートの登録漏れがないか（起動ログに `🔍 API REQUEST` が見えるか）：
+  UIから「問題を出す」を押して、ReplitのServer logsに
+  `🔍 API REQUEST: POST /api/problem`
+  が出ているか確認。
+
+* `.env` に `NODE_ENV=production`, `SERVE_CLIENT=true`, `PORT=5000` が入っているか確認。
+
+---
+
+## これを選んだ理由（Replitへの補足説明）
+
+* **Vite devサーバの「allowedHosts」問題**はReplitの制約で頻出。**本番ビルド配信に切り替えるのが確実**です。
+* **/apiの404** はエンドポイントが**二重定義/未登録**になっていた可能性が高く、`registerRoutes(app)` 一元化で解消します。
+* **@shared 等のTSパスエイリアス**は、ビルド後ランタイム解決でこけやすいので**一旦OFF**にして相対importへ統一します。
+
+---
