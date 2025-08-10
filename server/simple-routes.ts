@@ -218,7 +218,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
   "feedback": "具体的なフィードバック(良い点と改善点を日本語で詳しく)",
   "rating": 評価(1=要改善、5=完璧の数値),
   "improvements": ["改善提案1(日本語で)", "改善提案2(日本語で)"],
-  "explanation": "文法・語彙・表現について4行以上の詳細解説(必ず日本語で、具体的に)",
+  "explanation": "文法・語彙・表現について詳細解説(必ず日本語で、具体的に)",
   "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
 }
 
@@ -229,10 +229,11 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 4. 文脈適合性：場面に適した表現レベル（丁寧語、カジュアル等）
 
 説明要件:
-- explanationは最低4行で、文法・語彙・表現の観点から具体的に解説
+- 文法・語彙・表現の観点から具体的に解説
 - 「なぜこの表現が良いのか」「どの部分を改善すべきか」を明確に
 - 学習者が次回同じような問題に応用できる具体的なアドバイス
-- 中学生にも理解できる分かりやすい日本語`;
+- 中学生にも理解できる分かりやすい日本語
+- JSON文字列内では改行文字や特殊文字は使わず、\\nを使用してください`;
 
     const userPrompt = `日本語文: ${japaneseSentence}
 ユーザーの英訳: ${userTranslation}
@@ -255,9 +256,29 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 
       try {
         parsedResult = JSON.parse(content);
-      } catch {
-        const jsonMatch = content?.match?.(/\{[\s\S]*\}/);
-        parsedResult = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
+      } catch (parseError) {
+        console.log("JSON parse failed, attempting cleanup:", parseError);
+        try {
+          // Clean up content and try again
+          let cleanContent = content.replace(/[\x00-\x1F\x7F]/g, '');
+          cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+          parsedResult = JSON.parse(cleanContent);
+        } catch (cleanupError) {
+          // Try to extract JSON from content
+          const jsonMatch = content?.match?.(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              let jsonContent = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, '');
+              jsonContent = jsonContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+              parsedResult = JSON.parse(jsonContent);
+            } catch (finalError) {
+              console.error("All JSON parsing attempts failed:", finalError);
+              parsedResult = {};
+            }
+          } else {
+            parsedResult = {};
+          }
+        }
       }
 
       const response: TranslateResponse = {

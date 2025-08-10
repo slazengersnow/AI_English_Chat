@@ -404,7 +404,7 @@ export default function ChatStyleTraining({
       console.warn("Using enhanced fallback evaluation");
 
       // Enhanced fallback with detailed analysis based on actual user input
-      let rating = 1;
+      let rating = 3;
       let specificFeedback = "";
 
       const userAnswerLower = userAnswer?.toLowerCase().trim() || "";
@@ -412,7 +412,7 @@ export default function ChatStyleTraining({
       // Check for meaningless inputs
       if (!userAnswer || userAnswerLower.length < 3) {
         rating = 1;
-        specificFeedback = "回答が空または短すぎます。";
+        specificFeedback = "回答が空または短すぎます。完整な英文で回答してください。";
       } else if (
         ["test", "aaa", "bbb", "123", "hello", "ok", "yes", "no"].includes(
           userAnswerLower,
@@ -423,6 +423,7 @@ export default function ChatStyleTraining({
           "適当な回答ではなく、日本語文を正確に英訳してください。";
       } else {
         // Analyze content for actual translation attempt
+        rating = 3; // Default good rating for meaningful attempts
         const hasValidWords = /[a-zA-Z]{3,}/.test(userAnswer);
         const hasMultipleWords = userAnswer.split(/\s+/).length >= 3;
         const hasProperStructure =
@@ -587,29 +588,55 @@ export default function ChatStyleTraining({
       );
 
       const fallbackSimilarPhrases: Record<string, string[]> = {
-        "このデータを分析してください。": [
-          "Could you analyze this data?",
-          "Would you please examine this data?",
+        "明日は友達と遊びます。": [
+          "I will hang out with my friends tomorrow.",
+          "Tomorrow I'm going to spend time with my friends.",
         ],
-        "予算の承認が必要です。": [
-          "Budget approval is required.",
-          "We require budget authorization.",
+        "私は毎日学校に行きます。": [
+          "I go to school every day.",
+          "I attend school daily.",
         ],
-        "会議の議題を事前に共有してください。": [
-          "Could you please share the meeting agenda beforehand?",
-          "Would you mind sharing the agenda in advance?",
+        "今日は雨が降っています。": [
+          "It is raining today.",
+          "It's a rainy day today.",
         ],
+        "彼女は本を読むのが好きです。": [
+          "She likes reading books.",
+          "She enjoys reading books.",
+        ],
+        "私たちは昨日映画を見ました。": [
+          "We watched a movie yesterday.",
+          "We saw a film yesterday.",
+        ],
+      };
+
+      // Generate appropriate model answer based on Japanese sentence
+      const generateModelAnswer = (japaneseSentence: string): string => {
+        const modelAnswers: Record<string, string> = {
+          "明日は友達と遊びます。": "I will play with my friends tomorrow.",
+          "私は毎日学校に行きます。": "I go to school every day.",
+          "今日は雨が降っています。": "It is raining today.",
+          "彼女は本を読むのが好きです。": "She likes reading books.",
+          "私たちは昨日映画を見ました。": "We watched a movie yesterday.",
+          "彼は毎朝走ります。": "He runs every morning.",
+          "私は本を読みます。": "I read books.",
+          "彼女は料理を作ります。": "She cooks meals.",
+          "私たちは音楽を聞きます。": "We listen to music.",
+          "子供たちは公園で遊びます。": "Children play in the park.",
+        };
+        return modelAnswers[japaneseSentence] || "Please translate this sentence accurately.";
       };
 
       return {
         rating,
         overallEvaluation: overallEval[0] || "良い回答です",
         detailedComment: overallEval[1] || "継続的な練習で更に向上できます",
-        modelAnswer,
+        correctTranslation: generateModelAnswer(japaneseSentence),
+        modelAnswer: generateModelAnswer(japaneseSentence),
         explanation: detailedExplanation,
         similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
-          "Please consider using more natural phrasing.",
-          "Try expressing this idea differently.",
+          "Good effort! Keep practicing.",
+          "Try using more natural English expressions.",
         ],
       };
     } finally {
@@ -970,26 +997,7 @@ export default function ChatStyleTraining({
       {(isStarted || initialProblem) && (
         <div className="flex-1 overflow-y-auto px-4 py-6">
           {messages.map((message) => renderMessage(message))}
-          {isLoading && (
-            <div className="flex justify-start mb-4">
-              <div className="bg-green-500 rounded-full w-12 h-8 flex items-center justify-center mr-3 flex-shrink-0">
-                <span className="text-white text-sm">⭐</span>
-              </div>
-              <div className="bg-white rounded-lg px-4 py-3 shadow-sm border">
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                  <span className="text-gray-600">評価中...</span>
-                </div>
-              </div>
-            </div>
-          )}
-          {awaitingAnswer && !isLoading && (
-            <div className="flex justify-center mb-4">
-              <div className="bg-gray-100 px-4 py-2 rounded-full text-sm text-gray-600">
-                英訳を入力してください...
-              </div>
-            </div>
-          )}
+          {/* Remove loading message to fix flash issue */}
           <div ref={messagesEndRef} />
         </div>
       )}
