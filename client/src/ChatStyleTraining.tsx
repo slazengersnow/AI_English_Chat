@@ -888,10 +888,10 @@ export default function ChatStyleTraining({
                     </div>
                     <button
                       onClick={() => speakText(modelAnswer.content)}
-                      className="text-green-600 hover:text-green-800 p-1 rounded transition-colors"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium transition-colors shadow-sm hover:shadow-md"
                       title="音声で聞く"
                     >
-                      🔊
+                      🎵 音声
                     </button>
                   </div>
                   <div className="text-gray-800 text-lg">
@@ -924,10 +924,10 @@ export default function ChatStyleTraining({
                         <span>• {phrase}</span>
                         <button
                           onClick={() => speakText(phrase)}
-                          className="text-purple-600 hover:text-purple-800 p-1 rounded transition-colors ml-2"
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-2 py-1 rounded-full text-xs font-medium transition-colors shadow-sm hover:shadow-md ml-2 flex-shrink-0"
                           title="音声で聞く"
                         >
-                          🔊
+                          🎵
                         </button>
                       </div>
                     ))}
