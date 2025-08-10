@@ -68,31 +68,13 @@ catch (error) {
     }
 }
 /* ---------- frontend serving logic ---------- */
-if (process.env.NODE_ENV !== "production") {
-    // 開発時：Vite dev middlewareを使用
-    try {
-        const { setupVite } = await import("./vite.js");
-        await setupVite(app, null);
-        console.log("🎯 Development mode: Using Vite dev middleware");
-    }
-    catch (error) {
-        console.error("Vite setup error:", error);
-    }
-}
-else {
-    // 本番時：SERVE_CLIENT=true の場合のみ静的ファイル配信
-    if (process.env.SERVE_CLIENT === "true") {
-        const clientDist = path.resolve(process.cwd(), "dist/client");
-        app.use(express.static(clientDist));
-        app.get("*", (_req, res) => {
-            res.sendFile(path.join(clientDist, "index.html"));
-        });
-        console.log("📦 Production mode: Serving static client files");
-    }
-    else {
-        console.log("🚫 Production mode: Client serving disabled (SERVE_CLIENT !== 'true')");
-    }
-}
+// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+    res.sendFile(path.join(clientDist, "index.html"));
+});
+console.log("📦 Forced production mode: Serving static client files from dist/client");
 /* ---------- 404 handler for API routes ---------- */
 app.use("/api/*", (_req, res) => {
     res.status(404).json({
