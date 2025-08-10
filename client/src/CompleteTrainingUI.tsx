@@ -117,10 +117,13 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     }
   };
 
-  const handleDifficultySelect = (difficulty: DifficultyLevel) => {
+  const handleDifficultySelect = async (difficulty: DifficultyLevel) => {
+    console.log("Difficulty selected:", difficulty);
     setSelectedDifficulty(difficulty);
     setCurrentPage('training');
-    fetchProblem(difficulty);
+    // Save the page state immediately
+    localStorage.setItem('englishTrainingCurrentPage', 'training');
+    // Don't call fetchProblem here - let ChatStyleTraining handle it
   };
 
   const handleNextProblem = () => {
@@ -172,16 +175,14 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
 
   // Chat-style practice screen
   if (currentPage === 'training' && selectedDifficulty) {
+    console.log("Rendering ChatStyleTraining with difficulty:", selectedDifficulty);
     return (
       <ChatStyleTraining 
         difficulty={selectedDifficulty} 
         onBackToMenu={handleBackToMenu}
         onGoToMyPage={() => setCurrentPage('mypage')}
-        initialProblem={currentProblem ? {
-          japaneseSentence: currentProblem.japaneseSentence,
-          modelAnswer: currentProblem.modelAnswer
-        } : undefined}
-        isBookmarkMode={!!currentProblem}
+        initialProblem={undefined}  // Let ChatStyleTraining generate its own problems
+        isBookmarkMode={false}      // Start in normal mode, not bookmark mode
       />
     );
   }
@@ -256,7 +257,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
                   </p>
                 </div>
                 
-                {evaluation?.similarPhrases && evaluation?.similarPhrases.length > 0 && (
+                {evaluation?.similarPhrases && evaluation.similarPhrases.length > 0 && (
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-2">類似表現：</h4>
                     <ul className="bg-gray-50 p-3 rounded-lg space-y-1">

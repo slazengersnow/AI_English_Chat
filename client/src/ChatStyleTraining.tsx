@@ -145,6 +145,10 @@ export default function ChatStyleTraining({
     // 初期問題の自動読み込み（React Strict Mode対応）
     if (initialProblem && !isStarted) {
       initializeWithInitialProblem();
+    } else if (!initialProblem && !isStarted && !isBookmarkMode) {
+      // 通常モードで初期問題がない場合は自動的に問題を生成
+      console.log("No initial problem provided, generating first problem");
+      loadNewProblemFromAPI();
     }
   }, []);
 
@@ -734,6 +738,7 @@ export default function ChatStyleTraining({
       console.log("Training already started or loading in progress...");
       return;
     }
+    console.log("Starting training manually");
     loadNewProblemFromAPI();
   };
 
