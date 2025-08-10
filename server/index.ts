@@ -16,7 +16,16 @@ const app = express();
 const PORT = Number(process.env.PORT) || 8080;
 
 /* ---------- middlewares ---------- */
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'https://*.replit.dev',
+    'https://*.fly.dev',
+    'https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev'
+  ],
+  credentials: true
+}));
 
 // Stripe webhook用のraw bodyハンドリング（必要な場合）
 try {
