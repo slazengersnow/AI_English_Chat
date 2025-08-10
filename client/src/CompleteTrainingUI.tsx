@@ -4,6 +4,7 @@ import { claudeApiRequest } from "./lib/queryClient";
 import ChatStyleTraining from "./ChatStyleTraining";
 import AdminDashboard from "./AdminDashboard";
 import MyPage from "./MyPage";
+import { SimpleAuth } from "./SimpleAuth";
 
 type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
 
@@ -33,11 +34,12 @@ interface CompleteTrainingUIProps {
 // スクリーンショットの完全な英作文トレーニング画面を再現
 export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingUIProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
-  const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage'>(() => {
+  const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage' | 'login'>(() => {
     // Load saved page from localStorage on initial load
     const savedPage = localStorage.getItem('englishTrainingCurrentPage');
-    return (savedPage as 'menu' | 'training' | 'admin' | 'mypage') || 'menu';
+    return (savedPage as 'menu' | 'training' | 'admin' | 'mypage' | 'login') || 'menu';
   });
+  const [showAuth, setShowAuth] = useState(false);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluation, setEvaluationResult] = useState<EvaluationResult | null>(null);
@@ -149,6 +151,13 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
   useEffect(() => {
     localStorage.setItem('englishTrainingCurrentPage', currentPage);
   }, [currentPage]);
+
+  // Auth overlay
+  if (showAuth) {
+    return (
+      <SimpleAuth onClose={() => setShowAuth(false)} />
+    );
+  }
 
   // Admin Dashboard
   if (currentPage === 'admin') {
@@ -306,6 +315,13 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     <div className="min-h-screen p-4" style={{ backgroundColor: '#e7effe' }}>
       {/* Header with buttons - positioned absolutely to screen edge */}
       <div className="absolute top-4 right-4 flex space-x-2 z-10">
+        <button 
+          onClick={() => setShowAuth(true)}
+          className="px-3 py-1.5 bg-blue-500 text-white rounded-lg shadow-sm hover:bg-blue-600 transition-colors flex items-center space-x-1 text-sm"
+        >
+          <span>🔐</span>
+          <span>ログイン</span>
+        </button>
         <button 
           onClick={() => {
             setCurrentPage('admin');

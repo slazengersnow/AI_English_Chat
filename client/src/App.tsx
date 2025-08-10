@@ -137,6 +137,7 @@ function Router() {
       <Route path="/final-auth-test" component={FinalAuthTest} />
       <Route path="/replit-auth-fix" component={ReplitAuthFix} />
       <Route path="/emergency-auth-fix" component={EmergencyAuthFix} />
+      <Route path="/auth" component={() => import('./pages/AuthPage.js').then(m => m.AuthPage)} />
       
       {(isAuthenticated || forceMainApp) ? (
         <>
