@@ -57,6 +57,7 @@ import WorkingLogin from "./pages/working-login.js";
 import FinalAuthTest from "./pages/final-auth-test.js";
 import ReplitAuthFix from "./pages/replit-auth-fix.js";
 import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
+import SignupSimple from "./pages/signup-simple.js";
 
 // Protected routes that require active subscription
 function ProtectedRoute({ component: Component }: { component: any }) {
@@ -83,6 +84,14 @@ function Router() {
         "/auth/callback",
         "/terms",
         "/privacy",
+        "/debug-auth",
+        "/debug",
+        "/login-test",
+        "/create-admin",
+        "/admin-setup",
+        "/password-reset",
+        "/reset-password",
+        "/simple-login",
       ];
 
       if (!publicPaths.includes(currentPath)) {

@@ -1,0 +1,154 @@
+## まず状況の要点
+
+* Replitの公開URLにアクセスできる（＝サーバは起動中）
+* ただし `/signup-simple` が表示されず、ログインに戻る
+* これは **フロントのルーティング（ガード）問題** が最有力
+* Supabase 側トグルは画像を見る限り OK（Allow new users: ON / Confirm email: OFF）
+
+---
+
+## Replitに送る指示
+
+### 1) ルートを必ず公開して、ガードの外に出してください
+
+**ファイル**: `client/src/App.tsx`
+
+**Before（例）**
+
+```tsx
+// 例：全体を <RequireAuth> が包んでいる
+<Routes>
+  <Route element={<RequireAuth />}>
+    <Route path="/" element={<Home />} />
+    {/* ... */}
+  </Route>
+</Routes>
+```
+
+**After（修正）**
+
+```tsx
+import SignupSimple from "./pages/signup-simple";
+
+// 未ログインでも通す “公開ルート” を先に定義
+<Routes>
+  <Route path="/login" element={<Login />} />
+  <Route path="/signup" element={<Signup />} />
+  <Route path="/signup-simple" element={<SignupSimple />} />
+  <Route path="/auth-callback" element={<AuthCallback />} />
+
+  {/* ここから先だけをガード */}
+  <Route element={<RequireAuth />}>
+    <Route path="/" element={<Home />} />
+    <Route path="/dashboard" element={<Dashboard />} />
+    {/* 他の保護ルート */}
+  </Route>
+
+  {/* SPA フォールバック */}
+  <Route path="*" element={<Navigate to="/" replace />} />
+</Routes>
+```
+
+> ポイント：`/signup-simple` は **RequireAuthの外** に置く。これをガード内に置くと未ログインで **/login に即リダイレクト**されます。
+
+---
+
+### 2) サインアップ簡易ページがビルドに入っているか確認
+
+**ファイル**: `client/src/pages/signup-simple.tsx` が必ず存在すること。
+（無い場合は作成。既に作成済みなら OK）
+
+---
+
+### 3) 再ビルドして本番配信を確認
+
+```bash
+rm -rf dist client/dist
+npm run build:server
+npm run build:client
+# 再起動
+```
+
+---
+
+### 4) 公開URLで直接テスト（埋め込みPreviewは使わない）
+
+* 新しいタブで `https://<あなたの公開URL>/signup-simple`
+* DevTools Console に
+
+  * `[Supabase] VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+  * `[Supabase] VITE_SUPABASE_ANON_KEY(head) = xxxxxx`
+    が出ることを確認。
+* メール&パスワードで Sign up → 画面下の JSON に結果が出ます。
+
+---
+
+### 5) それでもダメなら、ガードの実装を緩める
+
+**ファイル**: `client/src/components/RequireAuth.tsx`（名称は環境に合わせて）
+
+**Before（例）**
+
+```tsx
+if (!session) return <Navigate to="/login" replace />;
+return <Outlet />;
+```
+
+**After（許可パスをホワイトリスト）**
+
+```tsx
+const publicPaths = new Set([
+  "/login",
+  "/signup",
+  "/signup-simple",
+  "/auth-callback"
+]);
+
+const pathname = location.pathname;
+if (publicPaths.has(pathname)) {
+  return <Outlet />; // 公開ルートはそのまま通す
+}
+
+if (!session) return <Navigate to="/login" replace />;
+return <Outlet />;
+```
+
+---
+
+### 6) バックアップ手段（Service Roleで強制作成）
+
+Secrets に下記が入っている状態で：
+
+* `SUPABASE_URL`
+* `SUPABASE_SERVICE_ROLE_KEY`
+
+**管理APIで作成**
+
+```bash
+curl -X POST https://<公開URL>/api/admin/create-user \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"slazengersnow@gmail.com","password":"StrongPass#1"}'
+```
+
+→ これで作成できるなら、**フロントの signup だけが塞がっている**のが確定。
+
+---
+
+## ここまでやって欲しい確認
+
+1. `/signup-simple` に入れるようになったか（＝ログインに即戻されないか）
+2. Console に VITE の Supabase URL が表示されるか
+3. 画面下の JSON に `data.user` か `error` が出る → その内容
+
+---
+
+## よくある落とし穴（今回っぽい）
+
+* **原因A：ガードの配置**
+  公開ページもまとめて `<RequireAuth>` 内に入れてしまい、未ログインは全部 `/login` に飛ばされる。
+* **原因B：/signup-simple のルート未追加**
+  App.tsx にルートが無く、`*` のフォールバックで `/` や `/login` に飛ばしている。
+* **原因C：埋め込みプレビュー**
+  Replit の埋め込みはホスト/CORSの制限に引っかかる。\*\*必ず「Open in new tab」\*\*で公開URLを使う。
+
+
