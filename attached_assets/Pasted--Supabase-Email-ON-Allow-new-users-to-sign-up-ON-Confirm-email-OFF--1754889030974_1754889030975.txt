@@ -1,0 +1,175 @@
+状況はほぼこうです：
+
+* Supabase 側は「Email プロバイダ ON」「Allow new users to sign up ON」「Confirm email OFF」→設定は正しく見えます（スクショ確認OK）。
+* それでも 422 `signup_disabled` が返っている＝**フロントが叩いている Supabase プロジェクトが別物**（≠ `xcjplyhqxgrbdhixmzse`）か、**ビルドに VITE\_ 環境変数が注入されていない**可能性が高いです。
+  → 実際、これが起きると “正しいダッシュボードを直しても” 422 が続きます。
+
+やることは「今フロントがどの Supabase URL を叩いているか」を事実確認→一致しなければ修正、です。
+Replit へそのまま貼れる指示を用意しました。
+
+---
+
+# Replit への依頼文
+
+**目的：** フロントが参照している Supabase URL/Anon Key を実測で確認し、`xcjplyhqxgrbdhixmzse` 以外なら即修正。ビルドに VITE\_ 環境変数が確実に入るようにする。
+
+### 1) ランタイムで Supabase 環境を強制ログ出し
+
+* 変更ファイル: `client/src/lib/supabaseClient.ts`
+
+**Before（該当部分の先頭で）**
+
+```ts
+import { createClient } from '@supabase/supabase-js';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+```
+
+**After**
+
+```ts
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// ★ デバッグ出力（キーは先頭6文字だけ）
+console.log('[Supabase] VITE_SUPABASE_URL =', supabaseUrl);
+console.log('[Supabase] VITE_SUPABASE_ANON_KEY(head) =', supabaseAnonKey?.slice(0, 6));
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('[Supabase] Missing VITE_ env. Check client build-time env injection.');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
+```
+
+### 2) サインアップの生レスポンスを出す簡易ページで検証
+
+* 変更ファイル: `client/src/pages/signup-simple.tsx`（すでにある場合は置き換え）
+
+```tsx
+import React, { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+
+export default function SignupSimple() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [log, setLog] = useState<string>('');
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLog('Signing up...');
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    console.log('[SignupSimple] result:', { data, error });
+    setLog(JSON.stringify({ data, error }, null, 2));
+  }
+
+  return (
+    <div style={{ padding: 24 }}>
+      <h1>Signup Simple</h1>
+      <form onSubmit={onSubmit}>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" />
+        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="password" type="password" />
+        <button type="submit">Sign up</button>
+      </form>
+      <pre>{log}</pre>
+    </div>
+  );
+}
+```
+
+* ルート追加: `client/src/App.tsx` に `/signup-simple` を登録してください（既にあればOK）。
+
+### 3) **クライアント**を再ビルド（VITE 変数を注入）
+
+```
+rm -rf dist client/dist
+npm run build:client
+```
+
+> `npm run build:server` は不要。フロントの VITE 変数注入が目的です。
+
+### 4) 公開 URL（新しいタブ）で検証
+
+* `Open in new tab` → `/signup-simple` を開く
+
+* ブラウザ DevTools Console で以下を確認：
+
+  * `[Supabase] VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co` と出ているか
+  * 出ていなければ **環境変数の取り違え**。下記を設定して再ビルドしてください:
+
+    ```
+    VITE_SUPABASE_URL=https://xcjplyhqxgrbdhixmzse.supabase.co
+    VITE_SUPABASE_ANON_KEY=<DashBoardのanon key>
+    ```
+
+    Replit の「Secrets」か `.env`（編集可能なら）に **VITE\_** 付きで保存 → 再ビルド（手順3）。
+
+* フォームで `slazengersnow@gmail.com` / 任意の強めパスワードでサインアップ。
+
+* 下部の `<pre>` に `data` または `error` が JSON で表示されます。
+  もし `error: { message: "signup_disabled" }` が出る場合、**その時点で叩いている URL が別プロジェクト**です。
+  → Console に出た `VITE_SUPABASE_URL` が `xcjply...` になっているか再確認してください。
+
+### 5) ネットワークで最終確認
+
+DevTools → Network → `POST ...auth/v1/signup(s)` の **Host** が
+`xcjplyhqxgrbdhixmzse.supabase.co` であることをスクショで共有してください。
+違っていれば、その URL へ向かうよう **VITE\_SUPABASE\_URL** を修正→再ビルド。
+
+---
+
+# それでもダメな場合の「即動く回避策」（サーバ経由で作成）
+
+フロントが何らかの理由で 422 を返し続ける時の非常口です。
+サーバで Service Role Key を使って **管理 API でユーザーを作成**します。
+
+1. Replit Secrets に **SUPABASE\_SERVICE\_ROLE\_KEY** を保存（Admin API 用・クライアントには出さない）。
+2. `server/routes/index.ts` に管理 API ルートを追加：
+
+```ts
+import { Router } from 'express';
+import { createClient } from '@supabase/supabase-js';
+
+const admin = Router();
+
+admin.post('/admin/create-user', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const url = process.env.SUPABASE_URL!;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supaAdmin = createClient(url, serviceKey);
+    const { data, error } = await supaAdmin.auth.admin.createUser({
+      email, password, email_confirm: true
+    });
+    if (error) return res.status(400).json({ error });
+    res.json({ data });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+export default admin;
+```
+
+3. ルートを `/api` 配下にぶら下げ（`registerRoutes` で `router.use(admin)` など）、一時的に **/signup-simple** をこの API に向ける。
+   これで **ダッシュボードの Allow signups が OFF でも作成可能**（管理者作成の扱い）。
+
+---
+
+## いまの推定と結論
+
+* スクショの設定自体は正しいです。
+* しかし 422 `signup_disabled` が出ているので、**ビルドされたクライアントが別の Supabase プロジェクト/URL を見ている**か、\**VITE\_* が未注入のまま古い値で動いている\*\*のが原因濃厚。
+* 上の手順 1〜5 を実施すれば、どの URL を叩いているかがはっきりし、修正→再ビルドで解決します。
+* 緊急対応としてはサーバの Admin ルートでユーザー作成すれば先に動かせます。
+
+必要なら、`supabaseClient.ts` と `signup-simple.tsx` の適用後の差分を貼ってくれれば追加でチェックします。

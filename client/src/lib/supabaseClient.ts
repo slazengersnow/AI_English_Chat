@@ -1,21 +1,18 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// 起動時に必ず見えるログ（マスク付き）
-console.log("[Supabase] init", {
-  hasUrl: !!url,
-  hasAnon: !!anon,
-  urlHost: url ? new URL(url).host : null,
-});
+// ★ デバッグ出力（キーは先頭6文字だけ）
+console.log('[Supabase] VITE_SUPABASE_URL =', supabaseUrl);
+console.log('[Supabase] VITE_SUPABASE_ANON_KEY(head) =', supabaseAnonKey?.slice(0, 6));
 
-if (!url || !anon) {
-  console.error("[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('[Supabase] Missing VITE_ env. Check client build-time env injection.');
 }
 
-export const supabase = createClient(url!, anon!, {
-  auth: { persistSession: true, autoRefreshToken: true },
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: true, autoRefreshToken: true }
 });
 
 // デバッグ用（F12 から window.supabase で触れる）
