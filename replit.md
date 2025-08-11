@@ -61,6 +61,16 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
 
 ## Recent Changes (August 2025)
 
+### Legal Documents Integration - August 11, 2025
+**Status**: ✅ COMPLETED
+- Integrated complete Terms of Service and Privacy Policy documents into signup flow
+- Added modal dialogs with full legal content from provided documents
+- Terms includes service overview, pricing, prohibited activities, intellectual property, liability disclaimers
+- Privacy Policy includes data collection, usage purposes, third-party services (Anthropic, Stripe, Google, Supabase, Fly.io), security measures, user rights
+- Modal interface allows users to read, scroll through, and accept each document individually
+- Signup form disabled until both Terms and Privacy Policy are accepted
+- "同意する" (Agree) buttons automatically check boxes and close modals
+
 ### Authentication Interface Finalization - August 10, 2025
 **Status**: ✅ COMPLETED
 - Established login screen (SimpleAuth.tsx) as primary authentication interface

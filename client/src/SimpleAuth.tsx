@@ -18,6 +18,8 @@ export function SimpleAuth({ onClose }: SimpleAuthProps) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +171,14 @@ export function SimpleAuth({ onClose }: SimpleAuthProps) {
                   className="mt-1"
                 />
                 <label htmlFor="terms" className="text-sm text-gray-700 leading-5">
-                  <span className="text-blue-500 hover:text-blue-600 cursor-pointer">利用規約</span>に同意します
+                  <button 
+                    type="button"
+                    onClick={() => setShowTerms(true)}
+                    className="text-blue-500 hover:text-blue-600 underline cursor-pointer"
+                  >
+                    利用規約
+                  </button>
+                  に同意します
                 </label>
               </div>
               <div className="flex items-start space-x-3">
@@ -180,7 +189,14 @@ export function SimpleAuth({ onClose }: SimpleAuthProps) {
                   className="mt-1"
                 />
                 <label htmlFor="privacy" className="text-sm text-gray-700 leading-5">
-                  <span className="text-blue-500 hover:text-blue-600 cursor-pointer">プライバシーポリシー</span>に同意します
+                  <button 
+                    type="button"
+                    onClick={() => setShowPrivacy(true)}
+                    className="text-blue-500 hover:text-blue-600 underline cursor-pointer"
+                  >
+                    プライバシーポリシー
+                  </button>
+                  に同意します
                 </label>
               </div>
             </div>
@@ -263,6 +279,224 @@ export function SimpleAuth({ onClose }: SimpleAuthProps) {
           </div>
         )}
       </div>
+
+      {/* Terms Modal */}
+      {showTerms && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold">利用規約</h2>
+                <button 
+                  onClick={() => setShowTerms(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <div className="prose prose-sm max-w-none">
+                <TermsContent />
+              </div>
+            </div>
+            <div className="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setShowTerms(false)}>
+                閉じる
+              </Button>
+              <Button 
+                onClick={() => {
+                  setTermsAccepted(true);
+                  setShowTerms(false);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                同意する
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Privacy Modal */}
+      {showPrivacy && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-6 border-b">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold">プライバシーポリシー</h2>
+                <button 
+                  onClick={() => setShowPrivacy(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <div className="prose prose-sm max-w-none">
+                <PrivacyContent />
+              </div>
+            </div>
+            <div className="p-6 border-t bg-gray-50 flex justify-end space-x-3">
+              <Button variant="outline" onClick={() => setShowPrivacy(false)}>
+                閉じる
+              </Button>
+              <Button 
+                onClick={() => {
+                  setPrivacyAccepted(true);
+                  setShowPrivacy(false);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                同意する
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Terms Content Component
+function TermsContent() {
+  return (
+    <div className="text-sm leading-relaxed">
+      <h1 className="text-xl font-bold mb-4">AI瞬間英作文チャット 利用規約</h1>
+      
+      <p className="mb-6">
+        本規約は、ユーザーの皆さま（以下「ユーザー」といいます）が、当サービス「AI瞬間英作文チャット」（以下「本サービス」といいます）をご利用いただくにあたっての条件を定めるものです。ご利用に際しては、以下の内容をご確認のうえ、同意いただく必要があります。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">第1条（サービスの概要）</h2>
+      <p className="mb-6">
+        本サービスは、生成AIを用いて英作文トレーニングを行うWebアプリケーションです。一定の期間は無料でご利用いただけますが、月額・年額の有料プランをご契約いただくことで、追加の機能やコンテンツをご利用いただけます。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">第2条（ご利用にあたっての注意事項）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>本サービスは、通信環境や機器の状況によって正常に動作しない場合があります。通信費用はユーザーのご負担となります。</li>
+        <li>メンテナンスやシステムトラブル等により、本サービスの一部または全部を予告なく停止する場合があります。</li>
+        <li>本サービスの提供の中断、停止、エラー、データの損失等によってユーザーに生じた損害について、当社は一切の責任を負いません。</li>
+      </ol>
+
+      <h2 className="text-lg font-semibold mb-3">第3条（料金・プラン・支払い）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>本サービスの利用料金は、表示された内容に従ってお支払いいただきます。</li>
+        <li>料金プランは予告なく変更される場合がありますが、既存のユーザーには原則として事前に通知いたします。</li>
+        <li>無料トライアル期間中は、プレミアムプラン相当の機能をご利用いただけます。トライアル期間終了後は、自動的にスタンダードプラン（月額）へ移行し、当該プランに基づく決済が開始されます。</li>
+        <li>年額プランをご契約いただいた場合、期間満了後は自動的に契約が更新され、同一料金で継続されます。</li>
+        <li>年額プランにおいて、途中解約やサービス停止が発生した場合でも、返金等の対応は行いません。</li>
+      </ol>
+
+      <h2 className="text-lg font-semibold mb-3">第6条（禁止事項）</h2>
+      <p className="mb-3">以下に該当する行為は禁止します：</p>
+      <ul className="list-disc list-inside mb-6 space-y-1">
+        <li>他人の個人情報を無断で使用する行為</li>
+        <li>サービスのリバースエンジニアリングや不正アクセス</li>
+        <li>本サービスのソースコードの解析、複製、リバースエンジニアリング</li>
+        <li>自動化されたプログラム等による大量アクセス</li>
+        <li>商用利用や無断転載・再配布</li>
+        <li>虚偽の情報でのアカウント登録</li>
+        <li>その他、当社が不適切と判断する行為</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mb-3">第10条（免責事項）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>本サービスは現状有姿で提供されるものであり、その正確性、完全性、有用性について保証いたしません。</li>
+        <li>AIによる評価結果は参考情報であり、その正確性や教育効果を保証するものではありません。</li>
+        <li>本サービスの利用により生じた損害について、当社は一切の責任を負いません。</li>
+      </ol>
+
+      <div className="border-t pt-4 mt-6">
+        <p className="font-semibold">お問い合わせ先</p>
+        <p>AI瞬間英作文チャット運営事務局</p>
+        <p>メール：contact@ai-english-chat.com</p>
+      </div>
+    </div>
+  );
+}
+
+// Privacy Policy Content Component
+function PrivacyContent() {
+  return (
+    <div className="text-sm leading-relaxed">
+      <h1 className="text-xl font-bold mb-4">AI瞬間英作文チャット プライバシーポリシー</h1>
+      
+      <p className="mb-6">
+        株式会社ビズモア（以下「当社」といいます）は、「AI瞬間英作文チャット」（以下「本サービス」といいます）をご利用いただくユーザーの皆さま（以下「ユーザー」といいます）の個人情報保護の重要性を認識し、個人情報の保護に関する法律およびその他の関連法令を遵守し、以下のプライバシーポリシーに従って個人情報を取り扱います。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">1. 個人情報の収集</h2>
+      <p className="mb-3">当社は、本サービスの提供にあたり、以下の個人情報を収集いたします。</p>
+      
+      <h3 className="text-md font-semibold mb-2">1.1 ユーザーが直接提供する情報</h3>
+      <ul className="list-disc list-inside mb-4 space-y-1">
+        <li><strong>アカウント情報</strong>: メールアドレス、パスワード</li>
+        <li><strong>学習データ</strong>: 入力された日本語文、英訳回答、学習履歴</li>
+        <li><strong>プロフィール情報</strong>: 学習目標、難易度設定等の任意入力情報</li>
+      </ul>
+
+      <h3 className="text-md font-semibold mb-2">1.2 サービス利用時に自動的に収集される情報</h3>
+      <ul className="list-disc list-inside mb-6 space-y-1">
+        <li><strong>利用状況データ</strong>: ログイン履歴、学習進捗、問題解答状況、成績データ</li>
+        <li><strong>決済情報</strong>: 課金履歴、サブスクリプション状況（決済詳細はStripeが管理）</li>
+        <li><strong>技術情報</strong>: IPアドレス、ブラウザ種別、デバイス情報、OSバージョン</li>
+        <li><strong>アクセスログ</strong>: アクセス日時、閲覧ページ、リファラー情報</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mb-3">2. 個人情報の利用目的</h2>
+      <p className="mb-3">収集した個人情報は、以下の目的で利用いたします。</p>
+      <ol className="list-decimal list-inside mb-6 space-y-1">
+        <li><strong>サービス提供</strong>: アカウント管理、学習機能の提供、進捗管理</li>
+        <li><strong>AI評価サービス</strong>: 英訳の評価・フィードバック生成のためのAI処理</li>
+        <li><strong>決済処理</strong>: サブスクリプション料金の請求・管理</li>
+        <li><strong>カスタマーサポート</strong>: お問い合わせ対応、技術サポート</li>
+        <li><strong>サービス改善</strong>: 機能改善、新機能開発、品質向上</li>
+      </ol>
+
+      <h2 className="text-lg font-semibold mb-3">3. 第三者への情報提供</h2>
+      <p className="mb-3">当社は、取得した個人情報を、以下の場合を除き第三者に提供することはありません。</p>
+      
+      <h3 className="text-md font-semibold mb-2">3.4 サービス提供に必要な第三者サービス</h3>
+      <p className="mb-3">以下のサービスプロバイダーと必要な範囲で個人情報を共有いたします：</p>
+      
+      <div className="mb-4">
+        <h4 className="font-semibold">Anthropic Inc.（米国）</h4>
+        <ul className="list-disc list-inside ml-4 space-y-1">
+          <li><strong>提供情報</strong>: 日本語文、英訳回答</li>
+          <li><strong>利用目的</strong>: AI（Claude）による英訳評価・フィードバック生成</li>
+        </ul>
+      </div>
+
+      <div className="mb-4">
+        <h4 className="font-semibold">Stripe Inc.（米国）</h4>
+        <ul className="list-disc list-inside ml-4 space-y-1">
+          <li><strong>提供情報</strong>: 決済に必要な情報（氏名、メールアドレス、決済情報）</li>
+          <li><strong>利用目的</strong>: サブスクリプション料金の決済処理</li>
+        </ul>
+      </div>
+
+      <h2 className="text-lg font-semibold mb-3">8. セキュリティ対策</h2>
+      <p className="mb-3">当社は、個人情報の保護のため以下の技術的・組織的安全管理措置を講じています：</p>
+      <ul className="list-disc list-inside mb-6 space-y-1">
+        <li><strong>暗号化</strong>: HTTPS通信、データベース暗号化</li>
+        <li><strong>アクセス制御</strong>: 最小権限の原則</li>
+        <li><strong>監視</strong>: 不正アクセス検知、ログ監視</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mb-3">12. お問い合わせ</h2>
+      <p className="mb-3">個人情報の取扱いに関するお問い合わせ、開示請求等については、以下までご連絡ください：</p>
+      
+      <div className="mb-6 border-t pt-4">
+        <p><strong>株式会社ビズモア</strong></p>
+        <p><strong>所在地</strong>: 〒160-0022 東京都新宿区新宿1-36-2新宿第七葉山ビル3階</p>
+        <p><strong>メール</strong>: contact@ai-english-chat.com</p>
+        <p><strong>受付時間</strong>: 平日 10:00〜18:00（土日祝日除く）</p>
+      </div>
+
+      <p>最終更新日：2025年8月10日</p>
     </div>
   );
 }
