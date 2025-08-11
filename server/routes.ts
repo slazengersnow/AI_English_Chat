@@ -143,7 +143,7 @@ export const requireActiveSubscription = async (
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    let userId = "bizmowa.com";
+    let userId = "anonymous";
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
@@ -194,7 +194,7 @@ export const requirePremiumSubscription = async (
 ) => {
   try {
     const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
-    let userId = "bizmowa.com";
+    let userId = "anonymous";
 
     if (userEmail) {
       userId = userEmail as string;
@@ -290,7 +290,7 @@ export const handleGetUserSubscription: RequestHandler = async (
 ) => {
   try {
     const authHeader = req.headers.authorization;
-    let userId = "bizmowa.com";
+    let userId = "anonymous";
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
@@ -368,7 +368,7 @@ export const handleProblemGeneration: RequestHandler = async (
       });
     }
 
-    const userId = "bizmowa.com";
+    const userId = "anonymous";
     console.log('Fetching previous problems for user:', userId);
 
     // 過去の問題履歴を取得（重複回避）
@@ -649,7 +649,7 @@ export const handleClaudeEvaluation: RequestHandler = async (
 
       // 学習セッションの記録
       const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
-      const userId = (userEmail as string) || "bizmowa.com";
+      const userId = (userEmail as string) || "anonymous";
 
       try {
         const trainingSession = await storage.addTrainingSession({
@@ -694,7 +694,7 @@ export const handleClaudeEvaluation: RequestHandler = async (
       // ストレージ記録を試行
       try {
         const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
-        const userId = (userEmail as string) || "bizmowa.com";
+        const userId = (userEmail as string) || "anonymous";
 
         const trainingSession = await storage.addTrainingSession({
           userId,
@@ -1593,7 +1593,7 @@ export const handleCreateSubscription: RequestHandler = async (
     }
 
     const planType = getPlanTypeFromPriceId(priceId);
-    const userId = "bizmowa.com";
+    const userId = "anonymous";
 
     await storage.updateUserSubscription(userId, {
       subscriptionType: planType,
@@ -1923,7 +1923,7 @@ async function processWebhookEvent(event: any) {
         session.line_items?.data[0]?.price?.id || "",
       );
       try {
-        const userId = session.metadata?.userId || "bizmowa.com";
+        const userId = session.metadata?.userId || "anonymous";
         await storage.updateUserSubscription(userId, {
           subscriptionType: planType,
           subscriptionStatus: "trialing",
@@ -1940,7 +1940,7 @@ async function processWebhookEvent(event: any) {
       break;
     case "customer.subscription.deleted":
       try {
-        await storage.updateUserSubscription("bizmowa.com", {
+        await storage.updateUserSubscription("anonymous", {
           subscriptionType: "standard",
           subscriptionStatus: "inactive",
         });
@@ -1951,7 +1951,7 @@ async function processWebhookEvent(event: any) {
       break;
     case "invoice.payment_succeeded":
       try {
-        await storage.updateUserSubscription("bizmowa.com", {
+        await storage.updateUserSubscription("anonymous", {
           subscriptionStatus: "active",
         });
         console.log(`User subscription activated after payment`);
