@@ -390,6 +390,19 @@ function TermsContent() {
         <li>年額プランにおいて、途中解約やサービス停止が発生した場合でも、返金等の対応は行いません。</li>
       </ol>
 
+      <h2 className="text-lg font-semibold mb-3">第4条（メール・通知）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>ユーザーがご登録いただいたメールアドレスには、サービスに関するお知らせや改善のご案内、利用状況のサマリー、関連サービスのご紹介などをお送りする場合があります。</li>
+        <li>ご案内メールはいつでも配信停止が可能です。</li>
+      </ol>
+
+      <h2 className="text-lg font-semibold mb-3">第5条（アカウント管理）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>本サービスを利用するには、メールアドレス・パスワードによるアカウント登録が必要です。</li>
+        <li>アカウント情報はご本人が責任を持って管理してください。第三者への貸与や共有は禁止とします。</li>
+        <li>ユーザーが本規約に違反した場合、アカウントを停止または削除することがあります。</li>
+      </ol>
+
       <h2 className="text-lg font-semibold mb-3">第6条（禁止事項）</h2>
       <p className="mb-3">以下に該当する行為は禁止します：</p>
       <ul className="list-disc list-inside mb-6 space-y-1">
@@ -397,17 +410,60 @@ function TermsContent() {
         <li>サービスのリバースエンジニアリングや不正アクセス</li>
         <li>本サービスのソースコードの解析、複製、リバースエンジニアリング</li>
         <li>自動化されたプログラム等による大量アクセス</li>
+        <li>スクレイピングなど無断で情報を取得する行為</li>
         <li>商用利用や無断転載・再配布</li>
         <li>虚偽の情報でのアカウント登録</li>
+        <li>過度な負荷をかける行為</li>
         <li>その他、当社が不適切と判断する行為</li>
       </ul>
+
+      <h2 className="text-lg font-semibold mb-3">第7条（知的財産権）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>本サービス内で提供されるすべてのテキスト・画像・AIによる出力等のコンテンツの著作権は、当社または提供元に帰属します。</li>
+        <li>ユーザーが入力した日本語文および英訳の著作権は、ユーザーに帰属します。</li>
+        <li>無断での複製、転載、再配布は禁じます。</li>
+      </ol>
+
+      <h2 className="text-lg font-semibold mb-3">第8条（サービスの変更・停止）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>当社は、ユーザーに事前の通知をすることなく、本サービスの内容を変更、追加、削除することができます。</li>
+        <li>当社は、以下の場合には本サービスを一時的に停止することができます：
+          <ul className="list-disc list-inside ml-4 mt-2 space-y-1">
+            <li>システムメンテナンスを行う場合</li>
+            <li>天災、火災、停電、通信障害等の不可抗力により運営が困難な場合</li>
+            <li>その他、当社が必要と判断した場合</li>
+          </ul>
+        </li>
+      </ol>
+
+      <h2 className="text-lg font-semibold mb-3">第9条（解約・退会）</h2>
+      <ol className="list-decimal list-inside mb-6 space-y-2">
+        <li>ユーザーはいつでもアカウントを削除し、サービスから退会することができます。</li>
+        <li>退会後も、お支払いいただいた料金の返金は原則として行いません。</li>
+        <li>退会と同時に、ユーザーのアカウント情報および学習履歴は削除されます。</li>
+      </ol>
 
       <h2 className="text-lg font-semibold mb-3">第10条（免責事項）</h2>
       <ol className="list-decimal list-inside mb-6 space-y-2">
         <li>本サービスは現状有姿で提供されるものであり、その正確性、完全性、有用性について保証いたしません。</li>
         <li>AIによる評価結果は参考情報であり、その正確性や教育効果を保証するものではありません。</li>
-        <li>本サービスの利用により生じた損害について、当社は一切の責任を負いません。</li>
+        <li>当サービスは、AIによる生成コンテンツの正確性、完全性、有用性等を保証するものではありません。利用者は、AIの回答や学習結果を自己の責任において利用するものとし、当社はそれにより生じたいかなる損害についても責任を負いません。</li>
+        <li>本サービスの利用により生じた損害（精神的損害・機会損失・逸失利益等）について、当社は一切の責任を負いません。</li>
+        <li>ユーザー同士または第三者との間で紛争が発生した場合でも、当社は責任を負いません。</li>
       </ol>
+
+      <h2 className="text-lg font-semibold mb-3">第11条（規約の変更）</h2>
+      <p className="mb-6">
+        本規約は予告なく変更される場合があります。変更後の内容はサービス上に掲示された時点で効力を持つものとし、引き続きサービスをご利用いただく場合には、変更後の規約に同意したものとみなします。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">第12条（準拠法および管轄裁判所）</h2>
+      <p className="mb-6">
+        本規約は日本法に準拠し、利用者と当社の間で生じた紛争については、東京地方裁判所を第一審の専属的合意管轄裁判所とします。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">附則</h2>
+      <p className="mb-6">本規約は2025年8月10日より施行します。</p>
 
       <div className="border-t pt-4 mt-6">
         <p className="font-semibold">お問い合わせ先</p>
@@ -459,6 +515,10 @@ function PrivacyContent() {
       <h2 className="text-lg font-semibold mb-3">3. 第三者への情報提供</h2>
       <p className="mb-3">当社は、取得した個人情報を、以下の場合を除き第三者に提供することはありません。</p>
       
+      <h3 className="text-md font-semibold mb-2">3.1 本人の同意がある場合</h3>
+      <h3 className="text-md font-semibold mb-2">3.2 法令に基づく場合</h3>
+      <h3 className="text-md font-semibold mb-2">3.3 業務委託先に業務を委託する場合（例：クラウドサービス、決済代行事業者など）</h3>
+      
       <h3 className="text-md font-semibold mb-2">3.4 サービス提供に必要な第三者サービス</h3>
       <p className="mb-3">以下のサービスプロバイダーと必要な範囲で個人情報を共有いたします：</p>
       
@@ -467,6 +527,7 @@ function PrivacyContent() {
         <ul className="list-disc list-inside ml-4 space-y-1">
           <li><strong>提供情報</strong>: 日本語文、英訳回答</li>
           <li><strong>利用目的</strong>: AI（Claude）による英訳評価・フィードバック生成</li>
+          <li><strong>プライバシーポリシー</strong>: https://www.anthropic.com/privacy</li>
         </ul>
       </div>
 
@@ -475,8 +536,94 @@ function PrivacyContent() {
         <ul className="list-disc list-inside ml-4 space-y-1">
           <li><strong>提供情報</strong>: 決済に必要な情報（氏名、メールアドレス、決済情報）</li>
           <li><strong>利用目的</strong>: サブスクリプション料金の決済処理</li>
+          <li><strong>プライバシーポリシー</strong>: https://stripe.com/privacy</li>
         </ul>
       </div>
+
+      <div className="mb-4">
+        <h4 className="font-semibold">Google LLC（米国）</h4>
+        <ul className="list-disc list-inside ml-4 space-y-1">
+          <li><strong>提供情報</strong>: アクセスログ、利用状況データ</li>
+          <li><strong>利用目的</strong>: Google Analytics によるサービス分析・改善</li>
+          <li><strong>プライバシーポリシー</strong>: https://policies.google.com/privacy</li>
+        </ul>
+      </div>
+
+      <div className="mb-4">
+        <h4 className="font-semibold">Google LLC - Firebase（米国）</h4>
+        <ul className="list-disc list-inside ml-4 space-y-1">
+          <li><strong>提供情報</strong>: アカウント情報、認証データ</li>
+          <li><strong>利用目的</strong>: ユーザー認証、データベース管理</li>
+          <li><strong>プライバシーポリシー</strong>: https://firebase.google.com/support/privacy</li>
+        </ul>
+      </div>
+
+      <div className="mb-4">
+        <h4 className="font-semibold">Supabase Inc.（米国）</h4>
+        <ul className="list-disc list-inside ml-4 space-y-1">
+          <li><strong>提供情報</strong>: アカウント情報、学習データ</li>
+          <li><strong>利用目的</strong>: データベース管理、ユーザー認証</li>
+          <li><strong>プライバシーポリシー</strong>: https://supabase.com/privacy</li>
+        </ul>
+      </div>
+
+      <div className="mb-6">
+        <h4 className="font-semibold">Fly.io Inc.（米国）</h4>
+        <ul className="list-disc list-inside ml-4 space-y-1">
+          <li><strong>提供情報</strong>: アクセスログ、技術情報</li>
+          <li><strong>利用目的</strong>: アプリケーションホスティング、システム運営</li>
+          <li><strong>プライバシーポリシー</strong>: https://fly.io/legal/privacy-policy/</li>
+        </ul>
+      </div>
+
+      <h3 className="text-md font-semibold mb-2">3.5 法令に基づく場合</h3>
+      <ul className="list-disc list-inside mb-6">
+        <li>裁判所、警察、その他の公的機関から法的義務に基づく要請があった場合</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mb-3">4. 国外移転について</h2>
+      <p className="mb-6">
+        当サービスでは、海外に設置されたサーバー（例：米国）でデータを保存・処理する場合があります。この場合、日本の個人情報保護法に基づき、適切な安全管理措置を講じます。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">5. 国際的なデータ転送</h2>
+      <p className="mb-6">
+        本サービスでは、上記第三者サービスの利用により、ユーザーの個人情報が日本国外（主に米国）に転送されます。これらの国々は、日本と同等の個人情報保護水準を持たない場合がありますが、当社は適切な保護措置を講じた上で転送を行います。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">6. 個人情報の保存期間</h2>
+      
+      <h3 className="text-md font-semibold mb-2">6.1 アカウント情報・学習データ</h3>
+      <ul className="list-disc list-inside mb-4 space-y-1">
+        <li><strong>保存期間</strong>: アカウント作成から3年間</li>
+        <li><strong>削除</strong>: アカウント削除後30日以内に完全削除</li>
+      </ul>
+
+      <h3 className="text-md font-semibold mb-2">6.2 決済情報</h3>
+      <ul className="list-disc list-inside mb-4 space-y-1">
+        <li><strong>保存期間</strong>: 最終取引から7年間（法令要件）</li>
+        <li><strong>削除</strong>: 期間満了後に順次削除</li>
+      </ul>
+
+      <h3 className="text-md font-semibold mb-2">6.3 アクセスログ・技術情報</h3>
+      <ul className="list-disc list-inside mb-6 space-y-1">
+        <li><strong>保存期間</strong>: 収集から1年間</li>
+        <li><strong>削除</strong>: 期間満了後に自動削除</li>
+      </ul>
+
+      <h2 className="text-lg font-semibold mb-3">7. Cookieおよび類似技術</h2>
+      
+      <h3 className="text-md font-semibold mb-2">7.1 使用するCookie</h3>
+      <ul className="list-disc list-inside mb-4 space-y-1">
+        <li><strong>必須Cookie</strong>: セッション管理、ログイン状態の維持</li>
+        <li><strong>分析Cookie</strong>: Google Analytics による利用状況分析</li>
+        <li><strong>機能Cookie</strong>: ユーザー設定の保存、サービス改善</li>
+      </ul>
+
+      <h3 className="text-md font-semibold mb-2">7.2 Cookie の管理</h3>
+      <p className="mb-6">
+        ブラウザの設定によりCookieを無効にできますが、一部機能が制限される場合があります。
+      </p>
 
       <h2 className="text-lg font-semibold mb-3">8. セキュリティ対策</h2>
       <p className="mb-3">当社は、個人情報の保護のため以下の技術的・組織的安全管理措置を講じています：</p>
@@ -486,6 +633,35 @@ function PrivacyContent() {
         <li><strong>監視</strong>: 不正アクセス検知、ログ監視</li>
       </ul>
 
+      <h2 className="text-lg font-semibold mb-3">9. ユーザーの権利</h2>
+      <p className="mb-3">ユーザーは、当社が保有する自己の個人情報について、以下の権利を有します：</p>
+      
+      <h3 className="text-md font-semibold mb-2">9.1 開示請求</h3>
+      <p className="mb-3">保有する個人情報の利用目的、保存期間等の開示を求めることができます。</p>
+
+      <h3 className="text-md font-semibold mb-2">9.2 訂正・削除請求</h3>
+      <p className="mb-3">個人情報の訂正、追加、削除を求めることができます。</p>
+
+      <h3 className="text-md font-semibold mb-2">9.3 利用停止請求</h3>
+      <p className="mb-3">個人情報の利用停止、第三者提供の停止を求めることができます。</p>
+
+      <h3 className="text-md font-semibold mb-2">9.4 データポータビリティ</h3>
+      <p className="mb-3">アカウント削除時に、学習履歴データのダウンロードを要求できます。</p>
+
+      <p className="mb-6">
+        <strong>請求方法</strong>: 下記お問い合わせ先までご連絡ください。本人確認後、法令に従い対応いたします。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">10. 18歳未満のユーザーについて</h2>
+      <p className="mb-6">
+        18歳未満の方が本サービスをご利用される場合は、保護者の同意が必要です。18歳未満の方の個人情報を故意に収集することはありませんが、そのような情報を認識した場合は速やかに削除いたします。
+      </p>
+
+      <h2 className="text-lg font-semibold mb-3">11. プライバシーポリシーの変更</h2>
+      <p className="mb-6">
+        当社は、法令の変更やサービスの改善等により、本プライバシーポリシーを変更する場合があります。重要な変更については、サービス内での通知またはメールにてお知らせいたします。
+      </p>
+
       <h2 className="text-lg font-semibold mb-3">12. お問い合わせ</h2>
       <p className="mb-3">個人情報の取扱いに関するお問い合わせ、開示請求等については、以下までご連絡ください：</p>
       
@@ -493,9 +669,12 @@ function PrivacyContent() {
         <p><strong>株式会社ビズモア</strong></p>
         <p><strong>所在地</strong>: 〒160-0022 東京都新宿区新宿1-36-2新宿第七葉山ビル3階</p>
         <p><strong>メール</strong>: contact@ai-english-chat.com</p>
+        <p><strong>件名</strong>: 【プライバシーポリシーに関するお問い合わせ】</p>
         <p><strong>受付時間</strong>: 平日 10:00〜18:00（土日祝日除く）</p>
       </div>
 
+      <h2 className="text-lg font-semibold mb-3">附則</h2>
+      <p className="mb-4">本プライバシーポリシーは2025年8月10日より施行します。</p>
       <p>最終更新日：2025年8月10日</p>
     </div>
   );

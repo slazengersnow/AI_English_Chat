@@ -39,7 +39,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
     const savedPage = localStorage.getItem('englishTrainingCurrentPage');
     return (savedPage as 'menu' | 'training' | 'admin' | 'mypage' | 'login') || 'menu';
   });
-  const [showAuth, setShowAuth] = useState(false);
+  const [showAuth, setShowAuth] = useState(true);
   const [currentProblem, setCurrentProblem] = useState<Problem | null>(null);
   const [userAnswer, setUserAnswer] = useState("");
   const [evaluation, setEvaluationResult] = useState<EvaluationResult | null>(null);
