@@ -1,0 +1,87 @@
+やはりslazengersnow@gmail.comが新規作成で登録できなかった。アカウント作成のボタンをクリック後にメイン画面に一瞬だけ飛んだが、すぐにログイン画面に戻った。Supabaseにもユーザーとして登録されていない。
+
+
+**① Replit Secrets を設定（Vite 用・クライアント用）**
+
+```
+# Replit の Secrets に以下を追加
+VITE_SUPABASE_URL=https://xcjplyhqxgrbdhixmzse.supabase.co
+VITE_SUPABASE_ANON_KEY=（Supabaseプロジェクトのanonキー）
+
+# すでに入れていたら、スペルと値を再確認（VITE_ プレフィックス必須）
+```
+
+**② クライアントを作り直す（Vite はビルド時埋め込み）**
+
+```
+rm -rf dist client/dist
+npm run build:server
+npm run build:client
+```
+
+**③ サーバーを本番モードで起動（Replit で静的配信をONにする場合）**
+
+```
+export NODE_ENV=production
+export SERVE_CLIENT=true
+export PORT=5000
+node dist/server/index.js
+```
+
+> Replit の「Start」プロセスに合わせて再起動してください。`server/index.ts` は `SERVE_CLIENT=true` の時だけ `client/dist` を配信します。
+
+**④ 動作確認**
+
+* ブラウザで開き直し、`localStorage.getItem('supabase.auth.token')` が作られているか（v2は JSON 内に session が入る）
+* DevTools の Network で `https://<project>.supabase.co/auth/v1/signup` のレスポンスを確認（200/OK か、エラー本文か）
+
+---
+
+## Supabase ダッシュボード側の設定（管理画面で実施）
+
+1. **Auth → URL Configuration**
+
+   * **Site URL** に Replit の公開 URL と Fly の本番 URL の両方を登録
+     例）`https://ce...replit.dev` と `https://ai-english-chat.fly.dev`
+   * **Additional Redirect URLs** に上記2つも入れる（OAuth/メールリンクで必須）
+
+2. **Auth → Providers → Email**
+
+   * **Allow new users to sign up**（新規登録許可）を ON
+   * **Email confirmations** は、SMTP 未設定なら **OFF** にしてまず通す（OFFなら即ログイン可能）。本番でメール確認を使うなら SMTP を設定。
+
+3. （必要なら）**Storage/CORS 設定**
+
+   * 通常は不要。Storage を直接叩く場合、**Allowed Origins** に Replit/Fly ドメインを追加。
+
+---
+
+## もし Replit（開発）と Fly（本番）を跨いでログインが飛ぶ場合
+
+* **サーバークッキー方式**（`express-session` など）で別ドメインにまたがると、**クッキーが届かず常に未ログイン扱い**になります。
+* 開発中は **フロント（Replit）＝ Supabase 直**のクライアントサイド認証にして、**サーバーはセッションに依存しない**ように。
+* 本番は **フロントとAPIを同一ドメイン**に寄せる（Fly にまとめる）のが安全です。
+
+---
+
+## 追加のデバッグ（必要なら Replit に頼む文面）
+
+> 1. `src/lib/supabaseClient.ts`（もしくは同等ファイル）を開いて、`createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY)` になっているか確認してください。ハードコードは禁止。
+> 2. `signUp` をラップして、`console.debug('signup payload', { email }); console.error('signup error', error);` を入れてビルドしてください。
+> 3. サインアップボタンクリック後、DevTools の Network で `/auth/v1/signup` のステータスとレスポンスを確認し、エラー内容をコンソールに出してください。
+> 4. 成功時は `supabase.auth.getSession()` が即座に `session` を返すかをログで確認してください。
+> 5. まだログイン画面に戻る場合、ルートガード（`useEffect` 等で `session` を監視する箇所）の条件と遷移処理（`navigate('/login')` 等）を一時無効化し、画面が維持されるか切り分けてください。
+
+---
+
+## よくある落とし穴チェックリスト
+
+* [ ] `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` の **プレフィックス VITE\_** が付いている
+* [ ] Replit の Secrets を**設定後に再ビルド**（Viteは再ビルド必須）
+* [ ] Supabase Auth の **Site URL / Redirect URLs** に Replit & Fly ドメインを**両方**設定
+* [ ] Email サインアップ許可が **ON**
+* [ ] Email 確認が **OFF**（SMTP 未設定の時）
+* [ ] ルートガードが「`session === null`」の一瞬で **即リダイレクトしない**（`loading` 状態を挟む）
+* [ ] （開発中）サーバー側クッキーに依存しない
+
+---

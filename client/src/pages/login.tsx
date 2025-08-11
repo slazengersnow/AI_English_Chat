@@ -23,17 +23,27 @@ export default function Login() {
     setIsLoading(true)
 
     try {
+      console.debug('login payload', { email, password: '***' })
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
+      console.log('Supabase login response:', { 
+        data: data ? { 
+          user: data.user ? { 
+            id: data.user.id, 
+            email: data.user.email, 
+            confirmed: !!data.user.email_confirmed_at 
+          } : null,
+          session: !!data.session
+        } : null, 
+        error: error ? { message: error.message, status: error.status } : null 
+      })
+
       if (error) {
-        console.error('Login error details:', {
-          message: error.message,
-          status: error.status,
-          details: error
-        });
+        console.error('login error', error)
         
         // Check if this is an API key issue
         const isApiKeyError = error.message?.includes('Invalid API key') || 
@@ -54,18 +64,12 @@ export default function Login() {
         return
       }
 
-      if (data.user) {
-        console.log('Login successful:', { user: data.user, confirmed: !!data.user.email_confirmed_at })
+      if (data.user && data.session) {
+        console.log('Login successful with session')
         
-        if (!data.user.email_confirmed_at) {
-          toast({
-            title: "メール認証が必要",
-            description: "登録時に送信されたメールで認証を完了してください。",
-            variant: "destructive",
-          })
-          await supabase.auth.signOut()
-          return
-        }
+        // Check session validity immediately
+        const { data: sessionCheck } = await supabase.auth.getSession()
+        console.log('Session verification:', !!sessionCheck.session)
         
         toast({
           title: "ログイン成功",

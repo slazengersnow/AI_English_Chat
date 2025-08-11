@@ -71,15 +71,30 @@ export default function Signup() {
     }
 
     try {
+      console.debug('signup payload', { email, password: '***' })
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/confirm`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
 
+      console.log('Supabase signup response:', { 
+        data: data ? { 
+          user: data.user ? { 
+            id: data.user.id, 
+            email: data.user.email, 
+            confirmed: !!data.user.email_confirmed_at 
+          } : null,
+          session: !!data.session
+        } : null, 
+        error: error ? { message: error.message, status: error.status } : null 
+      })
+
       if (error) {
+        console.error('signup error', error)
         toast({
           title: "登録エラー",
           description: error.message === 'User already registered' ? 
@@ -91,16 +106,30 @@ export default function Signup() {
       }
 
       if (data.user) {
-        console.log('Signup successful:', { user: data.user, needsConfirmation: !data.user.email_confirmed_at })
+        console.log('Signup successful, checking session...')
         
-        if (!data.user.email_confirmed_at) {
+        // Check if user is immediately logged in (email confirmation disabled)
+        const { data: sessionData } = await supabase.auth.getSession()
+        console.log('Current session after signup:', !!sessionData.session)
+        
+        if (sessionData.session) {
+          // User is immediately logged in
+          toast({
+            title: "登録・ログイン完了",
+            description: "アカウントが作成されました。メインページに移動します。",
+          })
+          setTimeout(() => {
+            window.location.href = '/'
+          }, 1500)
+        } else if (!data.user.email_confirmed_at) {
+          // Email confirmation required
           toast({
             title: "登録完了",
             description: "確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
           })
           setLocation('/login')
         } else {
-          // Pre-confirmed account (admin or special case)
+          // Pre-confirmed account
           toast({
             title: "登録完了",
             description: "アカウントが作成されました。ログインしてください。",

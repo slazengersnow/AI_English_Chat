@@ -70,15 +70,19 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Strict authentication enforcement
+  // Authentication enforcement with loading state protection
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       const currentPath = window.location.pathname;
       const publicPaths = ['/login', '/signup', '/confirm', '/auth/callback', '/terms', '/privacy'];
       
       if (!publicPaths.includes(currentPath)) {
-        console.log('Router - Unauthorized access blocked, redirecting to login')
-        setLocation('/login')
+        console.log('Router - Unauthorized access, redirecting to login after delay')
+        // Add small delay to prevent flash during authentication state changes
+        const timer = setTimeout(() => {
+          setLocation('/login')
+        }, 100)
+        return () => clearTimeout(timer)
       }
     }
   }, [isAuthenticated, isLoading, setLocation])
