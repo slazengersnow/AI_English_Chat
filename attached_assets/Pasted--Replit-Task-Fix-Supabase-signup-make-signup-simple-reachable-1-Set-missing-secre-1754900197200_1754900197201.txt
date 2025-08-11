@@ -1,0 +1,139 @@
+# Replitに送る指示
+
+**Task: Fix Supabase signup & make /signup-simple reachable**
+
+1. **Set missing secrets**
+
+* In Secrets (Account or App):
+
+  * `SERVE_CLIENT=true`（フロントを本番ビルドで配信）
+  * `SUPABASE_SERVICE_ROLE_KEY=<Supabaseダッシュボード > Settings > API > service_role の値>`
+  * 既にあるはずですが念のため：
+
+    * `VITE_SUPABASE_URL=https://xcjplyhqxgrbdhixmzse.supabase.co`
+    * `VITE_SUPABASE_ANON_KEY=<anon key>`
+* After saving: `rm -rf dist client/dist && npm run build:server && npm run build:client`
+
+2. **Allow public access to /signup-simple**
+
+* Open `client/src/App.tsx`
+
+  * Ensure `publicPaths` に `"/signup-simple"` が含まれる。
+  * ルート定義：`<Route path="/signup-simple" element={<SignupSimple />} />` があること。
+  * ルートガードの条件を以下のように修正（public path はリダイレクトしない）:
+
+    ```ts
+    const isPublic = publicPaths.includes(location.pathname);
+    if (!isPublic && !session) return <Navigate to="/login" replace />;
+    ```
+* Build again if changed.
+
+3. **Supabase client uses VITE env**
+
+* Open `client/src/lib/supabaseClient.ts` and make it exactly:
+
+  ```ts
+  import { createClient } from '@supabase/supabase-js';
+
+  const url = import.meta.env.VITE_SUPABASE_URL!;
+  const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+  console.log('[Supabase] VITE_SUPABASE_URL =', url);
+
+  export const supabase = createClient(url, anon, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+
+  // Debug window
+  (window as any).SUPA_DEBUG = { url, anonHead: anon?.slice(0,10) };
+  ```
+* Rebuild client.
+
+4. **Admin backup endpoint (service role)**
+
+* Ensure `server/routes/admin.ts` has:
+
+  ```ts
+  import { Router } from 'express';
+  const r = Router();
+  r.post('/create-user', async (req, res) => {
+    try {
+      const { email, password } = req.body ?? {};
+      if (!email || !password) return res.status(400).json({ error:'missing' });
+
+      const url = process.env.SUPABASE_URL!;
+      const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      const resp = await fetch(`${url}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`,
+          'apikey': key
+        },
+        body: JSON.stringify({ email, password })
+      });
+      const json = await resp.json();
+      return res.status(resp.status).json(json);
+    } catch (e:any) {
+      return res.status(500).json({ error: e?.message });
+    }
+  });
+  export default r;
+  ```
+* And registered in `server/routes/index.ts`:
+
+  ```ts
+  import adminRoutes from './admin.js';
+  router.use('/admin', adminRoutes);
+  ```
+* Rebuild server if changed.
+
+5. **Serve client in production**
+
+* In `server/index.ts`, keep:
+
+  ```ts
+  if (process.env.NODE_ENV === 'production' && process.env.SERVE_CLIENT === 'true') {
+    const clientDist = path.resolve(process.cwd(), 'client/dist');
+    app.use(express.static(clientDist));
+    app.get('*', (_req, res) => res.sendFile(path.join(clientDist, 'index.html')));
+  }
+  ```
+* Start with: `export NODE_ENV=production SERVE_CLIENT=true PORT=5000 && npm run build && node dist/server/index.js`
+
+6. **Supabase dashboard settings**
+
+* `Authentication → Sign In / Providers → Supabase Auth`
+
+  * “Allow new users to sign up” **ON**
+  * “Confirm email” **OFF**（今回は即ログイン検証のため）
+* `Authentication → URL Configuration`
+
+  * **Site URL** と **Redirect URLs** に Replit 公開 URL（`https://...kirk.replit.dev`）を登録
+
+7. **Test**
+
+* Open public URL in new tab and visit: `…/signup-simple`
+* Check browser console:
+
+  * See `[Supabase] VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+* Try signup with:
+
+  * Email: `slazengersnow@gmail.com`
+  * Password: (temporary strong pass, e.g.) `StrongPass#1`
+* If it still fails, call backup API and paste result:
+
+  ```
+  curl -s -X POST https://<PUBLIC_URL>/api/admin/create-user \
+    -H 'Content-Type: application/json' \
+    -d '{"email":"slazengersnow@gmail.com","password":"StrongPass#1"}'
+  ```
+
+8. **Mute “Failed to fetch” during login**
+
+* In `client/src/pages/MyPage.tsx` (や該当ファイル)、API 呼び出しは **Supabase session 確認後にだけ実行**:
+
+  ```ts
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return; // まだ未ログインなら何もしない
+  ```
+

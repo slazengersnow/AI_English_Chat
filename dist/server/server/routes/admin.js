@@ -1,25 +1,26 @@
 import { Router } from 'express';
-const router = Router();
-router.post('/create-user', async (req, res) => {
+const r = Router();
+r.post('/create-user', async (req, res) => {
     try {
+        const { email, password } = req.body ?? {};
+        if (!email || !password)
+            return res.status(400).json({ error: 'missing' });
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-        if (!url || !key)
-            return res.status(500).json({ message: 'service role not set' });
-        const r = await fetch(`${url}/auth/v1/admin/users`, {
+        const resp = await fetch(`${url}/auth/v1/admin/users`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${key}`,
-                'apikey': key,
+                'apikey': key
             },
-            body: JSON.stringify(req.body),
+            body: JSON.stringify({ email, password })
         });
-        const j = await r.json();
-        res.status(r.status).json(j);
+        const json = await resp.json();
+        return res.status(resp.status).json(json);
     }
     catch (e) {
-        res.status(500).json({ message: e?.message || String(e) });
+        return res.status(500).json({ error: e?.message });
     }
 });
-export default router;
+export default r;

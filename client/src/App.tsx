@@ -94,7 +94,8 @@ function Router() {
         "/simple-login",
       ];
 
-      if (!publicPaths.includes(currentPath)) {
+      const isPublic = publicPaths.includes(currentPath);
+      if (!isPublic) {
         console.log(
           "Router - Unauthorized access, redirecting to login after delay",
         );

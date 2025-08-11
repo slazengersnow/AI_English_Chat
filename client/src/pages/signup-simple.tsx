@@ -14,7 +14,7 @@ export default function SignupSimple() {
   }
 
   // @ts-expect-error
-  const dbg = window.__SUPA_DEBUG__;
+  const dbg = window.SUPA_DEBUG;
 
   return (
     <div style={{maxWidth:480, margin:'40px auto', fontFamily:'sans-serif'}}>
