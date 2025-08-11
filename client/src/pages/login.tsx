@@ -55,13 +55,26 @@ export default function Login() {
       }
 
       if (data.user) {
+        console.log('Login successful:', { user: data.user, confirmed: !!data.user.email_confirmed_at })
+        
+        if (!data.user.email_confirmed_at) {
+          toast({
+            title: "メール認証が必要",
+            description: "登録時に送信されたメールで認証を完了してください。",
+            variant: "destructive",
+          })
+          await supabase.auth.signOut()
+          return
+        }
+        
         toast({
           title: "ログイン成功",
-          description: "AI英作文チャットへようこそ！",
+          description: `ようこそ${data.user.email === 'slazengersnow@gmail.com' ? '管理者' : ''}さん！`,
         })
-        // Add a small delay to ensure the toast is visible before redirect
+        
+        // Force a page reload to ensure authentication state is properly set
         setTimeout(() => {
-          setLocation('/')
+          window.location.href = '/'
         }, 1000)
       }
     } catch (error) {

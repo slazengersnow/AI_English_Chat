@@ -55,14 +55,14 @@ export default function AuthCallback() {
           }
 
           if (data.user) {
-            console.log('User confirmed:', data.user.email)
+            console.log('User confirmed and logged in:', data.user.email)
             setStatus('success')
-            setMessage(`メール認証が完了しました！ようこそ ${data.user.email}`)
+            setMessage(`メール認証が完了しました！ログインしています...`)
             
-            // 3秒後にログインページへリダイレクト
+            // Immediately redirect to home since user is now authenticated
             setTimeout(() => {
-              setLocation('/login')
-            }, 3000)
+              window.location.href = '/'
+            }, 2000)
           }
         } else if (type === 'recovery' && accessToken) {
           // パスワードリセットの場合

@@ -91,11 +91,22 @@ export default function Signup() {
       }
 
       if (data.user) {
-        toast({
-          title: "登録完了",
-          description: "確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
-        })
-        setLocation('/login')
+        console.log('Signup successful:', { user: data.user, needsConfirmation: !data.user.email_confirmed_at })
+        
+        if (!data.user.email_confirmed_at) {
+          toast({
+            title: "登録完了",
+            description: "確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
+          })
+          setLocation('/login')
+        } else {
+          // Pre-confirmed account (admin or special case)
+          toast({
+            title: "登録完了",
+            description: "アカウントが作成されました。ログインしてください。",
+          })
+          setLocation('/login')
+        }
       }
     } catch (error) {
       toast({

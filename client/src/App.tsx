@@ -70,15 +70,20 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Redirect to login if not authenticated
+  // Strict authentication enforcement
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && window.location.pathname === '/') {
-      console.log('Router - Redirecting to login screen')
-      setLocation('/login')
+    if (!isLoading && !isAuthenticated) {
+      const currentPath = window.location.pathname;
+      const publicPaths = ['/login', '/signup', '/confirm', '/auth/callback', '/terms', '/privacy'];
+      
+      if (!publicPaths.includes(currentPath)) {
+        console.log('Router - Unauthorized access blocked, redirecting to login')
+        setLocation('/login')
+      }
     }
   }, [isAuthenticated, isLoading, setLocation])
 
-  // Authentication-based routing enabled
+  // Strict authentication - no bypass
   const forceMainApp = false;
 
   if (isLoading) {
