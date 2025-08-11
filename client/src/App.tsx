@@ -16,6 +16,7 @@ import Cancel from "./pages/cancel.js";
 import Login from "./pages/login.js";
 import LoginTest from "./pages/login-test.js";
 import Signup from "./pages/signup.js";
+import SignupSimple from "./pages/signup-simple.js";
 import Confirm from "./pages/confirm.js";
 import Terms from "./pages/terms.js";
 import Privacy from "./pages/privacy.js";
@@ -67,25 +68,35 @@ function ProtectedRoute({ component: Component }: { component: any }) {
 }
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth()
-  const [, setLocation] = useLocation()
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
 
   // Authentication enforcement with loading state protection
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       const currentPath = window.location.pathname;
-      const publicPaths = ['/login', '/signup', '/confirm', '/auth/callback', '/terms', '/privacy'];
-      
+      const publicPaths = [
+        "/login",
+        "/signup",
+        "/signup-simple",
+        "/confirm",
+        "/auth/callback",
+        "/terms",
+        "/privacy",
+      ];
+
       if (!publicPaths.includes(currentPath)) {
-        console.log('Router - Unauthorized access, redirecting to login after delay')
+        console.log(
+          "Router - Unauthorized access, redirecting to login after delay",
+        );
         // Add small delay to prevent flash during authentication state changes
         const timer = setTimeout(() => {
-          setLocation('/login')
-        }, 100)
-        return () => clearTimeout(timer)
+          setLocation("/login");
+        }, 100);
+        return () => clearTimeout(timer);
       }
     }
-  }, [isAuthenticated, isLoading, setLocation])
+  }, [isAuthenticated, isLoading, setLocation]);
 
   // Strict authentication - no bypass
   const forceMainApp = false;
@@ -95,7 +106,7 @@ function Router() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
       </div>
-    )
+    );
   }
 
   return (
@@ -105,7 +116,7 @@ function Router() {
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/login-test" component={LoginTest} />
       <Route path="/signup" component={Signup} />
-      <Route path="/signup-simple" component={() => import('@/pages/signup-simple').then(m => m.default)} />
+      <Route path="/signup-simple" component={SignupSimple} />
       <Route path="/confirm" component={Confirm} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/debug-auth" component={DebugAuth} />
@@ -149,18 +160,39 @@ function Router() {
       <Route path="/replit-auth-fix" component={ReplitAuthFix} />
       <Route path="/emergency-auth-fix" component={EmergencyAuthFix} />
       {/* <Route path="/auth" component={() => import('./pages/AuthPage.js').then(m => m.AuthPage)} /> */}
-      
-      {(isAuthenticated || forceMainApp) ? (
+
+      {isAuthenticated || forceMainApp ? (
         <>
           {/* Protected routes for authenticated users */}
           <Route path="/" component={Home} />
-          <Route path="/my-page" component={() => <ProtectedRoute component={MyPage} />} />
-          <Route path="/simulation" component={() => <ProtectedRoute component={SimulationSelection} />} />
-          <Route path="/simulation/:id" component={() => <ProtectedRoute component={SimulationPractice} />} />
-          <Route path="/simulation-practice" component={() => <ProtectedRoute component={SimulationPractice} />} />
-          <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
-          <Route path="/chat/:difficulty" component={() => <ProtectedRoute component={Home} />} />
-          <Route path="/practice/:difficulty" component={() => <ProtectedRoute component={Home} />} />
+          <Route
+            path="/my-page"
+            component={() => <ProtectedRoute component={MyPage} />}
+          />
+          <Route
+            path="/simulation"
+            component={() => <ProtectedRoute component={SimulationSelection} />}
+          />
+          <Route
+            path="/simulation/:id"
+            component={() => <ProtectedRoute component={SimulationPractice} />}
+          />
+          <Route
+            path="/simulation-practice"
+            component={() => <ProtectedRoute component={SimulationPractice} />}
+          />
+          <Route
+            path="/admin"
+            component={() => <ProtectedRoute component={Admin} />}
+          />
+          <Route
+            path="/chat/:difficulty"
+            component={() => <ProtectedRoute component={Home} />}
+          />
+          <Route
+            path="/practice/:difficulty"
+            component={() => <ProtectedRoute component={Home} />}
+          />
           <Route path="/subscription/select" component={SubscriptionSelect} />
           <Route path="/payment-success" component={PaymentSuccess} />
           <Route path="/payment-cancelled" component={PaymentCancelled} />
@@ -173,7 +205,7 @@ function Router() {
           <Route path="/" component={Login} />
         </>
       )}
-      
+
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,0 +1,193 @@
+まだ新規作成ができていない。
+
+**目的**
+フロントが叩いている Supabase のURLとキーを確実に確認し、/signup-simple からサインアップをテスト。必要なら管理APIで直接ユーザー作成。
+
+---
+
+## 1) Secrets を確認・設定（VITE 前提）
+
+* `VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+* `VITE_SUPABASE_ANON_KEY = （Supabaseの anon key）`
+
+> 重要：フロントは **VITE\_ 付き**でないとビルドに入りません。`SUPABASE_URL` だけだと反映されません。
+
+---
+
+## 2) クライアントの Supabase クライアント定義を作成/更新
+
+**ファイル**: `client/src/lib/supabaseClient.ts`（なければ新規作成）
+
+```ts
+// client/src/lib/supabaseClient.ts
+import { createClient } from '@supabase/supabase-js';
+
+const url = import.meta.env.VITE_SUPABASE_URL;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+console.log('[Supabase] VITE_SUPABASE_URL =', url);
+console.log('[Supabase] VITE_SUPABASE_ANON_KEY(head) =', anon?.slice(0, 6));
+
+if (!url || !anon) {
+  throw new Error('[Supabase] VITE_ 環境変数が不足しています');
+}
+
+export const supabase = createClient(url, anon, {
+  auth: { persistSession: true, autoRefreshToken: true },
+});
+```
+
+---
+
+## 3) 簡易サインアップページを作成（デバッグ用）
+
+**ファイル**: `client/src/pages/signup-simple.tsx`（新規）
+
+```tsx
+import { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+
+export default function SignupSimple() {
+  const [email, setEmail] = useState('slazengersnow@gmail.com');
+  const [password, setPassword] = useState('');
+  const [result, setResult] = useState<any>(null);
+
+  async function handleSignup(e: React.FormEvent) {
+    e.preventDefault();
+    console.log('[SignupSimple] start', { email });
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    console.log('[SignupSimple] response', { data, error });
+    setResult({ data, error });
+  }
+
+  return (
+    <div style={{ maxWidth: 420, margin: '40px auto', fontFamily: 'system-ui' }}>
+      <h2>Signup Simple (Debug)</h2>
+      <form onSubmit={handleSignup}>
+        <div style={{ margin: '12px 0' }}>
+          <label>email</label>
+          <input value={email} onChange={e=>setEmail(e.target.value)} style={{ width:'100%' }} />
+        </div>
+        <div style={{ margin: '12px 0' }}>
+          <label>password</label>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{ width:'100%' }} />
+        </div>
+        <button type="submit">Sign up</button>
+      </form>
+      <pre style={{ background:'#f6f8fa', padding:12, marginTop:16 }}>
+        {result ? JSON.stringify(result, null, 2) : '結果はここに表示されます'}
+      </pre>
+    </div>
+  );
+}
+```
+
+> ルーティングはユーザー側で `App.tsx` に追加済みとのことなので、ここでは触りません。
+
+---
+
+## 4) サーバー：緊急バックアップ（管理APIで直接作成・任意）
+
+**Secrets（サーバー用）**
+
+* `SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+* `SUPABASE_SERVICE_ROLE_KEY = （service_role key）`
+
+**ファイル**: `server/routes/admin.ts`（新規）
+
+```ts
+import { Router } from 'express';
+import { createClient } from '@supabase/supabase-js';
+
+const admin = Router();
+
+admin.post('/admin/create-user', async (req, res) => {
+  try {
+    const { email, password } = req.body ?? {};
+    const supa = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data, error } = await supa.auth.admin.createUser({
+      email, password, email_confirm: true
+    });
+    if (error) return res.status(400).json({ error });
+    res.json({ data });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+export default admin;
+```
+
+**`server/routes/index.ts` に登録**
+
+```ts
+import adminRoutes from './admin.js';
+// …
+router.use(adminRoutes);  // /api/admin/create-user
+```
+
+---
+
+## 5) 再ビルド
+
+```bash
+rm -rf dist client/dist
+npm run build:server
+npm run build:client
+```
+
+---
+
+## 6) 公開URLでテスト（埋め込みPreviewは使わない）
+
+* Replit の **Open in new tab** をクリック
+  例: `https://<uuid>...kirk.replit.dev/`
+* その URL の末尾に **/signup-simple** を付けてアクセス
+  例: `https://<uuid>...kirk.replit.dev/signup-simple`
+* Chrome DevTools → **Console** で以下を確認
+
+  * `[Supabase] VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+  * `[Supabase] VITE_SUPABASE_ANON_KEY(head) =` が表示
+* メール/パスワードで **Sign up** → 画面下の `<pre>` に JSON 表示
+
+**期待結果と分岐**
+
+* 成功：`data.user` が入る → 認証修復OK
+* `error: { message: "signup_disabled" }`：
+  その時 Console の URL が **別プロジェクト** の可能性 → VITE\_ Secrets を修正して再ビルド
+* 422/403/CORS：埋め込みURLを使っていないか再確認（**必ず公開URL**）
+
+**（バックアップ経路テスト・任意）**
+
+```bash
+curl -X POST https://<公開URL>/api/admin/create-user \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"slazengersnow@gmail.com","password":"StrongPass#1"}'
+```
+
+---
+
+## 7) Supabase ダッシュボード側の最終確認
+
+* Authentication → **Sign In / Providers**
+
+  * **Allow new users to sign up: ON**
+  * **Confirm email: OFF**（すぐにログインできる）
+* Authentication → **URL Configuration**
+
+  * **Site URL** に公開URL（`*.kirk.replit.dev`）を登録
+
+---
+
+## 8) 報告してほしいもの
+
+* /signup-simple 画面の **Console ログ**（VITE\_SUPABASE\_URL が何になっているか）
+* 画面下 `<pre>` の JSON（成功/エラーの中身）
+* 必要なら Network タブの `POST .../auth/v1/signup` の **Request URL**
+
+---
+
+これで「どの Supabase を叩いているか」と「なぜ登録できないか」が必ず判明します。進めてみて、Console/JSON を送ってくれれば次の一手をすぐ出します。

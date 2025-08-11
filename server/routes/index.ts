@@ -1,5 +1,6 @@
 // server/routes/index.ts
 import { Router, type Express, type Request, type Response } from "express";
+import adminRoutes from './admin.js';
 
 /**
  * /api 配下のルーティングを一括登録する
@@ -50,6 +51,9 @@ export function registerRoutes(app: Express) {
   router.post("/scenarios", handleCreateScenario);
   router.put("/scenarios/:id", handleUpdateScenario);
   router.delete("/scenarios/:id", handleDeleteScenario);
+
+  // ---- 管理者用ルート追加 ----
+  router.use(adminRoutes);
 
   // すべて /api 配下にぶら下げる
   app.use("/api", router);
