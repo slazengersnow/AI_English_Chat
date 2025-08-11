@@ -5,7 +5,7 @@ import { Input } from '../components/ui/input.js'
 import { Label } from '../components/ui/label.js'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card.js'
 import { useToast } from '../hooks/use-toast.js'
-import { supabase } from '@shared/supabase'
+import { supabase } from '@/lib/supabaseClient'
 import { useAuth } from '../components/auth-provider.js'
 import { Mail, Lock, Eye, EyeOff, TestTube, AlertTriangle } from 'lucide-react'
 

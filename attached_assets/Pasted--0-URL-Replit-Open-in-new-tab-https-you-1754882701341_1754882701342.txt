@@ -1,0 +1,166 @@
+状況は先ほどと同じで新規登録できない。
+
+## 0) まず「公開 URL」でテストする
+
+Replit の右ペイン埋め込みではなく、**「Open in new tab」で `https://<your>-<hash>.replit.dev` を新しいタブで開いて**からサインアップを試してください（埋め込みだと localStorage/WS が不安定なケースがあります）。
+
+---
+
+## 1) Vite 環境変数がフロントに入っているか確認＆再ビルド
+
+### 1-1. Secrets を再設定（**VITE\_ プレフィックス必須**）
+
+Replit の Secrets に以下があるか確認。無ければ追加／怪しければ入れ直し。
+
+```
+VITE_SUPABASE_URL=https://xcjplyhqxgrbdhixmzse.supabase.co
+VITE_SUPABASE_ANON_KEY=<Supabaseのanonキー>   # anon は「公開」キーなのでフロントに埋め込んでOK
+```
+
+### 1-2. 再ビルド（Vite は再ビルドしないと反映されません）
+
+```
+rm -rf dist client/dist
+npm run build:server
+npm run build:client
+```
+
+---
+
+## 2) supabase クライアント初期化コードを確認・固定化
+
+**ファイル**: `client/src/lib/supabaseClient.ts`（無ければ作成）
+
+### Before（よくあるNG）
+
+* `process.env.SUPABASE_URL` を使っている
+* `VITE_` プレフィックス無し
+* 値が undefined でも気付けない
+
+### After（修正版：そのまま貼り替えOK）
+
+```ts
+// client/src/lib/supabaseClient.ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!url || !anon) {
+  // ここで気付けるように明示ログ
+  console.error("[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY", {
+    hasUrl: !!url,
+    hasAnon: !!anon,
+  });
+}
+
+export const supabase = createClient(url!, anon!, {
+  auth: {
+    persistSession: true, // ローカル保持
+    autoRefreshToken: true,
+  },
+});
+```
+
+---
+
+## 3) signup / login 画面の最小動作を保証
+
+**ファイル**: `client/src/pages/signup.tsx`（Replitが編集したと言っていますが、確実に直します）
+
+### After（貼り替え例）
+
+```tsx
+import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+export default function SignUpPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.debug("[signup] payload", { email });
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+
+    console.debug("[signup] response", { data, error });
+    if (error) {
+      setMsg(error.message);
+      return;
+    }
+
+    // Email 確認OFFの場合は即 session が入るケースあり
+    const { data: sessionData } = await supabase.auth.getSession();
+    console.debug("[signup] session after signup", sessionData);
+
+    // すぐに session が無い環境もあるので、軽く待ってから再取得
+    setTimeout(async () => {
+      const { data: s2 } = await supabase.auth.getSession();
+      console.debug("[signup] session after delay", s2);
+
+      if (s2.session) {
+        location.href = "/"; // ダッシュボード等
+      } else {
+        // 確認メールONだとここに来る。まずはログ案内。
+        setMsg("確認メールを送信しました。受信箱をご確認ください。");
+      }
+    }, 200);
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" />
+      <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password"/>
+      <button type="submit">Create account</button>
+      <p>{msg}</p>
+    </form>
+  );
+}
+```
+
+**ルートガード**（例：`RequireAuth`や`useEffect`で`session===null`即リダイレクトしている箇所）は、**セッション判定が終わる前に発動しないよう “loading” 状態を必ず挟む**か、`getSession()` 完了後に判定するよう修正してください。
+
+---
+
+## 4) Supabase ダッシュボードでの設定
+
+Supabase Console → **Authentication**
+
+* **Providers → Email**
+
+  * **Allow new users to sign up**: **ON**
+  * （まずは）**Confirm email**: **OFF**（SMTP 未設定なら必ず OFF に）
+* **URL Configuration**
+
+  * **Site URL** に Replit の公開 URL（`https://<xxx>.replit.dev`）を登録
+  * **Additional Redirect URLs** に同じ URL と、本番（Fly）の URL も追加
+* 反映後に必ず再度サインアップ試験
+
+---
+
+## 5) それでも作成されないときの“決定的な切り分け”
+
+**Replit シェル**から Supabase REST で直接 sign-up を叩き、**Supabase 側が受け取れているか**検証します。（※この API は管理鍵不要）
+
+```bash
+curl -i \
+  -X POST "https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/signup" \
+  -H "apikey: $VITE_SUPABASE_ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test+replit@bizmowa.com", "password": "StrongPass!234"}'
+```
+
+* **201/200 が返り、Supabase ダッシュボード > Auth > Users に作成されれば**、問題は**クライアント（Viteの環境変数注入 or ルートガード）側**です。
+* ここでエラーが返るなら、\*\*Supabase 側設定（Site URL/Redirect, Email 設定）\*\*の問題。
+
+---
+
+# いまの状況の要約
+
+* 前回のログに「**Supabase Anon Key: undefined**」が出ていた → フロント/サーバーいずれにせよ **環境変数未注入**が疑い濃厚。
+* Replit エージェントは「修正した」と言ってますが、**Vite は“再ビルド”しないと `import.meta.env` に反映されません。**
+* さらに、**埋め込みプレビューでは認証が不安定**になりがち。**replit.dev の公開URLを新タブ**で開いて試すのが安全。
+* Supabase ダッシュボードの **Site URL/Redirect URLs/Email確認** のミスがあると signUp が通りません。
+
