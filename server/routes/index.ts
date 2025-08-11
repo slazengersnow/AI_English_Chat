@@ -53,7 +53,7 @@ export function registerRoutes(app: Express) {
   router.delete("/scenarios/:id", handleDeleteScenario);
 
   // ---- 管理者用ルート追加 ----
-  router.use(adminRoutes);
+  router.use('/admin', adminRoutes);
 
   // すべて /api 配下にぶら下げる
   app.use("/api", router);

@@ -1,0 +1,199 @@
+https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/signup-simpleのサイトにアクセスは可能だが、新規作成はまだできない。
+
+Replitへの指示文。
+
+> 次の 7 ステップを**この順番で**実施し、各ステップの結果ログ（成功/失敗・レスポンス本文）を返してください。
+> 目的：**Supabase への signup が何故 失敗しているか**をクライアント/サーバ/ダッシュボードの3面から確定します。
+>
+> ---
+>
+> ## 1) Secrets の再確認（クライアント/サーバ両方）
+>
+> Replit Secrets に以下が**すべて**入っているか確認し、無ければ追加してください。
+>
+> * `VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+> * `VITE_SUPABASE_ANON_KEY = <Supabaseのanon鍵>`
+> * `SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+> * `SUPABASE_SERVICE_ROLE_KEY = <service_role鍵>`（Adminバックアップ用）
+> * `SERVE_CLIENT = true`（本番ビルド配信）
+> * `NODE_ENV = production`
+>   追加/変更後に**必ず再ビルド**します（手順 6 で実施）。
+>
+> ---
+>
+> ## 2) クライアントの Supabase 初期化を固定＆ログ出力
+>
+> **client/src/lib/supabaseClient.ts** を以下に差し替えてください（既存があっても上書きでOK）。
+>
+> ```ts
+> // client/src/lib/supabaseClient.ts
+> import { createClient } from '@supabase/supabase-js';
+>
+> const url = import.meta.env.VITE_SUPABASE_URL;
+> const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+>
+> // 画面上とConsoleに強制表示
+> // @ts-expect-error
+> window.__SUPA_DEBUG__ = { url, anonHead: anon?.slice(0, 12) };
+> console.log('[Supabase] VITE_SUPABASE_URL =', url);
+> console.log('[Supabase] VITE_SUPABASE_ANON_KEY(head) =', anon?.slice(0, 12));
+>
+> if (!url || !anon) {
+>   throw new Error('VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY が未定義です');
+> }
+>
+> export const supabase = createClient(url, anon, {
+>   auth: { persistSession: true, autoRefreshToken: true },
+> });
+> ```
+>
+> ---
+>
+> ## 3) /signup-simple デバッグ画面を確実に表示可能に
+>
+> **client/src/pages/signup-simple.tsx** を新規作成（または上書き）してください：
+>
+> ```tsx
+> import React, { useState } from 'react';
+> import { supabase } from '../lib/supabaseClient';
+>
+> export default function SignupSimple() {
+>   const [email, setEmail] = useState('slazengersnow@gmail.com');
+>   const [password, setPassword] = useState('StrongPass#1');
+>   const [out, setOut] = useState<any>(null);
+>
+>   async function onSignup() {
+>     console.log('[SignupSimple] start', { email });
+>     const { data, error } = await supabase.auth.signUp({ email, password });
+>     console.log('[SignupSimple] resp', { data, error });
+>     setOut({ data, error });
+>   }
+>
+>   // @ts-expect-error
+>   const dbg = window.__SUPA_DEBUG__;
+>
+>   return (
+>     <div style={{maxWidth:480, margin:'40px auto', fontFamily:'sans-serif'}}>
+>       <h1>Signup Simple (Debug)</h1>
+>       <p>VITE URL: <code>{dbg?.url}</code></p>
+>       <p>VITE ANON(head): <code>{dbg?.anonHead}</code></p>
+>       <div style={{display:'grid', gap:8}}>
+>         <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" />
+>         <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="password" type="password" />
+>         <button onClick={onSignup}>Sign up</button>
+>       </div>
+>       <pre style={{whiteSpace:'pre-wrap', background:'#f6f6f6', padding:12, marginTop:16}}>
+>         {out ? JSON.stringify(out, null, 2) : 'no response yet'}
+>       </pre>
+>     </div>
+>   );
+> }
+> ```
+>
+> ルーティングは **client/src/App.tsx** に既に追加済みのはずですが、念のため：
+>
+> * publicPaths に `"/signup-simple"` が含まれていること
+> * `<Route path="/signup-simple" component={SignupSimple} />` が **RequireAuth の外側** にあること
+>
+> ---
+>
+> ## 4) サーバ側の管理バックアップAPI（service role で強制作成）
+>
+> **server/routes/admin.ts** を以下で上書き：
+>
+> ```ts
+> import { Router } from 'express';
+> import fetch from 'node-fetch';
+>
+> const router = Router();
+>
+> router.post('/create-user', async (req, res) => {
+>   try {
+>     const url = process.env.SUPABASE_URL;
+>     const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+>     if (!url || !key) return res.status(500).json({ message: 'service role not set' });
+>
+>     const r = await fetch(`${url}/auth/v1/admin/users`, {
+>       method: 'POST',
+>       headers: {
+>         'Content-Type': 'application/json',
+>         'Authorization': `Bearer ${key}`,
+>         'apikey': key,
+>       },
+>       body: JSON.stringify(req.body),
+>     });
+>     const j = await r.json();
+>     res.status(r.status).json(j);
+>   } catch (e:any) {
+>     res.status(500).json({ message: e?.message || String(e) });
+>   }
+> });
+>
+> export default router;
+> ```
+>
+> そして **server/routes/index.ts** に追記（既に追加済みならスキップ）：
+>
+> ```ts
+> import adminRoutes from './admin.js';
+> // …
+> router.use('/admin', adminRoutes);
+> ```
+>
+> ---
+>
+> ## 5) Supabase ダッシュボード設定の再確認（**もっとも多い原因**）
+>
+> 対象プロジェクト：**xcjplyhqxgrbdhixmzse**
+>
+> * Authentication → **Providers → Email**
+>
+>   * **Allow new users to sign up = ON**
+>   * **Confirm email = OFF**（即ログイン/登録検証用）
+> * Authentication → **URL Configuration**
+>
+>   * **Site URL**：`https://<あなたの公開URL>.kirk.replit.dev`
+>   * **Redirect URLs**：上記 URL（必要に応じて `/auth/callback` なども）
+>     ※ ここが別プロジェクトを指していた／Allow が OFF だったケースで**422: signup\_disabled**が出ます。
+>
+> ---
+>
+> ## 6) クリーンビルド → 本番配信で起動
+>
+> ```bash
+> rm -rf dist client/dist
+> npm run build:server && npm run build:client
+> export NODE_ENV=production SERVE_CLIENT=true PORT=5000
+> npm start || node dist/server/index.js
+> ```
+>
+> サーバログに `🚀 Server running on http://0.0.0.0:5000` が出ることを確認。
+>
+> ---
+>
+> ## 7) 期待するテスト手順（公開URLで）
+>
+> 1. 新しいタブで `https://<公開URL>.kirk.replit.dev/signup-simple` を **直打ち**
+> 2. 画面上部に
+>
+>    * `VITE URL: https://xcjplyhqxgrbdhixmzse.supabase.co`
+>    * `VITE ANON(head): eyJhbG...`（先頭12文字）
+>      が表示されること
+> 3. `Sign up` を押して、画面下の JSON が
+>
+>    * 成功：`{ data: { user: {...} }, error: null }`
+>    * 失敗：`{ data: null, error: {...} }`（コードとメッセージを確認）
+> 4. バックアップ：もし 422 や 400 が続く場合、以下で **service role 経由の強制作成**を実行し、レスポンスを返してください。
+>
+> ```bash
+> curl -X POST https://<公開URL>.kirk.replit.dev/api/admin/create-user \
+>   -H 'Content-Type: application/json' \
+>   -d '{"email":"slazengersnow@gmail.com","password":"StrongPass#1"}' -i
+> ```
+>
+> これが 200 かつ JSON に user が含まれたら、**Supabase 連携は正常**で、フロントのガード/環境変数注入の問題だけです。
+>
+> ---
+>
+> 各ステップの結果（画面の VITE 表示値、/signup-simple の JSON、curl 結果、サーバログ）をまとめて返信してください。こちらで最終の修正指示を返します。
+

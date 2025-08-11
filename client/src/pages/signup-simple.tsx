@@ -1,35 +1,33 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function SignupSimple() {
   const [email, setEmail] = useState('slazengersnow@gmail.com');
-  const [password, setPassword] = useState('');
-  const [result, setResult] = useState<any>(null);
+  const [password, setPassword] = useState('StrongPass#1');
+  const [out, setOut] = useState<any>(null);
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSignup() {
     console.log('[SignupSimple] start', { email });
     const { data, error } = await supabase.auth.signUp({ email, password });
-    console.log('[SignupSimple] response', { data, error });
-    setResult({ data, error });
+    console.log('[SignupSimple] resp', { data, error });
+    setOut({ data, error });
   }
 
+  // @ts-expect-error
+  const dbg = window.__SUPA_DEBUG__;
+
   return (
-    <div style={{ maxWidth: 420, margin: '40px auto', fontFamily: 'system-ui' }}>
-      <h2>Signup Simple (Debug)</h2>
-      <form onSubmit={handleSignup}>
-        <div style={{ margin: '12px 0' }}>
-          <label>email</label>
-          <input value={email} onChange={e=>setEmail(e.target.value)} style={{ width:'100%' }} />
-        </div>
-        <div style={{ margin: '12px 0' }}>
-          <label>password</label>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{ width:'100%' }} />
-        </div>
-        <button type="submit">Sign up</button>
-      </form>
-      <pre style={{ background:'#f6f8fa', padding:12, marginTop:16 }}>
-        {result ? JSON.stringify(result, null, 2) : '結果はここに表示されます'}
+    <div style={{maxWidth:480, margin:'40px auto', fontFamily:'sans-serif'}}>
+      <h1>Signup Simple (Debug)</h1>
+      <p>VITE URL: <code>{dbg?.url}</code></p>
+      <p>VITE ANON(head): <code>{dbg?.anonHead}</code></p>
+      <div style={{display:'grid', gap:8}}>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" />
+        <input value={password} onChange={e=>setPassword(e.target.value)} placeholder="password" type="password" />
+        <button onClick={onSignup}>Sign up</button>
+      </div>
+      <pre style={{whiteSpace:'pre-wrap', background:'#f6f6f6', padding:12, marginTop:16}}>
+        {out ? JSON.stringify(out, null, 2) : 'no response yet'}
       </pre>
     </div>
   );
