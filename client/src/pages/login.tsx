@@ -13,8 +13,8 @@ export default function Login() {
   const [, setLocation] = useLocation()
   const { toast } = useToast()
   const auth = useAuth()
-  const [email, setEmail] = useState('slazengersnow@gmail.com')
-  const [password, setPassword] = useState('s05936623')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 

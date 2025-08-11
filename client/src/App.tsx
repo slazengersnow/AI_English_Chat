@@ -70,15 +70,16 @@ function Router() {
   const { isAuthenticated, isLoading } = useAuth()
   const [, setLocation] = useLocation()
 
-  // Temporarily disable auth redirect for debugging
+  // Redirect to login if not authenticated
   useEffect(() => {
-    console.log('Router - Auth check disabled for debugging')
-    console.log('Router - Current path:', window.location.pathname)
-    console.log('Router - Auth status:', { isAuthenticated, isLoading })
-  }, [isAuthenticated, isLoading])
+    if (!isLoading && !isAuthenticated && window.location.pathname === '/') {
+      console.log('Router - Redirecting to login screen')
+      setLocation('/login')
+    }
+  }, [isAuthenticated, isLoading, setLocation])
 
-  // Force show main app without authentication for testing
-  const forceMainApp = true;
+  // Authentication-based routing enabled
+  const forceMainApp = false;
 
   if (isLoading) {
     return (
@@ -137,7 +138,7 @@ function Router() {
       <Route path="/final-auth-test" component={FinalAuthTest} />
       <Route path="/replit-auth-fix" component={ReplitAuthFix} />
       <Route path="/emergency-auth-fix" component={EmergencyAuthFix} />
-      <Route path="/auth" component={() => import('./pages/AuthPage.js').then(m => m.AuthPage)} />
+      {/* <Route path="/auth" component={() => import('./pages/AuthPage.js').then(m => m.AuthPage)} /> */}
       
       {(isAuthenticated || forceMainApp) ? (
         <>

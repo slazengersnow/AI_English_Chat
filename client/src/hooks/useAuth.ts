@@ -43,11 +43,17 @@ export function useAuthState() {
   const isAuthenticated = !!user
   const isAdmin = user?.email === 'slazengersnow@gmail.com'
 
+  const enableDemoMode = () => {
+    console.log('Demo mode enabled')
+  }
+
   return {
     user,
     isLoading,
     isAuthenticated,
     isAdmin,
+    demoMode: false,
     signOut,
+    enableDemoMode,
   }
 }
