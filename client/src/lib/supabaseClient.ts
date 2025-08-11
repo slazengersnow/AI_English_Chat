@@ -1,28 +1,22 @@
-// client/src/lib/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// 起動時に必ず見えるログ（マスク付き）
+console.log("[Supabase] init", {
+  hasUrl: !!url,
+  hasAnon: !!anon,
+  urlHost: url ? new URL(url).host : null,
+});
+
 if (!url || !anon) {
-  // ここで気付けるように明示ログ
-  console.error("[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY", {
-    hasUrl: !!url,
-    hasAnon: !!anon,
-    url: url?.substring(0, 30) + "...",
-    anon: anon?.substring(0, 20) + "...",
-  });
+  console.error("[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
 }
 
 export const supabase = createClient(url!, anon!, {
-  auth: {
-    persistSession: true, // ローカル保持
-    autoRefreshToken: true,
-  },
+  auth: { persistSession: true, autoRefreshToken: true },
 });
 
-console.log("[Supabase] Client initialized", {
-  hasUrl: !!url,
-  hasAnon: !!anon,
-  url: url?.substring(0, 30) + "...",
-});
+// デバッグ用（F12 から window.supabase で触れる）
+if (typeof window !== "undefined") (window as any).supabase = supabase;

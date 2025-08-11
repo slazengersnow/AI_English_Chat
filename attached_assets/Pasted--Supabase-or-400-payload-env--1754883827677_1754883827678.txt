@@ -1,0 +1,215 @@
+
+# いまの状況（超要約）
+
+* 画面は出るが、新規登録を押しても**Supabase にリクエストが飛んでいない**or**400**（=payload不備 / env未注入 / ルートガード早すぎ）。
+* 画面コンソールは**アクセシビリティ警告だけ**＝サインアップ処理のログが無い。
+* Replitは「修正した」と言っているが、**Vite は再ビルドしないと `import.meta.env` が反映されない**。
+* 埋め込みプレビューではなく**replit.dev の公開URL**で確認が必要（埋め込みはStorage/WSが不安定）。
+
+---
+
+Replitへの指示文。
+> 以下を **順に** 実行してください。途中で “差分パッチ” があります。
+
+---
+
+## 0) 公開URLでテストする宣言
+
+* 「**埋め込みではなく** `Open in new tab` の **https\://…replit.dev** でテストします。埋め込みは使いません。」
+
+---
+
+## 1) Vite 環境変数の注入と再ビルドを**強制**
+
+1. Secrets を確認/再設定（**必ず VITE\_ プレフィックス**）
+
+```
+VITE_SUPABASE_URL=https://xcjplyhqxgrbdhixmzse.supabase.co
+VITE_SUPABASE_ANON_KEY=（Supabase の anon キー）
+```
+
+2. 強制再ビルド
+
+```bash
+rm -rf dist client/dist
+npm run build:server
+npm run build:client
+```
+
+---
+
+## 2) Supabase クライアントを**明示ログつき**に固定
+
+**ファイル**: `client/src/lib/supabaseClient.ts`（無ければ作成、あれば置き換え）
+
+```ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// 起動時に必ず見えるログ（マスク付き）
+console.log("[Supabase] init", {
+  hasUrl: !!url,
+  hasAnon: !!anon,
+  urlHost: url ? new URL(url).host : null,
+});
+
+if (!url || !anon) {
+  console.error("[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
+}
+
+export const supabase = createClient(url!, anon!, {
+  auth: { persistSession: true, autoRefreshToken: true },
+});
+
+// デバッグ用（F12 から window.supabase で触れる）
+if (typeof window !== "undefined") (window as any).supabase = supabase;
+```
+
+> これで、公開URLを開いた瞬間に **\[Supabase] init …** が必ず出ます。出ない＝ビルドが古い/別バンドルを見てる。
+
+---
+
+## 3) サインアップ画面に**決定的なログ**とバリデーション
+
+**ファイル**: `client/src/pages/signup.tsx`（差分パッチ。該当箇所が無ければ新規ページとしてOK）
+
+```tsx
+import { useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+export default function SignUpPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("[signup] start", { email });
+
+    if (!email || !password) {
+      setMsg("メールとパスワードを入力してください");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    console.log("[signup] response", { data, error });
+
+    if (error) {
+      setMsg(error.message);
+      return;
+    }
+
+    // すぐに session が生えない環境もあるので、2段階で確認
+    const s1 = await supabase.auth.getSession();
+    console.log("[signup] session-now", s1);
+    setTimeout(async () => {
+      const s2 = await supabase.auth.getSession();
+      console.log("[signup] session-after-200ms", s2);
+      if (s2.data.session) location.href = "/";
+      else setMsg("確認メールを送信しました。受信後にログインしてください。");
+    }, 200);
+  };
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" />
+      <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="password" />
+      <button type="submit">Create account</button>
+      <p>{msg}</p>
+    </form>
+  );
+}
+```
+
+---
+
+## 4) ルートガードの**フラッシュ防止**（重要）
+
+**ファイル**: `client/src/auth/RequireAuth.tsx`（または認証ガード箇所）
+
+* **NG**：マウント直後に `getSession()` 完了前に `!session` で即 `/login` へ。
+* **OK**：`loading` ステートを挟み、`getSession()` の完了後に判定。
+
+**例（置き換え案）**
+
+```tsx
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+
+export function RequireAuth({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = useState(false);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      setAuthed(!!data.session);
+      setReady(true);
+    })();
+  }, []);
+
+  if (!ready) return <div />; // ← ローディング中は何も返さない（フラッシュ防止）
+  if (!authed) {
+    location.href = "/login";
+    return null;
+  }
+  return <>{children}</>;
+}
+```
+
+---
+
+## 5) Supabase ダッシュボード設定チェック
+
+* **Authentication → Providers → Email**
+
+  * **Allow sign ups**: **ON**
+  * （SMTP未設定なら）**Confirm email**: **OFF**
+* **Authentication → URL Configuration**
+
+  * **Site URL** に `https://<…>.replit.dev`
+  * **Additional Redirect URLs** に同URL（必要なら本番URLも）
+
+> ここがズレていると**サインアップは通っても session が作られず**、すぐログイン画面に戻ります。
+
+---
+
+## 6) ネットワークで\*\*/auth/v1/signup\*\*を確認（決定打）
+
+公開URLを開き、DevTools → Network → **Fetch/XHR** で：
+
+* `https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/signup` が **発火**しているか
+* **Status** が 200/201 か（400/401 ならレス本文を確認）
+* **Request Payload** に `{ email, password }` が載っているか
+* **Response** に `user`/`session` が返るか
+
+> **発火していなければ** → 3) の onSubmit が呼ばれていない or ガードで即リダイレクト。
+> **400** → パスワードポリシー/入力空/メール形式/Email Provider OFF。
+> **401** → anonキー/URL不整合（1 と 5 を再確認）。
+
+---
+
+## 7) どうしても不明なら、**サーバーから直接叩いて切り分け**
+
+```bash
+# Replit Shell で
+cat > test-supabase-signup.sh << 'EOF'
+URL="https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/signup"
+KEY="$VITE_SUPABASE_ANON_KEY"
+EMAIL="debug+$(date +%s)@bizmowa.com"
+PW="StrongPass!234"
+
+curl -i -X POST "$URL" \
+  -H "apikey: $KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PW\"}"
+EOF
+
+bash test-supabase-signup.sh
+```
+
+* ここで **201/200** なら、**フロント側の実装/ガード/環境変数注入**が原因。
+* ここでも **4xx** なら、**Supabase設定**の問題。
+

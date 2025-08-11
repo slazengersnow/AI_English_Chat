@@ -105,6 +105,7 @@ function Router() {
       <Route path="/create-admin" component={CreateAdmin} />
       <Route path="/login-test" component={LoginTest} />
       <Route path="/signup" component={Signup} />
+      <Route path="/signup-simple" component={() => import('@/pages/signup-simple').then(m => m.default)} />
       <Route path="/confirm" component={Confirm} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/debug-auth" component={DebugAuth} />

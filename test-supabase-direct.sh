@@ -1,14 +1,20 @@
 #!/bin/bash
 
-# Test Supabase direct API call
-echo "Testing Supabase direct signup..."
+# Test Supabase direct API call with environment variable
+URL="https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/signup"
+KEY="$VITE_SUPABASE_ANON_KEY"
+EMAIL="debug+$(date +%s)@bizmowa.com"
+PW="StrongPass!234"
 
-curl -i \
-  -X POST "https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/signup" \
-  -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjanBseWhxeGdyYmRoaXhtenNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA3NDEyMjksImV4cCI6MjA2NjMxNzIyOX0.IgMRAXM_fC9D5PnQR6iSP0ZC5rQNJxcpGrrNMWRCJqE" \
+echo "Testing Supabase direct signup..."
+echo "URL: $URL"
+echo "Email: $EMAIL"
+
+curl -i -X POST "$URL" \
+  -H "apikey: $KEY" \
   -H "Content-Type: application/json" \
-  -d '{"email": "slazengersnow@gmail.com", "password": "s05936623"}'
+  -d "{\"email\":\"$EMAIL\",\"password\":\"$PW\"}"
 
 echo ""
 echo "If you see 201/200 response, then Supabase is working correctly."
-echo "Check Supabase dashboard to see if user was created."
+echo "If you see 422 'signup_disabled', check Supabase dashboard settings."
