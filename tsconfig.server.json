@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/server",
-    "module": "NodeNext",
+    "outDir": "./dist",
+    "rootDir": ".", // ★ 追加：相対解決の基準を固定
+    "module": "NodeNext", // ★ ESM（import.meta, top-level await対応）
     "moduleResolution": "NodeNext",
     "target": "ES2022",
     "allowSyntheticDefaultImports": true,
@@ -10,21 +11,17 @@
     "strict": false,
     "noImplicitAny": false,
     "resolveJsonModule": true,
-    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": [
-    "server/**/*.ts",
-    "shared/**/*.ts"
-  ],
+  "include": ["server/**/*.ts", "shared/**/*.ts"],
   "exclude": [
     "node_modules",
     "client",
     "dist",
-    "server/routes.ts",
-    "server/storage.ts"
+    "server/routes.ts", // 必要なら残す
+    "server/storage.ts" // 必要なら残す
   ]
 }
