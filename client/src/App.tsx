@@ -69,6 +69,7 @@ const publicPaths = new Set([
   "/login",
   "/signup",
   "/signup-simple",
+  "/subscription-select",
   "/confirm",
   "/auth/callback",
   "/terms",
@@ -174,6 +175,14 @@ function AppRoutes() {
         element={
           <Guard>
             <SignupSimple />
+          </Guard>
+        }
+      />
+      <Route
+        path="/subscription-select"
+        element={
+          <Guard>
+            <SubscriptionSelect />
           </Guard>
         }
       />

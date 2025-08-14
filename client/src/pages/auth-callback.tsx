@@ -59,9 +59,9 @@ export default function AuthCallback() {
             setStatus('success')
             setMessage(`メール認証が完了しました！ログインしています...`)
             
-            // Immediately redirect to home since user is now authenticated
+            // Redirect to subscription select page after email verification
             setTimeout(() => {
-              window.location.href = '/'
+              window.location.href = '/subscription-select'
             }, 2000)
           }
         } else if (type === 'recovery' && accessToken) {
