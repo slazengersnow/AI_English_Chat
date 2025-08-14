@@ -1,0 +1,136 @@
+Replitへの指示文
+
+# 手順
+
+## 1) まず「公開タブ」で動作確認に切り替え
+
+* 埋め込みプレビューではなく、右上の **Open in new tab** で開いた **`https://…kirk.replit.dev/`** でテストしてください。
+  埋め込みプレビューは Replit 側の CSP で devtools スクリプトが弾かれ、挙動が不安定になります。
+
+## 2) サーバのCSPを緩める（Supabase接続と開発デバッグを許可）
+
+**ファイル**: `server/index.ts`（Expressの起動直後、`app.use(...)`の初期化付近に追加）
+
+```ts
+// ★CSPを明示的に緩める（プレビューでも支障が出ないように）
+app.use((req, res, next) => {
+  // 最低限: 自サイトの静的配信 + Supabase への接続 + WebSocket + 画像/スタイル + Replit 公開URL
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https:",
+      // Supabase（.co / .in）と Replit 公開URL、WebSocket を許可
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://*.supabase.in https://*.replit.dev",
+      // 埋め込みプレビュー回避用に frame-ancestors を緩める（必要なら）
+      "frame-ancestors *",
+    ].join("; ")
+  );
+  next();
+});
+```
+
+> すでに `helmet` などで CSP を設定している場合は、**一旦外す**か、上記と整合するように設定してください。
+> まずは signup を復活させるのが最優先です（あとで厳格化に戻せます）。
+
+## 3) クライアントの Supabase 環境変数が本当に注入されているかを再確認
+
+**ファイル**: `client/src/lib/supabaseClient.ts`（既に作成済みなら中身を再確認）
+
+```ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL!;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+
+// ブラウザで F12→Console: window.SUPA_DEBUG で確認できる
+if (typeof window !== "undefined") {
+  (window as any).SUPA_DEBUG = { url, anonHead: anon?.slice(0, 12) };
+}
+
+export const supabase = createClient(url, anon, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage,
+  },
+});
+```
+
+**Replit Secrets** に必ず入れておく：
+
+* `VITE_SUPABASE_URL = https://xcjplyhqxgrbdhixmzse.supabase.co`
+* `VITE_SUPABASE_ANON_KEY = （Supabase→Settings→API→anon）`
+* `SUPABASE_SERVICE_ROLE_KEY = （同ページの service_role。サーバ側のみ）`
+* `SERVE_CLIENT = true`
+
+**Supabaseダッシュボード**：
+
+* Auth → **Email** → **Allow new users to sign up: ON**（OFF だと 422 / signup\_disabled）
+* Auth → **URL Configuration** → **Site URL** と **Redirect URLs** に **`https://…kirk.replit.dev`** を保存（末尾スラなし推奨）
+
+## 4) ルーティング/ガードの最低限の安定化（直後リダイレクトを止める）
+
+**ファイル**: `client/src/providers/auth-provider.tsx` があり、`App.tsx` で **最上位に巻いている**ことを確認。
+`App.tsx` の認証ガードは **initialized が true になるまで何もしない**ようにしてください（前の指示のままでOK）。
+
+## 5) 再ビルド → 起動
+
+```bash
+rm -rf dist
+npm run build:server && npm run build:client
+node dist/server/index.js
+```
+
+**公開タブ**（`…kirk.replit.dev`）を開いて、ブラウザの Console に:
+
+```js
+window.SUPA_DEBUG
+```
+
+が表示され、
+`{ url: "https://xcjplyhqxgrbdhixmzse.supabase.co", anonHead: "eyJh..." }` のように **正しい値**が出ていることを確認。
+
+## 6) まずは管理APIで登録が通るか再確認（切り分け）
+
+別シェルで:
+
+```bash
+curl -s -X POST http://localhost:5000/api/admin/create-user \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"test_signup_debug@example.com","password":"StrongPass#1"}' \
+  -w "\nHTTP Status: %{http_code}\n"
+```
+
+* `201` なら **サーバ↔Supabaseは正常**。
+* `400` で「already」なら既に登録済み。Supabaseの Users に出ているか確認。
+
+## 7) UI からサインアップを再テスト
+
+* 公開タブで `/signup-simple` へ直接アクセス（例：`https://…kirk.replit.dev/signup-simple`）
+* 新しいメールで登録 → 画面下の JSON レスポンスと、Supabase の Users に即時反映されるか確認
+* うまくいくのに `/login` へ戻される場合は、**ガード**の条件が早すぎるので `initialized` フラグと `supabase.auth.getSession()` の結果を console.log で確認（`initialized === true` になってから `user` の有無で分岐）
+
+---
+
+## ここまでで直る理由（要点）
+
+* **CSPが厳しすぎる**と、Replit 埋め込みで devtools も API もブロックされ、**時々 API が落ちる**→「前はできたのに今はダメ」が発生。
+  ⇒ **公開タブ**でテスト＋**CSP を緩める**で解消。
+* **VITE\_環境変数が未注入**だと別プロジェクトの URL を叩いたり、`anon` が空で 401/422 になる。
+  ⇒ `window.SUPA_DEBUG` で必ず可視化。
+* **初期化前にガードが動く**と、サインアップ直後にログインへ戻る現象。
+  ⇒ `initialized` を導入して解決。
+
+---
+
+### もしまだ Supabase Users に載らない場合
+
+* Supabase の **Allow new users to sign up** が OFF のままになっていないか再確認
+* `VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY` が **別プロジェクトの値に切り替わっていないか**（`window.SUPA_DEBUG` が真実）
+* 管理 API（service\_role）で `201` が出るなら、フロントの呼び先・CSP・ガードのいずれかが原因です（上の手順で潰せます）。
+
+---

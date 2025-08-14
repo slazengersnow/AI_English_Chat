@@ -15,6 +15,26 @@ const app = express();
 const PORT = Number(process.env.PORT) || 5000;
 
 /* ---------- middlewares ---------- */
+
+// ★CSPを明示的に緩める（プレビューでも支障が出ないように）
+app.use((req, res, next) => {
+  // 最低限: 自サイトの静的配信 + Supabase への接続 + WebSocket + 画像/スタイル + Replit 公開URL
+  res.setHeader(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https:",
+      // Supabase（.co / .in）と Replit 公開URL、WebSocket を許可
+      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://*.supabase.in https://*.replit.dev",
+      // 埋め込みプレビュー回避用に frame-ancestors を緩める（必要なら）
+      "frame-ancestors *",
+    ].join("; ")
+  );
+  next();
+});
+
 app.use(
   cors({
     origin: [
