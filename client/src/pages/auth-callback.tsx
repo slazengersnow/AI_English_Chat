@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation } from 'wouter'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 export default function AuthCallback() {
-  const [, setLocation] = useLocation()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
 
@@ -83,7 +84,7 @@ export default function AuthCallback() {
           
           // パスワード変更ページへリダイレクト
           setTimeout(() => {
-            setLocation('/change-password')
+            navigate('/change-password')
           }, 2000)
         } else {
           // 通常の認証の場合
@@ -100,7 +101,7 @@ export default function AuthCallback() {
             setStatus('success')
             setMessage('認証が完了しました！')
             setTimeout(() => {
-              setLocation('/')
+              navigate('/')
             }, 2000)
           } else {
             setStatus('error')
@@ -115,7 +116,7 @@ export default function AuthCallback() {
     }
 
     handleAuthCallback()
-  }, [setLocation])
+  }, [navigate])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -140,7 +141,7 @@ export default function AuthCallback() {
           {status === 'error' && (
             <div className="space-y-2">
               <Button 
-                onClick={() => setLocation('/login')} 
+                onClick={() => navigate('/login')} 
                 className="w-full"
               >
                 ログインページに戻る
