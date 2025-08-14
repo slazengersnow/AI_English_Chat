@@ -7,12 +7,16 @@ type AuthCtx = {
   initialized: boolean; 
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin?: boolean;
+  signOut?: () => Promise<void>;
 };
 const Ctx = createContext<AuthCtx>({ 
   user: null, 
   initialized: false, 
   isAuthenticated: false,
-  isLoading: true 
+  isLoading: true,
+  isAdmin: false,
+  signOut: async () => {}
 });
 export const useAuth = () => useContext(Ctx);
 
@@ -31,12 +35,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  const isAdmin = user?.email === 'slazengersnow@gmail.com';
+
   return (
     <Ctx.Provider value={{ 
       user, 
       initialized, 
       isAuthenticated: !!user,
-      isLoading: !initialized 
+      isLoading: !initialized,
+      isAdmin,
+      signOut
     }}>
       {children}
     </Ctx.Provider>

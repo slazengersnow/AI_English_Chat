@@ -71,11 +71,12 @@ const LoadingSpinner: React.FC = () => (
   </div>
 );
 
-// 公開パス（認証不要）の定義
+// 公開パス（認証不要）の定義 - メールフローを必ず含める
 const publicPaths = new Set([
   "/login",
-  "/signup",
+  "/signup", 
   "/signup-simple",
+  "/auth-callback",
   "/subscription-select",
   "/confirm",
   "/auth/callback",
@@ -127,14 +128,7 @@ function Guard({ children }: { children: JSX.Element }) {
 
   // 1) 初期化完了まで絶対にリダイレクトしない（点滅/ループ防止）
   if (!initialized || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#e7effe" }}>
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   // 2) 公開パスは誰でもOK
