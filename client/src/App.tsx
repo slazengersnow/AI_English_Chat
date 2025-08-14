@@ -63,6 +63,7 @@ import WorkingLogin from "./pages/working-login.js";
 import FinalAuthTest from "./pages/final-auth-test.js";
 import ReplitAuthFix from "./pages/replit-auth-fix.js";
 import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
+import AuthTest from "./pages/auth-test.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -119,6 +120,7 @@ const publicPaths = new Set([
   "/final-auth-test",
   "/replit-auth-fix",
   "/emergency-auth-fix",
+  "/auth-test",
 ]);
 
 // 認証ガードコンポーネント（改善版）
@@ -519,6 +521,14 @@ function AppRoutes() {
         element={
           <Guard>
             <EmergencyAuthFix />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-test"
+        element={
+          <Guard>
+            <AuthTest />
           </Guard>
         }
       />

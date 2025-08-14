@@ -20,8 +20,11 @@ export default function SignupSimple() {
         options: { emailRedirectTo: `${window.location.origin}/auth-callback` }
       });
       if (error) {
-        // 既存メールなど
-        if ((error as any).status === 422 || (error as any).status === 400) {
+        // 既存メールの詳細チェック
+        if (error.message?.toLowerCase().includes('already') || 
+            error.message?.toLowerCase().includes('registered') ||
+            (error as any).status === 422 || 
+            (error as any).status === 400) {
           setMsg("このメールアドレスは既に登録されています。ログインをお試しください。");
         } else {
           setMsg(`サインアップに失敗: ${error.message}`);

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function Login() {
 
       if (data.user) {
         console.log('Login successful:', data.user);
-        setLocation('/');
+        navigate('/');
       }
     } catch (error: any) {
       setError(error.message || 'ログインに失敗しました');
@@ -140,7 +140,7 @@ export default function Login() {
             <p className="text-sm text-gray-600">
               アカウントをお持ちでない場合は{' '}
               <button
-                onClick={() => setLocation('/signup')}
+                onClick={() => navigate('/signup')}
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
                 新規登録
