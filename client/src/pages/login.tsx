@@ -20,11 +20,34 @@ export default function Login() {
         password,
       });
 
-      if (error) throw error;
+      console.log('Login attempt result:', { data, error });
+
+      if (error) {
+        console.error('Login error details:', error);
+        
+        // より具体的なエラーメッセージ
+        if (error.message?.includes('Invalid login credentials')) {
+          setError('メールアドレスまたはパスワードが正しくありません');
+        } else if (error.message?.includes('Email not confirmed')) {
+          setError('メールアドレスが確認されていません。確認メールをご確認ください');
+        } else {
+          setError(error.message || 'ログインに失敗しました');
+        }
+        return;
+      }
 
       if (data.user) {
-        console.log('Login successful:', data.user);
-        navigate('/');
+        console.log('Login successful:', {
+          user: data.user,
+          session: data.session,
+          email: data.user.email,
+          confirmedAt: data.user.email_confirmed_at
+        });
+        
+        // ログイン成功時は少し待ってからリダイレクト
+        setTimeout(() => {
+          navigate('/');
+        }, 100);
       }
     } catch (error: any) {
       setError(error.message || 'ログインに失敗しました');

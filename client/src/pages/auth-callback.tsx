@@ -7,19 +7,52 @@ export default function AuthCallback() {
   useEffect(() => {
     (async () => {
       try {
+        console.log('Auth callback: Starting processing...');
         const p = new URLSearchParams(window.location.search);
         const code = p.get("code");
+        
+        console.log('Auth callback: URL params:', {
+          code: code ? 'present' : 'missing',
+          fullUrl: window.location.href
+        });
+        
         if (code) {
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) throw error;
+          console.log('Auth callback: Exchanging code for session...');
+          const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code);
+          
+          console.log('Auth callback: Exchange result:', {
+            session: sessionData?.session,
+            user: sessionData?.user,
+            error
+          });
+          
+          if (error) {
+            console.error('Auth callback: Exchange error:', error);
+            throw error;
+          }
         }
+        
+        // セッション確認
+        console.log('Auth callback: Checking session...');
         const { data } = await supabase.auth.getSession();
+        
+        console.log('Auth callback: Current session:', {
+          hasSession: !!data.session,
+          hasUser: !!data.session?.user,
+          userEmail: data.session?.user?.email
+        });
+        
         if (data.session) {
-          window.location.replace("/subscription-select");
+          setMsg("認証完了！プラン選択画面に移動します...");
+          setTimeout(() => {
+            window.location.replace("/subscription-select");
+          }, 1000);
           return;
         }
+        
         setMsg("認証リンクが無効または期限切れです。もう一度お試しください。");
       } catch (e: any) {
+        console.error('Auth callback: Error:', e);
         setMsg(`認証エラー: ${e.message || e}`);
       }
     })();

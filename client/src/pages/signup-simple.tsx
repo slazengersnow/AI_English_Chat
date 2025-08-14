@@ -19,10 +19,16 @@ export default function SignupSimple() {
         password: pw,
         options: { emailRedirectTo: `${window.location.origin}/auth-callback` }
       });
+      
+      console.log('Signup result:', { data, error });
+      
       if (error) {
-        // 既存メールの詳細チェック
+        console.error('Signup error details:', error);
+        // 既存メールの詳細チェック（より包括的）
         if (error.message?.toLowerCase().includes('already') || 
             error.message?.toLowerCase().includes('registered') ||
+            error.message?.toLowerCase().includes('exists') ||
+            error.message?.includes('User already registered') ||
             (error as any).status === 422 || 
             (error as any).status === 400) {
           setMsg("このメールアドレスは既に登録されています。ログインをお試しください。");
@@ -31,6 +37,14 @@ export default function SignupSimple() {
         }
         return;
       }
+      
+      // データの詳細チェック
+      console.log('Signup data details:', {
+        user: data?.user,
+        session: data?.session,
+        userConfirmedAt: data?.user?.email_confirmed_at,
+        userRole: data?.user?.role
+      });
       // Confirm Email = ON の場合は session が付かないので案内だけ表示
       if (data?.user && !data?.session) {
         setMsg("確認メールを送信しました。メール内のリンクから認証を完了してください。");

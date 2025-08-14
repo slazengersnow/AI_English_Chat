@@ -64,6 +64,7 @@ import FinalAuthTest from "./pages/final-auth-test.js";
 import ReplitAuthFix from "./pages/replit-auth-fix.js";
 import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
 import AuthTest from "./pages/auth-test.js";
+import AuthDebugTest from "./pages/auth-debug-test.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -121,28 +122,44 @@ const publicPaths = new Set([
   "/replit-auth-fix",
   "/emergency-auth-fix",
   "/auth-test",
+  "/auth-debug-test",
 ]);
 
-// 認証ガードコンポーネント（改善版）
+// 認証ガードコンポーネント（完全修正版）
 function Guard({ children }: { children: JSX.Element }) {
   const { initialized, user, isLoading } = useAuth();
   const { pathname } = useLocation();
 
+  // デバッグログ
+  console.log('Guard check:', { 
+    pathname, 
+    initialized, 
+    isLoading, 
+    hasUser: !!user,
+    userEmail: user?.email,
+    isPublicPath: publicPaths.has(pathname)
+  });
+
   // 1) 初期化完了まで絶対にリダイレクトしない（点滅/ループ防止）
   if (!initialized || isLoading) {
+    console.log('Guard: Showing loading spinner - not ready');
     return <LoadingSpinner />;
   }
 
-  // 2) 公開パスは誰でもOK
+  // 2) 公開パスは誰でもOK（認証不要）
   if (publicPaths.has(pathname)) {
+    console.log('Guard: Public path, allowing access');
     return children;
   }
 
-  // 3) それ以外は user が無ければログインへ
+  // 3) プライベートパスで認証なし = ログインへ
   if (!user) {
+    console.log('Guard: No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
+  // 4) 認証済み = アクセス許可
+  console.log('Guard: Authenticated user, allowing access');
   return children;
 }
 
@@ -529,6 +546,14 @@ function AppRoutes() {
         element={
           <Guard>
             <AuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-debug-test"
+        element={
+          <Guard>
+            <AuthDebugTest />
           </Guard>
         }
       />

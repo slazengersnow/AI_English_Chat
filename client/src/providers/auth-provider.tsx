@@ -23,16 +23,65 @@ export const useAuth = () => useContext(Ctx);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [initialized, setInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
-      setInitialized(true);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      try {
+        console.log('AuthProvider: Starting initialization...');
+        
+        // Get current session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('AuthProvider: Session error:', error);
+        } else {
+          console.log('AuthProvider: Initial session:', { 
+            hasSession: !!session, 
+            hasUser: !!session?.user,
+            userEmail: session?.user?.email 
+          });
+        }
+        
+        if (mounted) {
+          setUser(session?.user ?? null);
+          setInitialized(true);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('AuthProvider: Initialization error:', error);
+        if (mounted) {
+          setInitialized(true);
+          setIsLoading(false);
+        }
+      }
+    };
+    
+    initializeAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('AuthProvider: Auth state change:', { 
+          event, 
+          hasSession: !!session, 
+          hasUser: !!session?.user,
+          userEmail: session?.user?.email 
+        });
+        
+        if (mounted) {
+          setUser(session?.user ?? null);
+          setIsLoading(false);
+        }
+      }
+    );
+    
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
@@ -47,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, 
       initialized, 
       isAuthenticated: !!user,
-      isLoading: !initialized,
+      isLoading,
       isAdmin,
       signOut
     }}>
