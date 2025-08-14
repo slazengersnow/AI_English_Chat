@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/providers/auth-provider";
 import {
   Card,
   CardContent,
@@ -51,8 +51,8 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
-import { Link } from "wouter";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 interface ProgressData {
   date: string;
@@ -93,7 +93,7 @@ interface UserSubscription {
 }
 
 export default function MyPage() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -312,10 +312,10 @@ export default function MyPage() {
     // Navigate to appropriate practice interface
     if (session.difficultyLevel.startsWith("simulation-")) {
       const scenarioId = session.difficultyLevel.replace("simulation-", "");
-      setLocation(`/simulation-practice?scenario=${scenarioId}`);
+      navigate(`/simulation-practice?scenario=${scenarioId}`);
     } else {
       // Navigate to home page with difficulty selection
-      setLocation(`/?difficulty=${session.difficultyLevel}`);
+      navigate(`/?difficulty=${session.difficultyLevel}`);
     }
   };
 
@@ -339,9 +339,9 @@ export default function MyPage() {
         "simulation-",
         "",
       );
-      setLocation(`/simulation-practice?scenario=${scenarioId}`);
+      navigate(`/simulation-practice?scenario=${scenarioId}`);
     } else {
-      setLocation(`/practice/${firstSession.difficultyLevel}`);
+      navigate(`/practice/${firstSession.difficultyLevel}`);
     }
   };
 
@@ -353,7 +353,7 @@ export default function MyPage() {
         title: "ログアウト完了",
         description: "正常にログアウトしました",
       });
-      setLocation("/");
+      navigate("/");
     } catch (error) {
       toast({
         title: "ログアウトエラー",

@@ -64,6 +64,13 @@ import FinalAuthTest from "./pages/final-auth-test.js";
 import ReplitAuthFix from "./pages/replit-auth-fix.js";
 import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
 
+// ローディングコンポーネント
+const LoadingSpinner: React.FC = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+);
+
 // 公開パス（認証不要）の定義
 const publicPaths = new Set([
   "/login",
@@ -113,14 +120,21 @@ const publicPaths = new Set([
   "/emergency-auth-fix",
 ]);
 
-// 認証ガードコンポーネント
+// 認証ガードコンポーネント（改善版）
 function Guard({ children }: { children: JSX.Element }) {
-  const { initialized, user } = useAuth();
+  const { initialized, user, isLoading } = useAuth();
   const { pathname } = useLocation();
 
   // 1) 初期化完了まで絶対にリダイレクトしない（点滅/ループ防止）
-  if (!initialized) {
-    return null; // もしくはローディングUI
+  if (!initialized || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#e7effe" }}>
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">読み込み中...</p>
+        </div>
+      </div>
+    );
   }
 
   // 2) 公開パスは誰でもOK
