@@ -1,0 +1,104 @@
+認証に関する問題は複数あるけれど、一つ一つ解決していこう。
+まずは、ログインに関する問題。
+既にSupabaseには登録されているメルアドでもログインできずにログイン画面にすぐにリダイレクトされてしまうのでアクセスできない。
+まずはこの問題だけに集中して解決していこう。
+
+この時に使ったメルアドは以下の通り。
+slazengersnow@gmail.com
+パスワードは、s45352512
+
+このメルアドとパスワードが適切にSupabaseと連携できているか確認してほしい。
+Supabaseではパスワードは確認できないので、正しいパスワードかどうかも含めて確認してほしい。
+
+おそらく以下のコマンドの結果からバックエンドは正常と思われるので問題はフロントにあるのではないかなと思う。それも含めて確かめてほしい。
+
+問題点・原因を広範的に分析して、正常にログインできるように直してほしい。
+よろしく。
+
+curl -s http://localhost:5000/__introspect
+# => adminCreateUser が見えること
+curl -s -X POST http://localhost:5000/api/admin/create-user \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"test@example.com","password":"StrongPass#1"}'
+# 201 ならバックエンドは健全。フロントのみ再確認。
+{"mounted":{"api":true,"adminCreateUser":"/api/admin/create-user"},"env":{"hasSupabaseUrl":true,"hasServiceRole":true}}{"user":{"id":"27331e15-90ce-49ca-81cf-3523d295b10e","aud":"authenticated","role":"authenticated","email":"test@example.com","email_confirmed_at":"2025-08-14T21:42:45.308347706Z","phone":"","app_metadata":{"provider":"email","providers":["email"]},"user_metadata":{"email_verified":true},"identities":[{"identity_id":"ad3c892a-bc1c-48e0-9a12-563bb616e76d","id":"27331e15-90ce-49ca-81cf-3523d295b10e","user_id":"27331e15-90ce-49ca-81cf-3523d295b10e","identity_data":{"email":"test@example.com","email_verified":false,"phone_verified":false,"sub":"27331e15-90ce-49ca-81cf-3523d295b10e"},"provider":"email","last_sign_in_at":"2025-08-14T21:42:45.303243578Z","created_at":"2025-08-14T21:42:45.303298Z","updated_at":"2025-08-14T21:42:45.303298Z","email":"test@example.com"}],"created_at":"2025-08-14T21:42:45.295581Z","updated_at":"2025-08-14T21:42:45.309203Z","is_anonymous":false}}~/workspace$
+
+この時のコンソールは以下の通り。
+
+VM5204 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM5204 eruda.js:2:218642)
+    at Object.apply (VM5205 injected.js:253:39)
+    at se (VM5206 index-DyjmkSd6.js:251:36356)
+Mt.forEach.n.<computed> @ VM5204 eruda.js:2
+se @ VM5206 index-DyjmkSd6.js:251
+await in se
+（匿名） @ VM5206 index-DyjmkSd6.js:251
+Wa @ VM5206 index-DyjmkSd6.js:161
+lR @ VM5206 index-DyjmkSd6.js:174
+oR @ VM5206 index-DyjmkSd6.js:174
+sR @ VM5206 index-DyjmkSd6.js:174
+aR @ VM5206 index-DyjmkSd6.js:174
+HR @ VM5206 index-DyjmkSd6.js:174
+ha @ VM5206 index-DyjmkSd6.js:174
+（匿名） @ VM5206 index-DyjmkSd6.js:174
+Yr @ VM5206 index-DyjmkSd6.js:62
+Wt @ VM5206 index-DyjmkSd6.js:62
+mr @ VM5206 index-DyjmkSd6.js:62このエラーを分析
+VM5204 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM5204 eruda.js:2:218642)
+    at Object.apply (VM5205 injected.js:253:39)
+    at se (VM5206 index-DyjmkSd6.js:251:36356)
+Mt.forEach.n.<computed> @ VM5204 eruda.js:2
+se @ VM5206 index-DyjmkSd6.js:251
+await in se
+（匿名） @ VM5206 index-DyjmkSd6.js:251
+Wa @ VM5206 index-DyjmkSd6.js:161
+bR @ VM5206 index-DyjmkSd6.js:174
+$f @ VM5206 index-DyjmkSd6.js:178
+I0 @ VM5206 index-DyjmkSd6.js:178
+HR @ VM5206 index-DyjmkSd6.js:174
+ha @ VM5206 index-DyjmkSd6.js:174
+（匿名） @ VM5206 index-DyjmkSd6.js:174
+Yr @ VM5206 index-DyjmkSd6.js:62
+Wt @ VM5206 index-DyjmkSd6.js:62
+mr @ VM5206 index-DyjmkSd6.js:62このエラーを分析
+VM5204 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM5204 eruda.js:2:218642)
+    at Object.apply (VM5205 injected.js:253:39)
+    at z (VM5206 index-DyjmkSd6.js:251:35522)
+Mt.forEach.n.<computed> @ VM5204 eruda.js:2
+z @ VM5206 index-DyjmkSd6.js:251
+await in z
+（匿名） @ VM5206 index-DyjmkSd6.js:251
+Wa @ VM5206 index-DyjmkSd6.js:161
+bR @ VM5206 index-DyjmkSd6.js:174
+$f @ VM5206 index-DyjmkSd6.js:178
+I0 @ VM5206 index-DyjmkSd6.js:178
+HR @ VM5206 index-DyjmkSd6.js:174
+ha @ VM5206 index-DyjmkSd6.js:174
+（匿名） @ VM5206 index-DyjmkSd6.js:174
+Yr @ VM5206 index-DyjmkSd6.js:62
+Wt @ VM5206 index-DyjmkSd6.js:62
+mr @ VM5206 index-DyjmkSd6.js:62このエラーを分析
+VM5204 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM5204 eruda.js:2:218642)
+    at Object.apply (VM5205 injected.js:253:39)
+    at z (VM5206 index-DyjmkSd6.js:251:35522)
+Mt.forEach.n.<computed> @ VM5204 eruda.js:2
+z @ VM5206 index-DyjmkSd6.js:251
+await in z
+（匿名） @ VM5206 index-DyjmkSd6.js:251
+Wa @ VM5206 index-DyjmkSd6.js:161
+lR @ VM5206 index-DyjmkSd6.js:174
+oR @ VM5206 index-DyjmkSd6.js:174
+sR @ VM5206 index-DyjmkSd6.js:174
+aR @ VM5206 index-DyjmkSd6.js:174
+HR @ VM5206 index-DyjmkSd6.js:174
+ha @ VM5206 index-DyjmkSd6.js:174
+（匿名） @ VM5206 index-DyjmkSd6.js:174
+Yr @ VM5206 index-DyjmkSd6.js:62
+Wt @ VM5206 index-DyjmkSd6.js:62
+mr @ VM5206 index-DyjmkSd6.js:62このエラーを分析
+6Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+workspace_iframe.html?initialPath=%2Fsignup-simple&id=%3Ar8eu%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.

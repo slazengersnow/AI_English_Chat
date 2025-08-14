@@ -14,15 +14,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let unsub: (() => void) | null = null;
     (async () => {
-      const { data } = await supabase.auth.getSession();
+      console.log('🔄 AuthProvider: Initializing...');
+      
+      // Get initial session
+      const { data, error } = await supabase.auth.getSession();
+      console.log('🔄 AuthProvider: Initial session:', { 
+        hasSession: !!data.session, 
+        hasUser: !!data.session?.user,
+        userEmail: data.session?.user?.email,
+        error 
+      });
+      
       setUser(data.session?.user ?? null);
       gotSessionOnce.current = true;
-      if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+      if (gotSessionOnce.current && gotAuthEventOnce.current) {
+        setInitialized(true);
+        console.log('✅ AuthProvider: Fully initialized');
+      }
 
-      const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+      // Listen for auth state changes
+      const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log('🔄 AuthProvider: Auth state change:', { 
+          event, 
+          hasSession: !!session, 
+          hasUser: !!session?.user,
+          userEmail: session?.user?.email 
+        });
+        
         setUser(session?.user ?? null);
         gotAuthEventOnce.current = true;
-        if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+        if (gotSessionOnce.current && gotAuthEventOnce.current) {
+          setInitialized(true);
+          console.log('✅ AuthProvider: Fully initialized after auth change');
+        }
       });
       unsub = () => sub.subscription.unsubscribe();
     })();

@@ -15,6 +15,8 @@ export default function Login() {
     setError('');
 
     try {
+      console.log('🔐 Login attempt:', { email });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -36,18 +38,22 @@ export default function Login() {
         return;
       }
 
-      if (data.user) {
-        console.log('Login successful:', {
-          user: data.user,
-          session: data.session,
-          email: data.user.email,
+      if (data.user && data.session) {
+        console.log('✅ Login successful:', {
+          userEmail: data.user.email,
+          sessionExists: !!data.session,
+          userId: data.user.id,
           confirmedAt: data.user.email_confirmed_at
         });
         
-        // ログイン成功時は少し待ってからリダイレクト
+        // Wait a moment for AuthProvider to update, then redirect
         setTimeout(() => {
-          navigate('/');
-        }, 100);
+          console.log('🚀 Redirecting to home...');
+          window.location.href = '/';
+        }, 1000);
+      } else {
+        console.error("❌ Login succeeded but no session created");
+        setError("ログインに成功しましたが、セッションが作成されませんでした。");
       }
     } catch (error: any) {
       setError(error.message || 'ログインに失敗しました');
