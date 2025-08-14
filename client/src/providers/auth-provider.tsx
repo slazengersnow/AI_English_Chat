@@ -47,6 +47,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setInitialized(true);
           console.log('✅ AuthProvider: Fully initialized after auth change');
         }
+        
+        // Handle iframe redirects for successful login
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('🚀 User signed in successfully, checking redirect...');
+          // Small delay to ensure state is updated
+          setTimeout(() => {
+            if (window.location.pathname === '/login' || window.location.pathname === '/simple-auth-test') {
+              console.log('🚀 Redirecting to home page after successful login');
+              window.location.href = '/';
+            }
+          }, 500);
+        }
       });
       unsub = () => sub.subscription.unsubscribe();
     })();

@@ -13,5 +13,6 @@ export const supabase = createClient(url, anon, {
     autoRefreshToken: true,
     detectSessionInUrl: false, // /auth-callback で明示処理する
     storage: typeof window !== "undefined" ? window.localStorage : undefined,
+    flowType: 'pkce',
   },
 });

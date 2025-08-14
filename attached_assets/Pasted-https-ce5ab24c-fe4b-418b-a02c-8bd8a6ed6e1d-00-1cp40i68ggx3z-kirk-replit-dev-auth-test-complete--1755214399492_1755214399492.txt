@@ -1,0 +1,101 @@
+https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/auth-test-completeでログインテストをしたところ失敗。ログイン画面にリダイレクトされてしまう。
+このURLではコンソールが出てこないが、Chromeの開発で問題というところによると以下の通り。
+
+問題を特定して解決したはずなのに、まだなぜ問題が起こってるの？この理由を調べてほしい。
+改修したはずなのに今は何が問題として起こってるの？
+現在の問題を特定してログインできるように直してほしい。
+
+ログインテストをする時にプレビューから行ってはダメなの？
+
+A form field element should have an id or name attribute
+A form field element has neither an id nor a name attribute. This might prevent the browser from correctly autofilling the form.
+
+To fix this issue, add a unique id or name attribute to a form field. This is not strictly needed, but still recommended even if you have an autocomplete attribute on the same element.
+
+2 件のリソース
+詳細: フォームの入力要素
+No label associated with a form field
+A <label> isn't associated with a form field.
+
+To fix this issue, nest the <input> in the <label> or provide a for attribute on the <label> that matches a form field id.
+
+
+プレビュー画面からログインテストを行った時のコンソールは以下の通り。
+
+Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM5789 eruda.js:2:218642)
+    at Object.apply (VM5790 injected.js:253:39)
+    at se (VM5791 index-Cw13afjf.js:251:36462)
+Mt.forEach.n.<computed> @ VM5789 eruda.js:2
+se @ VM5791 index-Cw13afjf.js:251
+await in se
+（匿名） @ VM5791 index-Cw13afjf.js:251
+Wa @ VM5791 index-Cw13afjf.js:161
+gR @ VM5791 index-Cw13afjf.js:174
+$f @ VM5791 index-Cw13afjf.js:178
+F0 @ VM5791 index-Cw13afjf.js:178
+qR @ VM5791 index-Cw13afjf.js:174
+ha @ VM5791 index-Cw13afjf.js:174
+（匿名） @ VM5791 index-Cw13afjf.js:174
+Yr @ VM5791 index-Cw13afjf.js:62
+Wt @ VM5791 index-Cw13afjf.js:62
+mr @ VM5791 index-Cw13afjf.js:62このエラーを分析
+VM5789 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM5789 eruda.js:2:218642)
+    at Object.apply (VM5790 injected.js:253:39)
+    at se (VM5791 index-Cw13afjf.js:251:36462)
+Mt.forEach.n.<computed> @ VM5789 eruda.js:2
+se @ VM5791 index-Cw13afjf.js:251
+await in se
+（匿名） @ VM5791 index-Cw13afjf.js:251
+Wa @ VM5791 index-Cw13afjf.js:161
+uR @ VM5791 index-Cw13afjf.js:174
+lR @ VM5791 index-Cw13afjf.js:174
+oR @ VM5791 index-Cw13afjf.js:174
+sR @ VM5791 index-Cw13afjf.js:174
+qR @ VM5791 index-Cw13afjf.js:174
+ha @ VM5791 index-Cw13afjf.js:174
+（匿名） @ VM5791 index-Cw13afjf.js:174
+Yr @ VM5791 index-Cw13afjf.js:62
+Wt @ VM5791 index-Cw13afjf.js:62
+mr @ VM5791 index-Cw13afjf.js:62このエラーを分析
+VM5789 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM5789 eruda.js:2:218642)
+    at Object.apply (VM5790 injected.js:253:39)
+    at z (VM5791 index-Cw13afjf.js:251:35589)
+Mt.forEach.n.<computed> @ VM5789 eruda.js:2
+z @ VM5791 index-Cw13afjf.js:251
+await in z
+（匿名） @ VM5791 index-Cw13afjf.js:251
+Wa @ VM5791 index-Cw13afjf.js:161
+gR @ VM5791 index-Cw13afjf.js:174
+$f @ VM5791 index-Cw13afjf.js:178
+F0 @ VM5791 index-Cw13afjf.js:178
+qR @ VM5791 index-Cw13afjf.js:174
+ha @ VM5791 index-Cw13afjf.js:174
+（匿名） @ VM5791 index-Cw13afjf.js:174
+Yr @ VM5791 index-Cw13afjf.js:62
+Wt @ VM5791 index-Cw13afjf.js:62
+mr @ VM5791 index-Cw13afjf.js:62このエラーを分析
+VM5789 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM5789 eruda.js:2:218642)
+    at Object.apply (VM5790 injected.js:253:39)
+    at z (VM5791 index-Cw13afjf.js:251:35589)
+Mt.forEach.n.<computed> @ VM5789 eruda.js:2
+z @ VM5791 index-Cw13afjf.js:251
+await in z
+（匿名） @ VM5791 index-Cw13afjf.js:251
+Wa @ VM5791 index-Cw13afjf.js:161
+uR @ VM5791 index-Cw13afjf.js:174
+lR @ VM5791 index-Cw13afjf.js:174
+oR @ VM5791 index-Cw13afjf.js:174
+sR @ VM5791 index-Cw13afjf.js:174
+qR @ VM5791 index-Cw13afjf.js:174
+ha @ VM5791 index-Cw13afjf.js:174
+（匿名） @ VM5791 index-Cw13afjf.js:174
+Yr @ VM5791 index-Cw13afjf.js:62
+Wt @ VM5791 index-Cw13afjf.js:62
+mr @ VM5791 index-Cw13afjf.js:62このエラーを分析
+6Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+workspace_iframe.html?initialPath=%2Fauth-test-complete&id=%3Ar95j%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
