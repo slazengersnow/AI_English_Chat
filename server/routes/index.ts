@@ -33,6 +33,11 @@ export function registerRoutes(app: Express) {
   router.get("/chat/history", handleChatHistory);
 
   /* ----------------------- ユーザー関連 ----------------------- */
+  // 疎通確認: 認証不要
+  router.get("/user/me", (_req: Request, res: Response) => {
+    res.json({ ok: true, note: "server alive" });
+  });
+  
   router.get("/user/profile", handleUserProfile);
   router.put("/user/profile", handleUpdateUserProfile);
   router.get("/user/stats", handleUserStats);

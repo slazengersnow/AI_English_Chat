@@ -1,8 +1,8 @@
 // client/src/lib/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
 
-const url = (import.meta as any).env.VITE_SUPABASE_URL!;
-const anon = (import.meta as any).env.VITE_SUPABASE_ANON_KEY!;
+const url = import.meta.env.VITE_SUPABASE_URL!;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
 
 // デバッグ（/signup-simple で window.SUPA_DEBUG を見れるように）
 if (typeof window !== "undefined") {

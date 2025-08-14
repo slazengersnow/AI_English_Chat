@@ -1,0 +1,246 @@
+# Replitへの指示
+
+**目的**
+
+* Supabaseサインアップ/ログイン後に**セッションを確実に保持**し、**リダイレクトループを停止**。
+* 既存メール時に**ユーザーへ明確なエラー表示**。
+* 「Failed to fetch」原因の**相対パス化**/公開URL/CORSまわりを整理。
+* 確認用\*\*/api/user/me\*\*を追加して、クライアント↔サーバの接続可否を可視化。
+
+---
+
+## 0) 秘密情報と環境変数の確認
+
+* Replit Secrets に以下が入っていることを確認:
+
+  * `VITE_SUPABASE_URL` = `https://xcjplyhqxgrbdhixmzse.supabase.co`
+  * `VITE_SUPABASE_ANON_KEY` = （Supabaseダッシュボード→Settings→API→anon public）
+  * `SUPABASE_SERVICE_ROLE_KEY` = （同ページの service\_role）※サーバー側のみ使用
+  * `SERVE_CLIENT` = `true`
+* Supabase ダッシュボード:
+
+  * Auth → Email: **Allow new users to sign up: ON**, **Confirm email: OFF**
+  * Auth → URL Configuration: **Site URL** と **Redirect URLs** に Replit 公開URL（`https://*.kirk.replit.dev`）を保存
+
+---
+
+## 1) Supabaseクライアントを固定（フロント）
+
+**ファイル**: `client/src/lib/supabaseClient.ts`（新規 or 全差し替え）
+
+```ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL!;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+
+// デバッグ: /signup-simple などで window.SUPA_DEBUG を確認できる
+if (typeof window !== "undefined") {
+  (window as any).SUPA_DEBUG = { url, anonHead: anon?.slice(0, 12) };
+}
+
+export const supabase = createClient(url, anon, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage,
+  },
+});
+```
+
+---
+
+## 2) 認証プロバイダ（初期化フラグでループ防止）
+
+**ファイル**: `client/src/providers/auth-provider.tsx`（新規 or 全差し替え）
+
+```tsx
+import { supabase } from "@/lib/supabaseClient";
+import React, { createContext, useContext, useEffect, useState } from "react";
+
+type AuthCtx = { user: any; initialized: boolean };
+const Ctx = createContext<AuthCtx>({ user: null, initialized: false });
+export const useAuth = () => useContext(Ctx);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      setInitialized(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  return <Ctx.Provider value={{ user, initialized }}>{children}</Ctx.Provider>;
+}
+```
+
+---
+
+## 3) ルートガード（初期化前は何もしない）
+
+**ファイル**: `client/src/App.tsx` のガード部分を修正
+
+* 公開パスに `/login`, `/signup`, `/signup-simple` を必ず含める
+* `initialized === false` の間はリダイレクトしない
+
+```tsx
+// App.tsx（該当ガード部分を以下の方針に）
+import { useAuth } from "@/providers/auth-provider";
+// ...
+const { user, initialized } = useAuth();
+
+const publicPaths = ["/login", "/signup", "/signup-simple"];
+
+if (!initialized) {
+  // セッション読込完了前は何もしない（チラつき/ループ防止）
+  return null; // or <Loading />
+}
+
+const path = location.pathname;
+const isPublic = publicPaths.some(p => path.startsWith(p));
+
+if (!user && !isPublic) {
+  navigate("/login", { replace: true });
+}
+```
+
+※ もし `AuthProvider` をまだ `App.tsx` の最上位に巻いていない場合は、`<Router>` の外側 or 直上に `<AuthProvider>` を追加。
+
+---
+
+## 4) サインアップ画面（既存メールの明示＆即ログイン）
+
+**ファイル**: `client/src/pages/signup.tsx`（該当処理を以下へ）
+
+```ts
+import { supabase } from "@/lib/supabaseClient";
+// ...
+const onSignup = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) {
+    // 既存メール時のユーザ向け文言
+    if (String(error.message).toLowerCase().includes("already") || error.status === 422) {
+      alert("このメールアドレスは既に登録されています。ログインをお試しください。");
+    } else {
+      alert(`サインアップに失敗しました: ${error.message}`);
+    }
+    return;
+  }
+
+  // Confirm email: OFF 前提 → 即ログインでセッション確保
+  const { error: siErr } = await supabase.auth.signInWithPassword({ email, password });
+  if (siErr) {
+    alert(`自動ログインに失敗しました: ${siErr.message}`);
+    return;
+  }
+
+  // セッションを握れたか確認
+  const { data: s } = await supabase.auth.getSession();
+  if (s.session) {
+    navigate("/");
+  } else {
+    setTimeout(async () => {
+      const { data: s2 } = await supabase.auth.getSession();
+      if (s2.session) navigate("/");
+    }, 300);
+  }
+};
+```
+
+---
+
+## 5) API疎通 / “Failed to fetch” 切り分け用エンドポイント
+
+**ファイル**: `server/routes/index.ts` に以下を追加（/api 配下に mount されていること前提）
+
+```ts
+import type { Router } from "express";
+import { supabaseAdmin } from "../supabase-admin.js"; // 既存のadminクライアント（service_role）を想定
+
+export function registerRoutes(app: Router) {
+  // 既存ルート…（省略）
+
+  // 疎通確認: 認証不要
+  app.get("/user/me", (_req, res) => {
+    res.json({ ok: true, note: "server alive" });
+  });
+
+  // 管理作成API（既にある場合はスキップ）
+  app.post("/admin/create-user", async (req, res) => {
+    try {
+      const { email, password } = req.body || {};
+      if (!email || !password) return res.status(400).json({ error: "email/password required" });
+
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
+      if (error) {
+        // 既存ユーザー時の統一メッセージ
+        if (String(error.message).toLowerCase().includes("already")) {
+          return res.status(400).json({ error: "A user with this email address has already been registered" });
+        }
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(201).json(data);
+    } catch (e: any) {
+      res.status(500).json({ error: String(e?.message || e) });
+    }
+  });
+}
+```
+
+**サーバCORS** は現状 Express 側が `Vary: Origin` を返しています。クライアントは**相対パス**（`/api/...`）で叩く構成に統一してください（絶対URLで他オリジンだと CORS になります）。クライアント側の fetch ベースURLを見直し、**相対パス固定**にしてください。
+
+---
+
+## 6) ビルド & 起動 & 検証コマンド
+
+```bash
+rm -rf dist
+npm run build:server && npm run build:client
+node dist/server/index.js
+```
+
+別タブで Replit の「Open in new tab」を開き、**公開URL**で次を実施：
+
+* `/signup-simple` を開き、**ブラウザコンソール**で `window.SUPA_DEBUG` を確認（Supabase URL と anonKey の頭が出る）
+* 既存ユーザーで `ログイン` → トップへ遷移するか
+* 新規メールで `サインアップ` → 既存ならアラート表示／新規ならトップへ遷移
+
+**API 疎通テスト**（サーバー起動シェルとは別シェルで）:
+
+```bash
+curl -s http://localhost:5000/health
+curl -s http://localhost:5000/__introspect
+curl -s http://localhost:5000/api/user/me
+curl -s -X POST http://localhost:5000/api/admin/create-user \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"your-new@mail.com","password":"StrongPass#1"}'
+```
+
+---
+
+## 7) それでも戻される場合（最終手段）
+
+* **ガードを一時的に無効化**（App.tsxのリダイレクト行をコメントアウト）→遷移が直るなら、原因はガードの条件/タイミングです。`initialized` フラグの有効化をもう一度確認。
+* ブラウザのサイトデータ削除（localStorage の `supabase.auth.token`）→再ログイン
+* Supabase ダッシュボードで該当ユーザーを一旦削除 → 新規登録（ただし基本は不要）
+
+---
+
+## いまのログからわかること
+
+* サーバは **`/api/admin/create-user` に 201 / 400 を返せている**＝サーバ/DBは動作。
+* 「Failed to fetch」は**クライアントが叩いているAPIパス**（絶対URL or 認証前エンドポイント）や**ガードのタイミング**が原因で発生しがち。相対パスとガード初期化待ちで解消します。
+* コンソールの `proxy.js: Attempting to use a disconnected port object` はブラウザ拡張 (LastPass 等) 由来のノイズです。無視可。
+

@@ -1,6 +1,6 @@
 // server/routes/admin.ts
 import { Router, type Express } from "express";
-import { createClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "../supabase-admin.js";
 
 export function registerAdminRoutes(app: Express) {
   const router = Router();
@@ -14,23 +14,20 @@ export function registerAdminRoutes(app: Express) {
           .json({ error: "email and password are required" });
       }
 
-      const url = process.env.SUPABASE_URL!;
-      const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-      if (!url || !serviceRole) {
-        return res.status(500).json({ error: "Supabase env not set" });
-      }
-
-      const supa = createClient(url, serviceRole);
-      const result = await supa.auth.admin.createUser({
+      const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
         email_confirm: true,
       });
 
-      if (result.error) {
-        return res.status(400).json({ error: result.error.message });
+      if (error) {
+        // 既存ユーザー時の統一メッセージ
+        if (String(error.message).toLowerCase().includes("already")) {
+          return res.status(400).json({ error: "A user with this email address has already been registered" });
+        }
+        return res.status(400).json({ error: error.message });
       }
-      return res.status(201).json({ user: result.data.user });
+      return res.status(201).json(data);
     } catch (e: any) {
       console.error("admin create-user error:", e);
       return res.status(500).json({ error: e?.message ?? "unknown error" });

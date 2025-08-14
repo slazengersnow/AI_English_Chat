@@ -34,21 +34,32 @@ export default function Signup() {
         password,
       });
 
-      if (error) throw error;
-
-      if (data.user) {
-        console.log("Signup successful:", data.user);
-
-        // Confirm email OFF なら data.session が入る → そのままホームへ
-        if (data.session) {
-          navigate("/", { replace: true });
-          return;
+      if (error) {
+        // 既存メール時のユーザ向け文言
+        if (String(error.message).toLowerCase().includes("already") || error.status === 422) {
+          setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+        } else {
+          setError(`サインアップに失敗しました: ${error.message}`);
         }
+        return;
+      }
 
-        // Confirm email ON の場合
-        setError(
-          "確認メールを送信しました。メール内のリンクからログインしてください。",
-        );
+      // Confirm email: OFF 前提 → 即ログインでセッション確保
+      const { error: siErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (siErr) {
+        setError(`自動ログインに失敗しました: ${siErr.message}`);
+        return;
+      }
+
+      // セッションを握れたか確認
+      const { data: s } = await supabase.auth.getSession();
+      if (s.session) {
+        navigate("/");
+      } else {
+        setTimeout(async () => {
+          const { data: s2 } = await supabase.auth.getSession();
+          if (s2.session) navigate("/");
+        }, 300);
       }
     } catch (error: any) {
       setError(error.message || "新規登録に失敗しました");
