@@ -68,6 +68,7 @@ import AuthDebugTest from "./pages/auth-debug-test.js";
 import LoginDebug from "./pages/login-debug.js";
 import AuthTestComplete from "./pages/auth-test-complete.js";
 import SimpleAuthTest from "./pages/simple-auth-test.js";
+import IframeAuthTest from "./pages/iframe-auth-test.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -127,6 +128,7 @@ const publicPaths = new Set([
   "/login-debug",
   "/auth-test-complete",
   "/simple-auth-test",
+  "/iframe-auth-test",
 ]);
 
 function Guard({ children }: { children: JSX.Element }) {
@@ -558,6 +560,14 @@ function AppRoutes() {
         element={
           <Guard>
             <SimpleAuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/iframe-auth-test"
+        element={
+          <Guard>
+            <IframeAuthTest />
           </Guard>
         }
       />
