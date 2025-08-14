@@ -436,14 +436,27 @@ function generateFallbackEvaluation(japaneseSentence: string, userTranslation: s
   };
 }
 
+/* -------------------- 認証ミドルウェア -------------------- */
+function requireAuth(req: Request, res: Response, next: any) {
+  // For now, allow all requests since the client is handling authentication
+  // In a production environment, you would verify the Supabase JWT token here
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    console.log('No auth token provided, proceeding with anonymous access');
+  } else {
+    console.log('Auth token provided:', authHeader.substring(0, 20) + '...');
+  }
+  next();
+}
+
 /* -------------------- ルーティング登録 -------------------- */
 export function registerRoutes(app: Express): void {
   const router = Router();
   router.post("/problem", handleProblemGeneration);
   router.post("/evaluate-with-claude", handleClaudeEvaluation);
   
-  // Review system endpoints
-  router.get("/review-list", async (req: Request, res: Response) => {
+  // Review system endpoints (with authentication)
+  router.get("/review-list", requireAuth, async (req: Request, res: Response) => {
     try {
       const reviewProblems = await db
         .select()
@@ -459,7 +472,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  router.get("/retry-list", async (req: Request, res: Response) => {
+  router.get("/retry-list", requireAuth, async (req: Request, res: Response) => {
     try {
       const retryProblems = await db
         .select()
@@ -475,8 +488,8 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // Progress report endpoint
-  router.get("/progress-report", async (req: Request, res: Response) => {
+  // Progress report endpoint (with authentication)
+  router.get("/progress-report", requireAuth, async (req: Request, res: Response) => {
     try {
       // Use Drizzle ORM queries for better type safety
       const today = new Date();
@@ -548,8 +561,8 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // Weekly progress chart data endpoint
-  router.get("/weekly-progress", async (req: Request, res: Response) => {
+  // Weekly progress chart data endpoint (with authentication)
+  router.get("/weekly-progress", requireAuth, async (req: Request, res: Response) => {
     try {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);

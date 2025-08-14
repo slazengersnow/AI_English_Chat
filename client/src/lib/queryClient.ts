@@ -10,10 +10,24 @@ export const queryClient = new QueryClient({
 });
 
 export async function apiRequest(url: string, options: RequestInit = {}) {
+  // Get Supabase auth token if available
+  const token = (await import('../lib/supabaseClient')).supabase.auth.getSession()
+    .then(({ data }) => data.session?.access_token)
+    .catch(() => null);
+
+  const authHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add authorization header if token is available
+  if (await token) {
+    authHeaders["Authorization"] = `Bearer ${await token}`;
+  }
+
   const response = await fetch(url, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...authHeaders,
       ...options.headers,
     },
   });

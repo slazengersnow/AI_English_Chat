@@ -1,0 +1,158 @@
+ログイン画面でslazengersnow@gmail.comを入力するとログイン画面にリダイレクトされてしまう。この時のコンソールの結果は以下の通り。
+
+VM2957 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM2957 eruda.js:2:218642)
+    at Object.apply (VM2958 injected.js:253:39)
+    at J (VM2959 index-DLUWQeXf.js:242:78980)
+    at VM2959 index-DLUWQeXf.js:242:78911
+    at Mi (VM2959 index-DLUWQeXf.js:161:22865)
+    at aR (VM2959 index-DLUWQeXf.js:174:14277)
+    at ed (VM2959 index-DLUWQeXf.js:178:1511)
+    at px (VM2959 index-DLUWQeXf.js:178:1363)
+    at AR (VM2959 index-DLUWQeXf.js:174:24919)
+    at ri (VM2959 index-DLUWQeXf.js:174:24489)
+VM2957 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM2957 eruda.js:2:218642)
+    at Object.apply (VM2958 injected.js:253:39)
+    at J (VM2959 index-DLUWQeXf.js:242:78980)
+    at VM2959 index-DLUWQeXf.js:242:78911
+    at Mi (VM2959 index-DLUWQeXf.js:161:22865)
+    at QT (VM2959 index-DLUWQeXf.js:174:13012)
+    at WT (VM2959 index-DLUWQeXf.js:174:12759)
+    at qT (VM2959 index-DLUWQeXf.js:174:12667)
+    at GT (VM2959 index-DLUWQeXf.js:174:12545)
+    at AR (VM2959 index-DLUWQeXf.js:174:24830)
+6
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+workspace_iframe.htm…t&id=%3Ar538%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+﻿
+また、試しにslazengersnow@gmail.comでアカウント作成をしたところ、何のエラーメッセージも表示なく、ログイン画面にリダイレクトされた。この時のコンソールは以下の通り。
+
+VM2969 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM2969 eruda.js:2:218642)
+    at Object.apply (VM2970 injected.js:253:39)
+    at Se (VM2971 index-DLUWQeXf.js:242:79654)
+    at VM2971 index-DLUWQeXf.js:242:78901
+    at Mi (VM2971 index-DLUWQeXf.js:161:22865)
+    at QT (VM2971 index-DLUWQeXf.js:174:13012)
+    at WT (VM2971 index-DLUWQeXf.js:174:12759)
+    at qT (VM2971 index-DLUWQeXf.js:174:12667)
+    at GT (VM2971 index-DLUWQeXf.js:174:12545)
+    at AR (VM2971 index-DLUWQeXf.js:174:24830)
+Mt.forEach.n.<computed> @ VM2969 eruda.js:2
+Se @ VM2971 index-DLUWQeXf.js:242
+await in Se
+（匿名） @ VM2971 index-DLUWQeXf.js:242
+Mi @ VM2971 index-DLUWQeXf.js:161
+QT @ VM2971 index-DLUWQeXf.js:174
+WT @ VM2971 index-DLUWQeXf.js:174
+qT @ VM2971 index-DLUWQeXf.js:174
+GT @ VM2971 index-DLUWQeXf.js:174
+AR @ VM2971 index-DLUWQeXf.js:174
+ri @ VM2971 index-DLUWQeXf.js:174
+ix @ VM2971 index-DLUWQeXf.js:174
+Ci @ VM2971 index-DLUWQeXf.js:91
+RR @ VM2971 index-DLUWQeXf.js:174
+kl @ VM2971 index-DLUWQeXf.js:174
+yR @ VM2971 index-DLUWQeXf.js:174
+rx @ VM2971 index-DLUWQeXf.js:174
+$n @ VM2971 index-DLUWQeXf.js:62
+Bt @ VM2971 index-DLUWQeXf.js:62
+dn @ VM2971 index-DLUWQeXf.js:62このエラーを分析
+VM2969 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM2969 eruda.js:2:218642)
+    at Object.apply (VM2970 injected.js:253:39)
+    at Se (VM2971 index-DLUWQeXf.js:242:79654)
+    at VM2971 index-DLUWQeXf.js:242:78901
+    at Mi (VM2971 index-DLUWQeXf.js:161:22865)
+    at aR (VM2971 index-DLUWQeXf.js:174:14277)
+    at ed (VM2971 index-DLUWQeXf.js:178:1511)
+    at px (VM2971 index-DLUWQeXf.js:178:1363)
+    at AR (VM2971 index-DLUWQeXf.js:174:24919)
+    at ri (VM2971 index-DLUWQeXf.js:174:24489)
+Mt.forEach.n.<computed> @ VM2969 eruda.js:2
+Se @ VM2971 index-DLUWQeXf.js:242
+await in Se
+（匿名） @ VM2971 index-DLUWQeXf.js:242
+Mi @ VM2971 index-DLUWQeXf.js:161
+aR @ VM2971 index-DLUWQeXf.js:174
+ed @ VM2971 index-DLUWQeXf.js:178
+px @ VM2971 index-DLUWQeXf.js:178
+AR @ VM2971 index-DLUWQeXf.js:174
+ri @ VM2971 index-DLUWQeXf.js:174
+ix @ VM2971 index-DLUWQeXf.js:174
+Ci @ VM2971 index-DLUWQeXf.js:91
+RR @ VM2971 index-DLUWQeXf.js:174
+kl @ VM2971 index-DLUWQeXf.js:174
+yR @ VM2971 index-DLUWQeXf.js:174
+rx @ VM2971 index-DLUWQeXf.js:174
+$n @ VM2971 index-DLUWQeXf.js:62
+Bt @ VM2971 index-DLUWQeXf.js:62
+dn @ VM2971 index-DLUWQeXf.js:62このエラーを分析
+VM2969 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM2969 eruda.js:2:218642)
+    at Object.apply (VM2970 injected.js:253:39)
+    at J (VM2971 index-DLUWQeXf.js:242:79006)
+    at VM2971 index-DLUWQeXf.js:242:78911
+    at Mi (VM2971 index-DLUWQeXf.js:161:22865)
+    at aR (VM2971 index-DLUWQeXf.js:174:14277)
+    at ed (VM2971 index-DLUWQeXf.js:178:1511)
+    at px (VM2971 index-DLUWQeXf.js:178:1363)
+    at AR (VM2971 index-DLUWQeXf.js:174:24919)
+    at ri (VM2971 index-DLUWQeXf.js:174:24489)
+Mt.forEach.n.<computed> @ VM2969 eruda.js:2
+J @ VM2971 index-DLUWQeXf.js:242
+await in J
+（匿名） @ VM2971 index-DLUWQeXf.js:242
+Mi @ VM2971 index-DLUWQeXf.js:161
+aR @ VM2971 index-DLUWQeXf.js:174
+ed @ VM2971 index-DLUWQeXf.js:178
+px @ VM2971 index-DLUWQeXf.js:178
+AR @ VM2971 index-DLUWQeXf.js:174
+ri @ VM2971 index-DLUWQeXf.js:174
+ix @ VM2971 index-DLUWQeXf.js:174
+Ci @ VM2971 index-DLUWQeXf.js:91
+RR @ VM2971 index-DLUWQeXf.js:174
+kl @ VM2971 index-DLUWQeXf.js:174
+yR @ VM2971 index-DLUWQeXf.js:174
+rx @ VM2971 index-DLUWQeXf.js:174
+$n @ VM2971 index-DLUWQeXf.js:62
+Bt @ VM2971 index-DLUWQeXf.js:62
+dn @ VM2971 index-DLUWQeXf.js:62このエラーを分析
+VM2969 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM2969 eruda.js:2:218642)
+    at Object.apply (VM2970 injected.js:253:39)
+    at J (VM2971 index-DLUWQeXf.js:242:79006)
+    at VM2971 index-DLUWQeXf.js:242:78911
+    at Mi (VM2971 index-DLUWQeXf.js:161:22865)
+    at QT (VM2971 index-DLUWQeXf.js:174:13012)
+    at WT (VM2971 index-DLUWQeXf.js:174:12759)
+    at qT (VM2971 index-DLUWQeXf.js:174:12667)
+    at GT (VM2971 index-DLUWQeXf.js:174:12545)
+    at AR (VM2971 index-DLUWQeXf.js:174:24830)
+Mt.forEach.n.<computed> @ VM2969 eruda.js:2
+J @ VM2971 index-DLUWQeXf.js:242
+await in J
+（匿名） @ VM2971 index-DLUWQeXf.js:242
+Mi @ VM2971 index-DLUWQeXf.js:161
+QT @ VM2971 index-DLUWQeXf.js:174
+WT @ VM2971 index-DLUWQeXf.js:174
+qT @ VM2971 index-DLUWQeXf.js:174
+GT @ VM2971 index-DLUWQeXf.js:174
+AR @ VM2971 index-DLUWQeXf.js:174
+ri @ VM2971 index-DLUWQeXf.js:174
+ix @ VM2971 index-DLUWQeXf.js:174
+Ci @ VM2971 index-DLUWQeXf.js:91
+RR @ VM2971 index-DLUWQeXf.js:174
+kl @ VM2971 index-DLUWQeXf.js:174
+yR @ VM2971 index-DLUWQeXf.js:174
+rx @ VM2971 index-DLUWQeXf.js:174
+$n @ VM2971 index-DLUWQeXf.js:62
+Bt @ VM2971 index-DLUWQeXf.js:62
+dn @ VM2971 index-DLUWQeXf.js:62このエラーを分析
+6Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+workspace_iframe.html?initialPath=%2Fauth-test&id=%3Ar538%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+
+何が問題で、どうすればいいのか、問題を解決して修正してほしい。

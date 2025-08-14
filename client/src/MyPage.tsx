@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
+import { supabase } from './lib/supabaseClient';
 
 interface DailyStats {
   streak: number;
@@ -68,9 +69,20 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
   const loadReviewData = async () => {
     setReviewLoading(true);
     try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const [reviewResponse, retryResponse] = await Promise.all([
-        fetch('/api/review-list'),
-        fetch('/api/retry-list')
+        fetch('/api/review-list', { headers }),
+        fetch('/api/retry-list', { headers })
       ]);
       
       if (reviewResponse.ok) {
@@ -119,8 +131,20 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
     try {
       setIsLoading(true);
       
+      // Get auth token for API requests
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       // Fetch real progress data from API
-      const progressResponse = await fetch('/api/progress-report');
+      const progressResponse = await fetch('/api/progress-report', { headers });
       if (progressResponse.ok) {
         const progressData = await progressResponse.json();
         setDailyStats({
