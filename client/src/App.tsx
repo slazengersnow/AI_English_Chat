@@ -66,6 +66,7 @@ import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
 import AuthTest from "./pages/auth-test.js";
 import AuthDebugTest from "./pages/auth-debug-test.js";
 import LoginDebug from "./pages/login-debug.js";
+import AuthTestComplete from "./pages/auth-test-complete.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -123,6 +124,7 @@ const publicPaths = new Set([
   "/auth-test",
   "/auth-debug-test",
   "/login-debug",
+  "/auth-test-complete",
 ]);
 
 function Guard({ children }: { children: JSX.Element }) {
@@ -538,6 +540,14 @@ function AppRoutes() {
         element={
           <Guard>
             <LoginDebug />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-test-complete"
+        element={
+          <Guard>
+            <AuthTestComplete />
           </Guard>
         }
       />

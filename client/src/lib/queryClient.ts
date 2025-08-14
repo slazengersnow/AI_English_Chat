@@ -3,40 +3,62 @@ import { QueryClient } from "@tanstack/react-query";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      queryFn: async ({ queryKey, signal }) => {
+        const [url] = queryKey as [string];
+        return apiRequest(url, { signal });
+      },
       retry: false,
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      mutationFn: async ({ url, ...options }: any) => {
+        return apiRequest(url, options);
+      },
     },
   },
 });
 
 export async function apiRequest(url: string, options: RequestInit = {}) {
-  // Get Supabase auth token if available
-  const token = (await import('../lib/supabaseClient')).supabase.auth.getSession()
-    .then(({ data }) => data.session?.access_token)
-    .catch(() => null);
+  console.log(`📡 API Request: ${options.method || 'GET'} ${url}`);
+  
+  try {
+    // Get Supabase auth token if available
+    const { supabase } = await import('../lib/supabaseClient');
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    const authHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
 
-  const authHeaders: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+    // Add authorization header if token is available
+    if (session?.access_token) {
+      authHeaders["Authorization"] = `Bearer ${session.access_token}`;
+      console.log(`🔐 Auth token added for ${url}`);
+    } else {
+      console.log(`⚠️  No auth token available for ${url}`);
+    }
 
-  // Add authorization header if token is available
-  if (await token) {
-    authHeaders["Authorization"] = `Bearer ${await token}`;
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...authHeaders,
+        ...options.headers,
+      },
+    });
+
+    console.log(`📨 Response: ${response.status} ${response.statusText} for ${url}`);
+
+    if (!response.ok) {
+      throw new Error(`${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    console.log(`✅ API Success: ${url}`, result);
+    return result;
+  } catch (error) {
+    console.error(`❌ API Error: ${url}`, error);
+    throw error;
   }
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      ...authHeaders,
-      ...options.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`${response.status}: ${response.statusText}`);
-  }
-
-  return response.json();
 }
 
 // Claude API request function with intelligent fallback
