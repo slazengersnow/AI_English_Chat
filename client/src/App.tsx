@@ -1,10 +1,16 @@
-import React, { useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import React from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { queryClient } from "./lib/queryClient.js";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster.js";
 import { TooltipProvider } from "./components/ui/tooltip.js";
-import { AuthProvider, useAuth } from "./components/auth-provider.js";
+import { AuthProvider, useAuth } from "./providers/auth-provider.js";
 import { SubscriptionGuard } from "./components/subscription-guard.js";
 import Home from "./pages/home.js";
 import MyPage from "./pages/my-page.js";
@@ -57,10 +63,84 @@ import WorkingLogin from "./pages/working-login.js";
 import FinalAuthTest from "./pages/final-auth-test.js";
 import ReplitAuthFix from "./pages/replit-auth-fix.js";
 import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
-import SignupSimple from "./pages/signup-simple.js";
 
-// Protected routes that require active subscription
-function ProtectedRoute({ component: Component }: { component: any }) {
+// 公開パス（認証不要）の定義
+const publicPaths = new Set([
+  "/login",
+  "/signup",
+  "/signup-simple",
+  "/confirm",
+  "/auth/callback",
+  "/terms",
+  "/privacy",
+  "/debug-auth",
+  "/debug",
+  "/login-test",
+  "/create-admin",
+  "/admin-setup",
+  "/password-reset",
+  "/reset-password",
+  "/simple-login",
+  "/redirect-handler",
+  "/auth-redirect",
+  "/test-hash",
+  "/debug-email",
+  "/comprehensive-debug",
+  "/email-test",
+  "/supabase-config-check",
+  "/fix-email",
+  "/direct-access",
+  "/auth-callback",
+  "/test-actual-link",
+  "/stripe-test",
+  "/price-check",
+  "/debug-payment",
+  "/stripe-checkout-debug",
+  "/stripe-price-check",
+  "/plan-configuration",
+  "/price-setup",
+  "/payment-success",
+  "/payment-cancelled",
+  "/success",
+  "/cancel",
+  "/logout",
+  "/oauth-fix",
+  "/emergency-login",
+  "/working-login",
+  "/final-auth-test",
+  "/replit-auth-fix",
+  "/emergency-auth-fix",
+]);
+
+// 認証ガードコンポーネント
+function Guard({ children }: { children: JSX.Element }) {
+  const { initialized, user } = useAuth();
+  const { pathname } = useLocation();
+
+  // 1) 初期化完了まで絶対にリダイレクトしない（点滅/ループ防止）
+  if (!initialized) {
+    return null; // もしくはローディングUI
+  }
+
+  // 2) 公開パスは誰でもOK
+  if (publicPaths.has(pathname)) {
+    return children;
+  }
+
+  // 3) それ以外は user が無ければログインへ
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+// サブスクリプション保護が必要なルート用のコンポーネント
+function ProtectedRoute({
+  component: Component,
+}: {
+  component: React.ComponentType;
+}) {
   return (
     <SubscriptionGuard>
       <Component />
@@ -68,168 +148,463 @@ function ProtectedRoute({ component: Component }: { component: any }) {
   );
 }
 
-function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
-
-  // Authentication enforcement with loading state protection
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      const currentPath = window.location.pathname;
-      const publicPaths = [
-        "/login",
-        "/signup",
-        "/signup-simple",
-        "/confirm",
-        "/auth/callback",
-        "/terms",
-        "/privacy",
-        "/debug-auth",
-        "/debug",
-        "/login-test",
-        "/create-admin",
-        "/admin-setup",
-        "/password-reset",
-        "/reset-password",
-        "/simple-login",
-      ];
-
-      const isPublic = publicPaths.includes(currentPath);
-      if (!isPublic) {
-        console.log(
-          "Router - Unauthorized access, redirecting to login after delay",
-        );
-        // Add small delay to prevent flash during authentication state changes
-        const timer = setTimeout(() => {
-          setLocation("/login");
-        }, 100);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isAuthenticated, isLoading, setLocation]);
-
-  // Strict authentication - no bypass
-  const forceMainApp = false;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
+// ルーター設定
+function AppRoutes() {
   return (
-    <Switch>
-      {/* Public routes */}
-      <Route path="/login" component={Login} />
-      <Route path="/create-admin" component={CreateAdmin} />
-      <Route path="/login-test" component={LoginTest} />
-      <Route path="/signup" component={Signup} />
-      <Route path="/signup-simple" component={SignupSimple} />
-      <Route path="/confirm" component={Confirm} />
-      <Route path="/auth/callback" component={AuthCallback} />
-      <Route path="/debug-auth" component={DebugAuth} />
-      <Route path="/debug" component={DebugPage} />
-      <Route path="/simple-login" component={SimpleLogin} />
-      <Route path="/create-admin" component={CreateAdmin} />
-      <Route path="/admin-setup" component={AdminSetup} />
-      <Route path="/password-reset" component={PasswordReset} />
-      <Route path="/reset-password" component={ResetPassword} />
-      <Route path="/redirect-handler" component={RedirectHandler} />
-      <Route path="/auth-redirect" component={AuthRedirect} />
-      <Route path="/test-hash" component={TestHash} />
-      <Route path="/debug-email" component={DebugEmail} />
-      <Route path="/comprehensive-debug" component={ComprehensiveDebug} />
-      <Route path="/email-test" component={EmailTest} />
-      <Route path="/supabase-config-check" component={SupabaseConfigCheck} />
-      <Route path="/fix-email" component={FixEmail} />
-      <Route path="/direct-access" component={DirectAccess} />
-      <Route path="/auth-callback" component={AuthCallback} />
-      <Route path="/auth/callback" component={AuthCallback} />
-      <Route path="/confirm" component={AuthCallback} />
-      <Route path="/test-actual-link" component={TestActualLink} />
-      <Route path="/stripe-test" component={StripeTest} />
-      <Route path="/price-check" component={PriceCheck} />
-      <Route path="/debug-payment" component={DebugPayment} />
-      <Route path="/stripe-checkout-debug" component={StripeCheckoutDebug} />
-      <Route path="/stripe-price-check" component={StripePriceCheck} />
-      <Route path="/plan-configuration" component={PlanConfiguration} />
-      <Route path="/price-setup" component={SimplePriceSetup} />
-      <Route path="/payment-success" component={PaymentSuccess} />
-      <Route path="/payment-cancelled" component={PaymentCancelled} />
-      <Route path="/success" component={PaymentSuccess} />
-      <Route path="/cancel" component={PaymentCancelled} />
-      <Route path="/terms" component={Terms} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/logout" component={Logout} />
-      <Route path="/oauth-fix" component={OAuthFix} />
-      <Route path="/emergency-login" component={EmergencyLogin} />
-      <Route path="/working-login" component={WorkingLogin} />
-      <Route path="/final-auth-test" component={FinalAuthTest} />
-      <Route path="/replit-auth-fix" component={ReplitAuthFix} />
-      <Route path="/emergency-auth-fix" component={EmergencyAuthFix} />
-      {/* <Route path="/auth" component={() => import('./pages/AuthPage.js').then(m => m.AuthPage)} /> */}
+    <Routes>
+      {/* 公開ルート */}
+      <Route
+        path="/login"
+        element={
+          <Guard>
+            <Login />
+          </Guard>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <Guard>
+            <Signup />
+          </Guard>
+        }
+      />
+      <Route
+        path="/signup-simple"
+        element={
+          <Guard>
+            <SignupSimple />
+          </Guard>
+        }
+      />
+      <Route
+        path="/confirm"
+        element={
+          <Guard>
+            <Confirm />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth/callback"
+        element={
+          <Guard>
+            <AuthCallback />
+          </Guard>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <Guard>
+            <Terms />
+          </Guard>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <Guard>
+            <Privacy />
+          </Guard>
+        }
+      />
+      <Route
+        path="/debug-auth"
+        element={
+          <Guard>
+            <DebugAuth />
+          </Guard>
+        }
+      />
+      <Route
+        path="/debug"
+        element={
+          <Guard>
+            <DebugPage />
+          </Guard>
+        }
+      />
+      <Route
+        path="/login-test"
+        element={
+          <Guard>
+            <LoginTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/create-admin"
+        element={
+          <Guard>
+            <CreateAdmin />
+          </Guard>
+        }
+      />
+      <Route
+        path="/admin-setup"
+        element={
+          <Guard>
+            <AdminSetup />
+          </Guard>
+        }
+      />
+      <Route
+        path="/password-reset"
+        element={
+          <Guard>
+            <PasswordReset />
+          </Guard>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <Guard>
+            <ResetPassword />
+          </Guard>
+        }
+      />
+      <Route
+        path="/simple-login"
+        element={
+          <Guard>
+            <SimpleLogin />
+          </Guard>
+        }
+      />
+      <Route
+        path="/redirect-handler"
+        element={
+          <Guard>
+            <RedirectHandler />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-redirect"
+        element={
+          <Guard>
+            <AuthRedirect />
+          </Guard>
+        }
+      />
+      <Route
+        path="/test-hash"
+        element={
+          <Guard>
+            <TestHash />
+          </Guard>
+        }
+      />
+      <Route
+        path="/debug-email"
+        element={
+          <Guard>
+            <DebugEmail />
+          </Guard>
+        }
+      />
+      <Route
+        path="/comprehensive-debug"
+        element={
+          <Guard>
+            <ComprehensiveDebug />
+          </Guard>
+        }
+      />
+      <Route
+        path="/email-test"
+        element={
+          <Guard>
+            <EmailTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/supabase-config-check"
+        element={
+          <Guard>
+            <SupabaseConfigCheck />
+          </Guard>
+        }
+      />
+      <Route
+        path="/fix-email"
+        element={
+          <Guard>
+            <FixEmail />
+          </Guard>
+        }
+      />
+      <Route
+        path="/direct-access"
+        element={
+          <Guard>
+            <DirectAccess />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-callback"
+        element={
+          <Guard>
+            <AuthCallback />
+          </Guard>
+        }
+      />
+      <Route
+        path="/test-actual-link"
+        element={
+          <Guard>
+            <TestActualLink />
+          </Guard>
+        }
+      />
+      <Route
+        path="/stripe-test"
+        element={
+          <Guard>
+            <StripeTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/price-check"
+        element={
+          <Guard>
+            <PriceCheck />
+          </Guard>
+        }
+      />
+      <Route
+        path="/debug-payment"
+        element={
+          <Guard>
+            <DebugPayment />
+          </Guard>
+        }
+      />
+      <Route
+        path="/stripe-checkout-debug"
+        element={
+          <Guard>
+            <StripeCheckoutDebug />
+          </Guard>
+        }
+      />
+      <Route
+        path="/stripe-price-check"
+        element={
+          <Guard>
+            <StripePriceCheck />
+          </Guard>
+        }
+      />
+      <Route
+        path="/plan-configuration"
+        element={
+          <Guard>
+            <PlanConfiguration />
+          </Guard>
+        }
+      />
+      <Route
+        path="/price-setup"
+        element={
+          <Guard>
+            <SimplePriceSetup />
+          </Guard>
+        }
+      />
+      <Route
+        path="/payment-success"
+        element={
+          <Guard>
+            <PaymentSuccess />
+          </Guard>
+        }
+      />
+      <Route
+        path="/payment-cancelled"
+        element={
+          <Guard>
+            <PaymentCancelled />
+          </Guard>
+        }
+      />
+      <Route
+        path="/success"
+        element={
+          <Guard>
+            <PaymentSuccess />
+          </Guard>
+        }
+      />
+      <Route
+        path="/cancel"
+        element={
+          <Guard>
+            <PaymentCancelled />
+          </Guard>
+        }
+      />
+      <Route
+        path="/logout"
+        element={
+          <Guard>
+            <Logout />
+          </Guard>
+        }
+      />
+      <Route
+        path="/oauth-fix"
+        element={
+          <Guard>
+            <OAuthFix />
+          </Guard>
+        }
+      />
+      <Route
+        path="/emergency-login"
+        element={
+          <Guard>
+            <EmergencyLogin />
+          </Guard>
+        }
+      />
+      <Route
+        path="/working-login"
+        element={
+          <Guard>
+            <WorkingLogin />
+          </Guard>
+        }
+      />
+      <Route
+        path="/final-auth-test"
+        element={
+          <Guard>
+            <FinalAuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/replit-auth-fix"
+        element={
+          <Guard>
+            <ReplitAuthFix />
+          </Guard>
+        }
+      />
+      <Route
+        path="/emergency-auth-fix"
+        element={
+          <Guard>
+            <EmergencyAuthFix />
+          </Guard>
+        }
+      />
 
-      {isAuthenticated || forceMainApp ? (
-        <>
-          {/* Protected routes for authenticated users */}
-          <Route path="/" component={Home} />
-          <Route
-            path="/my-page"
-            component={() => <ProtectedRoute component={MyPage} />}
-          />
-          <Route
-            path="/simulation"
-            component={() => <ProtectedRoute component={SimulationSelection} />}
-          />
-          <Route
-            path="/simulation/:id"
-            component={() => <ProtectedRoute component={SimulationPractice} />}
-          />
-          <Route
-            path="/simulation-practice"
-            component={() => <ProtectedRoute component={SimulationPractice} />}
-          />
-          <Route
-            path="/admin"
-            component={() => <ProtectedRoute component={Admin} />}
-          />
-          <Route
-            path="/chat/:difficulty"
-            component={() => <ProtectedRoute component={Home} />}
-          />
-          <Route
-            path="/practice/:difficulty"
-            component={() => <ProtectedRoute component={Home} />}
-          />
-          <Route path="/subscription/select" component={SubscriptionSelect} />
-          <Route path="/payment-success" component={PaymentSuccess} />
-          <Route path="/payment-cancelled" component={PaymentCancelled} />
-          <Route path="/success" component={PaymentSuccess} />
-          <Route path="/cancel" component={PaymentCancelled} />
-        </>
-      ) : (
-        <>
-          {/* Handle unauthenticated routes */}
-          <Route path="/" component={Login} />
-        </>
-      )}
+      {/* 認証が必要なルート */}
+      <Route
+        path="/"
+        element={
+          <Guard>
+            <Home />
+          </Guard>
+        }
+      />
+      <Route
+        path="/my-page"
+        element={
+          <Guard>
+            <ProtectedRoute component={MyPage} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/simulation"
+        element={
+          <Guard>
+            <ProtectedRoute component={SimulationSelection} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/simulation/:id"
+        element={
+          <Guard>
+            <ProtectedRoute component={SimulationPractice} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/simulation-practice"
+        element={
+          <Guard>
+            <ProtectedRoute component={SimulationPractice} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <Guard>
+            <ProtectedRoute component={Admin} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/chat/:difficulty"
+        element={
+          <Guard>
+            <ProtectedRoute component={Home} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/practice/:difficulty"
+        element={
+          <Guard>
+            <ProtectedRoute component={Home} />
+          </Guard>
+        }
+      />
+      <Route
+        path="/subscription/select"
+        element={
+          <Guard>
+            <SubscriptionSelect />
+          </Guard>
+        }
+      />
 
-      <Route component={NotFound} />
-    </Switch>
+      {/* 404 Not Found */}
+      <Route
+        path="*"
+        element={
+          <Guard>
+            <NotFound />
+          </Guard>
+        }
+      />
+    </Routes>
   );
 }
 
+// メインアプリケーションコンポーネント
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <HashHandler />
-          <Router />
-        </TooltipProvider>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <HashHandler />
+            <AppRoutes />
+          </TooltipProvider>
+        </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
   );

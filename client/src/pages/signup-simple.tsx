@@ -11,6 +11,23 @@ export default function SignupSimple() {
     const { data, error } = await supabase.auth.signUp({ email, password });
     console.log('[SignupSimple] resp', { data, error });
     setOut({ data, error });
+
+    if (!error) {
+      // Confirm email OFF 前提なら即ログインを強制
+      await supabase.auth.signInWithPassword({ email, password });
+
+      // セッションを握るまで待つ
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        window.location.href = "/"; // ホームへ
+      } else {
+        // 予防的に 300ms 後にもう一度確認（環境によって遅延する場合あり）
+        setTimeout(async () => {
+          const { data: d2 } = await supabase.auth.getSession();
+          if (d2.session) window.location.href = "/";
+        }, 300);
+      }
+    }
   }
 
   // @ts-expect-error

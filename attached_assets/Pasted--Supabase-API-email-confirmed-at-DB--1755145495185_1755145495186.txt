@@ -1,0 +1,153 @@
+
+## いま起きていること
+
+* **Supabase にはユーザーが作成済み**（管理API経由のレスポンスで `email_confirmed_at` も付与されている）。＝サーバー/DB 側は OK。
+* **フロントはサインアップ直後にログイン画面へ戻る**＝「**セッションの初期化／保持／ルートガード**」のどれかが原因。
+* 認証メールは届かなくてもよい構成（「Confirm email: OFF」にしていればメール不要）。メール送信がないこと自体はブロッカーではありません。
+
+結論：**メール再送ではなく、フロント側のセッション処理とルーティングを直す**のが本筋です。既存のメールアドレスを削除してやり直す必要は基本ありません（ループが直ればそのまま入れます）。万一グチャッた時だけ削除＆再生成でOK。
+
+---
+
+## Replit への指示
+
+**1) Supabase 設定を最終確認**
+
+* Auth → Email:
+
+  * **Allow new users to sign up: ON**
+  * **Confirm email: OFF**
+* Auth → URL Configuration:
+
+  * **Site URL** に Replit の公開URL（`https://<xxxx>.kirk.replit.dev`）を入れて保存
+  * **Redirect URLs** に同URLを入れて保存
+
+**2) クライアントの Supabase クライアント初期化を固定**
+
+* `client/src/lib/supabaseClient.ts` を次の内容に差し替え（存在しないなら作成）：
+
+```ts
+// client/src/lib/supabaseClient.ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL!;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+
+// デバッグ（/signup-simple で window.SUPA_DEBUG を見れるように）
+if (typeof window !== "undefined") {
+  (window as any).SUPA_DEBUG = { url, anonHead: anon?.slice(0, 12) };
+}
+
+export const supabase = createClient(url, anon, {
+  auth: {
+    persistSession: true,          // ローカルにセッション保存
+    autoRefreshToken: true,        // 自動リフレッシュ
+    detectSessionInUrl: false,     // Vite環境での不要なURL解析を無効化
+    storage: window.localStorage,  // Replitプレビューでも確実に保存
+  },
+});
+```
+
+**3) 認証プロバイダ/フックを安定化**
+
+* `client/src/providers/auth-provider.tsx`（もしくは `useAuth`）に「**初期化完了フラグ**」を入れる：
+
+```ts
+// 例: client/src/providers/auth-provider.tsx
+import { supabase } from "@/lib/supabaseClient";
+import { createContext, useContext, useEffect, useState } from "react";
+
+type AuthCtx = { user: any; initialized: boolean };
+const Ctx = createContext<AuthCtx>({ user: null, initialized: false });
+export const useAuth = () => useContext(Ctx);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<any>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      setInitialized(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  return <Ctx.Provider value={{ user, initialized }}>{children}</Ctx.Provider>;
+}
+```
+
+**4) ルートガードの条件を見直し（“初期化前は何もしない”）**
+
+* `client/src/App.tsx`（またはガード箇所）で：
+
+```tsx
+import { useAuth } from "@/providers/auth-provider";
+
+// ガード内の擬似コード
+const { user, initialized } = useAuth();
+const publicPaths = ["/login", "/signup", "/signup-simple"]; // 公開ルート
+
+if (!initialized) {
+  // 初期化完了まではリダイレクトしない（点滅/ループ防止）
+  return null; // もしくはローディングUI
+}
+
+const path = location.pathname;
+const isPublic = publicPaths.some(p => path.startsWith(p));
+if (!user && !isPublic) {
+  navigate("/login", { replace: true });
+}
+```
+
+**5) サインアップ/ログイン後に “確実にセッションを握る”**
+
+* `client/src/pages/signup.tsx`（と `login.tsx`）でサインアップ直後に **明示ログイン**＆**セッション確認**：
+
+```ts
+// signup.tsx 内
+const { error } = await supabase.auth.signUp({ email, password });
+if (error) {
+  console.error("[signup] error", error);
+  return;
+}
+
+// Confirm email OFF 前提なら即ログインを強制
+await supabase.auth.signInWithPassword({ email, password });
+
+// セッションを握るまで待つ
+const { data } = await supabase.auth.getSession();
+if (data.session) {
+  navigate("/"); // ホームへ
+} else {
+  // 予防的に 300ms 後にもう一度確認（環境によって遅延する場合あり）
+  setTimeout(async () => {
+    const { data: d2 } = await supabase.auth.getSession();
+    if (d2.session) navigate("/");
+  }, 300);
+}
+```
+
+**6) 一時的にガードを緩めて検証**
+
+* どうしても戻される時は、**一旦ガードを無効**にして挙動確認。
+  App.tsx のガード条件をコメントアウトして再ビルド→新規登録→トップが表示できるかを見る。
+
+**7) キャッシュをクリア**
+
+* Replitで開いている公開URLのタブで「ハードリロード」。
+* `localStorage.removeItem("supabase.auth.token")` 相当を行うか、**ブラウザのサイトデータ削除**。
+
+**8) ビルド & 起動 & 確認**
+
+```bash
+rm -rf dist
+npm run build:server && npm run build:client
+node dist/server/index.js
+# 別タブで公開URLを開く → /signup-simple で window.SUPA_DEBUG を確認（URL/anon頭文字）
+# /signup でメール&パス入力 → 成功後トップへ遷移するか確認
+```
+
