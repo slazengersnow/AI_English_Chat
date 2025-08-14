@@ -11,7 +11,7 @@ export const supabase = createClient(url, anon, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: false, // /auth-callback で明示処理する
     storage: typeof window !== "undefined" ? window.localStorage : undefined,
   },
 });

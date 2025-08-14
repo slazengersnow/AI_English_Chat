@@ -79,7 +79,6 @@ const publicPaths = new Set([
   "/signup", 
   "/signup-simple",
   "/auth-callback",
-  "/subscription-select",
   "/confirm",
   "/auth/callback",
   "/terms",
@@ -101,7 +100,6 @@ const publicPaths = new Set([
   "/supabase-config-check",
   "/fix-email",
   "/direct-access",
-  "/auth-callback",
   "/test-actual-link",
   "/stripe-test",
   "/price-check",
@@ -125,41 +123,20 @@ const publicPaths = new Set([
   "/auth-debug-test",
 ]);
 
-// 認証ガードコンポーネント（完全修正版）
+// 堅牢な認証ガードコンポーネント
 function Guard({ children }: { children: JSX.Element }) {
-  const { initialized, user, isLoading } = useAuth();
+  const { user, initialized } = useAuth();
   const { pathname } = useLocation();
 
-  // デバッグログ
-  console.log('Guard check:', { 
-    pathname, 
-    initialized, 
-    isLoading, 
-    hasUser: !!user,
-    userEmail: user?.email,
-    isPublicPath: publicPaths.has(pathname)
-  });
+  // 初期化完了まではスピナー（または何も返さない）
+  if (!initialized) return <div style={{padding:24}}>Loading...</div>;
 
-  // 1) 初期化完了まで絶対にリダイレクトしない（点滅/ループ防止）
-  if (!initialized || isLoading) {
-    console.log('Guard: Showing loading spinner - not ready');
-    return <LoadingSpinner />;
-  }
+  const publicPaths = new Set(["/login", "/signup", "/signup-simple", "/auth-callback", "/"]);
+  if (publicPaths.has(pathname)) return children;
 
-  // 2) 公開パスは誰でもOK（認証不要）
-  if (publicPaths.has(pathname)) {
-    console.log('Guard: Public path, allowing access');
-    return children;
-  }
-
-  // 3) プライベートパスで認証なし = ログインへ
   if (!user) {
-    console.log('Guard: No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
-
-  // 4) 認証済み = アクセス許可
-  console.log('Guard: Authenticated user, allowing access');
   return children;
 }
 
@@ -624,7 +601,7 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/subscription/select"
+        path="/subscription-select"
         element={
           <Guard>
             <SubscriptionSelect />

@@ -1,0 +1,235 @@
+# ① Supabase 側の設定（必須）
+
+1. **Authentication → Email**
+
+   * **Allow new users to sign up = ON**
+   * **Confirm email = ON**（確認メールを送る運用）
+2. **Authentication → URL Configuration**
+
+   * **Site URL** = `https://<あなたの Replit 公開URL>`
+   * **Redirect URLs** に `https://<公開URL>/auth-callback` を追加
+3. **Authentication → Captcha**
+
+   * 切り分けのため **OFF**（後でONに戻す場合はUI側で対応）
+4. **Settings → API**
+
+   * `anon` / `service_role` キーを控える（Replit Secrets に設定済みか確認）
+
+> 迷惑メール・ドメイン認証（From ドメイン/Sender Domain）も確認してください。Supabase 標準送信でも、受信側で弾かれていれば届きません。
+
+---
+
+# ② Replit Secrets を確認
+
+* `VITE_SUPABASE_URL`
+* `VITE_SUPABASE_ANON_KEY`
+* `SUPABASE_SERVICE_ROLE_KEY`
+* `SERVE_CLIENT = "true"`
+
+---
+
+# ③ フロント修正：Supabase クライアントの正規化
+
+**ファイル**: `client/src/lib/supabaseClient.ts` を次に置換
+
+```ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL!;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+
+if (typeof window !== "undefined") {
+  (window as any).SUPA_DEBUG = { url, anonHead: anon?.slice(0, 12) };
+}
+
+export const supabase = createClient(url, anon, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false, // /auth-callback で明示処理する
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  },
+});
+```
+
+---
+
+# ④ フロント修正：AuthProvider と Guard を堅牢化
+
+**目的**:
+
+* 初期化完了前にガードを走らせない
+* 初回 `getSession()` と `onAuthStateChange` の**両方が一度は完了**してから判定
+* セッション復元の瞬間にログイン→即ログアウトのようなフラッシュを防止
+
+**ファイル**: `client/src/providers/AuthProvider.tsx`（または相当ファイル）を次の形へ
+
+```ts
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+
+type AuthCtx = {
+  user: any | null;
+  initialized: boolean; // 初期化完了フラグ
+};
+const Ctx = createContext<AuthCtx>({ user: null, initialized: false });
+export const useAuth = () => useContext(Ctx);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [initialized, setInitialized] = useState(false);
+  const gotSessionOnce = useRef(false);
+  const gotAuthEventOnce = useRef(false);
+
+  useEffect(() => {
+    let unsub: (() => void) | null = null;
+
+    (async () => {
+      // 1) 再読み込み時のセッション復元
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user ?? null);
+      gotSessionOnce.current = true;
+      if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+
+      // 2) ランタイムの変化をフォロー
+      const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+        setUser(session?.user ?? null);
+        gotAuthEventOnce.current = true;
+        if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+      });
+      unsub = () => sub.subscription.unsubscribe();
+    })();
+
+    return () => { if (unsub) unsub(); };
+  }, []);
+
+  return <Ctx.Provider value={{ user, initialized }}>{children}</Ctx.Provider>;
+};
+```
+
+**ファイル**: `client/src/App.tsx` のガードを修正
+
+* `publicPaths` に `"/login", "/signup", "/signup-simple", "/auth-callback"` を含める
+* `initialized === false` の間は**何もリダイレクトしない**
+
+```tsx
+function Guard({ children }: { children: JSX.Element }) {
+  const { user, initialized } = useAuth();
+  const pathname = window.location.pathname;
+
+  // 初期化完了まではスピナー（または何も返さない）
+  if (!initialized) return <div style={{padding:24}}>Loading...</div>;
+
+  const publicPaths = new Set(["/login", "/signup", "/signup-simple", "/auth-callback", "/"]);
+  if (publicPaths.has(pathname)) return children;
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+```
+
+---
+
+# ⑤ フロント修正：サインアップ・コールバック・既存メール文言
+
+### `client/src/pages/signup-simple.tsx` を置換（ハードコード/自動POSTを排除）
+
+```tsx
+import React, { useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+import { useNavigate, Link } from "react-router-dom";
+
+export default function SignupSimple() {
+  const nav = useNavigate();
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [msg, setMsg] = useState<string|null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email, password: pw,
+        options: { emailRedirectTo: `${window.location.origin}/auth-callback` }
+      });
+      if (error) {
+        const status = (error as any).status;
+        if (status === 400 || status === 422) {
+          setMsg("このメールアドレスは既に登録されています。ログインをお試しください。");
+        } else {
+          setMsg(`サインアップに失敗: ${error.message}`);
+        }
+        return;
+      }
+      if (data?.user && !data?.session) {
+        setMsg("確認メールを送信しました。メール内のリンクから認証を完了してください。");
+        return;
+      }
+      if (data?.user && data?.session) {
+        nav("/subscription-select");
+      }
+    } catch (e: any) {
+      setMsg(`サインアップエラー: ${e.message || e}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{maxWidth:480, margin:"40px auto", padding:16}}>
+      <h1>Signup Simple (Debug)</h1>
+      <form onSubmit={onSubmit}>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" type="email" required />
+        <input value={pw} onChange={e=>setPw(e.target.value)} placeholder="password" type="password" required />
+        <button disabled={loading} type="submit">Create Account</button>
+      </form>
+      {msg && <p style={{marginTop:12}}>{msg}</p>}
+      <p style={{marginTop:12}}><Link to="/login">ログインへ</Link></p>
+      <pre style={{marginTop:12}}>{JSON.stringify((window as any).SUPA_DEBUG, null, 2)}</pre>
+    </div>
+  );
+}
+```
+
+### `client/src/pages/auth-callback.tsx` を置換（メールリンク→セッション確立→プランへ）
+
+```tsx
+import React, { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+
+export default function AuthCallback() {
+  const [msg, setMsg] = useState("認証処理中...");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const code = p.get("code");
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        }
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          window.location.replace("/subscription-select");
+          return;
+        }
+        setMsg("認証リンクが無効または期限切れです。もう一度お試しください。");
+      } catch (e: any) {
+        setMsg(`認証エラー: ${e.message || e}`);
+      }
+    })();
+  }, []);
+
+  return <div style={{padding:24}}>{msg}</div>;
+}
+```
+
+> 料金プラン画面のルート `/subscription-select` は `App.tsx` に **publicPaths ではない**通常ルートとして定義してください（ログイン後の画面扱いにする）。
+
+---

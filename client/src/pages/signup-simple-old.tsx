@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function SignupSimple() {
   const nav = useNavigate();
@@ -15,22 +15,42 @@ export default function SignupSimple() {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
-        email, password: pw,
+        email,
+        password: pw,
         options: { emailRedirectTo: `${window.location.origin}/auth-callback` }
       });
+      
+      console.log('Signup result:', { data, error });
+      
       if (error) {
-        const status = (error as any).status;
-        if (status === 400 || status === 422) {
+        console.error('Signup error details:', error);
+        // 既存メールの詳細チェック（より包括的）
+        if (error.message?.toLowerCase().includes('already') || 
+            error.message?.toLowerCase().includes('registered') ||
+            error.message?.toLowerCase().includes('exists') ||
+            error.message?.includes('User already registered') ||
+            (error as any).status === 422 || 
+            (error as any).status === 400) {
           setMsg("このメールアドレスは既に登録されています。ログインをお試しください。");
         } else {
           setMsg(`サインアップに失敗: ${error.message}`);
         }
         return;
       }
+      
+      // データの詳細チェック
+      console.log('Signup data details:', {
+        user: data?.user,
+        session: data?.session,
+        userConfirmedAt: data?.user?.email_confirmed_at,
+        userRole: data?.user?.role
+      });
+      // Confirm Email = ON の場合は session が付かないので案内だけ表示
       if (data?.user && !data?.session) {
         setMsg("確認メールを送信しました。メール内のリンクから認証を完了してください。");
         return;
       }
+      // Confirm Email = OFF の運用時は即ログイン＆遷移（保険として実装）
       if (data?.user && data?.session) {
         nav("/subscription-select");
       }
@@ -50,8 +70,7 @@ export default function SignupSimple() {
         <button disabled={loading} type="submit">Create Account</button>
       </form>
       {msg && <p style={{marginTop:12}}>{msg}</p>}
-      <p style={{marginTop:12}}><Link to="/login">ログインへ</Link></p>
-      <pre style={{marginTop:12}}>{JSON.stringify((window as any).SUPA_DEBUG, null, 2)}</pre>
+      <pre style={{marginTop:12}}>{typeof window !== "undefined" ? JSON.stringify((window as any).SUPA_DEBUG,null,2) : null}</pre>
     </div>
   );
 }

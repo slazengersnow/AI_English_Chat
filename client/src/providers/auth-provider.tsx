@@ -1,6 +1,6 @@
 // client/src/providers/auth-provider.tsx
 import { supabase } from "@/lib/supabaseClient";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type AuthCtx = { 
   user: any; 
@@ -21,67 +21,31 @@ const Ctx = createContext<AuthCtx>({
 export const useAuth = () => useContext(Ctx);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const gotSessionOnce = useRef(false);
+  const gotAuthEventOnce = useRef(false);
 
   useEffect(() => {
-    let mounted = true;
-    
-    const initializeAuth = async () => {
-      try {
-        console.log('AuthProvider: Starting initialization...');
-        
-        // Get current session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('AuthProvider: Session error:', error);
-        } else {
-          console.log('AuthProvider: Initial session:', { 
-            hasSession: !!session, 
-            hasUser: !!session?.user,
-            userEmail: session?.user?.email 
-          });
-        }
-        
-        if (mounted) {
-          setUser(session?.user ?? null);
-          setInitialized(true);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('AuthProvider: Initialization error:', error);
-        if (mounted) {
-          setInitialized(true);
-          setIsLoading(false);
-        }
-      }
-    };
-    
-    initializeAuth();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('AuthProvider: Auth state change:', { 
-          event, 
-          hasSession: !!session, 
-          hasUser: !!session?.user,
-          userEmail: session?.user?.email 
-        });
-        
-        if (mounted) {
-          setUser(session?.user ?? null);
-          setIsLoading(false);
-        }
-      }
-    );
-    
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    let unsub: (() => void) | null = null;
+
+    (async () => {
+      // 1) 再読み込み時のセッション復元
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user ?? null);
+      gotSessionOnce.current = true;
+      if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+
+      // 2) ランタイムの変化をフォロー
+      const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+        setUser(session?.user ?? null);
+        gotAuthEventOnce.current = true;
+        if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+      });
+      unsub = () => sub.subscription.unsubscribe();
+    })();
+
+    return () => { if (unsub) unsub(); };
   }, []);
 
   const signOut = async () => {
@@ -96,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, 
       initialized, 
       isAuthenticated: !!user,
-      isLoading,
+      isLoading: false, // Simplified loading state
       isAdmin,
       signOut
     }}>
