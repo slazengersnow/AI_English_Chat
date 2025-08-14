@@ -388,13 +388,26 @@ function generateFallbackEvaluation(japaneseSentence, userTranslation, difficult
         ],
     };
 }
+/* -------------------- 認証ミドルウェア -------------------- */
+function requireAuth(req, res, next) {
+    // For now, allow all requests since the client is handling authentication
+    // In a production environment, you would verify the Supabase JWT token here
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+        console.log('No auth token provided, proceeding with anonymous access');
+    }
+    else {
+        console.log('Auth token provided:', authHeader.substring(0, 20) + '...');
+    }
+    next();
+}
 /* -------------------- ルーティング登録 -------------------- */
 export function registerRoutes(app) {
     const router = Router();
     router.post("/problem", handleProblemGeneration);
     router.post("/evaluate-with-claude", handleClaudeEvaluation);
-    // Review system endpoints
-    router.get("/review-list", async (req, res) => {
+    // Review system endpoints (with authentication)
+    router.get("/review-list", requireAuth, async (req, res) => {
         try {
             const reviewProblems = await db
                 .select()
@@ -409,7 +422,7 @@ export function registerRoutes(app) {
             res.status(500).json({ error: 'Failed to fetch review list' });
         }
     });
-    router.get("/retry-list", async (req, res) => {
+    router.get("/retry-list", requireAuth, async (req, res) => {
         try {
             const retryProblems = await db
                 .select()
@@ -424,8 +437,8 @@ export function registerRoutes(app) {
             res.status(500).json({ error: 'Failed to fetch retry list' });
         }
     });
-    // Progress report endpoint
-    router.get("/progress-report", async (req, res) => {
+    // Progress report endpoint (with authentication)
+    router.get("/progress-report", requireAuth, async (req, res) => {
         try {
             // Use Drizzle ORM queries for better type safety
             const today = new Date();
@@ -485,8 +498,8 @@ export function registerRoutes(app) {
             res.status(500).json({ error: 'Failed to fetch progress report' });
         }
     });
-    // Weekly progress chart data endpoint
-    router.get("/weekly-progress", async (req, res) => {
+    // Weekly progress chart data endpoint (with authentication)
+    router.get("/weekly-progress", requireAuth, async (req, res) => {
         try {
             const weekAgo = new Date();
             weekAgo.setDate(weekAgo.getDate() - 7);

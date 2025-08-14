@@ -123,20 +123,17 @@ const publicPaths = new Set([
   "/auth-debug-test",
 ]);
 
-// 堅牢な認証ガードコンポーネント
 function Guard({ children }: { children: JSX.Element }) {
   const { user, initialized } = useAuth();
-  const { pathname } = useLocation();
+  const pathname = window.location.pathname;
 
-  // 初期化完了まではスピナー（または何も返さない）
   if (!initialized) return <div style={{padding:24}}>Loading...</div>;
 
-  const publicPaths = new Set(["/login", "/signup", "/signup-simple", "/auth-callback", "/"]);
-  if (publicPaths.has(pathname)) return children;
+  const publicPaths = ["/", "/login", "/signup", "/signup-simple", "/auth-callback"];
+  const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith(p + "/"));
+  if (isPublic) return children;
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 

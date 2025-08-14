@@ -1,0 +1,264 @@
+# Replitへの指示
+
+**目的**：
+
+* サインアップで「既存メール」なら明確エラー
+* 新規なら確認メール送信→`/auth-callback`→`/subscription-select` へ遷移
+* ログイン直後にログイン画面へ戻るループを停止
+* `/signup-simple` を常に表示（ガードにブロックされない）
+
+---
+
+## 1) Supabase 設定の最終確認
+
+* Authentication → **Email**
+
+  * **Allow new users to sign up = ON**
+  * **Confirm email = ON**（確認メールを送る運用）
+* Authentication → **URL Configuration**
+
+  * **Site URL** = `https://<あなたの公開URL>`
+  * **Redirect URLs** に `https://<公開URL>/auth-callback`
+* Authentication → **Captcha**: **OFF**（切り分けのため）
+* Settings → **API**: `anon` / `service_role` は Replit Secrets に入っていること
+
+---
+
+## 2) Secrets 確認
+
+* `VITE_SUPABASE_URL`
+* `VITE_SUPABASE_ANON_KEY`
+* `SUPABASE_SERVICE_ROLE_KEY`
+* `SERVE_CLIENT = "true"`
+
+---
+
+## 3) ファイル修正（Before → After）
+
+### A. `client/src/lib/supabaseClient.ts`
+
+**After（丸ごと置換）**
+
+```ts
+import { createClient } from "@supabase/supabase-js";
+
+const url = import.meta.env.VITE_SUPABASE_URL!;
+const anon = import.meta.env.VITE_SUPABASE_ANON_KEY!;
+
+if (typeof window !== "undefined") {
+  (window as any).SUPA_DEBUG = { url, anonHead: anon?.slice(0, 12) };
+}
+
+export const supabase = createClient(url, anon, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false, // /auth-callbackで明示処理
+    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  },
+});
+```
+
+### B. `client/src/providers/AuthProvider.tsx`（または同等のAuthコンテキスト）
+
+**After（丸ごと置換）**
+
+```tsx
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+
+type AuthCtx = { user: any | null; initialized: boolean; };
+const Ctx = createContext<AuthCtx>({ user: null, initialized: false });
+export const useAuth = () => useContext(Ctx);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [initialized, setInitialized] = useState(false);
+  const gotSessionOnce = useRef(false);
+  const gotAuthEventOnce = useRef(false);
+
+  useEffect(() => {
+    let unsub: (() => void) | null = null;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user ?? null);
+      gotSessionOnce.current = true;
+      if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+
+      const { data: sub } = supabase.auth.onAuthStateChange((_ev, session) => {
+        setUser(session?.user ?? null);
+        gotAuthEventOnce.current = true;
+        if (gotSessionOnce.current && gotAuthEventOnce.current) setInitialized(true);
+      });
+      unsub = () => sub.subscription.unsubscribe();
+    })();
+    return () => { if (unsub) unsub(); };
+  }, []);
+
+  return <Ctx.Provider value={{ user, initialized }}>{children}</Ctx.Provider>;
+};
+```
+
+### C. `client/src/App.tsx` の Guard
+
+**After（Guard 部分を置換）**
+
+```tsx
+function Guard({ children }: { children: JSX.Element }) {
+  const { user, initialized } = useAuth();
+  const pathname = window.location.pathname;
+
+  if (!initialized) return <div style={{padding:24}}>Loading...</div>;
+
+  const publicPaths = ["/", "/login", "/signup", "/signup-simple", "/auth-callback"];
+  const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith(p + "/"));
+  if (isPublic) return children;
+
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+```
+
+> ルート定義は `/signup-simple` を**catch-all (`*`) より前**に置いてください。
+> `auth-callback` も必ずルート追加。
+
+### D. `client/src/pages/signup-simple.tsx`
+
+**After（丸ごと置換）**
+
+```tsx
+import React, { useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+import { useNavigate, Link } from "react-router-dom";
+
+export default function SignupSimple() {
+  const nav = useNavigate();
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [msg, setMsg] = useState<string|null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email, password: pw,
+        options: { emailRedirectTo: `${window.location.origin}/auth-callback` }
+      });
+      if (error) {
+        const status = (error as any).status;
+        if (status === 400 || status === 422) {
+          setMsg("このメールアドレスは既に登録されています。ログインをお試しください。");
+        } else {
+          setMsg(`サインアップに失敗: ${error.message}`);
+        }
+        return;
+      }
+      if (data?.user && !data?.session) {
+        setMsg("確認メールを送信しました。メール内のリンクから認証を完了してください。");
+        return;
+      }
+      if (data?.user && data?.session) {
+        nav("/subscription-select");
+      }
+    } catch (e: any) {
+      setMsg(`サインアップエラー: ${e.message || e}`);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{maxWidth:480, margin:"40px auto", padding:16}}>
+      <h1>Signup Simple (Debug)</h1>
+      <form onSubmit={onSubmit}>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" type="email" required />
+        <input value={pw} onChange={e=>setPw(e.target.value)} placeholder="password" type="password" required />
+        <button disabled={loading} type="submit">Create Account</button>
+      </form>
+      {msg && <p style={{marginTop:12}}>{msg}</p>}
+      <p style={{marginTop:12}}><Link to="/login">ログインへ</Link></p>
+      <pre style={{marginTop:12}}>{JSON.stringify((window as any).SUPA_DEBUG, null, 2)}</pre>
+    </div>
+  );
+}
+```
+
+### E. `client/src/pages/auth-callback.tsx`
+
+**After（丸ごと置換）**
+
+```tsx
+import React, { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
+
+export default function AuthCallback() {
+  const [msg, setMsg] = useState("認証処理中...");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const code = p.get("code");
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        }
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          window.location.replace("/subscription-select");
+          return;
+        }
+        setMsg("認証リンクが無効または期限切れです。もう一度お試しください。");
+      } catch (e: any) {
+        setMsg(`認証エラー: ${e.message || e}`);
+      }
+    })();
+  }, []);
+
+  return <div style={{padding:24}}>{msg}</div>;
+}
+```
+
+> `/subscription-select` は **ログイン後ページ**としてルート定義してください（public から除外）。
+
+---
+
+## 4) ビルド & 起動 & テスト手順
+
+**Replitシェル（ターミナル1）**
+
+```bash
+rm -rf dist client/dist
+npm run build:server && npm run build:client
+node dist/server/index.js
+```
+
+**ローカル確認（ターミナル2）**
+
+```bash
+# APIと環境が正しく載っているか
+curl -s http://localhost:5000/__introspect
+# => {"mounted":{"api":true,"adminCreateUser":"/api/admin/create-user"},"env":{"hasSupabaseUrl":true,"hasServiceRole":true}}
+```
+
+**ブラウザ（必ず「Open in new tab」の公開URL）：**
+
+1. `https://<公開URL>/signup-simple` を開く
+2. DevTools Console で `window.SUPA_DEBUG` を実行
+
+   * `url` が **あなたの Supabase プロジェクト URL** か必ず確認
+3. 新規メールで登録
+
+   * 画面に「確認メールを送信しました」→ メールのリンク → 自動で `/subscription-select`
+4. **既存メール**で登録
+
+   * 「このメールアドレスは既に登録されています」メッセージ表示
+5. `/login` からログイン → メイン/プラン画面に残る（ループしない）
+
+> もし `/signup-simple` が 503 になる場合は**埋め込みプレビューではなく公開タブ**で再確認。CSPで Replit 埋め込みスクリプトが弾かれることがあります（本件とは無関係）。
+
+---
+

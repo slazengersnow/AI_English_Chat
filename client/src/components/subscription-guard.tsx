@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Lock, CreditCard } from "lucide-react";
 import { UserSubscription } from "@shared/schema";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/providers/auth-provider";
 
 interface SubscriptionGuardProps {
   children: React.ReactNode;
@@ -13,7 +13,9 @@ interface SubscriptionGuardProps {
 
 export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
   const [, setLocation] = useLocation();
-  const { isAdmin, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, initialized } = useAuth();
+  const isAuthenticated = !!user;
+  const isAdmin = user?.email === 'slazengersnow@gmail.com';
   
   // Only query subscription if user is authenticated
   const { data: subscription, isLoading: subscriptionLoading, error } = useQuery<UserSubscription>({
@@ -28,7 +30,7 @@ export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
   }
 
   // Wait for auth to load
-  if (authLoading) {
+  if (!initialized) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full" />
