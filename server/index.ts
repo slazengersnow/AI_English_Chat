@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes/index.js";
@@ -16,35 +17,59 @@ const PORT = Number(process.env.PORT) || 5000;
 
 /* ---------- middlewares ---------- */
 
-// ★CSPを明示的に緩める（プレビューでも支障が出ないように）
-app.use((req, res, next) => {
-  // 最低限: 自サイトの静的配信 + Supabase への接続 + WebSocket + 画像/スタイル + Replit 公開URL
-  res.setHeader(
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      // Supabase（.co / .in）と Replit 公開URL、WebSocket を許可
-      "connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co wss://*.supabase.in https://*.replit.dev",
-      // 埋め込みプレビュー回避用に frame-ancestors を緩める（必要なら）
-      "frame-ancestors *",
-    ].join("; ")
-  );
-  next();
-});
-
+// CORS（Replit公開URL / repl.co / localhost からのアクセスを許可）
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
+      /\.replit\.dev$/,
+      /\.repl\.co$/,
       "http://localhost:5000",
-      "https://*.replit.dev",
-      "https://*.fly.dev",
-      "https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev",
+      "http://127.0.0.1:5000",
     ],
     credentials: true,
+  }),
+);
+
+// きつすぎる独自 setHeader は削除（コメントアウトでもOK）
+// ❌ 削除: res.setHeader("Content-Security-Policy", "default-src 'none'");
+
+// Helmet で "通すべきものだけ通す" CSP を設定
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'"], // 必要なら後で厳格化
+        "connect-src": [
+          "'self'",
+          "https://*.supabase.co",
+          "https://*.supabase.net",
+          "https://*.supabase.in",
+          "wss://*.supabase.co",
+          "wss://*.supabase.net",
+          "wss://*.supabase.in",
+          "https://*.replit.dev",
+          "https://*.repl.co",
+          "http://localhost:5000",
+          "http://127.0.0.1:5000",
+        ],
+        "img-src": ["'self'", "data:", "blob:", "https:"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "frame-src": [
+          "'self'",
+          "https://*.supabase.co",
+          "https://*.supabase.net",
+        ],
+        "frame-ancestors": [
+          "'self'",
+          "https://replit.com",
+          "https://*.replit.com",
+        ],
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
   }),
 );
 
