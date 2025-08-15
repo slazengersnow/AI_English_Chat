@@ -70,6 +70,8 @@ import AuthTestComplete from "./pages/auth-test-complete.js";
 import SimpleAuthTest from "./pages/simple-auth-test.js";
 import IframeAuthTest from "./pages/iframe-auth-test.js";
 import SessionDebug from "./pages/session-debug.js";
+import SupabaseConnectionTest from "./pages/supabase-connection-test.js";
+import NetworkCorsTest from "./pages/network-cors-test.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -131,6 +133,8 @@ const publicPaths = new Set([
   "/simple-auth-test",
   "/iframe-auth-test",
   "/session-debug",
+  "/supabase-connection-test",
+  "/network-cors-test",
 ]);
 
 function Guard({ children }: { children: JSX.Element }) {
@@ -578,6 +582,22 @@ function AppRoutes() {
         element={
           <Guard>
             <SessionDebug />
+          </Guard>
+        }
+      />
+      <Route
+        path="/supabase-connection-test"
+        element={
+          <Guard>
+            <SupabaseConnectionTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/network-cors-test"
+        element={
+          <Guard>
+            <NetworkCorsTest />
           </Guard>
         }
       />
