@@ -72,7 +72,6 @@ import IframeAuthTest from "./pages/iframe-auth-test.js";
 import SessionDebug from "./pages/session-debug.js";
 import SupabaseConnectionTest from "./pages/supabase-connection-test.js";
 import NetworkCorsTest from "./pages/network-cors-test.js";
-import Login from "./pages/login.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -84,7 +83,7 @@ const LoadingSpinner: React.FC = () => (
 // 公開パス（認証不要）の定義 - メールフローを必ず含める
 const publicPaths = new Set([
   "/login",
-  "/signup", 
+  "/signup",
   "/signup-simple",
   "/auth-callback",
   "/confirm",
@@ -136,23 +135,17 @@ const publicPaths = new Set([
   "/session-debug",
   "/supabase-connection-test",
   "/network-cors-test",
-  "/login",
 ]);
 
+// 認証ガードコンポーネント（修正版 - publicPaths優先）
 function Guard({ children }: { children: JSX.Element }) {
   const { user, initialized } = useAuth();
-  const pathname = window.location.pathname;
+  const { pathname } = useLocation();
 
-  if (!initialized) return <div style={{padding:24}}>Loading...</div>;
-
-  const publicPaths = ["/", "/login", "/signup", "/signup-simple", "/auth-callback"];
-  const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith(p + "/"));
-  if (isPublic) return children;
-
-  if (!user) {
-    window.location.href = "/login";
-    return <div style={{padding:24}}>Redirecting to login...</div>;
-  }
+  // 修正: publicPaths 先に通す→initialized 以前はスピナー の順で
+  if (publicPaths.has(pathname)) return children;
+  if (!initialized) return <LoadingSpinner />;
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
@@ -606,9 +599,6 @@ function AppRoutes() {
           </Guard>
         }
       />
-      
-      {/* Public Routes - No Authentication Required */}
-      <Route path="/login" element={<Login />} />
 
       {/* 認証が必要なルート */}
       <Route
@@ -672,14 +662,6 @@ function AppRoutes() {
         element={
           <Guard>
             <ProtectedRoute component={Home} />
-          </Guard>
-        }
-      />
-      <Route
-        path="/subscription-select"
-        element={
-          <Guard>
-            <SubscriptionSelect />
           </Guard>
         }
       />

@@ -3,55 +3,151 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate, Link } from "react-router-dom";
 
 export default function SignupSimple() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
-  const [msg, setMsg] = useState<string|null>(null);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setMsg(null);
+    setError(null);
+    setInfo(null);
     setLoading(true);
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email, password: pw,
-        options: { emailRedirectTo: `${window.location.origin}/auth-callback` }
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth-callback`,
+        },
       });
+
       if (error) {
-        const status = (error as any).status;
-        if (status === 400 || status === 422) {
-          setMsg("このメールアドレスは既に登録されています。ログインをお試しください。");
-        } else {
-          setMsg(`サインアップに失敗: ${error.message}`);
+        const msg = (error.message || "").toLowerCase();
+        if (
+          error.status === 400 ||
+          msg.includes("already") ||
+          msg.includes("exists")
+        ) {
+          setError(
+            "このメールアドレスは既に登録されています。ログインしてください。",
+          );
+          return;
         }
+        setError(error.message);
         return;
       }
-      if (data?.user && !data?.session) {
-        setMsg("確認メールを送信しました。メール内のリンクから認証を完了してください。");
+
+      if (!data.session) {
+        // Confirm email ON の場合はここでメール確認待ち
+        setInfo(
+          "確認メールを送信しました。メール内のリンクを開いてからログインしてください。",
+        );
         return;
       }
-      if (data?.user && data?.session) {
-        nav("/subscription-select");
-      }
+
+      // ここに来たらセッションあり＝そのまま次の画面へ
+      navigate("/subscription-select");
     } catch (e: any) {
-      setMsg(`サインアップエラー: ${e.message || e}`);
+      setError(`サインアップエラー: ${e.message || e}`);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{maxWidth:480, margin:"40px auto", padding:16}}>
+    <div style={{ maxWidth: 480, margin: "40px auto", padding: 16 }}>
       <h1>Signup Simple (Debug)</h1>
       <form onSubmit={onSubmit}>
-        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="email" type="email" required />
-        <input value={pw} onChange={e=>setPw(e.target.value)} placeholder="password" type="password" required />
-        <button disabled={loading} type="submit">Create Account</button>
+        <div style={{ marginBottom: 12 }}>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="email"
+            type="email"
+            required
+            style={{ width: "100%", padding: 8, fontSize: 16 }}
+          />
+        </div>
+        <div style={{ marginBottom: 12 }}>
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="password"
+            type="password"
+            required
+            style={{ width: "100%", padding: 8, fontSize: 16 }}
+          />
+        </div>
+        <button
+          disabled={loading}
+          type="submit"
+          style={{
+            width: "100%",
+            padding: 12,
+            fontSize: 16,
+            backgroundColor: loading ? "#ccc" : "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: 4,
+            cursor: loading ? "not-allowed" : "pointer",
+          }}
+        >
+          {loading ? "Creating Account..." : "Create Account"}
+        </button>
       </form>
-      {msg && <p style={{marginTop:12}}>{msg}</p>}
-      <p style={{marginTop:12}}><Link to="/login">ログインへ</Link></p>
-      <pre style={{marginTop:12}}>{JSON.stringify((window as any).SUPA_DEBUG, null, 2)}</pre>
+
+      {error && (
+        <p
+          style={{
+            marginTop: 12,
+            color: "#dc3545",
+            backgroundColor: "#f8d7da",
+            padding: 8,
+            borderRadius: 4,
+            border: "1px solid #f5c6cb",
+          }}
+        >
+          {error}
+        </p>
+      )}
+
+      {info && (
+        <p
+          style={{
+            marginTop: 12,
+            color: "#155724",
+            backgroundColor: "#d4edda",
+            padding: 8,
+            borderRadius: 4,
+            border: "1px solid #c3e6cb",
+          }}
+        >
+          {info}
+        </p>
+      )}
+
+      <p style={{ marginTop: 12 }}>
+        <Link to="/login" style={{ color: "#007bff", textDecoration: "none" }}>
+          ログインへ
+        </Link>
+      </p>
+
+      <pre
+        style={{
+          marginTop: 12,
+          fontSize: 12,
+          backgroundColor: "#f8f9fa",
+          padding: 8,
+          borderRadius: 4,
+          overflow: "auto",
+        }}
+      >
+        {JSON.stringify((window as any).SUPA_DEBUG, null, 2)}
+      </pre>
     </div>
   );
 }
