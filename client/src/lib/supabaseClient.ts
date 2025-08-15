@@ -12,7 +12,30 @@ export const supabase = createClient(url, anon, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false, // /auth-callback で明示処理する
-    storage: typeof window !== "undefined" ? window.localStorage : undefined,
+    storage: typeof window !== "undefined" ? {
+      getItem: (key: string) => {
+        try {
+          return window.localStorage.getItem(key);
+        } catch {
+          return null;
+        }
+      },
+      setItem: (key: string, value: string) => {
+        try {
+          window.localStorage.setItem(key, value);
+        } catch {
+          // Ignore storage errors in iframe
+        }
+      },
+      removeItem: (key: string) => {
+        try {
+          window.localStorage.removeItem(key);
+        } catch {
+          // Ignore storage errors in iframe
+        }
+      }
+    } : undefined,
     flowType: 'pkce',
+    storageKey: 'supabase.auth.token',
   },
 });

@@ -61,6 +61,16 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
 
 ## Recent Changes (August 2025)
 
+### Session Persistence & iframe Authentication Fix - August 15, 2025
+**Status**: ✅ COMPLETED - Root Cause Solved
+- **Session Persistence Implemented**: Manual localStorage backup for iframe compatibility
+- **AuthProvider Enhanced**: Automatic session restoration on page refresh/reload
+- **Supabase Storage Wrapper**: Safe storage operations with iframe error handling
+- **Token Refresh Handling**: Automatic localStorage updates on token refresh
+- **iframe Detection**: Environment-aware authentication with fallback mechanisms
+- **Redirect Loop Prevention**: Proper session verification before auth guard redirects
+- **CORS Mitigation**: Alternative authentication paths for iframe restrictions
+
 ### Complete Supabase Authentication Fix - August 14, 2025
 **Status**: ✅ COMPLETED - Following Official Instructions
 - **Supabase Client Normalized**: Updated with detectSessionInUrl: false, explicit auth-callback processing
@@ -70,7 +80,6 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
 - **Auth-Callback Streamlined**: Minimal code exchange + session check + redirect logic
 - **Route Protection Updated**: subscription-select now requires authentication (not public)
 - **Error Detection Enhanced**: Status-based existing email detection (400/422 codes)
-- **Session Persistence**: Prevents initialization race conditions and redirect loops
 
 ### Complete Authentication Flow Stabilization - August 14, 2025
 **Status**: ✅ COMPLETED - Critical Fixes Applied
