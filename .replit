@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npx tsx server/index.ts"
+run = "npm run dev"
 hidden = [".config", ".git", "node_modules", "dist"]
 language = "nodejs"
 entrypoint = "server/index.ts"
@@ -9,56 +9,15 @@ channel = "stable-24_05"
 packages = ["q", "lsof", "fly", "psmisc", "openssh"]
 
 [deployment]
-# Replit 上での自動ホスティングを無効化
 run = ["echo", "Skip deploy on Replit"]
-
-[[ports]]
-localPort = 3000
-externalPort = 3001
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 5001
-externalPort = 3003
-
-[[ports]]
-localPort = 5173
-externalPort = 5173
-
-[[ports]]
-localPort = 5174
-externalPort = 3002
-
-[[ports]]
-localPort = 8080
-externalPort = 8080
-
-[[ports]]
 localPort = 24678
 externalPort = 3000
-
-[workflows]
-
-[[workflows.workflow]]
-name = "Project"
-mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Start application"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
 
 [agent]
 integrations = ["javascript_sendgrid==1.0.0", "javascript_supabase==1.0.0", "javascript_database==1.0.0", "javascript_log_in_with_replit==1.0.0", "javascript_stripe==1.0.0", "javascript_anthropic==1.0.0"]
