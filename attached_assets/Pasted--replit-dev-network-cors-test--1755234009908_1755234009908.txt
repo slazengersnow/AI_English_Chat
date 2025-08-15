@@ -1,0 +1,246 @@
+テスト手順の方法がいまいち分からないんだけど、とりあえず、.replit.devに/network-cors-testなどをそれぞれをつけてログインテストを行った。その時のコンソールの結果。
+これで何か分かる？
+ちなみにどれもログイン失敗だった。
+
+
+/network-cors-testのコンソールの結果
+VM7479 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM7479 eruda.js:2:218642)
+    at Object.apply (VM7480 injected.js:253:39)
+    at se (VM7481 index-BiplEpUR.js:251:36691)
+
+VM7479 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM7479 eruda.js:2:218642)
+    at Object.apply (VM7480 injected.js:253:39)
+    at se (VM7481 index-BiplEpUR.js:251:36691)
+VM7479 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM7479 eruda.js:2:218642)
+    at Object.apply (VM7480 injected.js:253:39)
+    at z (VM7481 index-BiplEpUR.js:251:35857)
+VM7479 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM7479 eruda.js:2:218642)
+    at Object.apply (VM7480 injected.js:253:39)
+    at z (VM7481 index-BiplEpUR.js:251:35818)
+6
+Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+workspace_iframe.htm…st&id=%3Arnq%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+supabase-connection-testのコンソールの結果
+Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)
+    at Object.apply (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/injected.js:253:39)
+    at se (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251:36691)
+Mt.forEach.n.<computed> @ eruda.js:2
+se @ index-BiplEpUR.js:251
+await in se
+（匿名） @ index-BiplEpUR.js:251
+Wa @ index-BiplEpUR.js:161
+gR @ index-BiplEpUR.js:174
+Ff @ index-BiplEpUR.js:178
+$0 @ index-BiplEpUR.js:178
+qR @ index-BiplEpUR.js:174
+ha @ index-BiplEpUR.js:174
+（匿名） @ index-BiplEpUR.js:174
+Yr @ index-BiplEpUR.js:62
+Wt @ index-BiplEpUR.js:62
+mr @ index-BiplEpUR.js:62このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)
+    at Object.apply (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/injected.js:253:39)
+    at se (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251:36691)
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2
+se @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251
+await in se
+（匿名） @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251
+Wa @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:161
+uR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+lR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+oR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+sR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+qR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+ha @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+（匿名） @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+Yr @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:62
+Wt @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:62
+mr @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:62このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)
+    at Object.apply (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/injected.js:253:39)
+    at z (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251:35818)
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2
+z @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251
+await in z
+（匿名） @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251
+Wa @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:161
+gR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+Ff @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:178
+$0 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:178
+qR @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+ha @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+（匿名） @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:174
+Yr @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:62
+Wt @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:62
+mr @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:62このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)
+    at Object.apply (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/injected.js:253:39)
+    at z (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BiplEpUR.js:251:35818)
+    
+    
+    /session-debugのコンソールの結果
+    VM7595 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM7595 eruda.js:2:218642)
+    at Object.apply (VM7594 injected.js:253:39)
+    at se (VM7596 index-BiplEpUR.js:251:36691)
+Mt.forEach.n.<computed> @ VM7595 eruda.js:2
+se @ VM7596 index-BiplEpUR.js:251
+await in se
+（匿名） @ VM7596 index-BiplEpUR.js:251
+Wa @ VM7596 index-BiplEpUR.js:161
+gR @ VM7596 index-BiplEpUR.js:174
+Ff @ VM7596 index-BiplEpUR.js:178
+$0 @ VM7596 index-BiplEpUR.js:178
+qR @ VM7596 index-BiplEpUR.js:174
+ha @ VM7596 index-BiplEpUR.js:174
+（匿名） @ VM7596 index-BiplEpUR.js:174
+Yr @ VM7596 index-BiplEpUR.js:62
+Wt @ VM7596 index-BiplEpUR.js:62
+mr @ VM7596 index-BiplEpUR.js:62このエラーを分析
+VM7595 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM7595 eruda.js:2:218642)
+    at Object.apply (VM7594 injected.js:253:39)
+    at se (VM7596 index-BiplEpUR.js:251:36691)
+Mt.forEach.n.<computed> @ VM7595 eruda.js:2
+se @ VM7596 index-BiplEpUR.js:251
+await in se
+（匿名） @ VM7596 index-BiplEpUR.js:251
+Wa @ VM7596 index-BiplEpUR.js:161
+uR @ VM7596 index-BiplEpUR.js:174
+lR @ VM7596 index-BiplEpUR.js:174
+oR @ VM7596 index-BiplEpUR.js:174
+sR @ VM7596 index-BiplEpUR.js:174
+qR @ VM7596 index-BiplEpUR.js:174
+ha @ VM7596 index-BiplEpUR.js:174
+（匿名） @ VM7596 index-BiplEpUR.js:174
+Yr @ VM7596 index-BiplEpUR.js:62
+Wt @ VM7596 index-BiplEpUR.js:62
+mr @ VM7596 index-BiplEpUR.js:62このエラーを分析
+VM7595 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM7595 eruda.js:2:218642)
+    at Object.apply (VM7594 injected.js:253:39)
+    at z (VM7596 index-BiplEpUR.js:251:35818)
+Mt.forEach.n.<computed> @ VM7595 eruda.js:2
+z @ VM7596 index-BiplEpUR.js:251
+await in z
+（匿名） @ VM7596 index-BiplEpUR.js:251
+Wa @ VM7596 index-BiplEpUR.js:161
+uR @ VM7596 index-BiplEpUR.js:174
+lR @ VM7596 index-BiplEpUR.js:174
+oR @ VM7596 index-BiplEpUR.js:174
+sR @ VM7596 index-BiplEpUR.js:174
+qR @ VM7596 index-BiplEpUR.js:174
+ha @ VM7596 index-BiplEpUR.js:174
+（匿名） @ VM7596 index-BiplEpUR.js:174
+Yr @ VM7596 index-BiplEpUR.js:62
+Wt @ VM7596 index-BiplEpUR.js:62
+mr @ VM7596 index-BiplEpUR.js:62このエラーを分析
+VM7595 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM7595 eruda.js:2:218642)
+    at Object.apply (VM7594 injected.js:253:39)
+    at z (VM7596 index-BiplEpUR.js:251:35818)
+Mt.forEach.n.<computed> @ VM7595 eruda.js:2
+z @ VM7596 index-BiplEpUR.js:251
+await in z
+（匿名） @ VM7596 index-BiplEpUR.js:251
+Wa @ VM7596 index-BiplEpUR.js:161
+gR @ VM7596 index-BiplEpUR.js:174
+Ff @ VM7596 index-BiplEpUR.js:178
+$0 @ VM7596 index-BiplEpUR.js:178
+qR @ VM7596 index-BiplEpUR.js:174
+ha @ VM7596 index-BiplEpUR.js:174
+（匿名） @ VM7596 index-BiplEpUR.js:174
+Yr @ VM7596 index-BiplEpUR.js:62
+Wt @ VM7596 index-BiplEpUR.js:62
+mr @ VM7596 index-BiplEpUR.js:62このエラーを分析
+6Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+workspace_iframe.html?initialPath=%2Flogin&id=%3Ar157%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+iframe-auth-testのコンソールの結果
+VM7609 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM7609 eruda.js:2:218642)
+    at Object.apply (VM7608 injected.js:253:39)
+    at se (VM7610 index-BiplEpUR.js:251:36691)
+Mt.forEach.n.<computed> @ VM7609 eruda.js:2
+se @ VM7610 index-BiplEpUR.js:251
+await in se
+（匿名） @ VM7610 index-BiplEpUR.js:251
+Wa @ VM7610 index-BiplEpUR.js:161
+gR @ VM7610 index-BiplEpUR.js:174
+Ff @ VM7610 index-BiplEpUR.js:178
+$0 @ VM7610 index-BiplEpUR.js:178
+qR @ VM7610 index-BiplEpUR.js:174
+ha @ VM7610 index-BiplEpUR.js:174
+（匿名） @ VM7610 index-BiplEpUR.js:174
+Yr @ VM7610 index-BiplEpUR.js:62
+Wt @ VM7610 index-BiplEpUR.js:62
+mr @ VM7610 index-BiplEpUR.js:62このエラーを分析
+VM7609 eruda.js:2 Failed to load user data: TypeError: Failed to fetch
+    at window.fetch (VM7609 eruda.js:2:218642)
+    at Object.apply (VM7608 injected.js:253:39)
+    at se (VM7610 index-BiplEpUR.js:251:36691)
+Mt.forEach.n.<computed> @ VM7609 eruda.js:2
+se @ VM7610 index-BiplEpUR.js:251
+await in se
+（匿名） @ VM7610 index-BiplEpUR.js:251
+Wa @ VM7610 index-BiplEpUR.js:161
+uR @ VM7610 index-BiplEpUR.js:174
+lR @ VM7610 index-BiplEpUR.js:174
+oR @ VM7610 index-BiplEpUR.js:174
+sR @ VM7610 index-BiplEpUR.js:174
+qR @ VM7610 index-BiplEpUR.js:174
+ha @ VM7610 index-BiplEpUR.js:174
+（匿名） @ VM7610 index-BiplEpUR.js:174
+Yr @ VM7610 index-BiplEpUR.js:62
+Wt @ VM7610 index-BiplEpUR.js:62
+mr @ VM7610 index-BiplEpUR.js:62このエラーを分析
+VM7609 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM7609 eruda.js:2:218642)
+    at Object.apply (VM7608 injected.js:253:39)
+    at z (VM7610 index-BiplEpUR.js:251:35857)
+Mt.forEach.n.<computed> @ VM7609 eruda.js:2
+z @ VM7610 index-BiplEpUR.js:251
+await in z
+（匿名） @ VM7610 index-BiplEpUR.js:251
+Wa @ VM7610 index-BiplEpUR.js:161
+gR @ VM7610 index-BiplEpUR.js:174
+Ff @ VM7610 index-BiplEpUR.js:178
+$0 @ VM7610 index-BiplEpUR.js:178
+qR @ VM7610 index-BiplEpUR.js:174
+ha @ VM7610 index-BiplEpUR.js:174
+（匿名） @ VM7610 index-BiplEpUR.js:174
+Yr @ VM7610 index-BiplEpUR.js:62
+Wt @ VM7610 index-BiplEpUR.js:62
+mr @ VM7610 index-BiplEpUR.js:62このエラーを分析
+VM7609 eruda.js:2 Failed to load review data: TypeError: Failed to fetch
+    at window.fetch (VM7609 eruda.js:2:218642)
+    at Object.apply (VM7608 injected.js:253:39)
+    at z (VM7610 index-BiplEpUR.js:251:35818)
+Mt.forEach.n.<computed> @ VM7609 eruda.js:2
+z @ VM7610 index-BiplEpUR.js:251
+await in z
+（匿名） @ VM7610 index-BiplEpUR.js:251
+Wa @ VM7610 index-BiplEpUR.js:161
+uR @ VM7610 index-BiplEpUR.js:174
+lR @ VM7610 index-BiplEpUR.js:174
+oR @ VM7610 index-BiplEpUR.js:174
+sR @ VM7610 index-BiplEpUR.js:174
+qR @ VM7610 index-BiplEpUR.js:174
+ha @ VM7610 index-BiplEpUR.js:174
+（匿名） @ VM7610 index-BiplEpUR.js:174
+Yr @ VM7610 index-BiplEpUR.js:62
+Wt @ VM7610 index-BiplEpUR.js:62
+mr @ VM7610 index-BiplEpUR.js:62このエラーを分析
+6Refused to load the font '<URL>' because it violates the following Content Security Policy directive: "default-src 'self'". Note that 'font-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+workspace_iframe.html?initialPath=%2Flogin&id=%3Ar157%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
