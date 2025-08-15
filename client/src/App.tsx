@@ -72,6 +72,7 @@ import IframeAuthTest from "./pages/iframe-auth-test.js";
 import SessionDebug from "./pages/session-debug.js";
 import SupabaseConnectionTest from "./pages/supabase-connection-test.js";
 import NetworkCorsTest from "./pages/network-cors-test.js";
+import Login from "./pages/login.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -135,6 +136,7 @@ const publicPaths = new Set([
   "/session-debug",
   "/supabase-connection-test",
   "/network-cors-test",
+  "/login",
 ]);
 
 function Guard({ children }: { children: JSX.Element }) {
@@ -147,7 +149,10 @@ function Guard({ children }: { children: JSX.Element }) {
   const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith(p + "/"));
   if (isPublic) return children;
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    window.location.href = "/login";
+    return <div style={{padding:24}}>Redirecting to login...</div>;
+  }
   return children;
 }
 
@@ -601,6 +606,9 @@ function AppRoutes() {
           </Guard>
         }
       />
+      
+      {/* Public Routes - No Authentication Required */}
+      <Route path="/login" element={<Login />} />
 
       {/* 認証が必要なルート */}
       <Route

@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useNavigate } from 'react-router-dom';
+// Remove unused import
 
 export default function Login() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
