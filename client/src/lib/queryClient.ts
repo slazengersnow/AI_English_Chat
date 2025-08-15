@@ -22,20 +22,65 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
   console.log(`📡 API Request: ${options.method || 'GET'} ${url}`);
   
   try {
-    // Get Supabase auth token if available
+    // Get Supabase auth token with multiple fallback methods
     const { supabase } = await import('../lib/supabaseClient');
-    const { data: { session }, error } = await supabase.auth.getSession();
+    let authToken = null;
+    
+    // Method 1: Get from current Supabase session
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        authToken = session.access_token;
+        console.log(`🔐 Auth token from Supabase session for ${url}`);
+      }
+    } catch (sessionError) {
+      console.log(`⚠️ Could not get session from Supabase for ${url}:`, sessionError);
+    }
+    
+    // Method 2: Try to restore from localStorage if no session
+    if (!authToken && typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const storedSession = localStorage.getItem('supabase.auth.token');
+        if (storedSession) {
+          const parsedSession = JSON.parse(storedSession);
+          if (parsedSession.access_token) {
+            // Verify token is not expired
+            const now = Math.floor(Date.now() / 1000);
+            if (parsedSession.expires_at && now < parsedSession.expires_at) {
+              authToken = parsedSession.access_token;
+              console.log(`🔐 Auth token from localStorage backup for ${url}`);
+              
+              // Try to restore session to Supabase
+              try {
+                await supabase.auth.setSession({
+                  access_token: parsedSession.access_token,
+                  refresh_token: parsedSession.refresh_token
+                });
+                console.log(`🔄 Session restored to Supabase from localStorage for ${url}`);
+              } catch (restoreError) {
+                console.warn(`⚠️ Could not restore session to Supabase for ${url}:`, restoreError);
+              }
+            } else {
+              console.log(`⚠️ Stored token is expired for ${url}, clearing...`);
+              localStorage.removeItem('supabase.auth.token');
+            }
+          }
+        }
+      } catch (storageError) {
+        console.warn(`⚠️ Could not read from localStorage for ${url}:`, storageError);
+      }
+    }
     
     const authHeaders: Record<string, string> = {
       "Content-Type": "application/json",
     };
 
     // Add authorization header if token is available
-    if (session?.access_token) {
-      authHeaders["Authorization"] = `Bearer ${session.access_token}`;
+    if (authToken) {
+      authHeaders["Authorization"] = `Bearer ${authToken}`;
       console.log(`🔐 Auth token added for ${url}`);
     } else {
-      console.log(`⚠️  No auth token available for ${url}`);
+      console.log(`⚠️ No auth token available for ${url}`);
     }
 
     const response = await fetch(url, {
@@ -49,6 +94,13 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
     console.log(`📨 Response: ${response.status} ${response.statusText} for ${url}`);
 
     if (!response.ok) {
+      // Handle 401 errors specifically
+      if (response.status === 401) {
+        console.log(`🔐 Unauthorized for ${url} - clearing stored session`);
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem('supabase.auth.token');
+        }
+      }
       throw new Error(`${response.status}: ${response.statusText}`);
     }
 
