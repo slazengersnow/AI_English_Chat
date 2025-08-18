@@ -16,14 +16,6 @@ interface SubscriptionGuardProps {
 }
 
 export function SubscriptionGuard({ children }: SubscriptionGuardProps) {
-  // 開発環境では常にバイパス
-  const isDevelopment = true;
-  
-  if (isDevelopment) {
-    console.log('SubscriptionGuard - Development mode bypass');
-    return <>{children}</>;
-  }
-
-  // 以下は本番用（現在は使用されない）
+  console.log('SubscriptionGuard - FORCED BYPASS');
   return <>{children}</>;
 }
