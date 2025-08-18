@@ -70,5 +70,9 @@
     "tsx": "^4.16.5",
     "typescript": "^5.5.4",
     "vite": "^5.4.0"
-  }
+  },
+  "main": "TrainingInterface.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
