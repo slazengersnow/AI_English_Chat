@@ -44,14 +44,31 @@ export default defineConfig({
     ),
   },
 
-  // ✅ サーバー設定（開発環境用）
+  // ✅ 開発サーバー設定（修正版）
   server: {
-    port: 5000, // ✅ Expressサーバーのポートと合わせる
-    host: true, // ✅ 外部アクセス（0.0.0.0）を許可
-    middlewareMode: true, // ✅ Vite 6 以降での非推奨対応: boolean に統一
-    allowedHosts: [
-      ".replit.dev", // ✅ Replit用
-      ".fly.dev", // ✅ Fly.io用
-    ],
+    port: 3000, // ✅ Expressサーバー(5000)と分離
+    host: "0.0.0.0", // ✅ 外部アクセス許可
+    // middlewareMode: true を削除（独立サーバーとして動作）
+    proxy: {
+      // ✅ APIリクエストをExpressサーバーにプロキシ
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/health": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+      "/__introspect": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
+    },
+    cors: true, // ✅ CORS有効化
+  },
+
+  // ✅ 追加の最適化設定
+  optimizeDeps: {
+    include: ["react", "react-dom", "@supabase/supabase-js"],
   },
 });

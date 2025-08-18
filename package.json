@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "tsx watch server/index.ts",
-    "dev:client": "vite",
+    "dev:client": "vite --port 3000 --host 0.0.0.0",
+    "dev:client-only": "vite --port 3000 --host 0.0.0.0",
+    "dev:server-only": "tsx watch server/index.ts",
     "build": "npm run build:server && npm run build:client",
     "build:server": "tsc --project tsconfig.server.json",
     "build:client": "vite build",

@@ -63,29 +63,22 @@ import WorkingLogin from "./pages/working-login.js";
 import FinalAuthTest from "./pages/final-auth-test.js";
 import ReplitAuthFix from "./pages/replit-auth-fix.js";
 import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
-import AuthTest from "./pages/auth-test.js";
-import AuthDebugTest from "./pages/auth-debug-test.js";
-import LoginDebug from "./pages/login-debug.js";
-import AuthTestComplete from "./pages/auth-test-complete.js";
-import SimpleAuthTest from "./pages/simple-auth-test.js";
-import IframeAuthTest from "./pages/iframe-auth-test.js";
-import SessionDebug from "./pages/session-debug.js";
-import SupabaseConnectionTest from "./pages/supabase-connection-test.js";
-import NetworkCorsTest from "./pages/network-cors-test.js";
+// import SupabaseConnectionDebug from "./pages/supabase-connection-debug.js"; // 一時的にコメントアウト
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <p className="mt-4 text-gray-600">認証情報を確認中...</p>
   </div>
 );
 
-// 公開パス（認証不要）の定義 - メールフローを必ず含める
+// 公開パス（認証不要）の定義
 const publicPaths = new Set([
   "/login",
   "/signup",
   "/signup-simple",
-  "/auth-callback",
+  "/subscription-select",
   "/confirm",
   "/auth/callback",
   "/terms",
@@ -107,6 +100,7 @@ const publicPaths = new Set([
   "/supabase-config-check",
   "/fix-email",
   "/direct-access",
+  "/auth-callback",
   "/test-actual-link",
   "/stripe-test",
   "/price-check",
@@ -126,26 +120,44 @@ const publicPaths = new Set([
   "/final-auth-test",
   "/replit-auth-fix",
   "/emergency-auth-fix",
-  "/auth-test",
-  "/auth-debug-test",
-  "/login-debug",
-  "/auth-test-complete",
-  "/simple-auth-test",
-  "/iframe-auth-test",
-  "/session-debug",
+  "/supabase-debug",
   "/supabase-connection-test",
   "/network-cors-test",
 ]);
 
-// 認証ガードコンポーネント（修正版 - publicPaths優先）
+// 認証ガードコンポーネント（デバッグログ付き）
 function Guard({ children }: { children: JSX.Element }) {
   const { user, initialized } = useAuth();
   const { pathname } = useLocation();
 
-  // 修正: publicPaths 先に通す→initialized 以前はスピナー の順で
-  if (publicPaths.has(pathname)) return children;
-  if (!initialized) return <LoadingSpinner />;
-  if (!user) return <Navigate to="/login" replace />;
+  // 詳細デバッグログ
+  console.log("=== GUARD FUNCTION EXECUTED ===", {
+    pathname,
+    user: user ? { email: user.email, id: user.id } : null,
+    initialized,
+    isPublicPath: publicPaths.has(pathname),
+    timestamp: new Date().toISOString(),
+  });
+
+  // 1. 公開パスチェック
+  if (publicPaths.has(pathname)) {
+    console.log("Guard: 公開パス通過", pathname);
+    return children;
+  }
+
+  // 2. 初期化待ち
+  if (!initialized) {
+    console.log("Guard: 初期化待ち中...");
+    return <LoadingSpinner />;
+  }
+
+  // 3. 認証チェック
+  if (!user) {
+    console.log("Guard: 未認証のためログインページにリダイレクト");
+    return <Navigate to="/login" replace />;
+  }
+
+  console.log("Guard: 認証済みユーザー、ページ表示許可");
   return children;
 }
 
@@ -155,6 +167,7 @@ function ProtectedRoute({
 }: {
   component: React.ComponentType;
 }) {
+  console.log("ProtectedRoute: SubscriptionGuard通過中...");
   return (
     <SubscriptionGuard>
       <Component />
@@ -527,85 +540,21 @@ function AppRoutes() {
           </Guard>
         }
       />
-      <Route
-        path="/auth-test"
-        element={
-          <Guard>
-            <AuthTest />
-          </Guard>
-        }
-      />
-      <Route
-        path="/auth-debug-test"
-        element={
-          <Guard>
-            <AuthDebugTest />
-          </Guard>
-        }
-      />
-      <Route
-        path="/login-debug"
-        element={
-          <Guard>
-            <LoginDebug />
-          </Guard>
-        }
-      />
-      <Route
-        path="/auth-test-complete"
-        element={
-          <Guard>
-            <AuthTestComplete />
-          </Guard>
-        }
-      />
-      <Route
-        path="/simple-auth-test"
-        element={
-          <Guard>
-            <SimpleAuthTest />
-          </Guard>
-        }
-      />
-      <Route
-        path="/iframe-auth-test"
-        element={
-          <Guard>
-            <IframeAuthTest />
-          </Guard>
-        }
-      />
-      <Route
-        path="/session-debug"
-        element={
-          <Guard>
-            <SessionDebug />
-          </Guard>
-        }
-      />
-      <Route
-        path="/supabase-connection-test"
+      {/* <Route
+        path="/supabase-debug"
         element={
           <Guard>
             <SupabaseConnectionTest />
           </Guard>
         }
-      />
-      <Route
-        path="/network-cors-test"
-        element={
-          <Guard>
-            <NetworkCorsTest />
-          </Guard>
-        }
-      />
+      /> */}
 
       {/* 認証が必要なルート */}
       <Route
         path="/"
         element={
           <Guard>
-            <Home />
+            <ProtectedRoute component={Home} />
           </Guard>
         }
       />
@@ -665,6 +614,14 @@ function AppRoutes() {
           </Guard>
         }
       />
+      <Route
+        path="/subscription/select"
+        element={
+          <Guard>
+            <SubscriptionSelect />
+          </Guard>
+        }
+      />
 
       {/* 404 Not Found */}
       <Route
@@ -681,6 +638,7 @@ function AppRoutes() {
 
 // メインアプリケーションコンポーネント
 function App() {
+  console.log("=== APP COMPONENT INITIALIZED ===");
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
