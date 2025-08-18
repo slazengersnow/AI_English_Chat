@@ -150,20 +150,13 @@ app.get("/__introspect", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// 開発環境では静的ファイル配信をスキップ（Viteが処理）
-const isDevelopment = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
-
-if (!isDevelopment) {
-  // 本番環境でのみ静的ファイルを配信
-  const clientDist = path.resolve(process.cwd(), "dist/client");
-  app.use(express.static(clientDist));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
-  });
-  console.log("📦 Production mode: Serving static client files from dist/client");
-} else {
-  console.log("🔧 Development mode: Static files handled by Vite dev server");
-}
+// 常に静的ファイルを配信
+console.log("📁 Serving static files from dist/client");
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
 
 /* ---------- 404 handler for API routes ---------- */
 app.use("/api/*", (_req, res) => {
