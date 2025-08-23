@@ -1,0 +1,26 @@
+Console.js:61 The above error occurred in the <ME> component:
+
+    at ME (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:271:53360)
+    at He (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:380:108763)
+    at DG (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:224:3243)
+    at IG (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:224:8336)
+    at Dye
+    at f (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:254:7547)
+    at DI (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:254:97272)
+    at PG (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:224:7442)
+    at JG (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:233:2733)
+    at Ute (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:263:36312)
+    at OY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-B1A6xVqR.js:254:422)
+    at Sye
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+auth-provider.tsx:20 Uncaught Error: useAuth must be used within an AuthProvider
+    at kS (auth-provider.tsx:20:11)
+    at ME (home.tsx:18:23)
+workspace_iframe.htm…2F&id=%3Ar3q%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+attached_assets/%E3%…1755916222082.png:1 
+ GET https://replit.com/@slazengersnow/attached_assets/%E3%82%B9%E3%82%AF%E3%83%…82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-08-23%2011.30.05_1755916222082.png 404 (Not Found)
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+﻿
+

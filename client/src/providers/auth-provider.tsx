@@ -6,6 +6,9 @@ type AuthCtx = {
   user: any | null;
   initialized: boolean;
   isLoading: boolean;
+  isAdmin?: boolean;
+  isAuthenticated?: boolean;
+  signOut?: () => Promise<void>;
 };
 
 const Ctx = createContext<AuthCtx>({
@@ -124,8 +127,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
+  const signOut = async () => {
+    console.log("🚪 Sign out requested");
+    await supabase.auth.signOut();
+  };
+
   return (
-    <Ctx.Provider value={{ user, initialized, isLoading }}>
+    <Ctx.Provider value={{ 
+      user, 
+      initialized, 
+      isLoading, 
+      isAdmin: false, // Simplified for now
+      isAuthenticated: !!user,
+      signOut
+    }}>
       {children}
     </Ctx.Provider>
   );

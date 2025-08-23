@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogOut, User, Shield } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { useAuth } from '@/components/auth-provider'
+import { useAuth } from '@/providers/auth-provider'
 import { useLocation } from 'wouter'
 
 export function UserProfile() {

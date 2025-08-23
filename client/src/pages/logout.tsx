@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuth } from '@/components/auth-provider';
+import { useAuth } from '@/providers/auth-provider';
 import { useLocation } from 'wouter';
 
 export default function Logout() {
