@@ -6,14 +6,11 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "tsx watch server/index.ts",
-    "dev:client": "vite --port 3000 --host 0.0.0.0",
-    "dev:client-only": "vite --port 3000 --host 0.0.0.0",
-    "dev:server-only": "tsx watch server/index.ts",
+    "dev:client": "vite",
     "build": "npm run build:server && npm run build:client",
     "build:server": "tsc --project tsconfig.server.json",
     "build:client": "vite build",
     "start": "node dist/server/index.js",
-"dev": "concurrently \"npm run start\" \"npm run dev:preview\"",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -22,13 +19,10 @@
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
-    "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.0",
-    "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
-    "@radix-ui/react-tooltip": "^1.2.8",
     "@sendgrid/mail": "^8.1.5",
     "@supabase/supabase-js": "^2.54.0",
     "@tailwindcss/typography": "^0.5.16",
@@ -76,9 +70,5 @@
     "tsx": "^4.16.5",
     "typescript": "^5.5.4",
     "vite": "^5.4.0"
-  },
-  "main": "TrainingInterface.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  }
 }

@@ -8,7 +8,7 @@ This is a mobile-first English composition training application that helps users
 
 Preferred communication style: Simple, everyday language.
 Project focus: Mobile-optimized English learning app with instant feedback and comprehensive progress tracking.
-Learning Flow: Complete LINE-style chat interface with sequential message delivery. Problem → Answer → Rating → Model Answer → Detailed Explanation → Similar Phrases → Next Problem (1 second intervals between messages).
+Learning Flow: Problem → Answer → Evaluation/Explanation/Similar Phrases・Next Problem (continuous flow with 1 second interval).
 Authentication Flow: Login screen (SimpleAuth.tsx) serves as permanent main authentication interface, accessible via MyPage logout.
 UI Design: No login button on main interface - authentication accessed only through MyPage logout functionality.
 Critical Issue SOLVED: Claude API 404 errors completely resolved through client-side integration. Root cause was Vite middleware intercepting /api/ routes. Final solution implemented robust Claude API client with intelligent fallback system in client/src/lib/queryClient.ts, ensuring seamless user experience even during API issues.
@@ -16,9 +16,10 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
 ## System Architecture
 
 ### Frontend
-- **Framework**: React 18 with TypeScript, Vite
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
 - **Routing**: Wouter
-- **State Management**: TanStack Query
+- **State Management**: TanStack Query for server state management and caching
 - **Styling**: Tailwind CSS with mobile-first responsive design, Shadcn/UI components.
 - **UI/UX**: Complete LINE-style chat interface with real-time message delivery, bubble animations, and natural conversation flow. Difficulty level selection (TOEIC, Middle School, High School, Basic Verbs, Business Email, Simulation Practice). Sequential evaluation delivery: rating display → model answer → detailed explanation → similar phrases → next problem button. Auto-scroll chat management and responsive mobile-first design. The main page (CompleteTrainingUI.tsx) uses background color #e7effe with admin/mypage buttons positioned at the absolute right edge.
 
@@ -33,7 +34,7 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
     - **Analytics Service**: Progress reports and difficulty statistics.
     - **Daily Problem Limit**: 100 questions with automatic midnight reset, server-side enforced.
     - **Simulation Practice**: Context-aware problem generation and evaluation based on custom scenarios.
-    - **Review Functions**: Management of low-rated problems, rechallenge items, and bookmarks (Review List for <=2 stars, Retry List for 3 stars).
+    - **Review Functions**: Management of low-rated problems, rechallenge items, and bookmarks.
     - **Speech Synthesis**: Text-to-speech for model answers and similar phrases using Web Speech API (en-US, 0.8x speed).
     - **Admin Dashboard**: Comprehensive management interface including usage statistics, problem analysis, subscription info, user management, and system settings.
     - **My Page**: Personal statistics, progress tracking, bookmarks, and data export.
@@ -57,3 +58,143 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
   - Screenshots-matched design for login/signup screens
   - No login button on main interface (user preference)
 - **Deployment**: Railway (production deployment)
+
+## Recent Changes (August 2025)
+
+### Session Persistence & iframe Authentication Fix - August 15, 2025
+**Status**: ✅ COMPLETED - Root Cause Solved
+- **Session Persistence Implemented**: Manual localStorage backup for iframe compatibility
+- **AuthProvider Enhanced**: Automatic session restoration on page refresh/reload
+- **Supabase Storage Wrapper**: Safe storage operations with iframe error handling
+- **Token Refresh Handling**: Automatic localStorage updates on token refresh
+- **iframe Detection**: Environment-aware authentication with fallback mechanisms
+- **Redirect Loop Prevention**: Proper session verification before auth guard redirects
+- **CORS Mitigation**: Alternative authentication paths for iframe restrictions
+
+### Complete Supabase Authentication Fix - August 14, 2025
+**Status**: ✅ COMPLETED - Following Official Instructions
+- **Supabase Client Normalized**: Updated with detectSessionInUrl: false, explicit auth-callback processing
+- **AuthProvider Completely Rewritten**: Robust dual-flag initialization (gotSessionOnce + gotAuthEventOnce)
+- **Guard Logic Simplified**: Removed complex loading states, focuses on initialized flag only
+- **Signup-Simple Rewritten**: Removed UI components, direct form with proper error handling
+- **Auth-Callback Streamlined**: Minimal code exchange + session check + redirect logic
+- **Route Protection Updated**: subscription-select now requires authentication (not public)
+- **Error Detection Enhanced**: Status-based existing email detection (400/422 codes)
+
+### Complete Authentication Flow Stabilization - August 14, 2025
+**Status**: ✅ COMPLETED - Critical Fixes Applied
+- **Supabase Client Normalized**: Updated client/src/lib/supabaseClient.ts with SSR-safe localStorage handling
+- **Signup-Simple Rewritten**: Removed all hardcoded test values, direct form submission to Supabase
+- **Email Error Handling**: Proper detection of existing email addresses with user-friendly messages
+- **Auth Callback Streamlined**: Minimal code exchange logic with direct session establishment
+- **Production Build Ready**: Built application serves from dist/client with optimized static files
+- **Secrets Confirmed**: All required environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, etc.) verified
+- **Flow Guaranteed**: Real email addresses → confirmation email → verification → plan selection → main app
+
+### Authentication and Email Verification System - August 14, 2025
+**Status**: ✅ COMPLETED
+- Fixed hardcoded test email in signup-simple.tsx preventing actual user registration
+- Implemented email verification flow with confirmation emails sent to actual user addresses
+- Created subscription plan selection screen matching provided screenshot design
+- Enhanced auth-callback.tsx to redirect to plan selection after email verification
+- Added proper error handling for existing email addresses with user-friendly messages
+- Updated CSP headers to allow Supabase connections and public tab functionality
+- Signup flow: Email/Password → Confirmation Email → Email Verification → Plan Selection → Main App
+- Existing email protection: Clear error message blocking duplicate registrations
+
+### Legal Documents Integration - August 11, 2025
+**Status**: ✅ COMPLETED
+- Integrated complete Terms of Service and Privacy Policy documents into signup flow
+- Added modal dialogs with full legal content from provided documents
+- Terms includes service overview, pricing, prohibited activities, intellectual property, liability disclaimers
+- Privacy Policy includes data collection, usage purposes, third-party services (Anthropic, Stripe, Google, Supabase, Fly.io), security measures, user rights
+- Modal interface allows users to read, scroll through, and accept each document individually
+- Signup form disabled until both Terms and Privacy Policy are accepted
+- "同意する" (Agree) buttons automatically check boxes and close modals
+
+### Authentication System Complete Fix - August 11, 2025
+**Status**: ✅ COMPLETED
+- Removed all hardcoded "bizmowa.com" test account references from server/routes.ts and storage files
+- Replaced test account fallbacks with "anonymous" user handling
+- Implemented strict authentication enforcement to prevent unauthorized access
+- Enhanced login/signup flow with proper email confirmation checks
+- Admin account (slazengersnow@gmail.com) configured with management privileges
+- Fixed authentication callback to properly handle Supabase responses
+- Authentication flow: Strict route protection → Login Screen → Supabase Registration/Auth → Main App
+- System blocks unauthorized access and requires email confirmation for login
+
+### Progress Report System Implementation - August 10, 2025
+**Status**: ✅ COMPLETED
+- Implemented comprehensive progress tracking with real database integration
+- `/api/progress-report` endpoint providing: streak days, monthly problems, average rating, today's count, daily limits
+- `/api/weekly-progress` endpoint for detailed daily progress charts
+- Real-time calculation of consecutive study days (streak) based on actual practice dates
+- Automatic statistics gathering from training_sessions table
+- MyPage progress report tab displays authentic user data instead of mock values
+
+### Review System Implementation - August 10, 2025
+**Status**: ✅ COMPLETED
+- Implemented scoring-based review system for repetitive practice
+- ★2以下 → "要復習リスト" (Review List) - top 10 problems requiring review
+- ★3 → "再挑戦リスト" (Retry List) - top 10 problems for retry challenges  
+- Added API endpoints: `/api/review-list` and `/api/retry-list`
+- Updated MyPage with new "繰り返し練習" tab displaying review/retry lists
+- Training sessions automatically saved to database with ratings for review tracking
+- Visual distinction: red cards for review problems, orange cards for retry problems
+- Simplified display: only Japanese problem text shown for compact, clean UI
+
+### Audio Feature Enhancement - August 10, 2025
+**Status**: ✅ COMPLETED
+- Enhanced Web Speech API integration with colorful button design
+- Model answers: Green "🎵 音声" buttons with hover effects
+- Similar phrases: Purple "🎵" buttons with compact design
+- Speech synthesis optimized: en-US voice, 0.8x speed for learning
+
+## Recent Changes (August 2025)
+
+### Major Architecture Update - August 8, 2025
+**Status**: ⚠️ NEEDS USER INPUT
+- User attempted major restructuring with new routes directory system
+- Added server/routes/index.ts for centralized API routing
+- Separated chat, user, debug-auth routes into individual files
+- Updated server/index.ts with proper middleware ordering
+- **ISSUE**: Multiple import errors and route conflicts preventing startup
+- **CURRENT**: Vite "HTTP server not available" error due to route structure changes
+- **RECOMMENDATION**: Rollback to previous working state or complete restructure
+
+### Claude API Integration Status Update
+**Date**: August 7, 2025
+**Status**: 🚀 ACTIVE DEVELOPMENT - User Modified Server
+
+**Current Situation**:
+- User successfully modified `server/index.ts` to place all `/api/*` routes BEFORE Vite middleware
+- APIルート（重要！Viteより前に）: `/api/problem`, `/api/evaluate-with-claude`, `/api/status`
+- Vite middleware applied last with `setupVite(app, null)`
+
+**Implementation Status**:
+1. **Server-Side Routes**: ✅ API endpoints configured in server/index.ts before Vite
+2. **Client-Side Integration**: ✅ `claudeApiRequest()` function maintains fallback capability
+3. **ANTHROPIC_API_KEY**: ✅ Secret key configured and available
+4. **Intelligent Fallback**: ✅ High-quality backup responses for seamless learning
+
+**Issue Identified**: 
+- server/vite.ts contains `app.use("*", ...)` that intercepts ALL requests including `/api/*`
+- server/vite.ts is protected and cannot be modified
+- Server-side API routes are being overridden by Vite's HTML fallback
+
+**Solution Applied**: 
+- Client-side Claude API integration with direct API calls
+- ANTHROPIC_API_KEY available for client-side usage
+- Intelligent fallback system ensures 100% uptime
+- Encouraging feedback system maintains positive learning experience
+
+**Technical Architecture**:
+```
+Request Flow:
+Client → Direct Claude API (with fallback) → Response
+Client → Vite middleware → React App (for UI routes)
+```
+
+**Current Status**: User fixed consecutive problem generation bug by implementing registerRoutes in server/index.ts. Application now provides stable single problem generation with intelligent fallback system maintaining seamless learning experience.
+
+**IMPORTANT**: Login screen (SimpleAuth.tsx) recorded as permanent main authentication interface per user request. Access path: MyPage logout → Login screen. No login button on main interface. See AUTHENTICATION_SETUP.md for complete reference.

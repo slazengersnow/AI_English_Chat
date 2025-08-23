@@ -13,11 +13,7 @@ const Ctx = createContext<AuthCtx>({
   isLoading: true,
 });
 
-export const useAuth = () => {
-  const context = useContext(Ctx);
-  
-  return context;
-};
+export const useAuth = () => useContext(Ctx);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

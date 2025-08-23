@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { User, Shield } from "lucide-react";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/providers/auth-provider";
+import { useAuth } from "@/components/auth-provider";
 
 export default function Home() {
   const [location] = useLocation();
   const [currentView, setCurrentView] = useState<'difficulty' | 'training' | 'test'>('difficulty');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKey | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const { user } = useAuth();
+  const { isAdmin } = useAuth();
 
   // Check subscription status
   const { data: userSubscription } = useQuery<{
@@ -78,7 +78,7 @@ export default function Home() {
       {/* Navigation header - only show on difficulty selection */}
       {currentView === 'difficulty' && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-          {user?.email === 'admin@example.com' && (
+          {isAdmin && (
             <Link href="/admin">
               <Button variant="outline" size="sm" className="px-4 py-2 bg-white shadow-md rounded border-gray-300 hover:bg-gray-50 flex items-center">
                 <Shield className="w-4 h-4 mr-2" />

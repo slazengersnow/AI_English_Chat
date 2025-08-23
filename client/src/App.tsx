@@ -12,13 +12,12 @@ import { Toaster } from "./components/ui/toaster.js";
 import { TooltipProvider } from "./components/ui/tooltip.js";
 import { AuthProvider, useAuth } from "./providers/auth-provider.js";
 import { SubscriptionGuard } from "./components/subscription-guard.js";
-import { DifficultySelection } from "./components/difficulty-selection.js";
+import Home from "./pages/home.js";
 import MyPage from "./pages/my-page.js";
 import SimulationSelection from "./pages/simulation-selection.js";
 import SimulationPractice from "./pages/simulation-practice.js";
 import Admin from "./pages/admin.js";
 import Success from "./pages/success.js";
-import { ProblemPractice } from "./components/problem-practice.js";
 import Cancel from "./pages/cancel.js";
 import Login from "./pages/login.js";
 import LoginTest from "./pages/login-test.js";
@@ -61,21 +60,32 @@ import Logout from "./pages/logout.js";
 import OAuthFix from "./pages/oauth-fix.js";
 import EmergencyLogin from "./pages/emergency-login.js";
 import WorkingLogin from "./pages/working-login.js";
+import FinalAuthTest from "./pages/final-auth-test.js";
+import ReplitAuthFix from "./pages/replit-auth-fix.js";
+import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
+import AuthTest from "./pages/auth-test.js";
+import AuthDebugTest from "./pages/auth-debug-test.js";
+import LoginDebug from "./pages/login-debug.js";
+import AuthTestComplete from "./pages/auth-test-complete.js";
+import SimpleAuthTest from "./pages/simple-auth-test.js";
+import IframeAuthTest from "./pages/iframe-auth-test.js";
+import SessionDebug from "./pages/session-debug.js";
+import SupabaseConnectionTest from "./pages/supabase-connection-test.js";
+import NetworkCorsTest from "./pages/network-cors-test.js";
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    <p className="mt-4 text-gray-600">認証情報を確認中...</p>
   </div>
 );
 
-// 公開パス（認証不要）の定義
+// 公開パス（認証不要）の定義 - メールフローを必ず含める
 const publicPaths = new Set([
   "/login",
   "/signup",
   "/signup-simple",
-  "/subscription-select",
+  "/auth-callback",
   "/confirm",
   "/auth/callback",
   "/terms",
@@ -97,7 +107,6 @@ const publicPaths = new Set([
   "/supabase-config-check",
   "/fix-email",
   "/direct-access",
-  "/auth-callback",
   "/test-actual-link",
   "/stripe-test",
   "/price-check",
@@ -114,33 +123,29 @@ const publicPaths = new Set([
   "/oauth-fix",
   "/emergency-login",
   "/working-login",
-  "/supabase-debug",
+  "/final-auth-test",
+  "/replit-auth-fix",
+  "/emergency-auth-fix",
+  "/auth-test",
+  "/auth-debug-test",
+  "/login-debug",
+  "/auth-test-complete",
+  "/simple-auth-test",
+  "/iframe-auth-test",
+  "/session-debug",
+  "/supabase-connection-test",
   "/network-cors-test",
 ]);
 
-// 認証ガードコンポーネント（デバッグログ付き）
+// 認証ガードコンポーネント（修正版 - publicPaths優先）
 function Guard({ children }: { children: JSX.Element }) {
   const { user, initialized } = useAuth();
   const { pathname } = useLocation();
-  
-  // 詳細デバッグログ
-  console.log('=== GUARD DEBUG ===', {
-    pathname,
-    user: user ? { email: user.email } : null,
-    initialized,
-    isPublicPath: publicPaths.has(pathname)
-  });
 
-
-  // 通常のロジック
+  // 修正: publicPaths 先に通す→initialized 以前はスピナー の順で
   if (publicPaths.has(pathname)) return children;
   if (!initialized) return <LoadingSpinner />;
-  if (!user) {
-    console.log('Guard: ユーザーなし→ログインリダイレクト');
-    return <Navigate to="/login" replace />;
-  }
-  
-  console.log('Guard: 認証OK');
+  if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
@@ -150,7 +155,6 @@ function ProtectedRoute({
 }: {
   component: React.ComponentType;
 }) {
-  console.log("ProtectedRoute: SubscriptionGuard通過中...");
   return (
     <SubscriptionGuard>
       <Component />
@@ -499,13 +503,109 @@ function AppRoutes() {
           </Guard>
         }
       />
+      <Route
+        path="/final-auth-test"
+        element={
+          <Guard>
+            <FinalAuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/replit-auth-fix"
+        element={
+          <Guard>
+            <ReplitAuthFix />
+          </Guard>
+        }
+      />
+      <Route
+        path="/emergency-auth-fix"
+        element={
+          <Guard>
+            <EmergencyAuthFix />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-test"
+        element={
+          <Guard>
+            <AuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-debug-test"
+        element={
+          <Guard>
+            <AuthDebugTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/login-debug"
+        element={
+          <Guard>
+            <LoginDebug />
+          </Guard>
+        }
+      />
+      <Route
+        path="/auth-test-complete"
+        element={
+          <Guard>
+            <AuthTestComplete />
+          </Guard>
+        }
+      />
+      <Route
+        path="/simple-auth-test"
+        element={
+          <Guard>
+            <SimpleAuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/iframe-auth-test"
+        element={
+          <Guard>
+            <IframeAuthTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/session-debug"
+        element={
+          <Guard>
+            <SessionDebug />
+          </Guard>
+        }
+      />
+      <Route
+        path="/supabase-connection-test"
+        element={
+          <Guard>
+            <SupabaseConnectionTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/network-cors-test"
+        element={
+          <Guard>
+            <NetworkCorsTest />
+          </Guard>
+        }
+      />
 
       {/* 認証が必要なルート */}
       <Route
         path="/"
         element={
           <Guard>
-            <DifficultySelection onDifficultySelect={(difficulty) => window.location.href = `/practice/${difficulty}`} />
+            <Home />
           </Guard>
         }
       />
@@ -553,7 +653,7 @@ function AppRoutes() {
         path="/chat/:difficulty"
         element={
           <Guard>
-            <DifficultySelection onDifficultySelect={(difficulty) => window.location.href = `/practice/${difficulty}`} />
+            <ProtectedRoute component={Home} />
           </Guard>
         }
       />
@@ -561,15 +661,7 @@ function AppRoutes() {
         path="/practice/:difficulty"
         element={
           <Guard>
-            <ProtectedRoute component={ProblemPractice} />
-          </Guard>
-        }
-      />
-      <Route
-        path="/subscription/select"
-        element={
-          <Guard>
-            <SubscriptionSelect />
+            <ProtectedRoute component={Home} />
           </Guard>
         }
       />
@@ -589,8 +681,6 @@ function AppRoutes() {
 
 // メインアプリケーションコンポーネント
 function App() {
-  
-  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

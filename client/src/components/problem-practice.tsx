@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Star } from "lucide-react";
@@ -13,6 +13,7 @@ interface ProblemPracticeProps {
 
 // Simple state type
 type AppState =
+  | "initial"
   | "loading"
   | "problem"
   | "evaluating"
@@ -21,7 +22,7 @@ type AppState =
   | "error";
 
 export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
-  const [state, setState] = useState<AppState>("loading");
+  const [state, setState] = useState<AppState>("initial");
   const [problemData, setProblemData] = useState<any>(null);
   const [userInput, setUserInput] = useState("");
   const [evaluation, setEvaluation] = useState<any>(null);
@@ -31,14 +32,6 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   // CRITICAL: Prevent any duplicate execution
   const isExecutingRef = useRef(false);
   const hasStartedRef = useRef(false);
-
-  // Auto-start when component mounts
-  useEffect(() => {
-    if (!hasStartedRef.current && !isExecutingRef.current) {
-      hasStartedRef.current = true;
-      generateMutation.mutate();
-    }
-  }, []);
 
   // Problem generation - STRICT SINGLE EXECUTION
   const generateMutation = useMutation({
@@ -194,6 +187,23 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
 
       {/* Content */}
       <div className="flex-1 flex flex-col">
+        {/* Initial State - Manual Start Required */}
+        {state === "initial" && (
+          <div className="flex-1 flex flex-col items-center justify-center p-6">
+            <h2 className="text-xl font-semibold mb-4">英作文練習</h2>
+            <p className="text-gray-600 mb-6 text-center">
+              {difficultyName}レベルの問題で練習します。
+              <br />
+              準備ができたら下のボタンを押してください。
+            </p>
+            <Button
+              onClick={handleStartPractice}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3"
+            >
+              練習を開始する
+            </Button>
+          </div>
+        )}
 
         {/* Loading State */}
         {state === "loading" && (
@@ -205,40 +215,36 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
           </div>
         )}
 
-        {/* Problem Display - Redesigned to Match Ideal Interface */}
+        {/* Problem Display */}
         {state === "problem" && problemData && (
-          <div className="flex-1 flex flex-col bg-gradient-to-b from-slate-50 via-blue-50 to-indigo-100">
-            <div className="flex-1 p-6">
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 mb-6 border">
-                <h3 className="text-sm font-medium text-blue-800 mb-2">日本語</h3>
-                <p className="text-xl text-blue-900 font-medium leading-relaxed">
-                  {problemData.japaneseSentence}
-                </p>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-6 border">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  英訳を入力してください
-                </label>
-                <Textarea
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder="英語で翻訳を入力..."
-                  className="min-h-[120px] resize-none border-2 focus:border-blue-500"
-                />
-              </div>
+          <div className="flex-1 flex flex-col p-6">
+            <div className="bg-blue-50 rounded-lg p-6 mb-6">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">日本語</h3>
+              <p className="text-lg text-blue-900 font-medium">
+                {problemData.japaneseSentence}
+              </p>
             </div>
 
-            <div className="p-4 bg-white border-t">
-              <Button
-                onClick={handleSubmit}
-                disabled={!userInput.trim()}
-                className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg"
-              >
-                <Send className="h-4 w-4 mr-2" />
-                回答を送信
-              </Button>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                英訳を入力してください
+              </label>
+              <Textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="英語で翻訳を入力..."
+                className="min-h-[120px] resize-none"
+              />
             </div>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={!userInput.trim()}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-3"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              回答を送信
+            </Button>
           </div>
         )}
 
@@ -252,80 +258,72 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
           </div>
         )}
 
-        {/* Results Display - Redesigned to Match Ideal Interface */}
+        {/* Results Display */}
         {state === "result" && evaluation && (
-          <div className="flex-1 flex flex-col">
-            {/* Chat-style evaluation display */}
-            <div className="flex-1 bg-gradient-to-b from-slate-50 via-blue-50 to-indigo-100 p-4 space-y-4">
-              
-              {/* Rating Display */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold mb-3">評価結果</h3>
-                  <div className="flex justify-center mb-2">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-6 w-6 ${
-                          star <= (evaluation?.rating || 0)
-                            ? "text-yellow-400 fill-current"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    良好な翻訳です
+          <div className="flex-1 flex flex-col p-6">
+            <div className="bg-white rounded-lg border p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">評価結果</h3>
+                <div className="flex">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-5 w-5 ${
+                        star <= (evaluation?.rating || 0)
+                          ? "text-yellow-400 fill-current"
+                          : "text-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">
+                    模範解答
+                  </h4>
+                  <p className="text-green-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
+                    {evaluation.modelAnswer}
+                  </p>
+                  <SpeechButton text={evaluation.modelAnswer} />
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">
+                    フィードバック
+                  </h4>
+                  <p className="text-gray-700 leading-relaxed">
+                    {evaluation.feedback}
                   </p>
                 </div>
-              </div>
 
-              {/* Model Answer */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-700">解説</h4>
-                  <SpeechButton text={evaluation.modelAnswer} className="bg-green-500 hover:bg-green-600 text-white" />
-                </div>
-                <div className="space-y-3">
-                  <div className="bg-green-50 rounded p-3 border-l-4 border-green-400">
-                    <p className="text-sm font-medium text-green-800 mb-1">模範解答</p>
-                    <p className="text-green-700 font-medium">{evaluation.modelAnswer}</p>
-                  </div>
-                  
-                  {evaluation.similarPhrases && evaluation.similarPhrases.length > 0 && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-2 font-medium">類似フレーズ</p>
-                      <div className="space-y-2">
-                        {evaluation.similarPhrases.map((phrase: string, index: number) => (
-                          <div key={index} className="flex items-center justify-between bg-gray-50 rounded px-3 py-2">
-                            <span className="text-sm text-gray-700">• {phrase}</span>
-                            <SpeechButton text={phrase} className="bg-purple-500 hover:bg-purple-600 text-white" />
+                {evaluation.similarPhrases && (
+                  <div>
+                    <h4 className="font-medium text-sm text-gray-700 mb-2">
+                      類似表現
+                    </h4>
+                    <div className="space-y-2">
+                      {evaluation.similarPhrases.map(
+                        (phrase: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <p className="text-gray-600">{phrase}</p>
+                            <SpeechButton text={phrase} />
                           </div>
-                        ))}
-                      </div>
+                        ),
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Detailed Feedback */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border">
-                <h4 className="font-medium text-gray-700 mb-2">詳細フィードバック</h4>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {evaluation.feedback}
-                </p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Next Problem Button */}
-            <div className="p-4 bg-white border-t">
-              <Button
-                onClick={handleNextProblem}
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg"
-              >
-                次の問題へ
-              </Button>
-            </div>
+            <Button
+              onClick={handleNextProblem}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3"
+            >
+              次の問題へ
+            </Button>
           </div>
         )}
 
@@ -359,9 +357,8 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
               <div className="space-x-3">
                 <Button
                   onClick={() => {
-                    setState("loading");
+                    setState("initial");
                     hasStartedRef.current = false;
-                    generateMutation.mutate();
                   }}
                   variant="outline"
                 >

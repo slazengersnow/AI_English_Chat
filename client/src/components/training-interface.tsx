@@ -1,5 +1,5 @@
 import React from "react";
-import { ChatPractice } from "./chat-practice";
+import { ProblemPractice } from "./problem-practice.js";
 import { type DifficultyKey } from "@/lib/constants";
 
 interface TrainingInterfaceProps {
@@ -9,7 +9,7 @@ interface TrainingInterfaceProps {
 
 export function TrainingInterface({ difficulty, onBack }: TrainingInterfaceProps) {
   return (
-    <ChatPractice 
+    <ProblemPractice 
       difficulty={difficulty}
       onBack={onBack}
     />

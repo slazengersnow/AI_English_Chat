@@ -34,14 +34,6 @@ export function registerRoutes(app) {
     router.get("/user/profile", handleUserProfile);
     router.put("/user/profile", handleUpdateUserProfile);
     router.get("/user/stats", handleUserStats);
-    router.get("/user-subscription", (_req, res) => {
-        const userSubscription = {
-            id: 1, userId: "test-user", subscriptionType: "premium",
-            subscriptionStatus: "active", isAdmin: true,
-            createdAt: new Date(), updatedAt: new Date()
-        };
-        res.json(userSubscription);
-    });
     /* ----------------------- 学習セッション ----------------------- */
     router.get("/sessions", handleGetSessions);
     router.post("/sessions", handleCreateSession);

@@ -404,6 +404,7 @@ function requireAuth(req, res, next) {
 /* -------------------- ルーティング登録 -------------------- */
 export function registerRoutes(app) {
     const router = Router();
+    router.post("/problem", handleProblemGeneration);
     router.post("/evaluate-with-claude", handleClaudeEvaluation);
     // Review system endpoints (with authentication)
     router.get("/review-list", requireAuth, async (req, res) => {
@@ -532,97 +533,6 @@ export function registerRoutes(app) {
             console.error('Error fetching weekly progress:', error);
             res.status(500).json({ error: 'Failed to fetch weekly progress' });
         }
-    });
-    router.get("/monthly-stats", (_req, res) => {
-        const monthlyStats = {
-            thisMonth: 25, lastMonth: 30, improvement: -16.7, target: 40
-        };
-        res.json(monthlyStats);
-    });
-    router.get("/review-sessions", (_req, res) => {
-        const reviewSessions = [
-            { id: 1, sentence: "Hello world", rating: 4, date: "2025-08-22" },
-            { id: 2, sentence: "Good morning", rating: 5, date: "2025-08-21" }
-        ];
-        res.json(reviewSessions);
-    });
-    router.get("/recent-sessions", (_req, res) => {
-        const recentSessions = [
-            { id: 3, sentence: "How are you?", rating: 3, date: "2025-08-22" },
-            { id: 4, sentence: "Thank you", rating: 5, date: "2025-08-22" }
-        ];
-        res.json(recentSessions);
-    });
-    router.get("/bookmarked-sessions", (_req, res) => {
-        const bookmarkedSessions = [
-            { id: 5, sentence: "Beautiful day", rating: 4, bookmarked: true }
-        ];
-        res.json(bookmarkedSessions);
-    });
-    router.get("/custom-scenarios", (_req, res) => {
-        const customScenarios = [
-            { id: 1, title: "Business Meeting", difficulty: "advanced" },
-            { id: 2, title: "Shopping", difficulty: "beginner" }
-        ];
-        res.json(customScenarios);
-    });
-    router.get("/streak", (_req, res) => {
-        const streakData = {
-            currentStreak: 5, longestStreak: 12, lastPracticeDate: "2025-08-22"
-        };
-        res.json(streakData);
-    });
-    router.get("/difficulty-stats", (_req, res) => {
-        const difficultyStats = [
-            { name: "beginner", count: 15 }, { name: "intermediate", count: 25 }, { name: "advanced", count: 8 }
-        ];
-        res.json(difficultyStats);
-    });
-    router.get("/daily-count", (_req, res) => {
-        const dailyCount = { today: 3, limit: 10, remaining: 7 };
-        res.json(dailyCount);
-    });
-    router.get("/progress", (_req, res) => {
-        const progressData = [
-            { date: "2025-08-22", problemsCompleted: 5, averageRating: 4.2 },
-            { date: "2025-08-21", problemsCompleted: 3, averageRating: 4.0 }
-        ];
-        res.json(progressData.slice(0, 7));
-    });
-    router.post("/problem", requireAuth, async (req, res) => {
-        const { difficulty, difficultyLevel } = req.body;
-        const finalDifficulty = difficulty || difficultyLevel;
-        const problemData = {
-            japaneseSentence: "売上が前年比20%増加しました。",
-            hints: ["売上 = sales", "増加 = increase", "前年比 = compared to last year"],
-            difficulty: finalDifficulty
-        };
-        res.json(problemData);
-    });
-    router.post("/evaluate", requireAuth, async (req, res) => {
-        const { japaneseSentence, userTranslation } = req.body;
-        const evaluation = {
-            score: 85, feedback: "良好な翻訳です", suggestions: ["より自然な表現を使用"],
-            correctedSentence: "Sales increased by 20% compared to last year.",
-            originalSentence: japaneseSentence
-        };
-        res.json(evaluation);
-    });
-    router.get("/subscription-details", (_req, res) => {
-        const subscriptionDetails = {
-            planName: "Premium", status: "active", renewalDate: "2025-09-22",
-            features: ["Unlimited Practice", "Detailed Stats", "Custom Scenarios"]
-        };
-        res.json(subscriptionDetails);
-    });
-    router.get("/user-subscription", (_req, res) => {
-        // Progress endpoint (alias for progress-report)
-        const userSubscription = {
-            id: 1, userId: "test-user", subscriptionType: "premium",
-            subscriptionStatus: "active", isAdmin: true,
-            createdAt: new Date(), updatedAt: new Date()
-        };
-        res.json(userSubscription);
     });
     app.use("/api", router);
 }
