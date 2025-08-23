@@ -1,59 +1,30 @@
-import { useState, useEffect } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabaseClient'
+import { useQuery } from "@tanstack/react-query";
+import { useAuth as useAuthProvider } from "@/providers/auth-provider";
 
-export function useAuthState() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export function useAuth() {
+  const { user: authUser, initialized, isLoading: authLoading } = useAuthProvider();
 
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      try {
-        console.log('Auth - Getting initial session...')
-        const { data: { session }, error } = await supabase.auth.getSession()
-        console.log('Auth - Initial session result:', { session: !!session, user: !!session?.user, error })
-        setUser(session?.user ?? null)
-        setIsLoading(false)
-      } catch (error) {
-        console.error('Auth - Error getting initial session:', error)
-        setIsLoading(false)
-      }
-    }
+  // Fetch user data from server when authenticated
+  const { data: userData, isLoading: userDataLoading, error } = useQuery({
+    queryKey: ["/api/auth/user"],
+    enabled: !!authUser && initialized,
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    getInitialSession()
+  const isLoading = authLoading || userDataLoading;
+  const isAuthenticated = !!authUser && !!userData;
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth - State change:', { event, session: !!session, user: !!session?.user })
-        setUser(session?.user ?? null)
-        setIsLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-  }
-
-  const isAuthenticated = !!user
-  const isAdmin = user?.email === 'slazengersnow@gmail.com'
-
-  const enableDemoMode = () => {
-    console.log('Demo mode enabled')
+  // Log authentication errors for debugging
+  if (error) {
+    console.log("Failed to load user data:", error);
   }
 
   return {
-    user,
+    user: userData || authUser,
     isLoading,
     isAuthenticated,
-    isAdmin,
-    demoMode: false,
-    signOut,
-    enableDemoMode,
-  }
+    initialized,
+    error,
+  };
 }

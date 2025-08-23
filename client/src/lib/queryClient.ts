@@ -74,6 +74,11 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
     const authHeaders: Record<string, string> = {
       "Content-Type": "application/json",
     };
+    
+    // Add Authorization header if we have a token
+    if (authToken) {
+      authHeaders.Authorization = `Bearer ${authToken}`;
+    }
 
     // Add authorization header if token is available
     if (authToken) {

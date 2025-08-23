@@ -32,6 +32,11 @@ export function registerRoutes(app: Express) {
   router.post("/chat/send", handleChatSend);
   router.get("/chat/history", handleChatHistory);
 
+  /* ----------------------- 認証関連 ----------------------- */
+  router.get("/auth/user", handleAuthUser);
+  router.post("/auth/login", handleAuthLogin);
+  router.post("/auth/logout", handleAuthLogout);
+
   /* ----------------------- ユーザー関連 ----------------------- */
   // 疎通確認: 認証不要
   router.get("/user/me", (_req: Request, res: Response) => {
@@ -73,6 +78,97 @@ export function registerRoutes(app: Express) {
 }
 
 /* ======================= 以下、各ハンドラー ======================= */
+
+/* ----------------------- 認証ハンドラー ----------------------- */
+
+async function handleAuthUser(req: Request, res: Response) {
+  try {
+    // Supabaseからアクセストークンを取得
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Supabaseでトークンを検証
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.VITE_SUPABASE_URL!,
+      process.env.VITE_SUPABASE_ANON_KEY!
+    );
+
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      console.log('Auth verification failed:', error);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // ユーザー情報を返す
+    res.json({
+      id: user.id,
+      email: user.email,
+      email_confirmed_at: user.email_confirmed_at,
+      created_at: user.created_at,
+      user_metadata: user.user_metadata,
+    });
+  } catch (error) {
+    console.error('Auth user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function handleAuthLogin(req: Request, res: Response) {
+  try {
+    const { email, password } = req.body;
+    
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.VITE_SUPABASE_URL!,
+      process.env.VITE_SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    res.json({
+      user: data.user,
+      session: data.session,
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+async function handleAuthLogout(req: Request, res: Response) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(
+        process.env.VITE_SUPABASE_URL!,
+        process.env.VITE_SUPABASE_ANON_KEY!
+      );
+
+      await supabase.auth.signOut();
+    }
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
 
 // Claude関連
 async function handleProblemGeneration(req: Request, res: Response) {
