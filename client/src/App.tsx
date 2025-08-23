@@ -55,6 +55,7 @@ import SimplePriceSetup from "./pages/simple-price-setup.js";
 import DebugPage from "./pages/debug.js";
 import SimpleLogin from "./pages/simple-login.js";
 import CreateAdmin from "./pages/create-admin.js";
+import Demo from "./pages/demo.js";
 import NotFound from "./pages/not-found.js";
 import Logout from "./pages/logout.js";
 import OAuthFix from "./pages/oauth-fix.js";
@@ -135,6 +136,7 @@ const publicPaths = new Set([
   "/session-debug",
   "/supabase-connection-test",
   "/network-cors-test",
+  "/demo",
 ]);
 
 // 認証ガードコンポーネント（修正版 - publicPaths優先）
@@ -610,6 +612,14 @@ function AppRoutes() {
         element={
           <Guard>
             <NetworkCorsTest />
+          </Guard>
+        }
+      />
+      <Route
+        path="/demo"
+        element={
+          <Guard>
+            <Demo />
           </Guard>
         }
       />
