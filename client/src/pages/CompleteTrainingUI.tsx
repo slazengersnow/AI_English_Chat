@@ -36,10 +36,12 @@ export default function CompleteTrainingUI() {
   };
 
   const handleGoToMyPage = () => {
+    console.log("🔗 Navigating to /my-page");
     setLocation("/my-page");
   };
 
   const handleGoToAdmin = () => {
+    console.log("🔗 Navigating to /admin");
     setLocation("/admin");
   };
 

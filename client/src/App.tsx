@@ -631,7 +631,7 @@ function AppRoutes() {
         path="/my-page"
         element={
           <Guard>
-            <ProtectedRoute component={MyPage} />
+            <MyPage />
           </Guard>
         }
       />
@@ -663,7 +663,7 @@ function AppRoutes() {
         path="/admin"
         element={
           <Guard>
-            <ProtectedRoute component={Admin} />
+            <Admin />
           </Guard>
         }
       />
