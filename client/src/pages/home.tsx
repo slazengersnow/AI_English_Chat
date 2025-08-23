@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { User, Shield } from "lucide-react";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/components/auth-provider";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function Home() {
   const [location] = useLocation();

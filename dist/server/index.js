@@ -5,6 +5,8 @@ import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
 dotenv.config();
+// 開発環境設定の強制
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
 process.env.HOST = process.env.HOST || "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,13 +128,13 @@ app.get("/__introspect", (_req, res) => {
     });
 });
 /* ---------- frontend serving logic ---------- */
-// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
+// 常に静的ファイルを配信
+console.log("📁 Serving static files from dist/client");
 const clientDist = path.resolve(process.cwd(), "dist/client");
 app.use(express.static(clientDist));
 app.get("*", (_req, res) => {
     res.sendFile(path.join(clientDist, "index.html"));
 });
-console.log("📦 Forced production mode: Serving static client files from dist/client");
 /* ---------- 404 handler for API routes ---------- */
 app.use("/api/*", (_req, res) => {
     res.status(404).json({

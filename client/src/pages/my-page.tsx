@@ -228,8 +228,8 @@ export default function MyPage() {
   const createCustomerPortalMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest(
-        "POST",
         "/api/create-customer-portal",
+        "POST",
         {},
       );
       return response.json();

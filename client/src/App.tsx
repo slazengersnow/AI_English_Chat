@@ -12,12 +12,13 @@ import { Toaster } from "./components/ui/toaster.js";
 import { TooltipProvider } from "./components/ui/tooltip.js";
 import { AuthProvider, useAuth } from "./providers/auth-provider.js";
 import { SubscriptionGuard } from "./components/subscription-guard.js";
-import Home from "./pages/home.js";
+import { DifficultySelection } from "./components/difficulty-selection.js";
 import MyPage from "./pages/my-page.js";
 import SimulationSelection from "./pages/simulation-selection.js";
 import SimulationPractice from "./pages/simulation-practice.js";
 import Admin from "./pages/admin.js";
 import Success from "./pages/success.js";
+import { ProblemPractice } from "./components/problem-practice.js";
 import Cancel from "./pages/cancel.js";
 import Login from "./pages/login.js";
 import LoginTest from "./pages/login-test.js";
@@ -60,10 +61,6 @@ import Logout from "./pages/logout.js";
 import OAuthFix from "./pages/oauth-fix.js";
 import EmergencyLogin from "./pages/emergency-login.js";
 import WorkingLogin from "./pages/working-login.js";
-import FinalAuthTest from "./pages/final-auth-test.js";
-import ReplitAuthFix from "./pages/replit-auth-fix.js";
-import EmergencyAuthFix from "./pages/emergency-auth-fix.js";
-// import SupabaseConnectionDebug from "./pages/supabase-connection-debug.js"; // 一時的にコメントアウト
 
 // ローディングコンポーネント
 const LoadingSpinner: React.FC = () => (
@@ -117,11 +114,7 @@ const publicPaths = new Set([
   "/oauth-fix",
   "/emergency-login",
   "/working-login",
-  "/final-auth-test",
-  "/replit-auth-fix",
-  "/emergency-auth-fix",
   "/supabase-debug",
-  "/supabase-connection-test",
   "/network-cors-test",
 ]);
 
@@ -138,11 +131,6 @@ function Guard({ children }: { children: JSX.Element }) {
     isPublicPath: publicPaths.has(pathname)
   });
 
-  // 開発環境では一時的に全てバイパス
-  if (window.location.hostname.includes('replit')) {
-    console.log('Guard: REPLIT環境バイパス');
-    return children;
-  }
 
   // 通常のロジック
   if (publicPaths.has(pathname)) return children;
@@ -511,45 +499,13 @@ function AppRoutes() {
           </Guard>
         }
       />
-      <Route
-        path="/final-auth-test"
-        element={
-          <Guard>
-            <FinalAuthTest />
-          </Guard>
-        }
-      />
-      <Route
-        path="/replit-auth-fix"
-        element={
-          <Guard>
-            <ReplitAuthFix />
-          </Guard>
-        }
-      />
-      <Route
-        path="/emergency-auth-fix"
-        element={
-          <Guard>
-            <EmergencyAuthFix />
-          </Guard>
-        }
-      />
-      {/* <Route
-        path="/supabase-debug"
-        element={
-          <Guard>
-            <SupabaseConnectionTest />
-          </Guard>
-        }
-      /> */}
 
       {/* 認証が必要なルート */}
       <Route
         path="/"
         element={
           <Guard>
-            <ProtectedRoute component={Home} />
+            <DifficultySelection onDifficultySelect={(difficulty) => window.location.href = `/practice/${difficulty}`} />
           </Guard>
         }
       />
@@ -597,7 +553,7 @@ function AppRoutes() {
         path="/chat/:difficulty"
         element={
           <Guard>
-            <ProtectedRoute component={Home} />
+            <DifficultySelection onDifficultySelect={(difficulty) => window.location.href = `/practice/${difficulty}`} />
           </Guard>
         }
       />
@@ -605,7 +561,7 @@ function AppRoutes() {
         path="/practice/:difficulty"
         element={
           <Guard>
-            <ProtectedRoute component={Home} />
+            <ProtectedRoute component={ProblemPractice} />
           </Guard>
         }
       />
@@ -633,19 +589,7 @@ function AppRoutes() {
 
 // メインアプリケーションコンポーネント
 function App() {
-  console.log("=== APP COMPONENT INITIALIZED ===");
   
-  // REPLIT環境では直接表示
-  if (window.location.hostname.includes('replit')) {
-    console.log('APP: REPLIT環境 - 直接表示');
-    return (
-      <div style={{padding: '20px'}}>
-        <h1>開発環境メインページ</h1>
-        <p>認証バイパス成功</p>
-        <p>現在時刻: {new Date().toLocaleString()}</p>
-      </div>
-    );
-  }
   
   return (
     <QueryClientProvider client={queryClient}>
