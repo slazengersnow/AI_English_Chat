@@ -51,8 +51,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useLocation, Link } from "wouter";
 
 interface ProgressData {
   date: string;
@@ -93,7 +92,7 @@ interface UserSubscription {
 }
 
 export default function MyPage() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -312,10 +311,10 @@ export default function MyPage() {
     // Navigate to appropriate practice interface
     if (session.difficultyLevel.startsWith("simulation-")) {
       const scenarioId = session.difficultyLevel.replace("simulation-", "");
-      navigate(`/simulation-practice?scenario=${scenarioId}`);
+      setLocation(`/simulation-practice?scenario=${scenarioId}`);
     } else {
       // Navigate to home page with difficulty selection
-      navigate(`/?difficulty=${session.difficultyLevel}`);
+      setLocation(`/?difficulty=${session.difficultyLevel}`);
     }
   };
 
@@ -339,9 +338,9 @@ export default function MyPage() {
         "simulation-",
         "",
       );
-      navigate(`/simulation-practice?scenario=${scenarioId}`);
+      setLocation(`/simulation-practice?scenario=${scenarioId}`);
     } else {
-      navigate(`/practice/${firstSession.difficultyLevel}`);
+      setLocation(`/practice/${firstSession.difficultyLevel}`);
     }
   };
 
@@ -353,7 +352,7 @@ export default function MyPage() {
         title: "ログアウト完了",
         description: "正常にログアウトしました",
       });
-      navigate("/");
+      setLocation("/");
     } catch (error) {
       toast({
         title: "ログアウトエラー",
@@ -381,7 +380,7 @@ export default function MyPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link to="/">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
@@ -391,7 +390,7 @@ export default function MyPage() {
               <h1 className="text-2xl font-bold">マイページ</h1>
             </div>
           </div>
-          <Link href="/">
+          <Link to="/">
             <Button variant="outline" size="sm" className="bg-white shadow-md">
               <Home className="w-4 h-4 mr-2" />
               トップページ
