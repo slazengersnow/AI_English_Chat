@@ -1,6 +1,6 @@
 import { createContext, useContext, ReactNode } from 'react'
 import { User } from '@supabase/supabase-js'
-import { useAuthState } from '@/hooks/useAuth.js'
+import { useAuth as useAuthHook } from '@/hooks/useAuth.js'
 
 interface AuthContextType {
   user: User | null
@@ -27,7 +27,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const authState = useAuthState()
+  const authState = useAuthHook()
 
   return (
     <AuthContext.Provider value={authState}>

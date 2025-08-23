@@ -10,7 +10,7 @@ import { queryClient } from "./lib/queryClient.js";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./components/ui/toaster.js";
 import { TooltipProvider } from "./components/ui/tooltip.js";
-import { AuthProvider, useAuth } from "./providers/auth-provider.js";
+import { AuthProvider, useAuth } from "./providers/auth-provider";
 import { SubscriptionGuard } from "./components/subscription-guard.js";
 import Home from "./pages/home.js";
 import MyPage from "./pages/my-page.js";

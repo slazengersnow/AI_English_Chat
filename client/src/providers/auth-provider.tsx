@@ -1,3 +1,4 @@
+console.log("🚀 AuthProvider ファイル読み込み完了");
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -85,6 +86,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         } catch (storageError) {
           console.warn("⚠️ Could not clear localStorage:", storageError);
+        }
+      } else if (event === "TOKEN_REFRESHED") {
+        console.log("🔄 Token refreshed, updating localStorage");
+        try {
+          if (typeof window !== "undefined" && window.localStorage && session) {
+            const sessionData = {
+              access_token: session.access_token,
+              refresh_token: session.refresh_token,
+              user: session.user,
+              expires_at: session.expires_at,
+            };
+            localStorage.setItem(
+              "supabase.auth.token",
+              JSON.stringify(sessionData),
+            );
+          }
+        } catch (storageError) {
+          console.warn("⚠️ Could not update localStorage on token refresh:", storageError);
         }
       }
     });

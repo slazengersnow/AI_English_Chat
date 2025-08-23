@@ -1,16 +1,15 @@
+console.log("🔥 MAIN.TSX LOADED - ファイル読み込み開始");
 import React from "react";
 import { createRoot } from "react-dom/client";
-import CompleteTrainingUI from "./CompleteTrainingUI";
+import App from "./App";
 import "./index.css";
 
-// Mock user for admin access
-const mockUser = { email: 'admin@example.com' };
+console.log("🔥 MAIN.TSX - App imported successfully");
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <CompleteTrainingUI 
-      user={mockUser} 
-      onLogout={() => console.log('Logout')} 
-    />
+    <App />
   </React.StrictMode>
 );
+
+console.log("🔥 MAIN.TSX - React root created");
