@@ -1,0 +1,41 @@
+やはりシークレットウィンドウでやっても同じエラーメッセージが表示される。コンソールは以下。hash-handler.tsx:15 HashHandler - Hash: 
+hash-handler.tsx:16 HashHandler - Pathname: /signup
+hash-handler.tsx:19 HashHandler - No hash found
+index.js:935 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+CY @ index.js:935この警告を分析
+index.js:935 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+CY @ index.js:935この警告を分析
+auth-provider.tsx:31 🔄 AuthProvider: Initializing...
+auth-provider.tsx:35 🔄 Initial session check: Object
+auth-provider.tsx:47 🔄 Auth state change: Object
+auth-provider.tsx:61 ✅ AuthProvider: Initialized after first auth change
+App.tsx:151 === GUARD DEBUG === Object
+index.mjs:65 Uncaught (in promise) Error: Failed to load Stripe.js
+    at HTMLScriptElement.<anonymous> (index.mjs:65:12)このエラーを分析
+signup.tsx:48 
+            
+            
+           POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+（匿名） @ helpers.js:87
+Dre @ fetch.js:101
+Mt @ fetch.js:91
+signInWithPassword @ GoTrueClient.js:379
+N @ signup.tsx:48
+await in N
+rt @ react-dom.development.js:4164
+eT @ react-dom.development.js:4213
+Gx @ react-dom.development.js:4277
+p8 @ react-dom.development.js:4291
+p_ @ react-dom.development.js:9041
+lB @ react-dom.development.js:9073
+v_ @ react-dom.development.js:9086
+cB @ react-dom.development.js:9097
+（匿名） @ react-dom.development.js:9288
+cE @ react-dom.development.js:26179
+QC @ react-dom.development.js:3991
+X0 @ react-dom.development.js:9287
+MF @ react-dom.development.js:6465
+R0 @ react-dom.development.js:6457
+RF @ react-dom.development.js:6430このエラーを分析
+
+また、既に登録されているメールアドレスでアカウント作成すると、普通に認証メールが届いてしまう。理想は既存のメールアドレスの場合には既に登録済みのメールアドレスとメッセージを表示しブロックしてほしい。

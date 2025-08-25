@@ -17,7 +17,7 @@ export default function Signup() {
     e.preventDefault();
     
     // デバッグ: 新しいコードが実行されていることを確認
-    console.log("🚀 新しいsignupコード実行開始 - signInWithPassword呼び出しなし");
+    console.log("🚀 [Version 2.0] 新しいsignupコード実行開始 - signInWithPassword呼び出しなし", new Date().toISOString());
 
     if (password !== confirmPassword) {
       setError("パスワードが一致しません");
@@ -43,8 +43,14 @@ export default function Signup() {
       });
 
       if (error) {
+        console.log("🔍 Signup error details:", error);
         // 既存メール時のユーザ向け文言
-        if (String(error.message).toLowerCase().includes("already") || error.status === 422) {
+        if (
+          String(error.message).toLowerCase().includes("already") || 
+          String(error.message).toLowerCase().includes("exists") ||
+          error.status === 422 ||
+          error.status === 400
+        ) {
           setError("このメールアドレスは既に登録されています。ログインをお試しください。");
         } else {
           setError(`サインアップに失敗しました: ${error.message}`);
