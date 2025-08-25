@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ChatStyleTraining from "../ChatStyleTraining";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 type DifficultyLevel =
   | "toeic"
@@ -23,7 +23,7 @@ export default function CompleteTrainingUI() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
   const [showMyPage, setShowMyPage] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const handleDifficultySelect = (difficulty: DifficultyLevel) => {
     setSelectedDifficulty(difficulty);
@@ -37,12 +37,12 @@ export default function CompleteTrainingUI() {
 
   const handleGoToMyPage = () => {
     console.log("🔗 Navigating to /my-page");
-    setLocation("/my-page");
+    navigate("/my-page");
   };
 
   const handleGoToAdmin = () => {
     console.log("🔗 Navigating to /admin");
-    setLocation("/admin");
+    navigate("/admin");
   };
 
   // If a specific difficulty is selected, show the training interface

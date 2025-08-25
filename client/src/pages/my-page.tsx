@@ -51,7 +51,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useLocation, Link } from "wouter";
+import { useNavigate, Link } from "react-router-dom";
 
 interface ProgressData {
   date: string;
@@ -92,7 +92,7 @@ interface UserSubscription {
 }
 
 export default function MyPage() {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -311,10 +311,10 @@ export default function MyPage() {
     // Navigate to appropriate practice interface
     if (session.difficultyLevel.startsWith("simulation-")) {
       const scenarioId = session.difficultyLevel.replace("simulation-", "");
-      setLocation(`/simulation-practice?scenario=${scenarioId}`);
+      navigate(`/simulation-practice?scenario=${scenarioId}`);
     } else {
       // Navigate to home page with difficulty selection
-      setLocation(`/?difficulty=${session.difficultyLevel}`);
+      navigate(`/?difficulty=${session.difficultyLevel}`);
     }
   };
 
@@ -338,9 +338,9 @@ export default function MyPage() {
         "simulation-",
         "",
       );
-      setLocation(`/simulation-practice?scenario=${scenarioId}`);
+      navigate(`/simulation-practice?scenario=${scenarioId}`);
     } else {
-      setLocation(`/practice/${firstSession.difficultyLevel}`);
+      navigate(`/practice/${firstSession.difficultyLevel}`);
     }
   };
 
@@ -364,7 +364,7 @@ export default function MyPage() {
       // Delay navigation to ensure auth state is updated
       setTimeout(() => {
         console.log("🏠 Redirecting to home after logout");
-        window.location.href = "/";
+        navigate("/");
       }, 100);
       
     } catch (error) {
@@ -954,7 +954,7 @@ export default function MyPage() {
                                     size="sm"
                                     variant="default"
                                     onClick={() =>
-                                      (window.location.href = `/simulation/${scenario.id}`)
+                                      navigate(`/simulation/${scenario.id}`)
                                     }
                                   >
                                     練習開始
