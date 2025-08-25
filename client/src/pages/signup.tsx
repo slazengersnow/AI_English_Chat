@@ -44,23 +44,18 @@ export default function Signup() {
         return;
       }
 
-      // Confirm email: OFF 前提 → 即ログインでセッション確保
-      const { error: siErr } = await supabase.auth.signInWithPassword({ email, password });
-      if (siErr) {
-        setError(`自動ログインに失敗しました: ${siErr.message}`);
+      // メール確認が必要な場合
+      if (!data.session) {
+        setError("");
+        // 成功メッセージを表示
+        setTimeout(() => {
+          navigate("/signup-simple"); // メール確認待ち画面へ
+        }, 1000);
         return;
       }
 
-      // セッションを握れたか確認
-      const { data: s } = await supabase.auth.getSession();
-      if (s.session) {
-        navigate("/");
-      } else {
-        setTimeout(async () => {
-          const { data: s2 } = await supabase.auth.getSession();
-          if (s2.session) navigate("/");
-        }, 300);
-      }
+      // セッションがある場合は料金プラン選択へ
+      navigate("/subscription-select");
     } catch (error: any) {
       setError(error.message || "アカウント作成に失敗しました");
       console.error("Signup error:", error);

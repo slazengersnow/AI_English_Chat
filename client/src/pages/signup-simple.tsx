@@ -44,7 +44,7 @@ export default function SignupSimple() {
       if (!data.session) {
         // Confirm email ON の場合はここでメール確認待ち
         setInfo(
-          "確認メールを送信しました。メール内のリンクを開いてからログインしてください。",
+          "認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。",
         );
         return;
       }

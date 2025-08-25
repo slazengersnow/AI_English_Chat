@@ -15,7 +15,11 @@ export default function AuthCallback() {
         }
         const { data } = await supabase.auth.getSession();
         if (data.session) {
-          window.location.replace("/subscription-select");
+          setMsg("認証が完了しました。料金プランの選択画面に移動します...");
+          // より確実なリダイレクト
+          setTimeout(() => {
+            window.location.href = "/subscription-select";
+          }, 1000);
           return;
         }
         setMsg("認証リンクが無効または期限切れです。もう一度お試しください。");
