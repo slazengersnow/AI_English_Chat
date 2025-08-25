@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAuth } from "@/providers/auth-provider";
@@ -96,6 +96,16 @@ export default function MyPage() {
   const { toast } = useToast();
   const { user, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Cleanup queries on component unmount
+  useEffect(() => {
+    return () => {
+      // Cancel all queries when component unmounts
+      if (isLoggingOut) {
+        queryClient.cancelQueries();
+      }
+    };
+  }, [isLoggingOut]);
 
   // Check URL for tab parameter
   const urlParams = new URLSearchParams(window.location.search);
@@ -348,12 +358,17 @@ export default function MyPage() {
     setIsLoggingOut(true);
     try {
       console.log("🚪 Starting logout process from MyPage");
+      
+      // Cancel all ongoing queries to prevent AbortError
+      queryClient.cancelQueries();
+      
+      // Sign out from auth provider
       await signOut();
       
-      // Clear any cached query data
+      // Clear all cached query data
       queryClient.clear();
       
-      // Clear any session storage
+      // Clear session storage
       sessionStorage.clear();
       
       toast({
@@ -361,11 +376,9 @@ export default function MyPage() {
         description: "正常にログアウトしました",
       });
       
-      // Delay navigation to ensure auth state is updated
-      setTimeout(() => {
-        console.log("🏠 Redirecting to home after logout");
-        navigate("/");
-      }, 100);
+      // Use window.location for clean navigation after logout
+      console.log("🏠 Redirecting to home after logout");
+      window.location.href = "/";
       
     } catch (error) {
       console.error("❌ Logout error:", error);

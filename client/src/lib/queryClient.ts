@@ -9,10 +9,21 @@ export const queryClient = new QueryClient({
       },
       retry: false,
       refetchOnWindowFocus: false,
+      // Silently handle aborted queries during logout
+      onError: (error: any) => {
+        if (error.name === 'AbortError') {
+          console.log('Query aborted - this is expected during logout');
+        }
+      },
     },
     mutations: {
       mutationFn: async ({ url, ...options }: any) => {
         return apiRequest(url, options);
+      },
+      onError: (error: any) => {
+        if (error.name === 'AbortError') {
+          console.log('Mutation aborted - this is expected during logout');
+        }
       },
     },
   },
@@ -112,8 +123,13 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
     const result = await response.json();
     console.log(`✅ API Success: ${url}`, result);
     return result;
-  } catch (error) {
-    console.error(`❌ API Error: ${url}`, error);
+  } catch (error: any) {
+    // Don't log AbortError as it's expected during logout
+    if (error.name === 'AbortError') {
+      console.log(`🚫 Request aborted for ${url} (expected during logout)`);
+    } else {
+      console.error(`❌ API Error: ${url}`, error);
+    }
     throw error;
   }
 }
