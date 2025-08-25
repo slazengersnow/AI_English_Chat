@@ -1,0 +1,29 @@
+VM177 eruda.js:2 ❌ API Error: /api/review-sessions TypeError: Failed to fetch
+    at window.fetch (VM177 eruda.js:2:218642)
+    at Object.apply (VM176 injected.js:253:39)
+    at Ia (VM178 index-Ke6laW5U.js:254:5360)
+Console.js:61 🚀 AuthProvider ファイル読み込み完了
+Console.js:61 Browser environment variables: 
+{VITE_SUPABASE_URL: 'https://xcjplyhqxgrbdhixmzse.supabase.co', VITE_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIs...', hasUrl: true, hasKey: true}
+Console.js:61 Supabase config: 
+{environment: 'browser', url: 'https://xcjplyhqxgrbdhixmzse.s...', keyLength: 208, keyPrefix: 'eyJhbGciOi...', hasUrl: true, …}
+Console.js:61 Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+Console.js:61 🔥 MAIN.TSX LOADED - ファイル読み込み開始
+Console.js:61 🔥 MAIN.TSX - App imported successfully
+Console.js:61 🔥 MAIN.TSX - React root created
+Console.js:61 === GUARD DEBUG === 
+{pathname: '/', isPublicPath: false}
+Console.js:61 HashHandler - Full URL: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/
+Console.js:61 HashHandler - Hash: 
+Console.js:61 HashHandler - Pathname: /
+Console.js:61 HashHandler - No hash found
+Console.js:61 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+Console.js:61 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+Console.js:61 🔄 AuthProvider: Initializing...
+workspace_iframe.htm…2F&id=%3Arl6%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+Console.js:61 🔄 Initial session check: 
+{hasSession: false, hasUser: false, userEmail: undefined, error: null}
+Console.js:61 🔄 Auth state change: 
+{event: 'INITIAL_SESSION', hasSession: false, hasUser: false, userEmail: undefined}
+Console.js:61 ✅ AuthProvider: Initialized after first auth change
+﻿

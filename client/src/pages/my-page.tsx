@@ -376,9 +376,9 @@ export default function MyPage() {
         description: "正常にログアウトしました",
       });
       
-      // Use window.location for clean navigation after logout
+      // Navigate immediately to prevent white page flash
       console.log("🏠 Redirecting to home after logout");
-      window.location.href = "/";
+      navigate("/", { replace: true });
       
     } catch (error) {
       console.error("❌ Logout error:", error);

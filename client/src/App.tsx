@@ -140,22 +140,36 @@ const publicPaths = new Set([
   "/demo",
 ]);
 
-// 認証ガードコンポーネント（修正版 - publicPaths優先）
+// 認証ガードコンポーネント（修正版 - 白いページ防止）
 function Guard({ children }: { children: JSX.Element }) {
-  // Use the provider hook directly to avoid conflicts
-  const authContext = React.useContext(React.createContext<any>(null));
+  const { user, initialized, isLoading } = useAuth();
   const { pathname } = useLocation();
 
-  // For now, allow all routes to avoid the auth error
   console.log("=== GUARD DEBUG ===", {
     pathname,
-    isPublicPath: publicPaths.has(pathname)
+    isPublicPath: publicPaths.has(pathname),
+    user: !!user,
+    initialized,
+    isLoading
   });
 
-  // Always allow access to public paths
-  if (publicPaths.has(pathname)) return children;
-  
-  // For now, allow access to all paths until we fix auth
+  // パブリックパス（認証不要）の場合、そのまま表示
+  if (publicPaths.has(pathname)) {
+    return children;
+  }
+
+  // 認証プロバイダーがまだ初期化されていない場合はローディング
+  if (!initialized || isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  // 認証されていない場合はログインページへリダイレクト
+  if (!user) {
+    console.log("🔒 User not authenticated, redirecting to login");
+    return <Navigate to="/login" replace />;
+  }
+
+  // 認証済みユーザーの場合
   return children;
 }
 
@@ -697,6 +711,18 @@ function AppRoutes() {
   );
 }
 
+// 認証初期化完了まで適切なローディングを表示
+function AuthInitializedWrapper({ children }: { children: React.ReactNode }) {
+  const { initialized, isLoading } = useAuth();
+  
+  // 認証が初期化されるまではローディングスピナーを表示
+  if (!initialized || isLoading) {
+    return <LoadingSpinner />;
+  }
+  
+  return <>{children}</>;
+}
+
 // メインアプリケーションコンポーネント
 function App() {
   return (
@@ -706,7 +732,9 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <HashHandler />
-            <AppRoutes />
+            <AuthInitializedWrapper>
+              <AppRoutes />
+            </AuthInitializedWrapper>
           </TooltipProvider>
         </BrowserRouter>
       </AuthProvider>
