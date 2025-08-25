@@ -15,6 +15,9 @@ export default function Signup() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // デバッグ: 新しいコードが実行されていることを確認
+    console.log("🚀 新しいsignupコード実行開始 - signInWithPassword呼び出しなし");
 
     if (password !== confirmPassword) {
       setError("パスワードが一致しません");
@@ -51,6 +54,7 @@ export default function Signup() {
 
       // メール確認が必要な場合（通常はここに来る）
       if (!data.session) {
+        console.log("✅ メール確認必要 - 成功メッセージ表示");
         setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
         return;
       }
