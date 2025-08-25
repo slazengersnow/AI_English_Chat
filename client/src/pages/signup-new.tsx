@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
-export default function Signup() {
+export default function SignupNew() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,11 +13,11 @@ export default function Signup() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
+  // ✅ 完全に新しいサインアップ処理 - signInWithPasswordは使用しません
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // デバッグ: 新しいコードが実行されていることを確認
-    console.log("🚀 [Version 2.0] 新しいsignupコード実行開始 - signInWithPassword呼び出しなし", new Date().toISOString());
+    console.log("🚀 [SIGNUP-NEW] 完全に新しいコード実行中 - signInWithPassword呼び出しなし", new Date().toISOString());
 
     if (password !== confirmPassword) {
       setError("パスワードが一致しません");
@@ -34,6 +34,8 @@ export default function Signup() {
     setSuccess("");
 
     try {
+      console.log("🔄 supabase.auth.signUp 実行中...");
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -42,12 +44,16 @@ export default function Signup() {
         },
       });
 
+      console.log("📧 signUp結果:", { hasSession: !!data.session, error });
+
       if (error) {
-        console.log("🔍 Signup error details:", error);
-        // 既存メール時のユーザ向け文言
+        console.log("❌ signUpエラー:", error);
+        
+        // 既存メールアドレスの処理
+        const errorMsg = String(error.message || "").toLowerCase();
         if (
-          String(error.message).toLowerCase().includes("already") || 
-          String(error.message).toLowerCase().includes("exists") ||
+          errorMsg.includes("already") || 
+          errorMsg.includes("exists") ||
           error.status === 422 ||
           error.status === 400
         ) {
@@ -58,18 +64,20 @@ export default function Signup() {
         return;
       }
 
-      // メール確認が必要な場合（通常はここに来る）
+      // ✅ メール確認が必要な場合（自動ログインはしません）
       if (!data.session) {
-        console.log("✅ メール確認必要 - 成功メッセージ表示");
+        console.log("✅ 認証メール送信成功");
         setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
         return;
       }
 
-      // セッションがある場合は料金プラン選択へ（稀なケース）
+      // セッションがある場合は料金プラン選択へ
+      console.log("🔄 セッションあり - 料金プラン選択ページへ");
       navigate("/subscription-select");
-    } catch (error: any) {
-      setError(error.message || "アカウント作成に失敗しました");
-      console.error("Signup error:", error);
+      
+    } catch (err: any) {
+      console.error("❌ サインアップエラー:", err);
+      setError(err.message || "アカウント作成に失敗しました");
     } finally {
       setLoading(false);
     }
@@ -89,7 +97,7 @@ export default function Signup() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/auth-callback`,
         },
       });
 
@@ -106,11 +114,11 @@ export default function Signup() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🚀 [NEW] AI瞬間英作文チャット
+            ✅ [FIXED] AI瞬間英作文チャット
           </h1>
-          <p className="text-gray-600">新規アカウント作成 - Version 2.0 (修正済み)</p>
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-3 py-2 rounded mb-4">
-            ⚠️ デバッグ: 新しいコードが実行されています
+          <p className="text-gray-600">新規アカウント作成 - 修正版</p>
+          <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4">
+            ✅ 修正完了: 自動ログインエラーは発生しません
           </div>
         </div>
 

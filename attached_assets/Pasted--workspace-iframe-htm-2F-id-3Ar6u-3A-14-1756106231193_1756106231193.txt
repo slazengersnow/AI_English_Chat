@@ -1,0 +1,135 @@
+・新規でアカウント作成しても自動ログインに失敗しましたというメッセージが表示されて問題が解決していない。コンソールは以下。workspace_iframe.htm…2F&id=%3Ar6u%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+Console.js:61 🔄 Initial session check: 
+{hasSession: false, hasUser: false, userEmail: undefined, error: null}
+Console.js:61 🔄 Auth state change: 
+{event: 'INITIAL_SESSION', hasSession: false, hasUser: false, userEmail: undefined}
+Console.js:61 ✅ AuthProvider: Initialized after first auth change
+Console.js:61 === GUARD DEBUG === 
+{pathname: '/', isPublicPath: false, user: false, initialized: true, isLoading: false}
+Console.js:61 🔒 User not authenticated, redirecting to login
+Console.js:61 === GUARD DEBUG === 
+{pathname: '/login', isPublicPath: true, user: false, initialized: true, isLoading: false}
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+Console.js:61 === GUARD DEBUG === 
+{pathname: '/signup', isPublicPath: true, user: false, initialized: true, isLoading: false}
+injected.js:253 
+ POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+ 
+ ・既存のメールアドレスでアカウント作成すると、自動ログインに失敗しましたとメッセージが出るが、認証メールが新たに送られている。問題がまだ残っている。解決していない。コンソールは以下。web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+uu @ web-client-content-script.js:2
+uu @ web-client-content-script.js:2
+gu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+uu @ web-client-content-script.js:2
+uu @ web-client-content-script.js:2
+gu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+uu @ web-client-content-script.js:2
+uu @ web-client-content-script.js:2
+gu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+Console.js:61 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}

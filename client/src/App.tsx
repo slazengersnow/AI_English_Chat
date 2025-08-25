@@ -22,7 +22,7 @@ import Success from "./pages/success.js";
 import Cancel from "./pages/cancel.js";
 import Login from "./pages/login.js";
 import LoginTest from "./pages/login-test.js";
-import Signup from "./pages/signup.js";
+import SignupNew from "./pages/signup-new.js";
 import SignupSimple from "./pages/signup-simple.js";
 import Confirm from "./pages/confirm.js";
 import Terms from "./pages/terms.js";
@@ -206,7 +206,7 @@ function AppRoutes() {
         path="/signup"
         element={
           <Guard>
-            <Signup />
+            <SignupNew />
           </Guard>
         }
       />
