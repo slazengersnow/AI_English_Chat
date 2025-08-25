@@ -1,0 +1,104 @@
+・既存メルアドでアカウント作成すると、今度は新しいメッセージで、再アンアップに失敗しました、となった。これはどういう状況？コンソールは以下。Unchecked runtime.lastError: Cannot create item with duplicate id LastPass <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id separator <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Add Item <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Add Password <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Add Address <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Add Payment Card <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Add other item <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Save all entered data <URL>このエラーを分析
+8Unchecked runtime.lastError: Cannot create item with duplicate id Generate Secure Password <URL>このエラーを分析
+7Unchecked runtime.lastError: The page keeping the extension port is moved into back/forward cache, so the message channel is closed.このエラーを分析
+3background-redux-new.js:2 Error: Invalid frameId for foreground frameId: 0
+    at $ (background-redux-new.js:2:3643411)
+    at m (background-redux-new.js:2:3650374)
+    at background-redux-new.js:2:3651373
+$ @ background-redux-new.js:2このエラーを分析
+background-redux-new.js:1 Uncaught (in promise) Error: No tab with id: 548552465.このエラーを分析
+background-redux-new.js:1 Uncaught (in promise) Error: No tab with id: 548552471.このエラーを分析
+9Unchecked runtime.lastError: Cannot find menu item with id LastPass <URL>このエラーを分析
+15Unchecked runtime.lastError: Cannot find menu item with id Add Item <URL>このエラーを分析
+auth-provider.tsx:1 🚀 AuthProvider ファイル読み込み完了
+supabase.js:22 Browser environment variables: Object
+supabase.js:39 Supabase config: Object
+hook.js:608 Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+overrideMethod @ hook.js:608この警告を分析
+index.mjs:43 Refused to load the script 'https://js.stripe.com/basil/stripe.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+U3 @ index.mjs:43このエラーを分析
+main.tsx:1 🔥 MAIN.TSX LOADED - ファイル読み込み開始
+main.tsx:6 🔥 MAIN.TSX - App imported successfully
+main.tsx:10 🔥 MAIN.TSX - React root created
+hash-handler.tsx:14 HashHandler - Full URL: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/signup
+hash-handler.tsx:15 HashHandler - Hash: 
+hash-handler.tsx:16 HashHandler - Pathname: /signup
+hash-handler.tsx:19 HashHandler - No hash found
+hook.js:608 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. Error Component Stack
+    at GY (index.js:619:5)
+    at Mre (auth-provider.tsx:23:3)
+    at TX (QueryClientProvider.js:20:3)
+    at xxe (<anonymous>)
+overrideMethod @ hook.js:608この警告を分析
+hook.js:608 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. Error Component Stack
+    at GY (index.js:619:5)
+    at Mre (auth-provider.tsx:23:3)
+    at TX (QueryClientProvider.js:20:3)
+    at xxe (<anonymous>)
+overrideMethod @ hook.js:608この警告を分析
+auth-provider.tsx:31 🔄 AuthProvider: Initializing...
+auth-provider.tsx:35 🔄 Initial session check: Object
+index.mjs:65 Uncaught (in promise) Error: Failed to load Stripe.js
+    at HTMLScriptElement.<anonymous> (index.mjs:65:12)このエラーを分析
+auth-provider.tsx:47 🔄 Auth state change: Object
+auth-provider.tsx:61 ✅ AuthProvider: Initialized after first auth change
+App.tsx:151 === GUARD DEBUG === Object
+signup:1 
+            
+            
+           Failed to load resource: the server responded with a status of 503 (Service Unavailable)このエラーを分析
+signup.tsx:32 
+            
+            
+           POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/signup 429 (Too Many Requests)
+（匿名） @ helpers.js:87
+Dre @ fetch.js:101
+Mt @ fetch.js:91
+signUp @ GoTrueClient.js:316
+await in signUp
+N @ signup.tsx:32
+rt @ react-dom.development.js:4164
+eT @ react-dom.development.js:4213
+Gx @ react-dom.development.js:4277
+p8 @ react-dom.development.js:4291
+p_ @ react-dom.development.js:9041
+lB @ react-dom.development.js:9073
+v_ @ react-dom.development.js:9086
+cB @ react-dom.development.js:9097
+（匿名） @ react-dom.development.js:9288
+cE @ react-dom.development.js:26179
+QC @ react-dom.development.js:3991
+X0 @ react-dom.development.js:9287
+MF @ react-dom.development.js:6465
+R0 @ react-dom.development.js:6457
+RF @ react-dom.development.js:6430このエラーを分析
+
+
+新規メールアドレスだと認証メールは届くがメッセージは同じで解決していない。コンソールは以下。hook.js:608 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. Error Component Stack
+    at Mre (auth-provider.tsx:23:3)
+hook.js:608 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. Error Component Stack
+    at Mre (auth-provider.tsx:23:3)
+auth-provider.tsx:31 🔄 AuthProvider: Initializing...
+index.mjs:65 Uncaught (in promise) Error: Failed to load Stripe.js
+    at HTMLScriptElement.<anonymous> (index.mjs:65:12)
+auth-provider.tsx:35 🔄 Initial session check: 
+{hasSession: false, hasUser: false, userEmail: undefined, error: null}
+auth-provider.tsx:47 🔄 Auth state change: 
+{event: 'INITIAL_SESSION', hasSession: false, hasUser: false, userEmail: undefined}
+auth-provider.tsx:61 ✅ AuthProvider: Initialized after first auth change
+App.tsx:151 === GUARD DEBUG === 
+{pathname: '/signup', isPublicPath: true, user: false, initialized: true, isLoading: false}
+signup.tsx:48 
+ POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+﻿
+
+
+一体、何が悪いの？なぜ、すぐに治らないの？

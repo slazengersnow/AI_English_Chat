@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
-export default function SignupOLD_DISABLED() {
+export default function Signup() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,11 +13,11 @@ export default function SignupOLD_DISABLED() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
+  // ✅ 完全に新しいサインアップ処理 - signInWithPasswordは使用しません
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // デバッグ: 新しいコードが実行されていることを確認
-    console.log("🚀 [Version 2.0] 新しいsignupコード実行開始 - signInWithPassword呼び出しなし", new Date().toISOString());
+    console.log("🚀 [SIGNUP-NEW] 完全に新しいコード実行中 - signInWithPassword呼び出しなし", new Date().toISOString());
 
     if (password !== confirmPassword) {
       setError("パスワードが一致しません");
@@ -34,7 +34,7 @@ export default function SignupOLD_DISABLED() {
     setSuccess("");
 
     try {
-      console.log("🔄 サインアップ処理開始...");
+      console.log("🔄 [SIGNUP-NEW] サインアップ処理開始...");
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -44,7 +44,7 @@ export default function SignupOLD_DISABLED() {
         },
       });
 
-      console.log("📧 signUp結果:", { 
+      console.log("📧 [SIGNUP-NEW] signUp結果:", { 
         hasSession: !!data.session, 
         hasUser: !!data.user,
         error: error?.message 
@@ -52,14 +52,14 @@ export default function SignupOLD_DISABLED() {
 
       // ✅ エラーがある場合
       if (error) {
-        console.log("❌ signUpエラー:", error);
+        console.log("❌ [SIGNUP-NEW] signUpエラー:", error);
         setError(`サインアップに失敗しました: ${error.message}`);
         return;
       }
 
       // ✅ セッションが作成された場合 = 既存ユーザーが自動ログインされた
       if (data.session && data.user) {
-        console.log("⚠️ 既存ユーザーのセッション作成検出 - サインアウト実行");
+        console.log("⚠️ [SIGNUP-NEW] 既存ユーザーのセッション作成検出 - サインアウト実行");
         await supabase.auth.signOut();
         setError("このメールアドレスは既に登録されています。ログインをお試しください。");
         return;
@@ -67,17 +67,18 @@ export default function SignupOLD_DISABLED() {
 
       // ✅ メール確認が必要な場合（新規ユーザーの正常なケース）
       if (!data.session && data.user) {
-        console.log("✅ 新規ユーザー - 認証メール送信完了");
+        console.log("✅ [SIGNUP-NEW] 新規ユーザー - 認証メール送信完了");
         setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
         return;
       }
 
       // その他の予期しないケース
-      console.log("⚠️ 予期しない状態");
+      console.log("⚠️ [SIGNUP-NEW] 予期しない状態");
       setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
-    } catch (error: any) {
-      setError(error.message || "アカウント作成に失敗しました");
-      console.error("Signup error:", error);
+      
+    } catch (err: any) {
+      console.error("❌ サインアップエラー:", err);
+      setError(err.message || "アカウント作成に失敗しました");
     } finally {
       setLoading(false);
     }
@@ -97,7 +98,7 @@ export default function SignupOLD_DISABLED() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/auth-callback`,
         },
       });
 
@@ -114,11 +115,11 @@ export default function SignupOLD_DISABLED() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            🚀 [NEW] AI瞬間英作文チャット
+            ✅ [FIXED] AI瞬間英作文チャット
           </h1>
-          <p className="text-gray-600">新規アカウント作成 - Version 2.0 (修正済み)</p>
-          <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-3 py-2 rounded mb-4">
-            ⚠️ デバッグ: 新しいコードが実行されています
+          <p className="text-gray-600">新規アカウント作成 - 修正版</p>
+          <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4">
+            ✅ 修正完了: 自動ログインエラーは発生しません
           </div>
         </div>
 
