@@ -9,6 +9,7 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
@@ -27,11 +28,15 @@ export default function Signup() {
 
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth-callback`,
+        },
       });
 
       if (error) {
@@ -44,17 +49,13 @@ export default function Signup() {
         return;
       }
 
-      // メール確認が必要な場合
+      // メール確認が必要な場合（通常はここに来る）
       if (!data.session) {
-        setError("");
-        // 成功メッセージを表示
-        setTimeout(() => {
-          navigate("/signup-simple"); // メール確認待ち画面へ
-        }, 1000);
+        setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
         return;
       }
 
-      // セッションがある場合は料金プラン選択へ
+      // セッションがある場合は料金プラン選択へ（稀なケース）
       navigate("/subscription-select");
     } catch (error: any) {
       setError(error.message || "アカウント作成に失敗しました");
@@ -72,6 +73,7 @@ export default function Signup() {
 
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -103,6 +105,12 @@ export default function Signup() {
           {error && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
               {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              {success}
             </div>
           )}
 
