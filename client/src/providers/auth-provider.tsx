@@ -129,7 +129,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signOut = async () => {
     console.log("🚪 Sign out requested");
-    await supabase.auth.signOut();
+    try {
+      // Clear user state immediately
+      setUser(null);
+      setIsLoading(false);
+      
+      // Sign out from Supabase
+      await supabase.auth.signOut();
+      
+      // Clear localStorage
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.removeItem("supabase.auth.token");
+        localStorage.clear();
+      }
+      
+      console.log("✅ Sign out completed successfully");
+    } catch (error) {
+      console.error("❌ Sign out error:", error);
+      // Even if there's an error, clear local state
+      setUser(null);
+      setIsLoading(false);
+      if (typeof window !== "undefined" && window.localStorage) {
+        localStorage.clear();
+      }
+    }
   };
 
   return (

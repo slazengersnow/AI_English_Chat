@@ -347,19 +347,33 @@ export default function MyPage() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      console.log("🚪 Starting logout process from MyPage");
       await signOut();
+      
+      // Clear any cached query data
+      queryClient.clear();
+      
+      // Clear any session storage
+      sessionStorage.clear();
+      
       toast({
         title: "ログアウト完了",
         description: "正常にログアウトしました",
       });
-      setLocation("/");
+      
+      // Delay navigation to ensure auth state is updated
+      setTimeout(() => {
+        console.log("🏠 Redirecting to home after logout");
+        window.location.href = "/";
+      }, 100);
+      
     } catch (error) {
+      console.error("❌ Logout error:", error);
       toast({
         title: "ログアウトエラー",
         description: "ログアウト中にエラーが発生しました",
         variant: "destructive",
       });
-    } finally {
       setIsLoggingOut(false);
     }
   };
