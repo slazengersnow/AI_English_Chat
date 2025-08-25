@@ -34,7 +34,7 @@ export default function SignupNew() {
     setSuccess("");
 
     try {
-      console.log("🔄 supabase.auth.signUp 実行中...");
+      console.log("🔄 [SIGNUP-NEW] サインアップ処理開始...");
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -44,36 +44,37 @@ export default function SignupNew() {
         },
       });
 
-      console.log("📧 signUp結果:", { hasSession: !!data.session, error });
+      console.log("📧 [SIGNUP-NEW] signUp結果:", { 
+        hasSession: !!data.session, 
+        hasUser: !!data.user,
+        error: error?.message 
+      });
 
+      // ✅ エラーがある場合
       if (error) {
-        console.log("❌ signUpエラー:", error);
-        
-        // 既存メールアドレスの処理
-        const errorMsg = String(error.message || "").toLowerCase();
-        if (
-          errorMsg.includes("already") || 
-          errorMsg.includes("exists") ||
-          error.status === 422 ||
-          error.status === 400
-        ) {
-          setError("このメールアドレスは既に登録されています。ログインをお試しください。");
-        } else {
-          setError(`サインアップに失敗しました: ${error.message}`);
-        }
+        console.log("❌ [SIGNUP-NEW] signUpエラー:", error);
+        setError(`サインアップに失敗しました: ${error.message}`);
         return;
       }
 
-      // ✅ メール確認が必要な場合（自動ログインはしません）
-      if (!data.session) {
-        console.log("✅ 認証メール送信成功");
+      // ✅ セッションが作成された場合 = 既存ユーザーが自動ログインされた
+      if (data.session && data.user) {
+        console.log("⚠️ [SIGNUP-NEW] 既存ユーザーのセッション作成検出 - サインアウト実行");
+        await supabase.auth.signOut();
+        setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+        return;
+      }
+
+      // ✅ メール確認が必要な場合（新規ユーザーの正常なケース）
+      if (!data.session && data.user) {
+        console.log("✅ [SIGNUP-NEW] 新規ユーザー - 認証メール送信完了");
         setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
         return;
       }
 
-      // セッションがある場合は料金プラン選択へ
-      console.log("🔄 セッションあり - 料金プラン選択ページへ");
-      navigate("/subscription-select");
+      // その他の予期しないケース
+      console.log("⚠️ [SIGNUP-NEW] 予期しない状態");
+      setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
       
     } catch (err: any) {
       console.error("❌ サインアップエラー:", err);

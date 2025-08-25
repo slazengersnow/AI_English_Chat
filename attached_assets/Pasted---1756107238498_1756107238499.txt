@@ -1,0 +1,134 @@
+既存のメールアドレスでアカウント作成すると、メインページにアクセスできてしまう。新たに認証メールが送られることはなくなったが、アカウント作成ページでは既存のメールアドレスで登録できないとしてブロックしてほしい。コンソールは以下。 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/signup', isPublicPath: true, user: true, initialized: true, isLoading: false}
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+
+また、新規のメールアドレスをアカウント作成から登録すると、同じく自動ログインに失敗しましたというメッセージが出る。認証メールは送られているので、早くこのメッセージを認証メールをご確認くださいというメッセージに修正してほしい。
+
+🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/signup', isPublicPath: true, user: true, initialized: true, isLoading: false}
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+Unchecked runtime.lastError: Cannot create item with duplicate id LastPass https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.htmlこのエラーを分析
+6Unchecked runtime.lastError: Cannot find menu item with id LastPass <URL>このエラーを分析
+10Unchecked runtime.lastError: Cannot find menu item with id Add Item <URL>このエラーを分析
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'bizmowa@gmail.com'}
+auth-provider.tsx:66 🚀 User signed in: bizmowa@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+CompleteTrainingUI.tsx:39 🔗 Navigating to /my-page
+App.tsx:151 === GUARD DEBUG === {pathname: '/my-page', isPublicPath: false, user: true, initialized: true, isLoading: false}
+queryClient.ts:33 📡 API Request: GET /api/user-subscription
+queryClient.ts:33 📡 API Request: GET /api/progress
+queryClient.ts:33 📡 API Request: GET /api/streak
+queryClient.ts:33 📡 API Request: GET /api/difficulty-stats
+queryClient.ts:33 📡 API Request: GET /api/monthly-stats
+queryClient.ts:33 📡 API Request: GET /api/review-sessions
+queryClient.ts:33 📡 API Request: GET /api/recent-sessions
+queryClient.ts:33 📡 API Request: GET /api/bookmarked-sessions
+queryClient.ts:33 📡 API Request: GET /api/custom-scenarios
+queryClient.ts:33 📡 API Request: GET /api/daily-count
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/user-subscription
+queryClient.ts:97 🔐 Auth token added for /api/user-subscription
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/progress
+queryClient.ts:97 🔐 Auth token added for /api/progress
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/streak
+queryClient.ts:97 🔐 Auth token added for /api/streak
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/difficulty-stats
+queryClient.ts:97 🔐 Auth token added for /api/difficulty-stats
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/monthly-stats
+queryClient.ts:97 🔐 Auth token added for /api/monthly-stats
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/review-sessions
+queryClient.ts:97 🔐 Auth token added for /api/review-sessions
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/recent-sessions
+queryClient.ts:97 🔐 Auth token added for /api/recent-sessions
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/bookmarked-sessions
+queryClient.ts:97 🔐 Auth token added for /api/bookmarked-sessions
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/custom-scenarios
+queryClient.ts:97 🔐 Auth token added for /api/custom-scenarios
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/daily-count
+queryClient.ts:97 🔐 Auth token added for /api/daily-count
+queryClient.ts:110 📨 Response: 200 OK for /api/user-subscription
+queryClient.ts:110 📨 Response: 200 OK for /api/review-sessions
+queryClient.ts:110 📨 Response: 200 OK for /api/monthly-stats
+queryClient.ts:110 📨 Response: 200 OK for /api/difficulty-stats
+queryClient.ts:124 ✅ API Success: /api/user-subscription {plan: 'standard', status: 'active', dailyLimit: 50, remainingQuestions: 45}
+queryClient.ts:124 ✅ API Success: /api/review-sessions [{…}]
+queryClient.ts:124 ✅ API Success: /api/monthly-stats (3) [{…}, {…}, {…}]
+queryClient.ts:124 ✅ API Success: /api/difficulty-stats (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+queryClient.ts:110 📨 Response: 200 OK for /api/progress
+queryClient.ts:124 ✅ API Success: /api/progress (5) [{…}, {…}, {…}, {…}, {…}]
+queryClient.ts:110 📨 Response: 200 OK for /api/streak
+queryClient.ts:110 📨 Response: 200 OK for /api/daily-count
+queryClient.ts:110 📨 Response: 200 OK for /api/recent-sessions
+queryClient.ts:110 📨 Response: 200 OK for /api/bookmarked-sessions
+queryClient.ts:124 ✅ API Success: /api/streak {currentStreak: 7, longestStreak: 15, lastPracticeDate: '2025-08-24'}
+queryClient.ts:124 ✅ API Success: /api/daily-count {today: 23, limit: 50, remaining: 27, resetTime: '2025-08-25T00:00:00Z'}
+queryClient.ts:124 ✅ API Success: /api/recent-sessions [{…}]
+queryClient.ts:124 ✅ API Success: /api/bookmarked-sessions [{…}]
+queryClient.ts:110 📨 Response: 200 OK for /api/custom-scenarios
+queryClient.ts:124 ✅ API Success: /api/custom-scenarios (2) [{…}, {…}]
+queryClient.ts:33 📡 API Request: GET /api/subscription-details
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/subscription-details
+queryClient.ts:97 🔐 Auth token added for /api/subscription-details
+queryClient.ts:110 📨 Response: 200 OK for /api/subscription-details
+queryClient.ts:124 ✅ API Success: /api/subscription-details {planName: 'スタンダードプラン', price: '月額980円', features: Array(3), status: 'active', nextBillingDate: '2025-09-24'}
+my-page.tsx:360 🚪 Starting logout process from MyPage
+auth-provider.tsx:131 🚪 Sign out requested
+App.tsx:151 === GUARD DEBUG === {pathname: '/my-page', isPublicPath: false, user: false, initialized: true, isLoading: false}
+App.tsx:171 🔒 User not authenticated, redirecting to login
+App.tsx:151 === GUARD DEBUG === {pathname: '/login', isPublicPath: true, user: false, initialized: true, isLoading: false}
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_OUT', hasSession: false, hasUser: false, userEmail: undefined}
+auth-provider.tsx:85 👋 User signed out
+auth-provider.tsx:146 ✅ Sign out completed successfully
+my-page.tsx:380 🏠 Redirecting to home after logout
+App.tsx:151 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: false, initialized: true, isLoading: false}
+App.tsx:171 🔒 User not authenticated, redirecting to login
+App.tsx:151 === GUARD DEBUG === {pathname: '/login', isPublicPath: true, user: false, initialized: true, isLoading: false}
+login.tsx:18 
+            
+            
+           POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+（匿名） @ helpers.js:87
+Dre @ fetch.js:101
+Mt @ fetch.js:91
+signInWithPassword @ GoTrueClient.js:379
+f @ login.tsx:18
+rt @ react-dom.development.js:4164
+eT @ react-dom.development.js:4213
+Gx @ react-dom.development.js:4277
+p8 @ react-dom.development.js:4291
+p_ @ react-dom.development.js:9041
+lB @ react-dom.development.js:9073
+v_ @ react-dom.development.js:9086
+cB @ react-dom.development.js:9097
+（匿名） @ react-dom.development.js:9288
+cE @ react-dom.development.js:26179
+QC @ react-dom.development.js:3991
+X0 @ react-dom.development.js:9287
+MF @ react-dom.development.js:6465
+R0 @ react-dom.development.js:6457
+RF @ react-dom.development.js:6430このエラーを分析
+App.tsx:151 === GUARD DEBUG === {pathname: '/signup', isPublicPath: true, user: false, initialized: true, isLoading: false}
+signup.tsx:48 
+            
+            
+           POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)

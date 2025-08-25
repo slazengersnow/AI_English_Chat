@@ -34,6 +34,8 @@ export default function Signup() {
     setSuccess("");
 
     try {
+      console.log("🔄 サインアップ処理開始...");
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -42,31 +44,37 @@ export default function Signup() {
         },
       });
 
+      console.log("📧 signUp結果:", { 
+        hasSession: !!data.session, 
+        hasUser: !!data.user,
+        error: error?.message 
+      });
+
+      // ✅ エラーがある場合
       if (error) {
-        console.log("🔍 Signup error details:", error);
-        // 既存メール時のユーザ向け文言
-        if (
-          String(error.message).toLowerCase().includes("already") || 
-          String(error.message).toLowerCase().includes("exists") ||
-          error.status === 422 ||
-          error.status === 400
-        ) {
-          setError("このメールアドレスは既に登録されています。ログインをお試しください。");
-        } else {
-          setError(`サインアップに失敗しました: ${error.message}`);
-        }
+        console.log("❌ signUpエラー:", error);
+        setError(`サインアップに失敗しました: ${error.message}`);
         return;
       }
 
-      // メール確認が必要な場合（通常はここに来る）
-      if (!data.session) {
-        console.log("✅ メール確認必要 - 成功メッセージ表示");
+      // ✅ セッションが作成された場合 = 既存ユーザーが自動ログインされた
+      if (data.session && data.user) {
+        console.log("⚠️ 既存ユーザーのセッション作成検出 - サインアウト実行");
+        await supabase.auth.signOut();
+        setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+        return;
+      }
+
+      // ✅ メール確認が必要な場合（新規ユーザーの正常なケース）
+      if (!data.session && data.user) {
+        console.log("✅ 新規ユーザー - 認証メール送信完了");
         setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
         return;
       }
 
-      // セッションがある場合は料金プラン選択へ（稀なケース）
-      navigate("/subscription-select");
+      // その他の予期しないケース
+      console.log("⚠️ 予期しない状態");
+      setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
     } catch (error: any) {
       setError(error.message || "アカウント作成に失敗しました");
       console.error("Signup error:", error);
