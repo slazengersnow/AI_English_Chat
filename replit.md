@@ -7,8 +7,9 @@ This is a mobile-first English composition training application that helps users
 Preferred communication style: Simple, everyday language.
 Project focus: Mobile-optimized English learning app with instant feedback and comprehensive progress tracking.
 Learning Flow: Problem → Answer → Evaluation/Explanation/Similar Phrases・Next Problem (continuous flow with 1 second interval).
-Authentication Flow: Login screen (SimpleAuth.tsx) serves as permanent main authentication interface, accessible via MyPage logout.
+Authentication Flow: Updated flow - Email verification → Subscription plan selection → Payment/Trial → Main application access. Login screen (SimpleAuth.tsx) serves as permanent main authentication interface, accessible via MyPage logout.
 UI Design: No login button on main interface - authentication accessed only through MyPage logout functionality.
+New User Onboarding: After email verification, users are redirected to subscription-select.tsx with plan options and 7-day free trial skip option.
 Critical Issue SOLVED: Claude API 404 errors completely resolved through client-side integration. Root cause was Vite middleware intercepting /api/ routes. Final solution implemented robust Claude API client with intelligent fallback system in client/src/lib/queryClient.ts, ensuring seamless user experience even during API issues.
 
 ## System Architecture
@@ -49,7 +50,11 @@ Critical Issue SOLVED: Claude API 404 errors completely resolved through client-
   - Problem generation for all 6 difficulty levels
   - Comprehensive evaluation with encouraging feedback
   - Graceful degradation to high-quality fallback content
-- **Payment Gateway**: Stripe
+- **Payment Gateway**: Stripe with test mode integration
+  - Plan options: Standard (¥980/月), Premium (¥1,300/月), Yearly plans with discounts
+  - Test amounts: ¥1-7 for development testing
+  - Payment flow: Plan selection → Stripe checkout → Success page → Main application
+  - 7-day free trial option available
 - **Authentication**: Supabase (email/password and Google OAuth) via SimpleAuth.tsx interface
   - Primary access: MyPage → Logout → Login Screen
   - Screenshots-matched design for login/signup screens

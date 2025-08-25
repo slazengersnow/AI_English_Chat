@@ -24,6 +24,11 @@ export default function Confirm() {
         if (data.session) {
           setStatus('success')
           setMessage('メールアドレス認証が完了しました。')
+          
+          // 認証成功後、料金プラン選択ページにリダイレクト
+          setTimeout(() => {
+            setLocation('/subscription-select')
+          }, 2000)
         } else {
           setStatus('error')
           setMessage('認証セッションが見つかりません。')

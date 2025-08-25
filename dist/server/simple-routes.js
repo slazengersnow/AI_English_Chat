@@ -602,6 +602,41 @@ export function registerRoutes(app) {
     });
     router.post("/problem", handleProblemGeneration);
     router.post("/evaluate-with-claude", handleClaudeEvaluation);
+    // Stripe決済エンドポイント
+    router.post("/create-payment-intent", async (req, res) => {
+        try {
+            const { amount, planId } = req.body;
+            if (!process.env.STRIPE_SECRET_KEY) {
+                return res.status(500).json({
+                    error: 'Stripe設定が見つかりません'
+                });
+            }
+            const Stripe = (await import('stripe')).default;
+            const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+                apiVersion: '2024-06-20',
+            });
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: Math.round(amount), // 金額（円単位）
+                currency: 'jpy',
+                metadata: {
+                    planId: planId || 'standard'
+                },
+                automatic_payment_methods: {
+                    enabled: true,
+                },
+            });
+            res.json({
+                clientSecret: paymentIntent.client_secret,
+                paymentIntentId: paymentIntent.id
+            });
+        }
+        catch (error) {
+            console.error('Stripe payment intent creation error:', error);
+            res.status(500).json({
+                error: 'Payment intent creation failed: ' + error.message
+            });
+        }
+    });
     // Review system endpoints (with authentication)
     router.get("/review-list", requireAuth, async (req, res) => {
         try {

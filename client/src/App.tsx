@@ -47,6 +47,7 @@ import TestActualLink from "./pages/test-actual-link.js";
 import StripeTest from "./pages/stripe-test.js";
 import PriceCheck from "./pages/price-check.js";
 import PaymentSuccess from "./pages/payment-success.js";
+import Checkout from "./pages/checkout.js";
 import PaymentCancelled from "./pages/payment-cancelled.js";
 import DebugPayment from "./pages/debug-payment.js";
 import StripeCheckoutDebug from "./pages/stripe-checkout-debug.js";
@@ -137,6 +138,8 @@ const publicPaths = new Set([
   "/session-debug",
   "/supabase-connection-test",
   "/network-cors-test",
+  "/subscription-select",
+  "/checkout",
   "/demo",
 ]);
 
@@ -460,6 +463,14 @@ function AppRoutes() {
         element={
           <Guard>
             <SimplePriceSetup />
+          </Guard>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <Guard>
+            <Checkout />
           </Guard>
         }
       />
