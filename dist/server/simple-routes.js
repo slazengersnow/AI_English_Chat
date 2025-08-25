@@ -104,6 +104,7 @@ const problemSets = {
         "電車の時刻を確認したいです。",
     ],
 };
+/* -------------------- マイページ関連 API -------------------- */
 /* -------------------- 問題出題 -------------------- */
 export const handleProblemGeneration = async (req, res) => {
     try {
@@ -404,6 +405,201 @@ function requireAuth(req, res, next) {
 /* -------------------- ルーティング登録 -------------------- */
 export function registerRoutes(app) {
     const router = Router();
+    // Health check endpoint
+    router.get("/health", (_req, res) => {
+        res.json({
+            status: "OK",
+            timestamp: new Date().toISOString(),
+            version: "1.0.0",
+        });
+    });
+    // MyPage API endpoints
+    router.get("/user-subscription", requireAuth, async (req, res) => {
+        try {
+            res.json({
+                plan: "standard",
+                status: "active",
+                dailyLimit: 50,
+                remainingQuestions: 45
+            });
+        }
+        catch (error) {
+            console.error('Error fetching user subscription:', error);
+            res.status(500).json({ error: 'Failed to fetch subscription' });
+        }
+    });
+    router.get("/progress", requireAuth, async (req, res) => {
+        try {
+            const mockProgress = [
+                { date: '2025-08-20', problemsCompleted: 15, averageRating: 4.2 },
+                { date: '2025-08-21', problemsCompleted: 12, averageRating: 4.0 },
+                { date: '2025-08-22', problemsCompleted: 18, averageRating: 4.3 },
+                { date: '2025-08-23', problemsCompleted: 20, averageRating: 4.5 },
+                { date: '2025-08-24', problemsCompleted: 16, averageRating: 4.1 }
+            ];
+            res.json(mockProgress);
+        }
+        catch (error) {
+            console.error('Error fetching progress:', error);
+            res.status(500).json({ error: 'Failed to fetch progress' });
+        }
+    });
+    router.get("/streak", requireAuth, async (req, res) => {
+        try {
+            res.json({
+                currentStreak: 7,
+                longestStreak: 15,
+                lastPracticeDate: '2025-08-24'
+            });
+        }
+        catch (error) {
+            console.error('Error fetching streak:', error);
+            res.status(500).json({ error: 'Failed to fetch streak' });
+        }
+    });
+    router.get("/difficulty-stats", requireAuth, async (req, res) => {
+        try {
+            res.json([
+                { difficulty: 'TOEIC', completed: 45, averageRating: 4.2 },
+                { difficulty: '中学英語', completed: 32, averageRating: 4.5 },
+                { difficulty: '高校英語', completed: 28, averageRating: 4.0 },
+                { difficulty: '基本動詞', completed: 38, averageRating: 4.3 },
+                { difficulty: 'ビジネスメール', completed: 25, averageRating: 3.9 },
+                { difficulty: 'シミュレーション練習', completed: 18, averageRating: 4.1 }
+            ]);
+        }
+        catch (error) {
+            console.error('Error fetching difficulty stats:', error);
+            res.status(500).json({ error: 'Failed to fetch difficulty stats' });
+        }
+    });
+    router.get("/monthly-stats", requireAuth, async (req, res) => {
+        try {
+            res.json([
+                { month: '2025-06', problemsCompleted: 245, averageRating: 4.1 },
+                { month: '2025-07', problemsCompleted: 312, averageRating: 4.3 },
+                { month: '2025-08', problemsCompleted: 186, averageRating: 4.2 }
+            ]);
+        }
+        catch (error) {
+            console.error('Error fetching monthly stats:', error);
+            res.status(500).json({ error: 'Failed to fetch monthly stats' });
+        }
+    });
+    router.get("/review-sessions", requireAuth, async (req, res) => {
+        try {
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "会議の資料を準備しておいてください。",
+                    userTranslation: "Please prepare the meeting materials.",
+                    correctTranslation: "Please prepare the materials for the meeting.",
+                    rating: 4,
+                    feedback: "良い翻訳です。前置詞の使い方が適切です。",
+                    difficultyLevel: "toeic",
+                    createdAt: "2025-08-24T10:30:00Z"
+                }
+            ];
+            res.json(mockSessions);
+        }
+        catch (error) {
+            console.error('Error fetching review sessions:', error);
+            res.status(500).json({ error: 'Failed to fetch review sessions' });
+        }
+    });
+    router.get("/recent-sessions", requireAuth, async (req, res) => {
+        try {
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "売上が前年比20%増加しました。",
+                    userTranslation: "Sales increased 20% compared to last year.",
+                    correctTranslation: "Sales increased by 20% compared to the previous year.",
+                    rating: 4,
+                    difficultyLevel: "toeic",
+                    createdAt: "2025-08-24T15:20:00Z"
+                }
+            ];
+            res.json(mockSessions);
+        }
+        catch (error) {
+            console.error('Error fetching recent sessions:', error);
+            res.status(500).json({ error: 'Failed to fetch recent sessions' });
+        }
+    });
+    router.get("/bookmarked-sessions", requireAuth, async (req, res) => {
+        try {
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "環境問題について考える必要があります。",
+                    userTranslation: "We need to think about environmental problems.",
+                    correctTranslation: "We need to consider environmental issues.",
+                    rating: 3,
+                    difficultyLevel: "high-school",
+                    isBookmarked: true,
+                    createdAt: "2025-08-23T14:15:00Z"
+                }
+            ];
+            res.json(mockSessions);
+        }
+        catch (error) {
+            console.error('Error fetching bookmarked sessions:', error);
+            res.status(500).json({ error: 'Failed to fetch bookmarked sessions' });
+        }
+    });
+    router.get("/custom-scenarios", requireAuth, async (req, res) => {
+        try {
+            const mockScenarios = [
+                {
+                    id: 1,
+                    title: "海外旅行",
+                    description: "空港、ホテル、レストランでの会話",
+                    createdAt: "2025-08-20T09:00:00Z"
+                },
+                {
+                    id: 2,
+                    title: "ビジネス会議",
+                    description: "プレゼンテーション、議論、質疑応答",
+                    createdAt: "2025-08-22T11:30:00Z"
+                }
+            ];
+            res.json(mockScenarios);
+        }
+        catch (error) {
+            console.error('Error fetching custom scenarios:', error);
+            res.status(500).json({ error: 'Failed to fetch custom scenarios' });
+        }
+    });
+    router.get("/daily-count", requireAuth, async (req, res) => {
+        try {
+            res.json({
+                today: 23,
+                limit: 50,
+                remaining: 27,
+                resetTime: "2025-08-25T00:00:00Z"
+            });
+        }
+        catch (error) {
+            console.error('Error fetching daily count:', error);
+            res.status(500).json({ error: 'Failed to fetch daily count' });
+        }
+    });
+    router.get("/subscription-details", requireAuth, async (req, res) => {
+        try {
+            res.json({
+                planName: "スタンダードプラン",
+                price: "月額980円",
+                features: ["1日50問まで", "すべての難易度レベル", "詳細フィードバック"],
+                status: "active",
+                nextBillingDate: "2025-09-24"
+            });
+        }
+        catch (error) {
+            console.error('Error fetching subscription details:', error);
+            res.status(500).json({ error: 'Failed to fetch subscription details' });
+        }
+    });
     router.post("/problem", handleProblemGeneration);
     router.post("/evaluate-with-claude", handleClaudeEvaluation);
     // Review system endpoints (with authentication)

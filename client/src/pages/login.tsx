@@ -184,7 +184,7 @@ export default function Login() {
                 onClick={() => navigate("/signup")}
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
-                新規登録
+                アカウント作成
               </button>
             </p>
           </div>

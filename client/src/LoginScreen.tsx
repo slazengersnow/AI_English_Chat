@@ -127,13 +127,13 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           🚀 クイックアクセス（デモ）
         </Button>
 
-        {/* 新規登録リンク */}
+        {/* アカウント作成リンク */}
         <div className="text-center">
           <span className="text-gray-500 text-sm">
             アカウントをお持ちでない方は{' '}
           </span>
           <button className="text-blue-500 text-sm hover:underline">
-            新規登録
+            アカウント作成
           </button>
         </div>
       </div>

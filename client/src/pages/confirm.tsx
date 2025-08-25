@@ -3,7 +3,7 @@ import { useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle, AlertCircle } from 'lucide-react'
-import { supabase } from '@shared/supabase'
+import { supabase } from '../lib/supabaseClient'
 
 export default function Confirm() {
   const [, setLocation] = useLocation()
@@ -87,7 +87,7 @@ export default function Confirm() {
                   onClick={() => setLocation('/signup')}
                   className="w-full"
                 >
-                  新規登録に戻る
+                  アカウント作成に戻る
                 </Button>
                 <Button 
                   variant="outline"

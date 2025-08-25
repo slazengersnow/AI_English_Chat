@@ -62,7 +62,7 @@ export default function Signup() {
         }, 300);
       }
     } catch (error: any) {
-      setError(error.message || "新規登録に失敗しました");
+      setError(error.message || "アカウント作成に失敗しました");
       console.error("Signup error:", error);
     } finally {
       setLoading(false);
@@ -217,7 +217,7 @@ export default function Signup() {
               disabled={loading || !termsAccepted || !privacyAccepted}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "登録中..." : "新規登録"}
+              {loading ? "登録中..." : "アカウント作成"}
             </button>
           </form>
 

@@ -258,7 +258,7 @@ export function SimpleAuth({ onClose }: SimpleAuthProps) {
                   onClick={() => setIsSignup(true)}
                   className="text-blue-500 hover:text-blue-600 font-medium"
                 >
-                  新規登録
+                  アカウント作成
                 </button>
               </>
             )}

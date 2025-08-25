@@ -96,7 +96,7 @@ export default function LoginWithBypass({ onBypassLogin }: LoginWithBypassProps)
           </div>
           <div className="text-sm text-gray-600">
             アカウントをお持ちでない方は{" "}
-            <a href="#" className="text-blue-600 hover:text-blue-800">新規登録</a>
+            <a href="#" className="text-blue-600 hover:text-blue-800">アカウント作成</a>
           </div>
         </div>
       </div>

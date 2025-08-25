@@ -1,0 +1,528 @@
+以下の点を修正してほしい。
+
+・新規登録の名称をアカウント作成に変更
+・新しいアドレスを使ってアカウント作成し、認証メールが実際に送られて認証した後に別タブでログインすることができたが、Replitのプレビュー画面では自動ログインにしっぱいしました、というメッセージがあるのでこれを修正してほしい。コンソールは以下の通り。API Error: /api/user-subscription SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/progress
+Console.js:61 ❌ API Error: /api/progress SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/monthly-stats
+Console.js:61 ❌ API Error: /api/monthly-stats SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/difficulty-stats
+Console.js:61 ❌ API Error: /api/difficulty-stats SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/streak
+Console.js:61 ❌ API Error: /api/streak SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/review-sessions
+Console.js:61 ❌ API Error: /api/review-sessions SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/recent-sessions
+Console.js:61 ❌ API Error: /api/recent-sessions SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/bookmarked-sessions
+Console.js:61 ❌ API Error: /api/bookmarked-sessions SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/custom-scenarios
+Console.js:61 ❌ API Error: /api/custom-scenarios SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📨 Response: 200 OK for /api/daily-count
+Console.js:61 ❌ API Error: /api/daily-count SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+（匿名） @ useBaseQuery.js:58
+J_ @ react-dom.development.js:16139
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 📡 API Request: GET /api/subscription-details
+Console.js:61 🔐 Auth token from Supabase session for /api/subscription-details
+Console.js:61 🔐 Auth token added for /api/subscription-details
+Console.js:61 📨 Response: 200 OK for /api/subscription-details
+Console.js:61 ❌ API Error: /api/subscription-details SyntaxError: Failed to execute 'json' on 'Response': Unexpected token '<', "<!doctype "... is not valid JSON
+    at Ia (queryClient.ts:123:35)
+Mt.forEach.n.<computed> @ Console.js:61
+Ia @ queryClient.ts:131
+await in Ia
+queryFn @ queryClient.ts:8
+o @ query.js:212
+w @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:295
+Qh @ queryObserver.js:173
+setOptions @ queryObserver.js:113
+（匿名） @ useBaseQuery.js:68
+Nl @ react-dom.development.js:23189
+JW @ react-dom.development.js:24970
+XW @ react-dom.development.js:24930
+YW @ react-dom.development.js:24917
+GW @ react-dom.development.js:24905
+Oq @ react-dom.development.js:27078
+bo @ react-dom.development.js:27023
+Vq @ react-dom.development.js:26974
+qc @ react-dom.development.js:26721
+xA @ react-dom.development.js:26156
+fl @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 🚪 Starting logout process from MyPage
+Console.js:61 🚪 Sign out requested
+Console.js:61 === GUARD DEBUG === {pathname: '/my-page', isPublicPath: false, user: false, initialized: true, isLoading: false}
+Console.js:61 🔒 User not authenticated, redirecting to login
+Console.js:61 === GUARD DEBUG === {pathname: '/login', isPublicPath: true, user: false, initialized: true, isLoading: false}
+Console.js:61 🔄 Auth state change: {event: 'SIGNED_OUT', hasSession: false, hasUser: false, userEmail: undefined}
+Console.js:61 👋 User signed out
+Console.js:61 ✅ Sign out completed successfully
+Console.js:61 🏠 Redirecting to home after logout
+Console.js:61 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: false, initialized: true, isLoading: false}
+Console.js:61 🔒 User not authenticated, redirecting to login
+Console.js:61 === GUARD DEBUG === {pathname: '/login', isPublicPath: true, user: false, initialized: true, isLoading: false}
+web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+（匿名） @ web-client-content-script.js:2
+ru @ web-client-content-script.js:2
+_u @ web-client-content-script.js:2
+Eu @ web-client-content-script.js:2
+yu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+（匿名） @ web-client-content-script.js:2
+ru @ web-client-content-script.js:2
+_u @ web-client-content-script.js:2
+Eu @ web-client-content-script.js:2
+yu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+（匿名） @ web-client-content-script.js:2
+ru @ web-client-content-script.js:2
+_u @ web-client-content-script.js:2
+Eu @ web-client-content-script.js:2
+yu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+Console.js:61 === GUARD DEBUG === {pathname: '/signup', isPublicPath: true, user: false, initialized: true, isLoading: false}
+web-client-content-script.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+uu @ web-client-content-script.js:2
+uu @ web-client-content-script.js:2
+gu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?
+uu @ web-client-content-script.js:2
+uu @ web-client-content-script.js:2
+gu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.
+uu @ web-client-content-script.js:2
+uu @ web-client-content-script.js:2
+gu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+mu @ web-client-content-script.js:2
+vu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+bl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Ho @ web-client-content-script.js:2
+ll @ web-client-content-script.js:2
+notify @ web-client-content-script.js:2
+t.notifyNestedSubs @ web-client-content-script.js:2
+o.notifySubscribers @ web-client-content-script.js:2
+t.handleChangeWrapper @ web-client-content-script.js:2
+f @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+injected.js:253 
+            
+            
+           POST https://xcjplyhqxgrbdhixmzse.supabase.co/auth/v1/token?grant_type=password 400 (Bad Request)
+window.fetch @ Network.js:219
+apply @ injected.js:253
+（匿名） @ helpers.js:87
+_te @ fetch.js:101
+Rt @ fetch.js:91
+signInWithPassword @ GoTrueClient.js:379
+N @ signup.tsx:48
+await in N
+Ze @ react-dom.development.js:4164
+AC @ react-dom.development.js:4213
+Ax @ react-dom.development.js:4277
+xU @ react-dom.development.js:4291
+KT @ react-dom.development.js:9041
+hz @ react-dom.development.js:9073
+GT @ react-dom.development.js:9086
+pz @ react-dom.development.js:9097
+（匿名） @ react-dom.development.js:9288
+K1 @ react-dom.development.js:26179
+_C @ react-dom.development.js:3991
+R0 @ react-dom.development.js:9287
+B8 @ react-dom.development.js:6465
+y0 @ react-dom.development.js:6457
+F8 @ react-dom.development.js:6430このエラーを分析

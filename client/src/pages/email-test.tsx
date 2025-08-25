@@ -56,7 +56,7 @@ export default function EmailTest() {
         }
       }
 
-      addTestResult("サインアップテスト", true, "新規登録成功");
+      addTestResult("サインアップテスト", true, "アカウント作成成功");
       return true;
     } catch (error) {
       console.error("Sign up error:", error);
