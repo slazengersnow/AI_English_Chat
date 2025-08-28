@@ -121,7 +121,8 @@ export default function Signup() {
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
-          }
+          },
+          skipBrowserRedirect: false, // ブラウザリダイレクトを許可
         },
       });
 

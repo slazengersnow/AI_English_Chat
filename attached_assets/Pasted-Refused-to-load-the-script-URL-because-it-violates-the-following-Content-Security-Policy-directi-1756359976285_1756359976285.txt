@@ -1,0 +1,35 @@
+Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline'". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+このエラーを分析
+ 🚀 AuthProvider ファイル読み込み完了
+ Browser environment variables: [object Object]
+ Supabase config: [object Object]
+ Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a…da/3.2.3/eruda.js:2この警告を分析
+ 🔥 MAIN.TSX LOADED - ファイル読み込み開始
+ 🔥 MAIN.TSX - App imported successfully
+ 🔥 MAIN.TSX - React root created
+ HashHandler - Full URL: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/signup
+ HashHandler - Hash: 
+ HashHandler - Pathname: /signup
+ HashHandler - No hash found
+ ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a…da/3.2.3/eruda.js:2この警告を分析
+ ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a…da/3.2.3/eruda.js:2この警告を分析
+ 🔄 AuthProvider: Initializing...
+ce5ab24c-fe4b-418b-a…dex-DK6imon4.js:393 Uncaught (in promise) Error: Failed to load Stripe.jsこのエラーを分析
+ 🔄 Initial session check: [object Object]
+ 🔄 Auth state change: [object Object]
+ ✅ AuthProvider: Initialized after first auth change
+ === GUARD DEBUG === [object Object]
+ 🔄 Google OAuth signup starting...
+ 📧 Google OAuth result: [object Object]
+chromewebdata/:1 Refused to display 'https://accounts.google.com/' in a frame because it set 'X-Frame-Options' to 'deny'.このエラーを分析
+chrome-extension://h…content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:381031)このエラーを分析
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.この警告を分析

@@ -40,7 +40,15 @@ app.use(
       useDefaults: true,
       directives: {
         "default-src": ["'self'"],
-        "script-src": ["'self'", "'unsafe-inline'"], // 必要なら後で厳格化
+        "script-src": [
+          "'self'", 
+          "'unsafe-inline'",
+          "'unsafe-eval'", // Google認証で必要
+          "https://js.stripe.com", // Stripe.js
+          "https://accounts.google.com", // Google OAuth
+          "https://*.googleapis.com", // Google APIs
+          "https://*.gstatic.com", // Google静的リソース
+        ],
         "connect-src": [
           "'self'",
           "https://*.supabase.co",
@@ -53,6 +61,9 @@ app.use(
           "https://*.repl.co",
           "http://localhost:5000",
           "http://127.0.0.1:5000",
+          "https://accounts.google.com", // Google OAuth接続
+          "https://*.googleapis.com", // Google API接続
+          "https://api.stripe.com", // Stripe API
         ],
         "img-src": ["'self'", "data:", "blob:", "https:"],
         "style-src": ["'self'", "'unsafe-inline'"],
@@ -60,11 +71,17 @@ app.use(
           "'self'",
           "https://*.supabase.co",
           "https://*.supabase.net",
+          "https://accounts.google.com", // Google認証iframe
+          "https://js.stripe.com", // Stripe iframe
         ],
         "frame-ancestors": [
           "'self'",
           "https://replit.com",
           "https://*.replit.com",
+        ],
+        "form-action": [
+          "'self'",
+          "https://accounts.google.com", // Google OAuth
         ],
       },
     },
