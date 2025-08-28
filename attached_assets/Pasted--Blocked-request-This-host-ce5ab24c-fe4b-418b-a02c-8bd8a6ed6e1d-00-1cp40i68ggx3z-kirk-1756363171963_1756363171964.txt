@@ -1,0 +1,234 @@
+以下のメッセージがある。
+Blocked request. This host ("ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev") is not allowed.
+To allow this host, add "ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev" to `server.allowedHosts` in vite.config.js.
+まだサイトが表示されない。
+
+Attestation check for Topics on https://replit.com/ failed.このエラーを分析
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.このエラーを分析
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'battery'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.この警告を分析
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.この警告を分析
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.この警告を分析
+workspace_iframe.html?initialPath=%2F&id=%3Ar3q%3A:151 
+            
+            
+           GET https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/ 403 (Forbidden)
+（匿名） @ workspace_iframe.html?initialPath=%2F&id=%3Ar3q%3A:151このエラーを分析
+recaptcha__ja.js:56 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2
+recaptcha__ja.js:56 [Intervention] Slow network is detected. See https://www.chromestatus.com/feature/5636954674692096 for more details. Fallback font will be used while loading: https://fonts.gstatic.com/s/roboto/v18/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+attached_assets/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-08-28%2014.49.42_1756360197072.png:1 
+            
+            
+           GET https://replit.com/@slazengersnow/attached_assets/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-08-28%2014.49.42_1756360197072.png 404 (Not Found)
+Image
+_ @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1
+oq @ framework-83f8b6744080fd9f.js:1
+oQ @ framework-83f8b6744080fd9f.js:1このエラーを分析
