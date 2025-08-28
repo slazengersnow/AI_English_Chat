@@ -7,7 +7,7 @@ import { eq, lte, desc, gte } from "drizzle-orm";
 const router = Router();
 /* -------------------- データベースベース重複防止 -------------------- */
 /**
- * ユーザーが最近回答した問題を取得（過去20問）
+ * ユーザーが最近回答した問題を取得（過去800問）
  */
 async function getRecentUserProblems(userId, difficultyLevel) {
     try {
@@ -16,7 +16,7 @@ async function getRecentUserProblems(userId, difficultyLevel) {
             .from(trainingSessions)
             .where(eq(trainingSessions.userId, userId))
             .orderBy(desc(trainingSessions.createdAt))
-            .limit(20); // 過去20問をチェック
+            .limit(800); // 過去800問をチェック
         return recentSessions.map(session => session.japaneseSentence);
     }
     catch (error) {
