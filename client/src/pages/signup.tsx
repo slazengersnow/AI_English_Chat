@@ -16,8 +16,11 @@ export default function Signup() {
   // ✅ 完全に新しいサインアップ処理 - signInWithPasswordは使用しません
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log("🚀 [SIGNUP-NEW] 完全に新しいコード実行中 - signInWithPassword呼び出しなし", new Date().toISOString());
+
+    console.log(
+      "🚀 [SIGNUP-NEW] 完全に新しいコード実行中 - signInWithPassword呼び出しなし",
+      new Date().toISOString(),
+    );
 
     if (password !== confirmPassword) {
       setError("パスワードが一致しません");
@@ -35,7 +38,7 @@ export default function Signup() {
 
     try {
       console.log("🔄 [SIGNUP-NEW] サインアップ処理開始...");
-      
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -44,38 +47,52 @@ export default function Signup() {
         },
       });
 
-      console.log("📧 [SIGNUP-NEW] signUp結果:", { 
-        hasSession: !!data.session, 
+      console.log("📧 [SIGNUP-NEW] signUp結果:", {
+        hasSession: !!data.session,
         hasUser: !!data.user,
-        error: error?.message 
+        error: error?.message,
       });
 
       // ✅ エラーがある場合
       if (error) {
         console.log("❌ [SIGNUP-NEW] signUpエラー:", error);
-        setError(`サインアップに失敗しました: ${error.message}`);
-        return;
-      }
 
-      // ✅ セッションが作成された場合 = 既存ユーザーが自動ログインされた
-      if (data.session && data.user) {
-        console.log("⚠️ [SIGNUP-NEW] 既存ユーザーのセッション作成検出 - サインアウト実行");
-        await supabase.auth.signOut();
-        setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+        // 既存ユーザーのエラーパターンを確認
+        if (error.message && error.message.toLowerCase().includes("already")) {
+          setError(
+            "このメールアドレスは既に登録されています。ログインをお試しください。",
+          );
+          return;
+        }
+
+        setError(`サインアップに失敗しました: ${error.message}`);
         return;
       }
 
       // ✅ メール確認が必要な場合（新規ユーザーの正常なケース）
       if (!data.session && data.user) {
-        console.log("✅ [SIGNUP-NEW] 新規ユーザー - 認証メール送信完了");
-        setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
+        console.log("📧 [DEBUG] User details:", data.user);
+
+        // 既存ユーザー判定: email_confirmed_atが存在すれば既存ユーザー
+        if (data.user.email_confirmed_at) {
+          console.log("⚠️ [SIGNUP-NEW] 既存ユーザー検出");
+          setError(
+            "このメールアドレスは既に登録されています。ログインをお試しください。",
+          );
+        } else {
+          console.log("✅ [SIGNUP-NEW] 新規ユーザー - 認証メール送信完了");
+          setSuccess(
+            "認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。",
+          );
+        }
         return;
       }
 
       // その他の予期しないケース
       console.log("⚠️ [SIGNUP-NEW] 予期しない状態");
-      setSuccess("認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。");
-      
+      setSuccess(
+        "認証メールを送信しました。メール内のリンクをクリックして認証を完了してください。",
+      );
     } catch (err: any) {
       console.error("❌ サインアップエラー:", err);
       setError(err.message || "アカウント作成に失敗しました");
@@ -119,7 +136,7 @@ export default function Signup() {
           </h1>
           <p className="text-gray-600">新規アカウント作成 - 修正版</p>
           <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4">
-            ✅ 修正完了: 自動ログインエラーは発生しません
+            ✅ 修正完了: 既存ユーザー判定を改善
           </div>
         </div>
 
@@ -129,7 +146,7 @@ export default function Signup() {
               {error}
             </div>
           )}
-          
+
           {success && (
             <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
               {success}
