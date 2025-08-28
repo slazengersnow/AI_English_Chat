@@ -28,6 +28,17 @@ export default function AuthCallback() {
           
           if (data.session) {
             console.log("✅ Session set successfully");
+            
+            // 管理者アカウントの場合はメインページに遷移
+            if (data.session.user?.email === 'slazengersnow@gmail.com') {
+              console.log("🔑 Admin user detected, redirecting to main page");
+              setMsg("管理者として認証されました。メインページに移動します...");
+              setTimeout(() => {
+                window.location.href = "/";
+              }, 1000);
+              return;
+            }
+            
             setMsg("認証が完了しました。料金プランの選択画面に移動します...");
             setTimeout(() => {
               window.location.href = "/subscription-select";
@@ -47,6 +58,17 @@ export default function AuthCallback() {
           
           if (data.session) {
             console.log("✅ Code exchange successful");
+            
+            // 管理者アカウントの場合はメインページに遷移
+            if (data.session.user?.email === 'slazengersnow@gmail.com') {
+              console.log("🔑 Admin user detected, redirecting to main page");
+              setMsg("管理者として認証されました。メインページに移動します...");
+              setTimeout(() => {
+                window.location.href = "/";
+              }, 1000);
+              return;
+            }
+            
             setMsg("認証が完了しました。料金プランの選択画面に移動します...");
             setTimeout(() => {
               window.location.href = "/subscription-select";
@@ -59,6 +81,17 @@ export default function AuthCallback() {
         const { data: sessionData } = await supabase.auth.getSession();
         if (sessionData.session) {
           console.log("✅ Existing session found");
+          
+          // 管理者アカウントの場合はメインページに遷移
+          if (sessionData.session.user?.email === 'slazengersnow@gmail.com') {
+            console.log("🔑 Admin user detected, redirecting to main page");
+            setMsg("管理者として認証されました。メインページに移動します...");
+            setTimeout(() => {
+              window.location.href = "/";
+            }, 1000);
+            return;
+          }
+          
           setMsg("認証が完了しました。料金プランの選択画面に移動します...");
           setTimeout(() => {
             window.location.href = "/subscription-select";

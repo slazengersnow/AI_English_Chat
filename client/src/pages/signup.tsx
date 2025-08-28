@@ -43,7 +43,10 @@ export default function Signup() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/subscription-select`,
+          // 管理者の場合はauth-callbackに、それ以外はsubscription-selectに遷移
+          emailRedirectTo: email === 'slazengersnow@gmail.com' 
+            ? `${window.location.origin}/auth-callback`
+            : `${window.location.origin}/subscription-select`,
         },
       });
 

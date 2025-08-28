@@ -160,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       user, 
       initialized, 
       isLoading, 
-      isAdmin: false, // Simplified for now
+      isAdmin: user?.email === 'slazengersnow@gmail.com',
       isAuthenticated: !!user,
       signOut
     }}>
