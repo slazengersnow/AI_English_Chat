@@ -74,7 +74,7 @@ export default function Signup() {
         console.log("📧 [DEBUG] User details:", data.user);
 
         // 既存ユーザー判定: email_confirmed_atが存在すれば既存ユーザー
-        if (data.user.email_confirmed_at) {
+        if (new Date(data.user.created_at) < new Date(Date.now() - 10000)) {
           console.log("⚠️ [SIGNUP-NEW] 既存ユーザー検出");
           setError(
             "このメールアドレスは既に登録されています。ログインをお試しください。",
