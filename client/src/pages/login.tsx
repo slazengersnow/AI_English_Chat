@@ -46,14 +46,30 @@ export default function Login() {
     setError("");
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/auth-callback`,
+          skipBrowserRedirect: true, // iframe制限を回避
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Google OAuth error:", error);
+        throw error;
+      }
+
+      // データがある場合は、新しいウィンドウでOAuth URLを開く
+      if (data?.url) {
+        console.log("🔗 Opening Google login in new window:", data.url);
+        // iframe制限を回避するため、親ウィンドウで開く
+        if (window.parent && window.parent !== window) {
+          window.parent.open(data.url, '_blank');
+        } else {
+          window.open(data.url, '_blank');
+        }
+      }
+      setLoading(false);
     } catch (error: any) {
       setError(error.message || "Googleログインに失敗しました");
       console.error("Google login error:", error);

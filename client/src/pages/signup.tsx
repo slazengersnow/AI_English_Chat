@@ -122,7 +122,7 @@ export default function Signup() {
             access_type: 'offline',
             prompt: 'consent',
           },
-          skipBrowserRedirect: false, // ブラウザリダイレクトを許可
+          skipBrowserRedirect: true, // フレーム制限を回避するため新しいウィンドウで開く
         },
       });
 
@@ -133,7 +133,17 @@ export default function Signup() {
         throw error;
       }
 
-      // OAuth認証の場合はリダイレクトが起きるので、ここに到達することは通常ない
+      // データがある場合は、新しいウィンドウでOAuth URLを開く
+      if (data?.url) {
+        console.log("🔗 Opening Google OAuth in new window:", data.url);
+        // iframe制限を回避するため、親ウィンドウで開く
+        if (window.parent && window.parent !== window) {
+          window.parent.open(data.url, '_blank');
+        } else {
+          window.open(data.url, '_blank');
+        }
+        setSuccess("Googleサインアップページを開きました。認証を完了してください。");
+      }
     } catch (error: any) {
       console.error("Google signup error:", error);
       setError(error.message || "Googleサインアップに失敗しました。Google認証が有効でない可能性があります。");
