@@ -5,30 +5,34 @@ import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
 import { eq, lte, desc, gte } from "drizzle-orm";
 const router = Router();
-/* -------------------- セッション重複防止 -------------------- */
-const sessionProblems = new Map();
-function getSessionId(req) {
-    // 同一セッションでの重複出題を抑えるための簡易ID
-    return req.headers["x-session-id"] || req.ip || "default";
-}
-function getUsedProblems(sessionId) {
-    if (!sessionProblems.has(sessionId)) {
-        sessionProblems.set(sessionId, new Set());
+/* -------------------- データベースベース重複防止 -------------------- */
+/**
+ * ユーザーが最近回答した問題を取得（過去20問）
+ */
+async function getRecentUserProblems(userId, difficultyLevel) {
+    try {
+        const recentSessions = await db
+            .select({ japaneseSentence: trainingSessions.japaneseSentence })
+            .from(trainingSessions)
+            .where(eq(trainingSessions.userId, userId))
+            .orderBy(desc(trainingSessions.createdAt))
+            .limit(20); // 過去20問をチェック
+        return recentSessions.map(session => session.japaneseSentence);
     }
-    return sessionProblems.get(sessionId);
-}
-function markProblemAsUsed(sessionId, problem) {
-    getUsedProblems(sessionId).add(problem);
-}
-function getUnusedProblem(sessionId, problems) {
-    const used = getUsedProblems(sessionId);
-    const pool = problems.filter((p) => !used.has(p));
-    if (pool.length === 0) {
-        // 使い切ったらリセット
-        used.clear();
-        return problems[Math.floor(Math.random() * problems.length)];
+    catch (error) {
+        console.error("Error fetching recent problems:", error);
+        return [];
     }
-    return pool[Math.floor(Math.random() * pool.length)];
+}
+/**
+ * 重複のない問題を選択
+ */
+async function getUnusedProblem(userId, difficultyLevel, problems) {
+    const recentProblems = await getRecentUserProblems(userId, difficultyLevel);
+    const availableProblems = problems.filter(p => !recentProblems.includes(p));
+    // 利用可能な問題がない場合は、全ての問題から選択
+    const finalPool = availableProblems.length > 0 ? availableProblems : problems;
+    return finalPool[Math.floor(Math.random() * finalPool.length)];
 }
 /* -------------------- 入力の正規化ヘルパ -------------------- */
 const DIFFICULTY_ALIASES = {
@@ -67,6 +71,21 @@ const problemSets = {
         "新しいプロジェクトの進捗はいかがですか。",
         "顧客からのフィードバックを検討する必要があります。",
         "来週までに報告書を提出してください。",
+        "この商品の在庫を確認してください。",
+        "明日の会議はオンラインで行います。",
+        "予算の詳細について話し合いましょう。",
+        "契約書の内容を確認する必要があります。",
+        "来月の売上目標を設定しました。",
+        "お客様からの問い合わせに対応してください。",
+        "今四半期の業績は予想を上回りました。",
+        "新しいマーケティング戦略を検討中です。",
+        "品質管理の改善が必要です。",
+        "チームメンバーとのミーティングを予定しています。",
+        "プロジェクトの期限を延長する必要があります。",
+        "市場調査の結果を分析してください。",
+        "コスト削減の提案を検討しています。",
+        "新しい技術の導入を検討しています。",
+        "クライアントとの関係を改善したいと思います。"
     ],
     "middle-school": [
         "私は毎日学校に行きます。",
@@ -74,6 +93,26 @@ const problemSets = {
         "彼女は本を読むのが好きです。",
         "私たちは昨日映画を見ました。",
         "明日は友達と遊びます。",
+        "私は英語を勉強しています。",
+        "彼は野球が上手です。",
+        "母は料理を作っています。",
+        "私たちは公園で遊びました。",
+        "彼女は音楽を聞いています。",
+        "私は宿題をしました。",
+        "今日は暖かい日です。",
+        "私の兄は大学生です。",
+        "私たちは夏休みが好きです。",
+        "彼は自転車に乗ります。",
+        "私は朝ごはんを食べます。",
+        "彼女は絵を描くのが得意です。",
+        "私たちは図書館で勉強します。",
+        "今日は金曜日です。",
+        "私は犬を飼っています。",
+        "彼は毎朝ジョギングをします。",
+        "私たちは家族と旅行します。",
+        "彼女は数学が好きです。",
+        "私は新しい友達を作りました。",
+        "今日は風が強いです。"
     ],
     "high-school": [
         "環境問題について考える必要があります。",
@@ -81,6 +120,21 @@ const problemSets = {
         "多様性を尊重することが大切です。",
         "グローバル化が進んでいます。",
         "持続可能な社会を目指しています。",
+        "科学技術の進歩は私たちの生活を変えています。",
+        "文化の違いを理解することが重要です。",
+        "教育は社会の発展にとって不可欠です。",
+        "人工知能が様々な分野で活用されています。",
+        "気候変動の影響が深刻化しています。",
+        "情報化社会では適切な判断力が求められます。",
+        "国際協力が世界平和に重要な役割を果たします。",
+        "再生可能エネルギーの開発が急務です。",
+        "高齢化社会への対応が課題となっています。",
+        "デジタル技術が教育現場で活用されています。",
+        "経済格差の問題が深刻化しています。",
+        "文学作品は人間の心を豊かにします。",
+        "民主主義の価値を守ることが大切です。",
+        "科学的思考を身につけることが重要です。",
+        "異文化理解が今後ますます重要になります。"
     ],
     "basic-verbs": [
         "彼は毎朝走ります。",
@@ -88,6 +142,21 @@ const problemSets = {
         "彼女は料理を作ります。",
         "私たちは音楽を聞きます。",
         "子供たちは公園で遊びます。",
+        "私は友達と話します。",
+        "彼女は写真を撮ります。",
+        "私たちは一緒に歌います。",
+        "彼は車を運転します。",
+        "私は手紙を書きます。",
+        "彼女は花を植えます。",
+        "私たちは映画を見ます。",
+        "彼は魚を釣ります。",
+        "私は服を洗います。",
+        "彼女は犬と歩きます。",
+        "私たちはパンを買います。",
+        "彼は部屋を掃除します。",
+        "私は水を飲みます。",
+        "彼女は絵を描きます。",
+        "私たちはゲームをします。"
     ],
     "business-email": [
         "会議の件でご連絡いたします。",
@@ -95,6 +164,21 @@ const problemSets = {
         "ご確認のほど、よろしくお願いいたします。",
         "お忙しいところ恐れ入ります。",
         "ご返信をお待ちしております。",
+        "ご質問がございましたらお気軽にお声かけください。",
+        "今後ともよろしくお願いいたします。",
+        "お疲れ様でございます。",
+        "ご検討のほど、よろしくお願いいたします。",
+        "詳細につきましてはご相談させていただきます。",
+        "ご不明な点がございましたらお知らせください。",
+        "お時間をいただき、ありがとうございます。",
+        "改めてご連絡いたします。",
+        "ご協力いただき、感謝しております。",
+        "スケジュールを調整いたします。",
+        "早急に対応いたします。",
+        "ご迷惑をおかけして申し訳ございません。",
+        "お手数をおかけいたします。",
+        "ご理解のほど、よろしくお願いいたします。",
+        "引き続きよろしくお願いいたします。"
     ],
     simulation: [
         "レストランで注文をお願いします。",
@@ -102,12 +186,44 @@ const problemSets = {
         "体調が悪いので病院に行きたいです。",
         "買い物で値段を聞きたいです。",
         "電車の時刻を確認したいです。",
+        "ホテルの予約を取りたいです。",
+        "空港への行き方を教えてください。",
+        "Wi-Fiのパスワードを教えてください。",
+        "荷物を預けたいのですが。",
+        "チェックアウトの時間を知りたいです。",
+        "タクシーを呼んでもらえませんか。",
+        "両替をしたいのですが。",
+        "観光地への行き方を教えてください。",
+        "緊急事態です。助けてください。",
+        "薬局はどこにありますか。",
+        "この商品は税抜きの価格ですか。",
+        "クレジットカードは使えますか。",
+        "トイレはどこにありますか。",
+        "メニューを英語で説明してください。",
+        "予約の変更をしたいのですが。"
     ],
 };
 /* -------------------- マイページ関連 API -------------------- */
 /* -------------------- 問題出題 -------------------- */
 export const handleProblemGeneration = async (req, res) => {
     try {
+        // ユーザーIDを取得（認証トークンから）
+        let userId = "default_user";
+        const authHeader = req.headers.authorization;
+        if (authHeader?.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.substring(7);
+                const { createClient } = await import('@supabase/supabase-js');
+                const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+                const { data: { user }, error } = await supabase.auth.getUser(token);
+                if (user && !error) {
+                    userId = user.id;
+                }
+            }
+            catch (error) {
+                console.log("Failed to get user from token:", error);
+            }
+        }
         const canProceed = await storage.incrementDailyCount();
         if (!canProceed) {
             return res.status(429).json({
@@ -134,12 +250,7 @@ export const handleProblemGeneration = async (req, res) => {
         }
         const { difficultyLevel } = parseResult.data;
         const allSentences = problemSets[difficultyLevel] || problemSets["toeic"];
-        const sessionId = getSessionId(req);
-        const selectedSentence = getUnusedProblem(sessionId, allSentences);
-        if (!selectedSentence) {
-            return res.status(500).json({ message: "No problems available" });
-        }
-        markProblemAsUsed(sessionId, selectedSentence);
+        const selectedSentence = await getUnusedProblem(userId, difficultyLevel, allSentences);
         const response = {
             japaneseSentence: selectedSentence,
             hints: [`問題 - ${difficultyLevel}`],
