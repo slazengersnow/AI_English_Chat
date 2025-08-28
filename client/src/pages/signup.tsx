@@ -112,17 +112,30 @@ export default function Signup() {
     setSuccess("");
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log("🔄 Google OAuth signup starting...");
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth-callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         },
       });
 
-      if (error) throw error;
+      console.log("📧 Google OAuth result:", { data, error });
+
+      if (error) {
+        console.error("❌ Google OAuth error:", error);
+        throw error;
+      }
+
+      // OAuth認証の場合はリダイレクトが起きるので、ここに到達することは通常ない
     } catch (error: any) {
-      setError(error.message || "Googleサインアップに失敗しました");
       console.error("Google signup error:", error);
+      setError(error.message || "Googleサインアップに失敗しました。Google認証が有効でない可能性があります。");
       setLoading(false);
     }
   };
@@ -132,12 +145,9 @@ export default function Signup() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            ✅ [FIXED] AI瞬間英作文チャット
+            AI瞬間英作文チャット
           </h1>
-          <p className="text-gray-600">新規アカウント作成 - 修正版</p>
-          <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded mb-4">
-            ✅ 修正完了: 既存ユーザー判定を改善
-          </div>
+          <p className="text-gray-600">新規アカウント作成</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-8">
@@ -276,7 +286,12 @@ export default function Signup() {
             <button
               onClick={handleGoogleSignup}
               disabled={loading || !termsAccepted || !privacyAccepted}
-              className="mt-4 w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className={`mt-4 w-full font-semibold py-2 px-4 rounded-md transition duration-200 flex items-center justify-center gap-2 ${
+                loading || !termsAccepted || !privacyAccepted
+                  ? 'bg-gray-400 cursor-not-allowed text-gray-600'
+                  : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
+              title={(!termsAccepted || !privacyAccepted) ? "利用規約とプライバシーポリシーに同意してください" : ""}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -298,6 +313,12 @@ export default function Signup() {
               </svg>
               {loading ? "登録中..." : "Googleで登録"}
             </button>
+
+            {(!termsAccepted || !privacyAccepted) && (
+              <p className="text-xs text-gray-500 text-center mt-2">
+                ※ 利用規約とプライバシーポリシーに同意するとGoogleログインが利用できます
+              </p>
+            )}
           </div>
 
           <div className="mt-6 text-center">
