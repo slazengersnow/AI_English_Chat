@@ -9,15 +9,50 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isTrial = searchParams.get('trial') === 'true';
+  const planId = searchParams.get('plan') || 'standard';
   const [showSubscriptionSettings, setShowSubscriptionSettings] = useState(false);
 
-  const premiumFeatures = [
-    '無制限の問題数',
-    'カスタムシナリオ作成',
-    '詳細な学習分析',
-    '復習機能',
-    '優先サポート'
-  ];
+  // プラン別の特典を定義
+  const planFeatures = {
+    standard: [
+      '基本練習機能（全レベル対応）',
+      '1日50問まで',
+      '詳しい解説・類似フレーズ',
+      '基本的な進捗管理'
+    ],
+    premium: [
+      '基本練習機能（全レベル対応）',
+      '1日100問まで',
+      '詳しい解説・類似フレーズ',
+      'カスタムシナリオ作成',
+      '復習機能'
+    ],
+    'standard-yearly': [
+      '基本練習機能（全レベル対応）',
+      '1日50問まで',
+      '詳しい解説・類似フレーズ',
+      '基本的な進捗管理',
+      '年額16%お得（2ヶ月無料）'
+    ],
+    'premium-yearly': [
+      '基本練習機能（全レベル対応）',
+      '1日100問まで',
+      '詳しい解説・類似フレーズ',
+      'カスタムシナリオ作成',
+      '復習機能',
+      '年額16%お得（2ヶ月無料）'
+    ]
+  };
+
+  const planNames = {
+    standard: 'スタンダード',
+    premium: 'プレミアム',
+    'standard-yearly': 'スタンダード年間',
+    'premium-yearly': 'プレミアム年間'
+  };
+
+  const currentPlan = planNames[planId as keyof typeof planNames] || 'スタンダード';
+  const currentFeatures = planFeatures[planId as keyof typeof planFeatures] || planFeatures.standard;
 
   const handleStartLearning = () => {
     navigate('/');
@@ -29,11 +64,11 @@ export default function PaymentSuccess() {
 
   const handleSubscriptionAction = (action: 'setup' | 'cancel') => {
     if (action === 'setup') {
-      // サブスクリプション設定ページに遷移
-      navigate('/subscription-settings');
+      // サブスクリプション設定ページに遷移（まずはホームに戻る）
+      navigate('/');
     } else {
-      // キャンセル処理
-      navigate('/subscription-cancel');
+      // キャンセル処理（まずはホームに戻る）
+      navigate('/');
     }
   };
 
@@ -54,18 +89,18 @@ export default function PaymentSuccess() {
           <p className="text-gray-600 mt-2">
             {isTrial 
               ? '7日間無料トライアルが開始されました' 
-              : 'プレミアムプランへの登録が完了しました'
+              : `${currentPlan}プランへの登録が完了しました`
             }
           </p>
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* プレミアムプランの特典 */}
+          {/* プランの特典 */}
           {!isTrial && (
             <div className="bg-purple-50 rounded-lg p-4">
-              <h3 className="font-semibold text-purple-900 mb-3">プレミアムプランの特典</h3>
+              <h3 className="font-semibold text-purple-900 mb-3">{currentPlan}プランの特典</h3>
               <ul className="space-y-2">
-                {premiumFeatures.map((feature, index) => (
+                {currentFeatures.map((feature, index) => (
                   <li key={index} className="flex items-center text-sm text-purple-800">
                     <CheckCircle className="w-4 h-4 text-purple-600 mr-2" />
                     {feature}
