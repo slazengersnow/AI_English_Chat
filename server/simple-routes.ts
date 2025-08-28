@@ -503,8 +503,61 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
   }
 };
 
-// Enhanced fallback evaluation function
+// Enhanced Claude-powered dynamic evaluation function
 async function generateFallbackEvaluation(japaneseSentence: string, userTranslation: string, difficultyLevel: string): Promise<TranslateResponse> {
+  console.log(`🤖 Generating complete dynamic evaluation for: "${japaneseSentence}" with user answer: "${userTranslation}"`);
+  
+  // Try Claude API for complete evaluation
+  if (process.env.ANTHROPIC_API_KEY) {
+    try {
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `You are an English learning AI tutor. Evaluate this Japanese-to-English translation:
+
+Japanese: "${japaneseSentence}"
+User's answer: "${userTranslation}"
+Difficulty: ${difficultyLevel}
+
+Provide a JSON response with:
+1. "correctTranslation": The best English translation
+2. "feedback": Encouraging Japanese feedback (2-3 sentences)
+3. "rating": Number 1-5 (5=perfect, 4=very good, 3=good, 2=needs improvement, 1=poor)
+4. "improvements": Array of 2 Japanese improvement suggestions
+5. "explanation": Detailed Japanese explanation of grammar/vocabulary
+6. "similarPhrases": Array of 3 similar English expressions
+
+Respond only with valid JSON, no extra text.`
+        }]
+      });
+
+      const content = response.content[0];
+      if (content.type === 'text') {
+        try {
+          const claudeResult = JSON.parse(content.text);
+          console.log(`✅ Claude complete evaluation generated successfully`);
+          return {
+            correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
+            feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
+            rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
+            improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
+            explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
+            similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
+          };
+        } catch (parseError) {
+          console.log('⚠️ Claude JSON parsing failed, falling back to static generation');
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ Claude evaluation failed: ${error.message}, using static fallback`);
+    }
+  }
+  
+  // Static fallback system (only used when Claude API fails)
   const modelAnswers: Record<string, string> = {
     "私たちは昨日映画を見ました。": "We watched a movie yesterday.",
     "明日は友達と遊びます。": "I will play with my friends tomorrow.",
@@ -653,81 +706,43 @@ async function generateFallbackEvaluation(japaneseSentence: string, userTranslat
     return phrases.slice(0, 3);
   }
 
-  const correctTranslation = modelAnswers[japaneseSentence] || generateBasicTranslation(japaneseSentence);
+
+  // Static fallback evaluation (used only when Claude API completely fails)
+  console.log('⚠️ Using static fallback evaluation system');
+  const staticCorrectTranslation = modelAnswers[japaneseSentence] || generateBasicTranslation(japaneseSentence);
   
   // Simple evaluation based on user input quality
-  let rating = 3;
-  let feedback = "良い回答です。継続的な練習で更に向上できます。";
-  let improvements = ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"];
-  let explanation = "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。";
+  let staticRating = 3;
+  let staticFeedback = "良い回答です。継続的な練習で更に向上できます。";
+  let staticImprovements = ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"];
+  let staticExplanation = "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。";
 
   if (!userTranslation || userTranslation.trim().length < 3) {
-    rating = 1;
-    feedback = "回答が短すぎます。完整な英文で回答してください。";
-    improvements = ["完整な英文を作成しましょう", "主語と動詞を含めましょう"];
-    explanation = "英訳では主語、動詞、目的語を含む完整な文を作ることが大切です。";
+    staticRating = 1;
+    staticFeedback = "回答が短すぎます。完整な英文で回答してください。";
+    staticImprovements = ["完整な英文を作成しましょう", "主語と動詞を含めましょう"];
+    staticExplanation = "英訳では主語、動詞、目的語を含む完整な文を作ることが大切です。";
   } else if (userTranslation.toLowerCase().includes("movee") || userTranslation.toLowerCase().includes("bouk")) {
-    rating = 2;
-    feedback = "スペルミスがあります。正しい英単語を使いましょう。";
-    improvements = ["単語のスペルを確認しましょう", "基本的な英単語を覚えましょう"];
-    explanation = "英語の基本単語を正確に覚えることで、より良い英訳ができるようになります。";
+    staticRating = 2;
+    staticFeedback = "スペルミスがあります。正しい英単語を使いましょう。";
+    staticImprovements = ["単語のスペルを確認しましょう", "基本的な英単語を覚えましょう"];
+    staticExplanation = "英語の基本単語を正確に覚えることで、より良い英訳ができるようになります。";
   }
 
-  // Generate similar phrases dynamically
+  // Use static similar phrases or intelligent generation as last resort
   let dynamicSimilarPhrases: string[];
-  
-  // Try to use Claude API first for dynamic generation
-  try {
-    if (process.env.ANTHROPIC_API_KEY) {
-      console.log(`🤖 Attempting Claude similar phrases generation for: "${japaneseSentence}"`);
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      
-      const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 120,
-        messages: [{
-          role: 'user',
-          content: `Create 3 English phrases similar to "${correctTranslation}" that mean the same thing as the Japanese sentence "${japaneseSentence}". Make them natural and educational for English learners. Just list the 3 phrases, one per line, no numbers or extra text.`
-        }]
-      });
-
-      const content = response.content[0];
-      if (content.type === 'text') {
-        const claudePhrases = content.text.trim()
-          .split('\n')
-          .map(phrase => phrase.trim().replace(/^[\d\-\*\.]+\s*/, ''))
-          .filter(phrase => phrase.length > 0)
-          .slice(0, 3);
-        
-        if (claudePhrases.length >= 3) {
-          console.log(`✅ Generated ${claudePhrases.length} similar phrases via Claude`);
-          dynamicSimilarPhrases = claudePhrases;
-        } else {
-          throw new Error('Insufficient phrases generated');
-        }
-      } else {
-        throw new Error('Invalid response format');
-      }
-    } else {
-      throw new Error('ANTHROPIC_API_KEY not available');
-    }
-  } catch (error) {
-    console.log(`⚠️ Claude phrases failed: ${error.message}, using intelligent fallback`);
-    
-    // Fallback to static phrases if available, then intelligent generation
-    if (similarPhrases[japaneseSentence]) {
-      dynamicSimilarPhrases = similarPhrases[japaneseSentence];
-    } else {
-      dynamicSimilarPhrases = generateIntelligentSimilarPhrases(japaneseSentence, correctTranslation);
-    }
+  if (similarPhrases[japaneseSentence]) {
+    dynamicSimilarPhrases = similarPhrases[japaneseSentence];
+  } else {
+    dynamicSimilarPhrases = generateIntelligentSimilarPhrases(japaneseSentence, staticCorrectTranslation);
   }
 
   return {
-    correctTranslation,
-    feedback,
-    rating,
-    improvements,
-    explanation,
+    correctTranslation: staticCorrectTranslation,
+    feedback: staticFeedback,
+    rating: staticRating,
+    improvements: staticImprovements,
+    explanation: staticExplanation,
     similarPhrases: dynamicSimilarPhrases,
   };
 }
