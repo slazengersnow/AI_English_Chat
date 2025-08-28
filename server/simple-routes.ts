@@ -26,7 +26,7 @@ const router = Router();
 /* -------------------- データベースベース重複防止 -------------------- */
 
 /**
- * ユーザーが最近回答した問題を取得（過去5000問）
+ * ユーザーが最近回答した問題を取得（過去50000問）
  */
 async function getRecentUserProblems(userId: string, difficultyLevel: string): Promise<string[]> {
   try {
@@ -35,7 +35,7 @@ async function getRecentUserProblems(userId: string, difficultyLevel: string): P
       .from(trainingSessions)
       .where(eq(trainingSessions.userId, userId))
       .orderBy(desc(trainingSessions.createdAt))
-      .limit(5000); // 過去5000問をチェック
+      .limit(50000); // 過去50000問をチェック
 
     return recentSessions.map(session => session.japaneseSentence);
   } catch (error) {
