@@ -455,6 +455,23 @@ function generateFallbackEvaluation(japaneseSentence, userTranslation, difficult
         "彼女は料理を作ります。": "She cooks meals.",
         "私たちは音楽を聞きます。": "We listen to music.",
         "子供たちは公園で遊びます。": "Children play in the park.",
+        "私たちは夏休みが好きです。": "We like summer vacation.",
+        "私は英語を勉強しています。": "I am studying English.",
+        "私は朝ごはんを食べます。": "I have breakfast.",
+        "私たちは公園で遊びました。": "We played in the park.",
+        "私は宿題をしました。": "I did my homework.",
+        "今日は暖かい日です。": "Today is a warm day.",
+        "私の兄は大学生です。": "My brother is a university student.",
+        "彼は自転車に乗ります。": "He rides a bicycle.",
+        "彼女は絵を描くのが得意です。": "She is good at drawing pictures.",
+        "私たちは図書館で勉強します。": "We study in the library.",
+        "今日は金曜日です。": "Today is Friday.",
+        "私は犬を飼っています。": "I have a dog.",
+        "彼は毎朝ジョギングをします。": "He jogs every morning.",
+        "私たちは家族と旅行します。": "We travel with our family.",
+        "彼女は数学が好きです。": "She likes math.",
+        "私は新しい友達を作りました。": "I made a new friend.",
+        "今日は風が強いです。": "It is windy today.",
     };
     const similarPhrases = {
         "私たちは昨日映画を見ました。": [
@@ -469,8 +486,47 @@ function generateFallbackEvaluation(japaneseSentence, userTranslation, difficult
             "She enjoys reading books.",
             "Reading books is one of her hobbies.",
         ],
+        "私たちは夏休みが好きです。": [
+            "We love summer vacation.",
+            "We enjoy summer break.",
+            "Summer holidays are our favorite.",
+        ],
+        "私は英語を勉強しています。": [
+            "I'm learning English.",
+            "I study English.",
+            "I'm working on my English.",
+        ],
+        "私は朝ごはんを食べます。": [
+            "I eat breakfast.",
+            "I have my morning meal.",
+            "I take breakfast.",
+        ],
+        "私たちは公園で遊びました。": [
+            "We had fun in the park.",
+            "We played at the park.",
+            "We enjoyed ourselves in the park.",
+        ],
     };
-    const correctTranslation = modelAnswers[japaneseSentence] || "Please translate this sentence accurately.";
+    // Basic translation generator for unknown sentences
+    function generateBasicTranslation(japaneseSentence) {
+        // Simple pattern matching for basic translation
+        if (japaneseSentence.includes("好きです")) {
+            return "I/We like...";
+        }
+        else if (japaneseSentence.includes("行きます")) {
+            return "I/We go...";
+        }
+        else if (japaneseSentence.includes("します")) {
+            return "I/We do...";
+        }
+        else if (japaneseSentence.includes("です")) {
+            return "It is...";
+        }
+        else {
+            return "Please provide a translation for this sentence.";
+        }
+    }
+    const correctTranslation = modelAnswers[japaneseSentence] || generateBasicTranslation(japaneseSentence);
     // Simple evaluation based on user input quality
     let rating = 3;
     let feedback = "良い回答です。継続的な練習で更に向上できます。";
