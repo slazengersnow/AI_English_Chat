@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { useNavigate } from "react-router-dom";
 
 interface AdminStats {
   totalUsers: number;
@@ -68,6 +68,7 @@ interface LearningAnalytics {
 
 export default function Admin() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
   // Check admin access
@@ -168,12 +169,10 @@ export default function Admin() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Link href="/">
-              <Button variant="outline" className="w-full">
-                <Home className="w-4 h-4 mr-2" />
-                ホームに戻る
-              </Button>
-            </Link>
+            <Button variant="outline" className="w-full" onClick={() => navigate('/')}>
+              <Home className="w-4 h-4 mr-2" />
+              ホームに戻る
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -190,12 +189,10 @@ export default function Admin() {
               <Shield className="w-8 h-8 text-blue-600 mr-3" />
               <h1 className="text-2xl font-bold text-gray-900">管理者ダッシュボード</h1>
             </div>
-            <Link href="/">
-              <Button variant="outline">
-                <Home className="w-4 h-4 mr-2" />
-                ホームに戻る
-              </Button>
-            </Link>
+            <Button variant="outline" onClick={() => navigate('/')}>
+              <Home className="w-4 h-4 mr-2" />
+              ホームに戻る
+            </Button>
           </div>
         </div>
       </div>

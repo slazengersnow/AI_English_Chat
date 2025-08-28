@@ -1351,59 +1351,76 @@ export default function MyPage() {
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium">次回請求日</h4>
                       <span className="text-sm text-gray-600">
-                        {(() => {
-                          const trialEndDate = new Date();
-                          trialEndDate.setDate(trialEndDate.getDate() + 7); // 7日間のトライアル
-                          return trialEndDate.toLocaleDateString("ja-JP");
-                        })()}
+                        {isAdmin ? "なし" : subscriptionDetails?.nextBillingDate || 
+                          (() => {
+                            const trialEndDate = new Date();
+                            trialEndDate.setDate(trialEndDate.getDate() + 7);
+                            return trialEndDate.toLocaleDateString("ja-JP");
+                          })()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">請求金額</h4>
-                      <span className="text-lg font-bold">月額1,300円</span>
+                      <span className="text-lg font-bold">
+                        {isAdmin ? "¥0" : subscriptionDetails?.price || "月額1,300円"}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => createCustomerPortalMutation.mutate()}
-                      disabled={createCustomerPortalMutation.isPending}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      {createCustomerPortalMutation.isPending
-                        ? "処理中..."
-                        : "請求履歴を確認"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => createCustomerPortalMutation.mutate()}
-                      disabled={createCustomerPortalMutation.isPending}
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      {createCustomerPortalMutation.isPending
-                        ? "処理中..."
-                        : "支払い方法を変更"}
-                    </Button>
-                  </div>
+                  {isAdmin ? (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-green-600" />
+                        <span className="font-medium text-green-800">管理者アカウント</span>
+                      </div>
+                      <p className="text-sm text-green-700 mt-1">
+                        このアカウントは支払い管理の対象外です。すべての機能を無料でご利用いただけます。
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-3">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => createCustomerPortalMutation.mutate()}
+                          disabled={createCustomerPortalMutation.isPending}
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          {createCustomerPortalMutation.isPending
+                            ? "処理中..."
+                            : "請求履歴を確認"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => createCustomerPortalMutation.mutate()}
+                          disabled={createCustomerPortalMutation.isPending}
+                        >
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          {createCustomerPortalMutation.isPending
+                            ? "処理中..."
+                            : "支払い方法を変更"}
+                        </Button>
+                      </div>
 
-                  <div className="pt-4 border-t">
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      onClick={() => createCustomerPortalMutation.mutate()}
-                      disabled={createCustomerPortalMutation.isPending}
-                    >
-                      {createCustomerPortalMutation.isPending
-                        ? "処理中..."
-                        : "サブスクリプションを解約"}
-                    </Button>
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      解約後も現在の請求期間終了まではご利用いただけます
-                    </p>
-                  </div>
+                      <div className="pt-4 border-t">
+                        <Button
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => createCustomerPortalMutation.mutate()}
+                          disabled={createCustomerPortalMutation.isPending}
+                        >
+                          {createCustomerPortalMutation.isPending
+                            ? "処理中..."
+                            : "サブスクリプションを解約"}
+                        </Button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">
+                          解約後も現在の請求期間終了まではご利用いただけます
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
