@@ -506,6 +506,36 @@ function generateFallbackEvaluation(japaneseSentence, userTranslation, difficult
             "We played at the park.",
             "We enjoyed ourselves in the park.",
         ],
+        "彼女は数学が好きです。": [
+            "She loves mathematics.",
+            "She enjoys math.",
+            "Mathematics is her favorite subject.",
+        ],
+        "私は犬を飼っています。": [
+            "I own a dog.",
+            "I have a pet dog.",
+            "I keep a dog as a pet.",
+        ],
+        "彼は毎朝ジョギングをします。": [
+            "He runs every morning.",
+            "He goes jogging each morning.",
+            "Morning jogging is his routine.",
+        ],
+        "私たちは家族と旅行します。": [
+            "We take trips with our family.",
+            "We go on family trips.",
+            "Family travel is our hobby.",
+        ],
+        "私は新しい友達を作りました。": [
+            "I made a new friend.",
+            "I befriended someone new.",
+            "I gained a new friendship.",
+        ],
+        "今日は風が強いです。": [
+            "It's very windy today.",
+            "There's a strong wind today.",
+            "The wind is blowing hard today.",
+        ],
     };
     // Basic translation generator for unknown sentences
     function generateBasicTranslation(japaneseSentence) {
