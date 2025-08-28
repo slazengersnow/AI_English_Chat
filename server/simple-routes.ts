@@ -480,11 +480,57 @@ export function registerRoutes(app: Express): void {
   // MyPage API endpoints
   router.get("/user-subscription", requireAuth, async (req: Request, res: Response) => {
     try {
+      // 認証トークンからユーザー情報を取得
+      const authHeader = req.headers.authorization;
+      let userEmail = null;
+      
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7);
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          userEmail = payload.email;
+        } catch (e) {
+          console.log('Token parsing failed:', e);
+        }
+      }
+      
+      // 管理者アカウントの場合は特別な設定を返す
+      if (userEmail === 'slazengersnow@gmail.com') {
+        console.log('🔑 Admin user detected, returning admin subscription');
+        return res.json({
+          id: 1,
+          userId: userEmail,
+          subscriptionType: "premium",
+          subscriptionStatus: "active", 
+          planName: "管理者プラン",
+          validUntil: new Date('2099-12-31').toISOString(),
+          isAdmin: true,
+          plan: "premium",
+          status: "active",
+          dailyLimit: 999,
+          remainingQuestions: 999,
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+      
+      // 一般ユーザー向けのデフォルト設定
       res.json({
+        id: 2,
+        userId: userEmail || "anonymous",
+        subscriptionType: "standard",
+        subscriptionStatus: "active",
+        planName: "スタンダードプラン", 
+        validUntil: new Date('2025-09-24').toISOString(),
+        isAdmin: false,
         plan: "standard",
         status: "active",
         dailyLimit: 50,
-        remainingQuestions: 45
+        remainingQuestions: 45,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
     } catch (error) {
       console.error('Error fetching user subscription:', error);
@@ -637,6 +683,32 @@ export function registerRoutes(app: Express): void {
 
   router.get("/daily-count", requireAuth, async (req: Request, res: Response) => {
     try {
+      // 認証トークンからユーザー情報を取得
+      const authHeader = req.headers.authorization;
+      let userEmail = null;
+      
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7);
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          userEmail = payload.email;
+        } catch (e) {
+          console.log('Token parsing failed for daily-count:', e);
+        }
+      }
+      
+      // 管理者の場合は無制限
+      if (userEmail === 'slazengersnow@gmail.com') {
+        console.log('🔑 Admin user detected, returning unlimited daily count');
+        return res.json({
+          today: 0,
+          limit: 999,
+          remaining: 999,
+          resetTime: "2099-12-31T23:59:59Z"
+        });
+      }
+      
+      // 一般ユーザー向け
       res.json({
         today: 23,
         limit: 50,
@@ -651,6 +723,33 @@ export function registerRoutes(app: Express): void {
 
   router.get("/subscription-details", requireAuth, async (req: Request, res: Response) => {
     try {
+      // 認証トークンからユーザー情報を取得
+      const authHeader = req.headers.authorization;
+      let userEmail = null;
+      
+      if (authHeader?.startsWith('Bearer ')) {
+        try {
+          const token = authHeader.substring(7);
+          const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+          userEmail = payload.email;
+        } catch (e) {
+          console.log('Token parsing failed for subscription-details:', e);
+        }
+      }
+      
+      // 管理者の場合は特別なプラン情報
+      if (userEmail === 'slazengersnow@gmail.com') {
+        console.log('🔑 Admin user detected, returning admin plan details');
+        return res.json({
+          planName: "管理者プラン",
+          price: "¥0",
+          features: ["問題数無制限", "すべての難易度レベル", "詳細フィードバック", "管理者機能", "プレミアム機能"],
+          status: "active",
+          nextBillingDate: null
+        });
+      }
+      
+      // 一般ユーザー向け
       res.json({
         planName: "スタンダードプラン",
         price: "月額980円",
