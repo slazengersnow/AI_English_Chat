@@ -296,13 +296,12 @@ export default function Signup() {
 
             <button
               onClick={handleGoogleSignup}
-              disabled={loading || !termsAccepted || !privacyAccepted}
+              disabled={loading}
               className={`mt-4 w-full font-semibold py-2 px-4 rounded-md transition duration-200 flex items-center justify-center gap-2 ${
-                loading || !termsAccepted || !privacyAccepted
+                loading
                   ? 'bg-gray-400 cursor-not-allowed text-gray-600'
                   : 'bg-red-600 hover:bg-red-700 text-white'
               }`}
-              title={(!termsAccepted || !privacyAccepted) ? "利用規約とプライバシーポリシーに同意してください" : ""}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -325,11 +324,6 @@ export default function Signup() {
               {loading ? "登録中..." : "Googleで登録"}
             </button>
 
-            {(!termsAccepted || !privacyAccepted) && (
-              <p className="text-xs text-gray-500 text-center mt-2">
-                ※ 利用規約とプライバシーポリシーに同意するとGoogleログインが利用できます
-              </p>
-            )}
           </div>
 
           <div className="mt-6 text-center">
