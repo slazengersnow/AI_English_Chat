@@ -363,7 +363,7 @@ export const handleClaudeEvaluation = async (req, res) => {
                 !parsedResult.correctTranslation ||
                 parsedResult.correctTranslation === "Translation evaluation failed") {
                 console.log("Using enhanced fallback due to invalid Claude response");
-                const fallbackResponse = generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
+                const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
                 res.json(fallbackResponse);
                 return;
             }
@@ -443,7 +443,7 @@ export const handleClaudeEvaluation = async (req, res) => {
     }
 };
 // Enhanced fallback evaluation function
-function generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel) {
+async function generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel) {
     const modelAnswers = {
         "私たちは昨日映画を見ました。": "We watched a movie yesterday.",
         "明日は友達と遊びます。": "I will play with my friends tomorrow.",
@@ -556,6 +556,43 @@ function generateFallbackEvaluation(japaneseSentence, userTranslation, difficult
             return "Please provide a translation for this sentence.";
         }
     }
+    // Generate intelligent similar phrases for unknown sentences
+    function generateIntelligentSimilarPhrases(japaneseSentence, correctTranslation) {
+        // Context-aware phrase generation based on the sentence content
+        const phrases = [];
+        // Pattern-based similar phrase generation
+        if (japaneseSentence.includes("好きです") || japaneseSentence.includes("好き")) {
+            phrases.push(`I/She/He enjoy(s) ${correctTranslation.split(' ').slice(1).join(' ')}`);
+            phrases.push(`${correctTranslation.replace('like', 'love')}`);
+            phrases.push(`It's my/her/his favorite to ${correctTranslation.split(' ').slice(1).join(' ')}`);
+        }
+        else if (japaneseSentence.includes("します") || japaneseSentence.includes("やります")) {
+            phrases.push(`Alternative: ${correctTranslation.replace('do', 'perform')}`);
+            phrases.push(`Another way: ${correctTranslation.replace('do', 'engage in')}`);
+            phrases.push(`Similar: ${correctTranslation.replace('I', 'We')}`);
+        }
+        else if (japaneseSentence.includes("行きます") || japaneseSentence.includes("行く")) {
+            phrases.push(`${correctTranslation.replace('go', 'visit')}`);
+            phrases.push(`${correctTranslation.replace('go to', 'head to')}`);
+            phrases.push(`${correctTranslation.replace('I go', 'I travel')}`);
+        }
+        else if (japaneseSentence.includes("です") || japaneseSentence.includes("だ")) {
+            phrases.push(`${correctTranslation.replace('is', 'seems to be')}`);
+            phrases.push(`${correctTranslation.replace('It is', 'This is')}`);
+            phrases.push(`Similar meaning: ${correctTranslation}`);
+        }
+        else {
+            // Generic intelligent phrases
+            phrases.push(`Alternative: ${correctTranslation}`);
+            phrases.push(`Another way: Please practice more.`);
+            phrases.push(`Keep improving: Your English is getting better!`);
+        }
+        // Ensure we have exactly 3 phrases
+        while (phrases.length < 3) {
+            phrases.push(`Practice phrase: Keep learning English!`);
+        }
+        return phrases.slice(0, 3);
+    }
     const correctTranslation = modelAnswers[japaneseSentence] || generateBasicTranslation(japaneseSentence);
     // Simple evaluation based on user input quality
     let rating = 3;
@@ -574,16 +611,61 @@ function generateFallbackEvaluation(japaneseSentence, userTranslation, difficult
         improvements = ["単語のスペルを確認しましょう", "基本的な英単語を覚えましょう"];
         explanation = "英語の基本単語を正確に覚えることで、より良い英訳ができるようになります。";
     }
+    // Generate similar phrases dynamically
+    let dynamicSimilarPhrases;
+    // Try to use Claude API first for dynamic generation
+    try {
+        if (process.env.ANTHROPIC_API_KEY) {
+            console.log(`🤖 Attempting Claude similar phrases generation for: "${japaneseSentence}"`);
+            const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+            const response = await anthropic.messages.create({
+                model: 'claude-3-haiku-20240307',
+                max_tokens: 120,
+                messages: [{
+                        role: 'user',
+                        content: `Create 3 English phrases similar to "${correctTranslation}" that mean the same thing as the Japanese sentence "${japaneseSentence}". Make them natural and educational for English learners. Just list the 3 phrases, one per line, no numbers or extra text.`
+                    }]
+            });
+            const content = response.content[0];
+            if (content.type === 'text') {
+                const claudePhrases = content.text.trim()
+                    .split('\n')
+                    .map(phrase => phrase.trim().replace(/^[\d\-\*\.]+\s*/, ''))
+                    .filter(phrase => phrase.length > 0)
+                    .slice(0, 3);
+                if (claudePhrases.length >= 3) {
+                    console.log(`✅ Generated ${claudePhrases.length} similar phrases via Claude`);
+                    dynamicSimilarPhrases = claudePhrases;
+                }
+                else {
+                    throw new Error('Insufficient phrases generated');
+                }
+            }
+            else {
+                throw new Error('Invalid response format');
+            }
+        }
+        else {
+            throw new Error('ANTHROPIC_API_KEY not available');
+        }
+    }
+    catch (error) {
+        console.log(`⚠️ Claude phrases failed: ${error.message}, using intelligent fallback`);
+        // Fallback to static phrases if available, then intelligent generation
+        if (similarPhrases[japaneseSentence]) {
+            dynamicSimilarPhrases = similarPhrases[japaneseSentence];
+        }
+        else {
+            dynamicSimilarPhrases = generateIntelligentSimilarPhrases(japaneseSentence, correctTranslation);
+        }
+    }
     return {
         correctTranslation,
         feedback,
         rating,
         improvements,
         explanation,
-        similarPhrases: similarPhrases[japaneseSentence] || [
-            "Good effort! Keep practicing.",
-            "Try using more natural English expressions.",
-        ],
+        similarPhrases: dynamicSimilarPhrases,
     };
 }
 /* -------------------- 認証ミドルウェア -------------------- */
