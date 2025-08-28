@@ -82,7 +82,7 @@ const CheckoutForm = ({ planId }: { planId: string }) => {
           <Button
             type="submit"
             disabled={!stripe || isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
           >
             {isLoading ? '処理中...' : '決済を完了する'}
           </Button>
