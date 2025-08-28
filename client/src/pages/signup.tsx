@@ -102,11 +102,6 @@ export default function Signup() {
   };
 
   const handleGoogleSignup = async () => {
-    if (!termsAccepted || !privacyAccepted) {
-      setError("利用規約とプライバシーポリシーに同意してください");
-      return;
-    }
-
     setLoading(true);
     setError("");
     setSuccess("");
