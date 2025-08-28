@@ -1,16 +1,13 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isTrial = searchParams.get('trial') === 'true';
   const planId = searchParams.get('plan') || 'standard';
-  const [showSubscriptionSettings, setShowSubscriptionSettings] = useState(false);
 
   // プラン別の特典を定義
   const planFeatures = {
@@ -58,23 +55,6 @@ export default function PaymentSuccess() {
     navigate('/');
   };
 
-  const handleSubscriptionSettings = () => {
-    setShowSubscriptionSettings(true);
-  };
-
-  const handleSubscriptionAction = (action: 'setup' | 'cancel') => {
-    if (action === 'setup') {
-      // サブスクリプション設定ページに遷移（まずはホームに戻る）
-      navigate('/');
-    } else {
-      // キャンセル処理（まずはホームに戻る）
-      navigate('/');
-    }
-  };
-
-  const handleBackHome = () => {
-    navigate('/');
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
@@ -120,46 +100,6 @@ export default function PaymentSuccess() {
             </div>
           )}
 
-          {/* サブスクリプション設定セクション */}
-          {!isTrial && !showSubscriptionSettings && (
-            <div className="bg-orange-50 rounded-lg p-4">
-              <h3 className="font-semibold text-orange-900 mb-2">サブスクリプションの設定を完了してください</h3>
-              <div className="space-y-3">
-                <Button
-                  onClick={handleSubscriptionSettings}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  サブスクリプションを設定
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleSubscriptionAction('cancel')}
-                  className="w-full text-gray-600 border-gray-300"
-                >
-                  サブスクリプション設定を後で行う
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* サブスクリプション設定オプション */}
-          {showSubscriptionSettings && (
-            <div className="space-y-3">
-              <Button
-                onClick={() => handleSubscriptionAction('setup')}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-              >
-                サブスクリプションを設定
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleSubscriptionAction('cancel')}
-                className="w-full text-gray-600 border-gray-300"
-              >
-                サブスクリプション設定を後で行う
-              </Button>
-            </div>
-          )}
 
           {/* 学習開始ボタン */}
           <Button
@@ -169,15 +109,6 @@ export default function PaymentSuccess() {
             学習を始める
           </Button>
 
-          {/* ホームに戻るボタン */}
-          <Button
-            variant="ghost"
-            onClick={handleBackHome}
-            className="w-full text-gray-600 hover:text-gray-800"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            ホームに戻る
-          </Button>
         </CardContent>
       </Card>
     </div>
