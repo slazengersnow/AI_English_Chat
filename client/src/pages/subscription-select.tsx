@@ -22,7 +22,7 @@ export default function SubscriptionSelect() {
         '詳しい解説・類似フレーズ',
         '基本的な進捗管理'
       ],
-      buttonText: '7日間無料で開始',
+      buttonText: '申し込む',
       buttonColor: 'bg-blue-600 hover:bg-blue-700'
     },
     {
@@ -39,7 +39,7 @@ export default function SubscriptionSelect() {
         'カスタムシナリオ作成',
         '復習機能'
       ],
-      buttonText: '7日間無料で開始',
+      buttonText: '申し込む',
       buttonColor: 'bg-purple-600 hover:bg-purple-700'
     },
     {
@@ -56,7 +56,7 @@ export default function SubscriptionSelect() {
         '詳しい解説・類似フレーズ',
         '基本的な進捗管理'
       ],
-      buttonText: '7日間無料で開始',
+      buttonText: '申し込む',
       buttonColor: 'bg-blue-600 hover:bg-blue-700'
     },
     {
@@ -74,7 +74,7 @@ export default function SubscriptionSelect() {
         'カスタムシナリオ作成',
         '復習機能'
       ],
-      buttonText: '7日間無料で開始',
+      buttonText: '申し込む',
       buttonColor: 'bg-blue-600 hover:bg-blue-700'
     }
   ];
@@ -174,11 +174,11 @@ export default function SubscriptionSelect() {
         {/* スキップボタン */}
         <div className="text-center">
           <Button
-            variant="outline"
             onClick={handleSkipTrial}
-            className="px-8 py-3 text-lg"
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
           >
-            プラン選択をスキップして7日間無料で開始
+            <Star className="w-4 h-4 mr-2" />
+            7日間無料トライアル
           </Button>
         </div>
       </div>
