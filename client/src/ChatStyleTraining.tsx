@@ -747,10 +747,16 @@ export default function ChatStyleTraining({
                 };
                 setMessages((prev) => [...prev, phrasesMessage]);
 
-                // Auto-generate next problem after 3 seconds to allow reading
+                // 自動的な次の問題生成を無効化し、代わりに手動ボタンを表示
                 setTimeout(() => {
-                  loadNewProblem();
-                }, 3000);
+                  const nextButtonMessage: ChatMessage = {
+                    id: (Date.now() + 6).toString(),
+                    type: "next_button",
+                    content: "次の問題へ",
+                    timestamp: new Date(),
+                  };
+                  setMessages((prev) => [...prev, nextButtonMessage]);
+                }, 1000);
               }, 800);
             }, 800);
           }, 800);
