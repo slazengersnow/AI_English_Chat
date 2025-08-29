@@ -1050,8 +1050,9 @@ export default function ChatStyleTraining({
           {/* Top/Back Button - Fixed position in top right */}
           <button
             onClick={onBackToMenu}
-            className="fixed top-20 right-4 z-50 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg transition-colors"
+            className="fixed top-4 right-4 z-[9999] bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-colors text-lg font-bold"
             title="トップに戻る"
+            style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999 }}
           >
             ↑
           </button>
