@@ -126,11 +126,13 @@ export default function ChatStyleTraining({
     }, 100);
   };
   
-  // メッセージが追加されるたびに自動スクロール
+  // メッセージが追加されるたびに自動スクロール - より確実な実装
   useEffect(() => {
     console.log("📝 Messages changed, triggering scroll. Message count:", messages.length);
-    scrollToBottom();
-  }, [messages]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length]);
 
   const toggleBookmark = (bookmarkKey: string) => {
     setBookmarkedProblems((prev) => {
@@ -230,6 +232,7 @@ export default function ChatStyleTraining({
       timestamp: new Date(),
     };
     setMessages([problemMessage]);
+    scrollToBottom();
   };
 
   // 新しい問題の読み込み（二重実行防止付き）
@@ -285,6 +288,7 @@ export default function ChatStyleTraining({
     };
 
     setMessages((prev) => [...prev, problemMessage]);
+    scrollToBottom();
     setProblemCount((prev) => prev + 1);
   };
 
@@ -340,6 +344,7 @@ export default function ChatStyleTraining({
 
       // Add new problem to existing messages (don't clear history)
       setMessages((prev) => [...prev, problemMessage]);
+      scrollToBottom();
       setProblemCount((prev) => prev + 1);
       setIsStarted(true);
     } catch (error) {
@@ -376,6 +381,7 @@ export default function ChatStyleTraining({
       };
 
       setMessages((prev) => [...prev, problemMessage]);
+      scrollToBottom();
       setProblemCount((prev) => prev + 1);
       setIsStarted(true);
     } finally {
@@ -724,6 +730,7 @@ export default function ChatStyleTraining({
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, ratingMessage]);
+        scrollToBottom();
 
         setTimeout(() => {
           // Use Claude's overallEvaluation if available, otherwise fallback to rating-based evaluation
@@ -743,6 +750,7 @@ export default function ChatStyleTraining({
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, overallMessage]);
+          scrollToBottom();
 
           setTimeout(() => {
             const modelAnswerMessage: ChatMessage = {
@@ -752,6 +760,7 @@ export default function ChatStyleTraining({
               timestamp: new Date(),
             };
             setMessages((prev) => [...prev, modelAnswerMessage]);
+            scrollToBottom();
 
             setTimeout(() => {
               const explanationMessage: ChatMessage = {
@@ -761,6 +770,7 @@ export default function ChatStyleTraining({
                 timestamp: new Date(),
               };
               setMessages((prev) => [...prev, explanationMessage]);
+              scrollToBottom();
 
               setTimeout(() => {
                 const phrasesMessage: ChatMessage = {
@@ -771,6 +781,7 @@ export default function ChatStyleTraining({
                   timestamp: new Date(),
                 };
                 setMessages((prev) => [...prev, phrasesMessage]);
+                scrollToBottom();
 
                 // 自動的に次の問題を生成
                 setTimeout(() => {
