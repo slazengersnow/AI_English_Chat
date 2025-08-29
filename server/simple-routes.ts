@@ -384,17 +384,41 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
     const recentProblems = await getRecentUserProblems(userId, difficultyLevel);
     console.log(`📋 User has ${recentProblems.length} recent problems to avoid duplicates`);
     
-    // 難易度別のプロンプト
-    const difficultyPrompts: Record<string, string> = {
-      toeic: "TOEICレベルのビジネス英語。会議、売上、報告書、プロジェクト等のビジネス場面",
-      "middle-school": "中学英語レベル。日常生活、学校生活、家族、友達、趣味等の基本的な内容",
-      "high-school": "高校英語レベル。社会問題、環境、文化、未来の計画等のやや高度な内容",
-      "basic-verbs": "基本動詞を使った簡単な文。go, come, see, eat, study等の基本動詞中心",
-      "business-email": "ビジネスメール形式。依頼、確認、報告、お礼等のフォーマルな表現",
-      simulation: "実践的な会話形式。様々なシチュエーションでの実用的な表現"
+    // 難易度別の詳細プロンプト
+    const difficultyPrompts: Record<string, { description: string, constraints: string, examples: string }> = {
+      toeic: {
+        description: "TOEICレベルのビジネス英語",
+        constraints: "15-25文字、ビジネス場面、丁寧語、専門用語使用可",
+        examples: "会議資料を準備してください。 / 売上が20%増加しました。 / 新商品の企画を検討中です。"
+      },
+      "middle-school": {
+        description: "中学1年生レベルの超基本英語",
+        constraints: "8-15文字、絶対に1文のみ、現在形・現在進行形のみ、基本語彙500語以内、複合文・複文は絶対禁止",
+        examples: "私は学生です。 / 今日は暑いです。 / 彼は走っています。 / 猫が寝ています。 / 雨が降ります。"
+      },
+      "high-school": {
+        description: "高校英語レベル",
+        constraints: "18-30文字、複合時制・関係代名詞・仮定法使用可、抽象的概念含む",
+        examples: "環境問題について考える必要があります。 / 将来の夢を実現するために努力しています。"
+      },
+      "basic-verbs": {
+        description: "基本動詞を使った超シンプルな文",
+        constraints: "6-12文字、go/come/eat/see/read/play/watch/study等の基本動詞のみ",
+        examples: "私は本を読みます。 / 彼女は音楽を聞きます。 / 友達と遊びます。"
+      },
+      "business-email": {
+        description: "ビジネスメール用の丁寧な表現",
+        constraints: "20-35文字、敬語・丁寧語必須、依頼・確認・報告の表現",
+        examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。"
+      },
+      simulation: {
+        description: "実用的な日常会話",
+        constraints: "10-20文字、場面設定明確、自然な話し言葉",
+        examples: "駅までどのくらいかかりますか。 / この商品はいくらですか。"
+      }
     };
 
-    const promptText = difficultyPrompts[difficultyLevel] || difficultyPrompts["middle-school"];
+    const promptConfig = difficultyPrompts[difficultyLevel] || difficultyPrompts["middle-school"];
     
     while (attempts < maxRetries && !selectedSentence) {
       attempts++;
@@ -408,20 +432,26 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
 
         const anthropic = new Anthropic({ apiKey: anthropicApiKey });
         
-        const generatePrompt = `${promptText}の日本語文を1つ作成してください。
+        const generatePrompt = `${promptConfig.description}の日本語文を1つ作成してください。
 
-【必須条件】
-- 10-20文字程度の適度な長さ
-- 英訳練習に適した自然な日本語
-- 学習者が理解しやすい内容
-- 翻訳が一意に定まるような明確な文
+【厳守条件】
+${promptConfig.constraints}
 
-${recentProblems.length > 0 ? `【重要】以下の文は避けて、全く異なる内容で作成してください：
+【参考例】
+${promptConfig.examples}
+
+【絶対守るべきルール】
+- 文字数制限を厳密に守る
+- 指定されたレベルを超えない語彙・文法のみ使用
+- 1文のみ（複文・複合文禁止、特にmiddle-schoolは絶対1文）
+- 自然で翻訳しやすい日本語
+
+${recentProblems.length > 0 ? `【重複回避】以下の文は絶対に避け、全く異なる内容で作成：
 ${recentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
 
 以下のJSON形式で返してください：
 {
-  "japaneseSentence": "作成した日本語文",
+  "japaneseSentence": "作成した日本語文（1文のみ）",
   "modelAnswer": "自然な英訳",
   "hints": ["重要語彙1", "重要語彙2", "重要語彙3"]
 }`;
@@ -429,7 +459,7 @@ ${recentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
         const message = await anthropic.messages.create({
           model: "claude-3-haiku-20240307",
           max_tokens: 500,
-          temperature: 0.8,
+          temperature: 0.4, // より一貫性のあるレベル制御のため低めに設定
           messages: [{ role: "user", content: generatePrompt }]
         });
 
