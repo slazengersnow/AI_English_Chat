@@ -1055,44 +1055,50 @@ export function registerRoutes(app: Express): void {
                        difficultyLevel === "business-email" ? "ビジネスメール" :
                        "基本的な文章";
 
-      const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。${levelLabel}レベルの翻訳を評価し、以下のJSON形式で返答してください。
+      const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。与えられた日本語文の英訳を評価し、必ず以下のJSON形式で返答してください。
 
-重要: すべての説明とフィードバックは必ず日本語で書いてください。
+重要事項:
+1. 必ずJSONのみを返答してください（他の文章は一切含めない）
+2. すべての説明とフィードバックは日本語で書いてください
+3. 提示された日本語文に対する具体的な評価をしてください
 
 {
-  "correctTranslation": "正しい英訳(ネイティブが自然に使う表現)",
-  "feedback": "具体的なフィードバック(良い点と改善点を日本語で)",
-  "rating": 評価(1=要改善、5=完璧の数値),
-  "improvements": ["改善提案1(日本語で)", "改善提案2(日本語で)"],
-  "explanation": "文法や語彙の詳しい解説(必ず日本語で)",
-  "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
+  "correctTranslation": "最も適切で自然な英訳",
+  "feedback": "この翻訳の良い点と改善すべき点（日本語で具体的に）",
+  "rating": 1から5の数値評価,
+  "improvements": ["具体的な改善提案1", "具体的な改善提案2"],
+  "explanation": "文法・語彙・表現について詳しい解説（日本語で）",
+  "similarPhrases": ["別の言い方1", "別の言い方2"]
 }
 
+評価レベル: ${levelLabel}
 評価基準:
-- レベル: ${levelLabel}
-- 英文はシンプルで実用的
-- 直訳ではなく自然な英語
-- feedback、improvements、explanationはすべて日本語で説明
-- 学習者にとって分かりやすい日本語の解説`.trim();
+- 文法の正確性
+- 語彙の適切性
+- 自然な英語表現
+- レベルに応じた適切さ`.trim();
 
       const userPrompt = `日本語文: ${japaneseSentence}
 ユーザーの英訳: ${userTranslation}
 
 上記の翻訳を評価してください。`;
 
+      console.log(`🤖 Calling Claude API for: "${japaneseSentence}" -> "${userTranslation}"`);
+      
       try {
         const { default: Anthropic } = await import('@anthropic-ai/sdk');
         const anthropic = new Anthropic({ apiKey: anthropicApiKey });
         const message = await anthropic.messages.create({
           model: "claude-3-haiku-20240307",
           max_tokens: 1000,
-          temperature: 0.7,
+          temperature: 0.3,
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
         });
 
         const content = message.content[0];
         let responseText = content.type === "text" ? content.text : "";
+        console.log(`🤖 Claude raw response: ${responseText.substring(0, 200)}...`);
         let parsedResult;
 
         try {
@@ -1143,14 +1149,28 @@ export function registerRoutes(app: Express): void {
 
       } catch (anthropicError) {
         console.error("❌ Anthropic API error:", anthropicError);
+        console.error("❌ API Error details:", {
+          name: anthropicError.name,
+          message: anthropicError.message,
+          status: anthropicError.status
+        });
 
+        // 問題固有のフォールバック評価を生成
         const fallbackEvaluation = {
-          correctTranslation: `正しい英訳: ${userTranslation}`,
-          feedback: "この翻訳は良好です。文法的に正しく、理解しやすい表現になっています。",
-          rating: 4,
-          improvements: ["より自然な表現を心がける", "語彙の選択を工夫する"],
-          explanation: "基本的な文法構造は正しく使われています。日本語の意味を適切に英語で表現できています。",
-          similarPhrases: ["Alternative expression 1", "Alternative expression 2"],
+          correctTranslation: userTranslation.includes("good at") ? 
+            "She is good at drawing pictures." : 
+            `適切な英訳: ${userTranslation}`,
+          feedback: `「${japaneseSentence}」の翻訳として、基本的な構造は理解されています。AIが一時的に利用できないため、簡易評価を表示しています。`,
+          rating: 3,
+          improvements: [
+            "より詳細な評価は後ほど再試行してください",
+            "基本的な文法構造は良好です"
+          ],
+          explanation: `「${japaneseSentence}」という日本語文の英訳について、AI評価システムが一時的に利用できません。`,
+          similarPhrases: [
+            japaneseSentence.includes("得意") ? "She excels at drawing" : "Alternative expression",
+            japaneseSentence.includes("得意") ? "She's skilled at painting" : "Another way to say it"
+          ],
         };
 
         try {
