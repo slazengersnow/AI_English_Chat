@@ -112,36 +112,18 @@ export default function ChatStyleTraining({
 
   const difficultyKey = getDifficultyKey(difficulty);
 
-  // スマートスクロール機能 - 回答後にその回答を画面上部に表示
-  const scrollToUserAnswer = () => {
-    // ユーザーの回答メッセージを見つけて上部にスクロール
-    setTimeout(() => {
-      const userAnswerElements = document.querySelectorAll('[data-message-type="user_answer"]');
-      const lastUserAnswer = userAnswerElements[userAnswerElements.length - 1] as HTMLElement;
-      
-      if (lastUserAnswer) {
-        console.log('Scrolling to user answer...');
-        const chatContainer = document.querySelector('.flex-1.overflow-y-auto') as HTMLElement;
-        
-        if (chatContainer) {
-          // ユーザーの回答を画面上部に配置（少し余白を残す）
-          const targetPosition = lastUserAnswer.offsetTop - 80;
-          chatContainer.scrollTo({
-            top: targetPosition,
-            behavior: 'smooth'
-          });
-          console.log(`Scrolled to user answer at position: ${targetPosition}`);
-        } else {
-          // フォールバック: 要素自体にスクロール
-          lastUserAnswer.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          });
-          console.log('Used fallback scroll to user answer');
-        }
-      }
-    }, 100); // 少し遅延を入れてDOMの更新を待つ
+  // メッセージリファレンス - 自動スクロール用
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // 自動スクロール機能 - メッセージ追加時に最下部へスクロール
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  
+  // メッセージが追加されるたびに自動スクロール
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const toggleBookmark = (bookmarkKey: string) => {
     setBookmarkedProblems((prev) => {
@@ -722,9 +704,6 @@ export default function ChatStyleTraining({
     const currentUserInput = userInput;
     setUserInput("");
 
-    // ユーザーの回答が追加された後、その回答を画面上部にスクロール
-    scrollToUserAnswer();
-
     try {
       // Get evaluation from Claude
       const evaluation = await evaluateAnswerWithClaude(
@@ -860,7 +839,7 @@ export default function ChatStyleTraining({
 
       case "user_answer":
         return (
-          <div key={message.id} className="flex justify-end mb-6" data-message-type="user_answer">
+          <div key={message.id} className="flex justify-end mb-6">
             <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-sm md:mr-[72px]">
               {message.content}
             </div>
@@ -1115,6 +1094,7 @@ export default function ChatStyleTraining({
           <div className="max-w-4xl mx-auto">
             {messages.map((message) => renderMessage(message))}
             {/* Remove loading message to fix flash issue */}
+            <div ref={messagesEndRef} />
           </div>
         </div>
       )}
