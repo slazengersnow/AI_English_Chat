@@ -1050,14 +1050,14 @@ export default function ChatStyleTraining({
           {/* Scroll to Top Button - Fixed position in bottom right */}
           <button
             onClick={() => {
-              const chatContainer = document.querySelector('.flex-1.overflow-y-auto');
+              const chatContainer = document.querySelector('.overflow-y-auto');
               if (chatContainer) {
                 chatContainer.scrollTo({ top: 0, behavior: 'smooth' });
               }
             }}
-            className="fixed bottom-20 right-4 z-50 bg-gray-300 hover:bg-gray-400 text-gray-600 p-2 rounded-full shadow-md transition-colors text-sm"
+            className="fixed bottom-24 right-6 z-50 bg-gray-300 hover:bg-gray-400 text-gray-600 p-1 rounded-full shadow-md transition-colors text-xs"
             title="上に戻る"
-            style={{ position: 'fixed', bottom: '80px', right: '16px', zIndex: 50 }}
+            style={{ position: 'fixed', bottom: '96px', right: '24px', zIndex: 50, width: '32px', height: '32px', fontSize: '12px' }}
           >
             ↑
           </button>
