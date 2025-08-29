@@ -1044,17 +1044,37 @@ export default function ChatStyleTraining({
           {/* Scroll to Top Button - Fixed position in bottom right */}
           <button
             onClick={() => {
-              // Get the current chat container that has the scrollable content
+              // Multiple fallback strategies to ensure scrolling works
               const chatContainer = document.querySelector('.flex-1.overflow-y-auto');
-              console.log('Scroll button clicked, found container:', chatContainer);
-              if (chatContainer) {
+              const bodyElement = document.body;
+              const htmlElement = document.documentElement;
+              
+              console.log('Scroll button clicked, trying multiple scroll methods');
+              
+              // Method 1: Try the chat container
+              if (chatContainer && chatContainer.scrollTop > 0) {
                 chatContainer.scrollTo({ top: 0, behavior: 'smooth' });
-                console.log('Scrolled to top');
-              } else {
-                // Fallback: scroll the window
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                console.log('Scrolled window to top');
+                console.log('Scrolled chat container to top');
+                return;
               }
+              
+              // Method 2: Try body
+              if (bodyElement.scrollTop > 0) {
+                bodyElement.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('Scrolled body to top');
+                return;
+              }
+              
+              // Method 3: Try document element
+              if (htmlElement.scrollTop > 0) {
+                htmlElement.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('Scrolled html to top');
+                return;
+              }
+              
+              // Method 4: Use window as final fallback
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              console.log('Scrolled window to top');
             }}
             className="fixed bottom-24 right-6 z-50 bg-gray-300 hover:bg-gray-400 text-gray-600 p-1 rounded-full shadow-md transition-colors text-xs"
             title="上に戻る"
