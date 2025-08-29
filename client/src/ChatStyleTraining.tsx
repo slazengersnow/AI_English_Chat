@@ -1032,7 +1032,16 @@ export default function ChatStyleTraining({
 
       {/* Chat Messages */}
       {(isStarted || initialProblem) && (
-        <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="flex-1 overflow-y-auto px-4 py-6 relative">
+          {/* Top/Back Button - Fixed position in top right */}
+          <button
+            onClick={onBackToMenu}
+            className="fixed top-20 right-4 z-50 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full shadow-lg transition-colors"
+            title="トップに戻る"
+          >
+            ↑
+          </button>
+          
           <div className="max-w-4xl mx-auto">
             {messages.map((message) => renderMessage(message))}
             {/* Remove loading message to fix flash issue */}
