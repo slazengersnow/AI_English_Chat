@@ -758,19 +758,25 @@ Respond only with valid JSON, no extra text.`
 /* -------------------- 認証ミドルウェア -------------------- */
 async function requireAuth(req, res, next) {
     try {
+        console.log(`🔍 Auth check for ${req.method} ${req.url}`);
+        console.log(`🔍 Headers:`, {
+            authorization: req.headers.authorization ? `Bearer ${req.headers.authorization.substring(7, 20)}...` : 'None',
+            'user-agent': req.headers['user-agent']?.substring(0, 50)
+        });
         const authHeader = req.headers.authorization;
         if (!authHeader?.startsWith('Bearer ')) {
-            console.log('No auth token provided, using anonymous access');
+            console.log('❌ No auth token provided, using anonymous access');
             req.user = { email: 'anonymous' };
             return next();
         }
         const token = authHeader.split(' ')[1];
+        console.log(`🔍 Token received (length: ${token.length}), first 20 chars: ${token.substring(0, 20)}...`);
         // Supabaseでトークンを検証
         const { createClient } = await import('@supabase/supabase-js');
         const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
         const { data: { user }, error } = await supabase.auth.getUser(token);
         if (error || !user) {
-            console.log('Auth verification failed:', error);
+            console.log('❌ Auth verification failed:', error?.message || 'No user returned');
             req.user = { email: 'anonymous' };
             return next();
         }
@@ -782,11 +788,11 @@ async function requireAuth(req, res, next) {
             created_at: user.created_at,
             user_metadata: user.user_metadata,
         };
-        console.log('✅ User authenticated:', user.email);
+        console.log('✅ User authenticated successfully:', user.email);
         next();
     }
     catch (error) {
-        console.error('Auth middleware error:', error);
+        console.error('❌ Auth middleware error:', error);
         req.user = { email: 'anonymous' };
         next();
     }
