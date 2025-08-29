@@ -762,15 +762,9 @@ export default function ChatStyleTraining({
                 };
                 setMessages((prev) => [...prev, phrasesMessage]);
 
-                // 自動的な次の問題生成を無効化し、代わりに手動ボタンを表示
+                // 自動的に次の問題を生成
                 setTimeout(() => {
-                  const nextButtonMessage: ChatMessage = {
-                    id: (Date.now() + 6).toString(),
-                    type: "next_button",
-                    content: "次の問題へ",
-                    timestamp: new Date(),
-                  };
-                  setMessages((prev) => [...prev, nextButtonMessage]);
+                  loadNewProblem();
                 }, 1000);
               }, 800);
             }, 800);
@@ -1050,9 +1044,16 @@ export default function ChatStyleTraining({
           {/* Scroll to Top Button - Fixed position in bottom right */}
           <button
             onClick={() => {
-              const chatContainer = document.querySelector('.overflow-y-auto');
+              // Get the current chat container that has the scrollable content
+              const chatContainer = document.querySelector('.flex-1.overflow-y-auto');
+              console.log('Scroll button clicked, found container:', chatContainer);
               if (chatContainer) {
                 chatContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('Scrolled to top');
+              } else {
+                // Fallback: scroll the window
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                console.log('Scrolled window to top');
               }
             }}
             className="fixed bottom-24 right-6 z-50 bg-gray-300 hover:bg-gray-400 text-gray-600 p-1 rounded-full shadow-md transition-colors text-xs"
