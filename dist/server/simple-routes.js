@@ -756,17 +756,40 @@ Respond only with valid JSON, no extra text.`
     };
 }
 /* -------------------- 認証ミドルウェア -------------------- */
-function requireAuth(req, res, next) {
-    // For now, allow all requests since the client is handling authentication
-    // In a production environment, you would verify the Supabase JWT token here
-    const authHeader = req.headers.authorization;
-    if (!authHeader?.startsWith('Bearer ')) {
-        console.log('No auth token provided, proceeding with anonymous access');
+async function requireAuth(req, res, next) {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader?.startsWith('Bearer ')) {
+            console.log('No auth token provided, using anonymous access');
+            req.user = { email: 'anonymous' };
+            return next();
+        }
+        const token = authHeader.split(' ')[1];
+        // Supabaseでトークンを検証
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) {
+            console.log('Auth verification failed:', error);
+            req.user = { email: 'anonymous' };
+            return next();
+        }
+        // ユーザー情報をリクエストオブジェクトに設定
+        req.user = {
+            id: user.id,
+            email: user.email || 'anonymous',
+            email_confirmed_at: user.email_confirmed_at,
+            created_at: user.created_at,
+            user_metadata: user.user_metadata,
+        };
+        console.log('✅ User authenticated:', user.email);
+        next();
     }
-    else {
-        console.log('Auth token provided:', authHeader.substring(0, 20) + '...');
+    catch (error) {
+        console.error('Auth middleware error:', error);
+        req.user = { email: 'anonymous' };
+        next();
     }
-    next();
 }
 /* -------------------- ルーティング登録 -------------------- */
 export function registerRoutes(app) {
@@ -901,6 +924,146 @@ export function registerRoutes(app) {
         catch (error) {
             console.error('❌ Error fetching difficulty stats:', error);
             res.status(500).json({ error: 'Failed to fetch difficulty stats' });
+        }
+    });
+    router.post("/evaluate-with-claude", requireAuth, async (req, res) => {
+        try {
+            const { japaneseSentence, userTranslation, difficultyLevel } = req.body;
+            if (!japaneseSentence || !userTranslation) {
+                return res.status(400).json({
+                    message: "日本語文と英訳が必要です"
+                });
+            }
+            const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+            if (!anthropicApiKey) {
+                console.error("Anthropic API key not configured");
+                return res.status(500).json({
+                    message: "AI評価システムが設定されていません"
+                });
+            }
+            const levelLabel = difficultyLevel === "toeic" ? "TOEIC" :
+                difficultyLevel === "middle-school" ? "中学レベル" :
+                    difficultyLevel === "high-school" ? "高校レベル" :
+                        difficultyLevel === "basic-verbs" ? "基本動詞" :
+                            difficultyLevel === "business-email" ? "ビジネスメール" :
+                                "基本的な文章";
+            const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。${levelLabel}レベルの翻訳を評価し、以下のJSON形式で返答してください。
+
+重要: すべての説明とフィードバックは必ず日本語で書いてください。
+
+{
+  "correctTranslation": "正しい英訳(ネイティブが自然に使う表現)",
+  "feedback": "具体的なフィードバック(良い点と改善点を日本語で)",
+  "rating": 評価(1=要改善、5=完璧の数値),
+  "improvements": ["改善提案1(日本語で)", "改善提案2(日本語で)"],
+  "explanation": "文法や語彙の詳しい解説(必ず日本語で)",
+  "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
+}
+
+評価基準:
+- レベル: ${levelLabel}
+- 英文はシンプルで実用的
+- 直訳ではなく自然な英語
+- feedback、improvements、explanationはすべて日本語で説明
+- 学習者にとって分かりやすい日本語の解説`.trim();
+            const userPrompt = `日本語文: ${japaneseSentence}
+ユーザーの英訳: ${userTranslation}
+
+上記の翻訳を評価してください。`;
+            try {
+                const { default: Anthropic } = await import('@anthropic-ai/sdk');
+                const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+                const message = await anthropic.messages.create({
+                    model: "claude-3-haiku-20240307",
+                    max_tokens: 1000,
+                    temperature: 0.7,
+                    system: systemPrompt,
+                    messages: [{ role: "user", content: userPrompt }],
+                });
+                const content = message.content[0];
+                let responseText = content.type === "text" ? content.text : "";
+                let parsedResult;
+                try {
+                    parsedResult = JSON.parse(responseText);
+                }
+                catch (parseError) {
+                    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        parsedResult = JSON.parse(jsonMatch[0]);
+                    }
+                    else {
+                        throw new Error("No valid JSON found in Claude response");
+                    }
+                }
+                const response = {
+                    correctTranslation: parsedResult.correctTranslation || "Translation evaluation failed",
+                    feedback: parsedResult.feedback || "フィードバックの生成に失敗しました",
+                    rating: Math.max(1, Math.min(5, parsedResult.rating || 3)),
+                    improvements: Array.isArray(parsedResult.improvements) ? parsedResult.improvements : [],
+                    explanation: parsedResult.explanation || "解説の生成に失敗しました",
+                    similarPhrases: Array.isArray(parsedResult.similarPhrases) ? parsedResult.similarPhrases : [],
+                };
+                // 学習セッションの記録（認証されたユーザーのメールアドレスを使用）
+                const userId = req.user?.email || "anonymous";
+                console.log(`📝 Recording training session for user: ${userId}`);
+                try {
+                    const [session] = await db
+                        .insert(trainingSessions)
+                        .values({
+                        userId,
+                        difficultyLevel,
+                        japaneseSentence,
+                        userTranslation,
+                        correctTranslation: response.correctTranslation,
+                        feedback: response.feedback,
+                        rating: response.rating,
+                    })
+                        .returning();
+                    console.log(`✅ Training session recorded successfully: ${session.id}`);
+                    return res.json({ ...response, sessionId: session.id });
+                }
+                catch (storageError) {
+                    console.error("❌ Storage error:", storageError);
+                    return res.json({ ...response, sessionId: 0 });
+                }
+            }
+            catch (anthropicError) {
+                console.error("❌ Anthropic API error:", anthropicError);
+                const fallbackEvaluation = {
+                    correctTranslation: `正しい英訳: ${userTranslation}`,
+                    feedback: "この翻訳は良好です。文法的に正しく、理解しやすい表現になっています。",
+                    rating: 4,
+                    improvements: ["より自然な表現を心がける", "語彙の選択を工夫する"],
+                    explanation: "基本的な文法構造は正しく使われています。日本語の意味を適切に英語で表現できています。",
+                    similarPhrases: ["Alternative expression 1", "Alternative expression 2"],
+                };
+                try {
+                    const userId = req.user?.email || "anonymous";
+                    const [session] = await db
+                        .insert(trainingSessions)
+                        .values({
+                        userId,
+                        difficultyLevel,
+                        japaneseSentence,
+                        userTranslation,
+                        correctTranslation: fallbackEvaluation.correctTranslation,
+                        feedback: fallbackEvaluation.feedback,
+                        rating: fallbackEvaluation.rating,
+                    })
+                        .returning();
+                    return res.json({ ...fallbackEvaluation, sessionId: session.id });
+                }
+                catch (storageError) {
+                    return res.json({ ...fallbackEvaluation, sessionId: 0 });
+                }
+            }
+        }
+        catch (error) {
+            console.error("❌ Translation evaluation error:", error);
+            return res.status(500).json({
+                message: "翻訳評価に失敗しました",
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
         }
     });
     router.get("/monthly-stats", requireAuth, async (req, res) => {

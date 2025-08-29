@@ -1,0 +1,51 @@
+=== GUARD DEBUG === {pathname: '/my-page', isPublicPath: false, user: true, initialized: true, isLoading: false}
+Console.js:61 📡 API Request: GET /api/user-subscription
+Console.js:61 📡 API Request: GET /api/progress
+Console.js:61 📡 API Request: GET /api/streak
+Console.js:61 📡 API Request: GET /api/difficulty-stats
+Console.js:61 📡 API Request: GET /api/monthly-stats
+Console.js:61 📡 API Request: GET /api/review-sessions
+Console.js:61 📡 API Request: GET /api/recent-sessions
+Console.js:61 📡 API Request: GET /api/bookmarked-sessions
+Console.js:61 📡 API Request: GET /api/custom-scenarios
+Console.js:61 📡 API Request: GET /api/daily-count
+Console.js:61 🔐 Auth token from Supabase session for /api/user-subscription
+Console.js:61 🔐 Auth token added for /api/user-subscription
+Console.js:61 🔐 Auth token from Supabase session for /api/progress
+Console.js:61 🔐 Auth token added for /api/progress
+Console.js:61 🔐 Auth token from Supabase session for /api/streak
+Console.js:61 🔐 Auth token added for /api/streak
+Console.js:61 🔐 Auth token from Supabase session for /api/difficulty-stats
+Console.js:61 🔐 Auth token added for /api/difficulty-stats
+Console.js:61 🔐 Auth token from Supabase session for /api/monthly-stats
+Console.js:61 🔐 Auth token added for /api/monthly-stats
+Console.js:61 🔐 Auth token from Supabase session for /api/review-sessions
+Console.js:61 🔐 Auth token added for /api/review-sessions
+Console.js:61 🔐 Auth token from Supabase session for /api/recent-sessions
+Console.js:61 🔐 Auth token added for /api/recent-sessions
+Console.js:61 🔐 Auth token from Supabase session for /api/bookmarked-sessions
+Console.js:61 🔐 Auth token added for /api/bookmarked-sessions
+Console.js:61 🔐 Auth token from Supabase session for /api/custom-scenarios
+Console.js:61 🔐 Auth token added for /api/custom-scenarios
+Console.js:61 🔐 Auth token from Supabase session for /api/daily-count
+Console.js:61 🔐 Auth token added for /api/daily-count
+Console.js:61 📨 Response: 200 OK for /api/user-subscription
+Console.js:61 ✅ API Success: /api/user-subscription {id: 2, userId: 'bizmowa@gmail.com', subscriptionType: 'standard', subscriptionStatus: 'active', planName: 'スタンダードプラン', …}
+Console.js:61 📨 Response: 200 OK for /api/streak
+Console.js:61 📨 Response: 200 OK for /api/monthly-stats
+Console.js:61 ✅ API Success: /api/streak {currentStreak: 7, longestStreak: 15, lastPracticeDate: '2025-08-24'}
+Console.js:61 ✅ API Success: /api/monthly-stats (3) [{…}, {…}, {…}]
+Console.js:61 📨 Response: 200 OK for /api/review-sessions
+Console.js:61 ✅ API Success: /api/review-sessions [{…}]
+Console.js:61 📨 Response: 200 OK for /api/recent-sessions
+Console.js:61 ✅ API Success: /api/recent-sessions [{…}]
+Console.js:61 📨 Response: 200 OK for /api/bookmarked-sessions
+Console.js:61 ✅ API Success: /api/bookmarked-sessions [{…}]
+Console.js:61 📨 Response: 200 OK for /api/custom-scenarios
+Console.js:61 ✅ API Success: /api/custom-scenarios (2) [{…}, {…}]
+Console.js:61 📨 Response: 200 OK for /api/progress
+Console.js:61 ✅ API Success: /api/progress []
+Console.js:61 📨 Response: 200 OK for /api/difficulty-stats
+Console.js:61 ✅ API Success: /api/difficulty-stats []
+Console.js:61 📨 Response: 200 OK for /api/daily-count
+Console.js:61 ✅ API Success: /api/daily-count {today: 0, limit: 100, remaining: 100, resetTime: '2025-08-30T05:40:40.739Z'}
