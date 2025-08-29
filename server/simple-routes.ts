@@ -35,7 +35,10 @@ async function getRecentUserProblems(userId: string, difficultyLevel: string): P
     const recentSessions = await db
       .select({ japaneseSentence: trainingSessions.japaneseSentence })
       .from(trainingSessions)
-      .where(eq(trainingSessions.userId, userId))
+      .where(and(
+        eq(trainingSessions.userId, userId),
+        eq(trainingSessions.difficultyLevel, difficultyLevel)
+      ))
       .orderBy(desc(trainingSessions.createdAt))
       .limit(50000); // 過去50000問をチェック
 
@@ -380,9 +383,19 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
     let selectedSentence: string | null = null;
     let attempts = 0;
     
-    // 最近の問題を取得して重複を防ぐ
+    // 最近の問題を取得して重複を防ぐ（データベース + セッションキャッシュ）
     const recentProblems = await getRecentUserProblems(userId, difficultyLevel);
-    console.log(`📋 User has ${recentProblems.length} recent problems to avoid duplicates`);
+    
+    // セッションキャッシュも確認
+    const sessionKey = `${userId}_${difficultyLevel}`;
+    if (!sessionRecentProblems.has(sessionKey)) {
+      sessionRecentProblems.set(sessionKey, new Set());
+    }
+    const sessionProblems = sessionRecentProblems.get(sessionKey)!;
+    
+    // データベース + セッション両方の問題を重複回避リストに含める
+    const allRecentProblems = [...recentProblems, ...Array.from(sessionProblems)];
+    console.log(`📋 User has ${recentProblems.length} DB problems + ${sessionProblems.size} session problems to avoid duplicates`);
     
     // 難易度別の詳細プロンプト
     const difficultyPrompts: Record<string, { description: string, constraints: string, examples: string }> = {
@@ -446,8 +459,8 @@ ${promptConfig.examples}
 - 1文のみ（複文・複合文禁止、特にmiddle-schoolは絶対1文）
 - 自然で翻訳しやすい日本語
 
-${recentProblems.length > 0 ? `【重複回避】以下の文は絶対に避け、全く異なる内容で作成：
-${recentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
+${allRecentProblems.length > 0 ? `【重複回避】以下の文は絶対に避け、全く異なる内容で作成：
+${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
 
 以下のJSON形式で返してください：
 {
@@ -472,17 +485,13 @@ ${recentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
           const problemData = JSON.parse(jsonMatch[0]);
           const generatedSentence = problemData.japaneseSentence;
           
-          // 重複チェック
-          if (generatedSentence && !recentProblems.includes(generatedSentence)) {
+          // 重複チェック（データベース + セッションキャッシュ両方確認）
+          if (generatedSentence && !allRecentProblems.includes(generatedSentence)) {
             selectedSentence = generatedSentence;
             console.log(`✅ Generated unique problem: "${selectedSentence}"`);
             
             // セッションキャッシュにも追加
-            const sessionKey = `${userId}_${difficultyLevel}`;
-            if (!sessionRecentProblems.has(sessionKey)) {
-              sessionRecentProblems.set(sessionKey, new Set());
-            }
-            sessionRecentProblems.get(sessionKey)!.add(selectedSentence);
+            sessionProblems.add(selectedSentence);
             
             const response: ProblemResponse = {
               japaneseSentence: selectedSentence,
