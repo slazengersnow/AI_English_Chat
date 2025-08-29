@@ -1,0 +1,16 @@
+Received problem data: {japaneseSentence: '私たちは家族と旅行します。', hints: Array(1)}
+Console.js:61 Calling Claude API with: {userAnswer: 'We travel with my family.', japaneseSentence: '私たちは家族と旅行します。', modelAnswer: 'Please translate this sentence.', difficulty: 'middle_school'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'We are going on a trip with our family.', feedback: '良い仕事です!少し直してみましょう。私たちはこの文を上手く使えるように一緒に練習していきましょう。', rating: 4, improvements: Array(2), explanation: 'この文は「私たちは家族と一緒に旅行する」という意味です。「私たち」は主語で、「家族と」が旅行の相手を表しています。「します」は「旅行する」という動作を表す動詞です。', …}
+Console.js:61 Fetching problem with difficulty: middle_school
+Console.js:61 Received problem data: {japaneseSentence: '今日は金曜日です。', hints: Array(1)}
+Console.js:61 Calling Claude API with: {userAnswer: 'It is on Friday.', japaneseSentence: '今日は金曜日です。', modelAnswer: 'Please translate this sentence.', difficulty: 'middle_school'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'Today is Friday.', feedback: '素晴らしい仕事です! あなたはほとんど完璧な翻訳をしています。少し微調整が必要ですが、英語の使い方を良く理解しているようですね。', rating: 4, improvements: Array(2), explanation: 'この文章は「今日」と「金曜日」という日付を表す語彙と、「です」という平叙文の助動詞から構成されていま…す」は名詞文の述語として使われ、文章全体としては「現在の日付が金曜日である」という意味になります。', …}
+Console.js:61 Fetching problem with difficulty: middle_school
+Console.js:61 Received problem data: {japaneseSentence: '私たちは図書館で勉強します。', hints: Array(1)}
+Console.js:61 Calling Claude API with: {userAnswer: 'We study at the library.', japaneseSentence: '私たちは図書館で勉強します。', modelAnswer: 'Please translate this sentence.', difficulty: 'middle_school'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'We study/do our work at the library.', feedback: 'この英訳は概ね良好です。語彙と文法の正確性は高く、ネイティブが日常的に使う表現に近づいています。ただ…our work」のほうが適切です。また、「図書館で」を表す前置詞の使い方も改善の余地があります。', rating: 4, improvements: Array(2), explanation: 'この英訳の良い点は、文法的に正しく、語彙の選択も適切であることです。\n\n改善点としては、「study…ブが日常的に使う表現に近づいた良い翻訳ですが、上記2点の改善により、より自然な英語表現になります。', …}
+Console.js:61 Fetching problem with difficulty: middle_school
+Console.js:61 Received problem data: {japaneseSentence: '私たちは家族と旅行します。', hints: Array(1)}

@@ -30,6 +30,8 @@ const router = Router();
  */
 async function getRecentUserProblems(userId: string, difficultyLevel: string): Promise<string[]> {
   try {
+    console.log(`🗄️ Database query: fetching recent problems for user ${userId} (difficulty: ${difficultyLevel})`);
+    
     const recentSessions = await db
       .select({ japaneseSentence: trainingSessions.japaneseSentence })
       .from(trainingSessions)
@@ -37,9 +39,16 @@ async function getRecentUserProblems(userId: string, difficultyLevel: string): P
       .orderBy(desc(trainingSessions.createdAt))
       .limit(50000); // 過去50000問をチェック
 
-    return recentSessions.map(session => session.japaneseSentence);
+    console.log(`📊 Database result: Found ${recentSessions.length} recent problems for user ${userId}`);
+    
+    const problems = recentSessions.map(session => session.japaneseSentence);
+    if (problems.length > 0) {
+      console.log(`🚫 Recent problems (first 3): ${problems.slice(0, 3).join(', ')}`);
+    }
+    
+    return problems;
   } catch (error) {
-    console.error("Error fetching recent problems:", error);
+    console.error("❌ Error fetching recent problems:", error);
     return [];
   }
 }
@@ -47,6 +56,9 @@ async function getRecentUserProblems(userId: string, difficultyLevel: string): P
 /**
  * 重複のない問題を選択
  */
+// セッション内重複防止のためのメモリキャッシュ
+const sessionRecentProblems = new Map<string, Set<string>>();
+
 async function getUnusedProblem(
   userId: string,
   difficultyLevel: string,
@@ -54,22 +66,46 @@ async function getUnusedProblem(
 ): Promise<string> {
   console.log(`🔍 Checking recent problems for user: ${userId} (difficulty: ${difficultyLevel})`);
   
+  // データベースから過去の問題を取得
   const recentProblems = await getRecentUserProblems(userId, difficultyLevel);
-  console.log(`📋 Recent problems count: ${recentProblems.length} (last 50000)`);
+  console.log(`📋 Database recent problems: ${recentProblems.length} (last 50000)`);
   
-  const availableProblems = problems.filter(p => !recentProblems.includes(p));
-  console.log(`✅ Available problems count: ${availableProblems.length}/${problems.length}`);
+  // セッション内のキャッシュも確認
+  const sessionKey = `${userId}_${difficultyLevel}`;
+  if (!sessionRecentProblems.has(sessionKey)) {
+    sessionRecentProblems.set(sessionKey, new Set());
+  }
   
-  // 利用可能な問題がない場合は、全ての問題から選択（リセット機能）
-  const finalPool = availableProblems.length > 0 ? availableProblems : problems;
+  const sessionProblems = sessionRecentProblems.get(sessionKey)!;
+  console.log(`🧠 Session cache problems: ${sessionProblems.size} problems`);
   
+  // データベース + セッションキャッシュの両方から除外
+  const allRecentProblems = new Set([...recentProblems, ...sessionProblems]);
+  const availableProblems = problems.filter(p => !allRecentProblems.has(p));
+  console.log(`✅ Available problems: ${availableProblems.length}/${problems.length} (after DB + session filter)`);
+  
+  // 利用可能な問題がない場合は、セッションキャッシュをリセットして再試行
+  let finalPool = availableProblems;
   if (availableProblems.length === 0) {
-    console.log(`🔄 No unused problems found - resetting to full pool for user ${userId}`);
+    console.log(`🔄 No unused problems - clearing session cache and retrying`);
+    sessionProblems.clear();
+    const fallbackAvailable = problems.filter(p => !new Set(recentProblems).has(p));
+    finalPool = fallbackAvailable.length > 0 ? fallbackAvailable : problems;
+    console.log(`🔄 After session reset: ${finalPool.length} problems available`);
+  }
+  
+  // 完全にリセットする場合の最終手段
+  if (finalPool.length === 0) {
+    finalPool = problems;
+    console.log(`🆘 Emergency reset - using full problem pool`);
   }
   
   const selectedIndex = Math.floor(Math.random() * finalPool.length);
   const selectedProblem = finalPool[selectedIndex];
-  console.log(`🎯 Selected problem: "${selectedProblem}" (index: ${selectedIndex}/${finalPool.length-1})`);
+  
+  // セッションキャッシュに追加して重複を防止
+  sessionProblems.add(selectedProblem);
+  console.log(`🎯 Selected: "${selectedProblem}" (index: ${selectedIndex}, session cache now: ${sessionProblems.size})`);
   
   return selectedProblem;
 }
