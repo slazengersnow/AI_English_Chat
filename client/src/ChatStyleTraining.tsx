@@ -815,7 +815,7 @@ export default function ChatStyleTraining({
       case "user_answer":
         return (
           <div key={message.id} className="flex justify-end mb-6">
-            <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-sm lg:mr-[150px]">
+            <div className="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 max-w-sm md:mr-[150px]">
               {message.content}
             </div>
           </div>
