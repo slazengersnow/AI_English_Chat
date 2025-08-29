@@ -1024,36 +1024,40 @@ export default function ChatStyleTraining({
       {/* Chat Messages */}
       {(isStarted || initialProblem) && (
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          {messages.map((message) => renderMessage(message))}
-          {/* Remove loading message to fix flash issue */}
-          <div ref={messagesEndRef} />
+          <div className="max-w-4xl mx-auto">
+            {messages.map((message) => renderMessage(message))}
+            {/* Remove loading message to fix flash issue */}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       )}
 
       {/* Input Area */}
       {awaitingAnswer && (isStarted || initialProblem) && (
         <div className="bg-white border-t px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <input
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" && !submittingRef.current && submitAnswer()
-              }
-              placeholder="英訳を入力してください..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              disabled={isLoading || submittingRef.current}
-            />
-            <button
-              onClick={submitAnswer}
-              disabled={isLoading || !userInput.trim() || submittingRef.current}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition-colors"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-              </svg>
-            </button>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center space-x-3">
+              <input
+                type="text"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && !submittingRef.current && submitAnswer()
+                }
+                placeholder="英訳を入力してください..."
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isLoading || submittingRef.current}
+              />
+              <button
+                onClick={submitAnswer}
+                disabled={isLoading || !userInput.trim() || submittingRef.current}
+                className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2 rounded-full transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       )}
