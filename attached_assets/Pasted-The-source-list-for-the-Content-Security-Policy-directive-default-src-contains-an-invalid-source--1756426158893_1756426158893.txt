@@ -1,0 +1,133 @@
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.このエラーを分析
+10The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?このエラーを分析
+10The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.このエラーを分析
+AIEnglishChat:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.このエラーを分析
+AIEnglishChat:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?このエラーを分析
+AIEnglishChat:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.このエラーを分析
+_app-fbf066d6ecc983fa.js:38 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+_app-fbf066d6ecc983fa.js:38 [LaunchDarkly] LaunchDarkly client initialized
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:381031)このエラーを分析
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:381031)
+（匿名） @ web-client-content-script.js:2このエラーを分析
+framework-9205e00ea92af430.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-9205e00ea92af430.js:1このエラーを分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'ambient-light-sensor'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'battery'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'execution-while-not-rendered'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'execution-while-out-of-viewport'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'layout-animations'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'legacy-image-formats'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'navigation-override'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'oversized-images'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'publickey-credentials'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'speaker-selection'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'unoptimized-images'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'unsized-media'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Unrecognized feature: 'pointer-lock'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Allow attribute will take precedence over 'allowfullscreen'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+framework-9205e00ea92af430.js:1 Allow attribute will take precedence over 'allowpaymentrequest'.
+_ @ framework-9205e00ea92af430.js:1この警告を分析
+workspace_iframe.html:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.このエラーを分析
+workspace_iframe.html:32 Unrecognized feature: 'ambient-light-sensor'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'battery'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-not-rendered'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'execution-while-out-of-viewport'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'layout-animations'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'legacy-image-formats'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'navigation-override'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'oversized-images'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'publickey-credentials'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'speaker-selection'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'unoptimized-images'.この警告を分析
+workspace_iframe.html:32 Unrecognized feature: 'unsized-media'.この警告を分析
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowfullscreen'.この警告を分析
+workspace_iframe.html:32 Allow attribute will take precedence over 'allowpaymentrequest'.この警告を分析
+Console.js:61 🚀 AuthProvider ファイル読み込み完了
+Console.js:61 Browser environment variables: Object
+Console.js:61 Supabase config: Object
+Console.js:61 Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+Mt.forEach.n.<computed> @ Console.js:61この警告を分析
+Console.js:61 🔥 MAIN.TSX LOADED - ファイル読み込み開始
+Console.js:61 🔥 MAIN.TSX - App imported successfully
+Console.js:61 🔥 MAIN.TSX - React root created
+Console.js:61 HashHandler - Full URL: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/
+Console.js:61 HashHandler - Hash: 
+Console.js:61 HashHandler - Pathname: /
+Console.js:61 HashHandler - No hash found
+Console.js:61 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+Mt.forEach.n.<computed> @ Console.js:61この警告を分析
+Console.js:61 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+Mt.forEach.n.<computed> @ Console.js:61この警告を分析
+Console.js:61 🔄 AuthProvider: Initializing...
+Console.js:61 🔄 Auth state change: Object
+Console.js:61 ✅ AuthProvider: Initialized after first auth change
+Console.js:61 🚀 User signed in: bizmowa@gmail.com
+Console.js:61 💾 Session persisted to localStorage
+Console.js:61 === GUARD DEBUG === Object
+Console.js:61 🔄 Initial session check: Object
+Console.js:61 === GUARD DEBUG === Object
+Console.js:61 🔄 Auth state change: Object
+Console.js:61 === GUARD DEBUG === Object
+workspace_iframe.html?initialPath=%2F&id=%3Ar3b%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com https://*.googleapis.com https://*.gstatic.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+onIframeLoad @ workspace_iframe.html?initialPath=%2F&id=%3Ar3b%3A:142このエラーを分析
+attached_assets/%E5%90%8C%E3%81%97%E3%82%99%E5%95%8F%E9%A1%8C%E3%81%8B%E3%82%99%E7%B6%9A%E3%81%8F_1756372669961.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()このエラーを分析
+attached_assets/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-08-29%208.35.22_1756424135362.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()このエラーを分析
+attached_assets/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-08-28%2018.39.59_1756374012344.png:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 ()このエラーを分析
+Console.js:61 🔄 Auth state change: Object
+Console.js:61 🔄 Token refreshed, updating localStorage
+Console.js:61 === GUARD DEBUG === Object
+Console.js:61 No initial problem provided, generating first problem
+Console.js:61 Fetching problem with difficulty: middle_school
+Console.js:61 Received problem data: Object
+Console.js:61 Calling Claude API with: Object
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: Object
+Console.js:61 Fetching problem with difficulty: middle_school
+Console.js:61 Received problem data: Object
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.この警告を分析

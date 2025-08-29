@@ -28,11 +28,20 @@ async function getRecentUserProblems(userId, difficultyLevel) {
  * 重複のない問題を選択
  */
 async function getUnusedProblem(userId, difficultyLevel, problems) {
+    console.log(`🔍 Checking recent problems for user: ${userId} (difficulty: ${difficultyLevel})`);
     const recentProblems = await getRecentUserProblems(userId, difficultyLevel);
+    console.log(`📋 Recent problems count: ${recentProblems.length} (last 50000)`);
     const availableProblems = problems.filter(p => !recentProblems.includes(p));
-    // 利用可能な問題がない場合は、全ての問題から選択
+    console.log(`✅ Available problems count: ${availableProblems.length}/${problems.length}`);
+    // 利用可能な問題がない場合は、全ての問題から選択（リセット機能）
     const finalPool = availableProblems.length > 0 ? availableProblems : problems;
-    return finalPool[Math.floor(Math.random() * finalPool.length)];
+    if (availableProblems.length === 0) {
+        console.log(`🔄 No unused problems found - resetting to full pool for user ${userId}`);
+    }
+    const selectedIndex = Math.floor(Math.random() * finalPool.length);
+    const selectedProblem = finalPool[selectedIndex];
+    console.log(`🎯 Selected problem: "${selectedProblem}" (index: ${selectedIndex}/${finalPool.length - 1})`);
+    return selectedProblem;
 }
 /* -------------------- 入力の正規化ヘルパ -------------------- */
 const DIFFICULTY_ALIASES = {
@@ -207,22 +216,49 @@ const problemSets = {
 /* -------------------- 問題出題 -------------------- */
 export const handleProblemGeneration = async (req, res) => {
     try {
-        // ユーザーIDを取得（認証トークンから）
+        // ✅ 改良されたユーザーID取得ロジック
         let userId = "default_user";
+        let authenticationFailed = false;
+        console.log(`🔍 Problem generation - Auth header present: ${!!req.headers.authorization}`);
         const authHeader = req.headers.authorization;
         if (authHeader?.startsWith('Bearer ')) {
             try {
                 const token = authHeader.substring(7);
+                // トークンの妥当性チェック
+                if (token.length < 10) {
+                    throw new Error('Token too short');
+                }
                 const { createClient } = await import('@supabase/supabase-js');
                 const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.VITE_SUPABASE_ANON_KEY);
                 const { data: { user }, error } = await supabase.auth.getUser(token);
-                if (user && !error) {
+                if (error) {
+                    console.log(`⚠️ Supabase auth error:`, error.message);
+                    authenticationFailed = true;
+                }
+                else if (user) {
                     userId = user.id;
+                    console.log(`✅ User authenticated successfully: ${user.email}`);
+                }
+                else {
+                    console.log(`⚠️ No user found in token`);
+                    authenticationFailed = true;
                 }
             }
             catch (error) {
-                console.log("Failed to get user from token:", error);
+                console.log(`❌ Failed to get user from token:`, error);
+                authenticationFailed = true;
             }
+        }
+        else {
+            console.log(`⚠️ No Bearer token found`);
+            authenticationFailed = true;
+        }
+        // 認証に失敗した場合のユーザーフィードバック
+        if (authenticationFailed && userId === "default_user") {
+            console.log(`⚠️ Using default user due to authentication failure`);
+        }
+        else {
+            console.log(`🎯 Using authenticated user: ${userId}`);
         }
         const canProceed = await storage.incrementDailyCount();
         if (!canProceed) {
@@ -249,8 +285,17 @@ export const handleProblemGeneration = async (req, res) => {
             });
         }
         const { difficultyLevel } = parseResult.data;
+        // ✅ 重複防止のための問題選択（改良版）
         const allSentences = problemSets[difficultyLevel] || problemSets["toeic"];
+        console.log(`📚 Available sentences for ${difficultyLevel}: ${allSentences.length} total`);
+        if (allSentences.length === 0) {
+            return res.status(400).json({
+                message: `No problems available for difficulty: ${difficultyLevel}`,
+                hint: "利用可能な問題が見つかりません。"
+            });
+        }
         const selectedSentence = await getUnusedProblem(userId, difficultyLevel, allSentences);
+        console.log(`🎯 Selected sentence for user ${userId}: "${selectedSentence}" (difficulty: ${difficultyLevel})`);
         const response = {
             japaneseSentence: selectedSentence,
             hints: [`問題 - ${difficultyLevel}`],
