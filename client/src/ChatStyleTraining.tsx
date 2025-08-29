@@ -1047,12 +1047,17 @@ export default function ChatStyleTraining({
       {/* Chat Messages */}
       {(isStarted || initialProblem) && (
         <div className="flex-1 overflow-y-auto px-4 py-6 relative">
-          {/* Top/Back Button - Fixed position in top right */}
+          {/* Scroll to Top Button - Fixed position in bottom right */}
           <button
-            onClick={onBackToMenu}
-            className="fixed top-4 right-4 z-[9999] bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-colors text-lg font-bold"
-            title="トップに戻る"
-            style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 9999 }}
+            onClick={() => {
+              const chatContainer = document.querySelector('.flex-1.overflow-y-auto');
+              if (chatContainer) {
+                chatContainer.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+            className="fixed bottom-20 right-4 z-50 bg-gray-300 hover:bg-gray-400 text-gray-600 p-2 rounded-full shadow-md transition-colors text-sm"
+            title="上に戻る"
+            style={{ position: 'fixed', bottom: '80px', right: '16px', zIndex: 50 }}
           >
             ↑
           </button>
