@@ -25,31 +25,42 @@ const ProblemReq = z.object({
 });
 
 // 難易度キー → 詳細プロンプト設定
-const difficultyPrompts: Record<string, { description: string, constraints: string, examples: string }> = {
+const difficultyPrompts: Record<string, { description: string, constraints: string, examples: string, temperature: number }> = {
   toeic: {
     description: "TOEICレベルのビジネス英語",
-    constraints: "15-25文字、ビジネス場面、丁寧語、専門用語使用可",
-    examples: "会議資料を準備してください。 / 売上が20%増加しました。 / 新商品の企画を検討中です。"
+    constraints: "15-25文字、ビジネス場面、丁寧語、専門用語使用可、売上・会議・契約・顧客などのテーマ",
+    examples: "会議資料を準備してください。 / 売上が前年比20%増加しました。 / 新商品の企画を検討中です。 / 顧客満足度調査を実施します。 / 契約条件を見直す必要があります。",
+    temperature: 0.4
   },
   "middle-school": {
     description: "中学1年生レベルの超基本英語",
-    constraints: "8-15文字、絶対に1文のみ、現在形・現在進行形のみ、基本語彙500語以内、複合文・複文は絶対禁止",
-    examples: "私は学生です。 / 今日は暑いです。 / 彼は走っています。 / 猫が寝ています。 / 雨が降ります。"
+    constraints: "8-15文字、絶対に1文のみ、現在形・現在進行形・過去形のみ、基本語彙500語以内、複合文・複文は絶対禁止、日常生活の簡単な動作や状態",
+    examples: "私は学生です。 / 今日は暑いです。 / 彼は走っています。 / 猫が寝ています。 / 雨が降ります。 / 昨日映画を見ました。 / 母が料理を作ります。",
+    temperature: 0.2
   },
   "high-school": {
     description: "高校英語レベル",
-    constraints: "18-30文字、複合時制・関係代名詞・仮定法使用可、抽象的概念含む",
-    examples: "環境問題について考える必要があります。 / 将来の夢を実現するために努力しています。"
+    constraints: "18-30文字、複合時制・関係代名詞・仮定法・受動態使用可、抽象的概念・社会問題・将来計画等含む、複文構造も可",
+    examples: "環境問題について真剣に考える必要があります。 / 将来の夢を実現するために毎日努力しています。 / 科学技術の発展が社会に与える影響は計り知れません。 / もし時間があれば、海外旅行に行きたいです。",
+    temperature: 0.5
   },
   "basic-verbs": {
     description: "基本動詞を使った超シンプルな文",
-    constraints: "6-12文字、go/come/eat/see/read/play/watch/study等の基本動詞のみ",
-    examples: "私は本を読みます。 / 彼女は音楽を聞きます。 / 友達と遊びます。"
+    constraints: "6-12文字、go/come/eat/see/read/play/watch/study/make/take/get/give等の基本動詞のみ、現在形中心、日常的な動作",
+    examples: "私は本を読みます。 / 彼女は音楽を聞きます。 / 友達と遊びます。 / テレビを見ます。 / 公園に行きます。 / 手紙を書きます。 / 写真を撮ります。",
+    temperature: 0.3
   },
   "business-email": {
     description: "ビジネスメール用の丁寧な表現",
-    constraints: "20-35文字、敬語・丁寧語必須、依頼・確認・報告の表現",
-    examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。"
+    constraints: "20-35文字、敬語・丁寧語・謙譲語必須、依頼・確認・報告・謝罪・感謝の表現、ビジネスシーン特有の慣用句",
+    examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。 / ご多忙のところ恐縮ですが、ご確認をお願いいたします。 / お世話になっております。 / ご迷惑をおかけして申し訳ございません。",
+    temperature: 0.3
+  },
+  "simulation": {
+    description: "シミュレーション練習用の実践的な文",
+    constraints: "15-30文字、実際の状況で使える実践的な表現、日常・旅行・買い物・食事等のシーン",
+    examples: "駅までの道を教えてください。 / この商品の値段はいくらですか。 / 予約をキャンセルしたいのですが。 / 今日の天気はどうですか。 / 電話番号を教えてもらえますか。",
+    temperature: 0.4
   }
 };
 
@@ -445,7 +456,7 @@ export const handleProblemGeneration: RequestHandler = async (
       const response = await anthropic.messages.create({
         model: "claude-3-haiku-20240307",
         max_tokens: 100,
-        temperature: 0.3,
+        temperature: promptConfig.temperature,
         messages: [{ role: "user", content: prompt }],
       });
 
@@ -466,7 +477,7 @@ ${Array.from(attemptedSentences).slice(-5).join("、")}`.trim();
           const retryResponse = await anthropic.messages.create({
             model: "claude-3-haiku-20240307",
             max_tokens: 100,
-            temperature: 0.5,
+            temperature: Math.min(promptConfig.temperature + 0.2, 0.8), // retry時は少し温度を上げる
             messages: [{ role: "user", content: retryPrompt }],
           });
 
@@ -530,11 +541,14 @@ ${Array.from(attemptedSentences).slice(-5).join("、")}`.trim();
           "友達と話します。",
         ],
         "high-school": [
-          "環境問題について考えることは重要です。",
-          "技術の進歩により、私たちの生活は便利になりました。",
-          "彼は将来医者になりたいと言っています。",
-          "この本を読み終えたら、感想を教えてください。",
-          "もし時間があれば、一緒に旅行に行きませんか。",
+          "環境問題について真剣に考える必要があります。",
+          "将来の夢を実現するために毎日努力しています。",
+          "科学技術の発展が社会に与える影響は大きいです。",
+          "この経験から多くのことを学ぶことができました。",
+          "もし時間があれば、海外旅行に行きたいです。",
+          "教育の重要性について議論する時間が必要です。",
+          "彼が成功した理由を詳しく分析してみましょう。",
+          "困難な状況でも諦めずに努力を続けることが大切です。",
         ],
         "basic-verbs": [
           "本を読みます。",
@@ -550,8 +564,21 @@ ${Array.from(attemptedSentences).slice(-5).join("、")}`.trim();
           "お世話になっております。",
           "会議の件でご連絡いたします。",
           "添付ファイルをご査収ください。",
-          "明日の会議の件でリスケジュールをお願いしたく存じます。",
-          "資料の修正版を添付いたします。",
+          "資料をお送りいただけますでしょうか。",
+          "会議の日程を調整させていただきます。",
+          "ご多忙のところ恐縮ですが、ご確認をお願いいたします。",
+          "ご迷惑をおかけして申し訳ございません。",
+          "いつもお世話になり、誠にありがとうございます。",
+        ],
+        "simulation": [
+          "駅までの道を教えてください。",
+          "この商品の値段はいくらですか。",
+          "予約をキャンセルしたいのですが。",
+          "今日の天気はどうですか。",
+          "電話番号を教えてもらえますか。",
+          "レストランでテーブルを予約したいです。",
+          "空港までタクシーをお願いします。",
+          "おすすめの料理はありますか。",
         ],
       };
 
