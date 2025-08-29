@@ -3,7 +3,7 @@ import storage from "./storage.js";
 import { problemRequestSchema, translateRequestSchema, trainingSessions, userSubscriptions, } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
-import { eq, lte, desc, gte } from "drizzle-orm";
+import { eq, lte, desc, gte, and, sql } from "drizzle-orm";
 const router = Router();
 /* -------------------- データベースベース重複防止 -------------------- */
 /**
@@ -840,17 +840,28 @@ export function registerRoutes(app) {
     });
     router.get("/progress", requireAuth, async (req, res) => {
         try {
-            const mockProgress = [
-                { date: '2025-08-20', problemsCompleted: 15, averageRating: 4.2 },
-                { date: '2025-08-21', problemsCompleted: 12, averageRating: 4.0 },
-                { date: '2025-08-22', problemsCompleted: 18, averageRating: 4.3 },
-                { date: '2025-08-23', problemsCompleted: 20, averageRating: 4.5 },
-                { date: '2025-08-24', problemsCompleted: 16, averageRating: 4.1 }
-            ];
-            res.json(mockProgress);
+            const userEmail = req.user?.email || "anonymous";
+            console.log(`📊 Fetching real progress data for user: ${userEmail}`);
+            // 過去7日間の実際の進捗データを取得
+            const progressData = await db
+                .select({
+                date: sql `DATE(created_at)`,
+                problemsCompleted: sql `COUNT(*)`,
+                averageRating: sql `ROUND(AVG(rating::numeric), 1)`
+            })
+                .from(trainingSessions)
+                .where(and(eq(trainingSessions.userId, userEmail), sql `created_at >= CURRENT_DATE - INTERVAL '7 days'`))
+                .groupBy(sql `DATE(created_at)`)
+                .orderBy(sql `DATE(created_at)`)
+                .execute();
+            console.log(`📈 Real progress data found: ${progressData.length} days with activity`);
+            progressData.forEach(day => {
+                console.log(`  ${day.date}: ${day.problemsCompleted}問, 平均評価: ${day.averageRating}`);
+            });
+            res.json(progressData);
         }
         catch (error) {
-            console.error('Error fetching progress:', error);
+            console.error('❌ Error fetching real progress:', error);
             res.status(500).json({ error: 'Failed to fetch progress' });
         }
     });
@@ -869,17 +880,26 @@ export function registerRoutes(app) {
     });
     router.get("/difficulty-stats", requireAuth, async (req, res) => {
         try {
-            res.json([
-                { difficulty: 'TOEIC', completed: 45, averageRating: 4.2 },
-                { difficulty: '中学英語', completed: 32, averageRating: 4.5 },
-                { difficulty: '高校英語', completed: 28, averageRating: 4.0 },
-                { difficulty: '基本動詞', completed: 38, averageRating: 4.3 },
-                { difficulty: 'ビジネスメール', completed: 25, averageRating: 3.9 },
-                { difficulty: 'シミュレーション練習', completed: 18, averageRating: 4.1 }
-            ]);
+            const userEmail = req.user?.email || "anonymous";
+            console.log(`📈 Fetching difficulty stats for user: ${userEmail}`);
+            const difficultyStats = await db
+                .select({
+                difficulty: trainingSessions.difficultyLevel,
+                completed: sql `COUNT(*)`,
+                averageRating: sql `ROUND(AVG(rating::numeric), 1)`
+            })
+                .from(trainingSessions)
+                .where(eq(trainingSessions.userId, userEmail))
+                .groupBy(trainingSessions.difficultyLevel)
+                .execute();
+            console.log(`📊 Difficulty stats found: ${difficultyStats.length} categories`);
+            difficultyStats.forEach(stat => {
+                console.log(`  ${stat.difficulty}: ${stat.completed}問完了, 平均: ${stat.averageRating}`);
+            });
+            res.json(difficultyStats);
         }
         catch (error) {
-            console.error('Error fetching difficulty stats:', error);
+            console.error('❌ Error fetching difficulty stats:', error);
             res.status(500).json({ error: 'Failed to fetch difficulty stats' });
         }
     });
@@ -983,19 +1003,8 @@ export function registerRoutes(app) {
     });
     router.get("/daily-count", requireAuth, async (req, res) => {
         try {
-            // 認証トークンからユーザー情報を取得
-            const authHeader = req.headers.authorization;
-            let userEmail = null;
-            if (authHeader?.startsWith('Bearer ')) {
-                try {
-                    const token = authHeader.substring(7);
-                    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-                    userEmail = payload.email;
-                }
-                catch (e) {
-                    console.log('Token parsing failed for daily-count:', e);
-                }
-            }
+            const userEmail = req.user?.email || "anonymous";
+            console.log(`📅 Fetching today's real count for user: ${userEmail}`);
             // 管理者の場合は無制限
             if (userEmail === 'slazengersnow@gmail.com') {
                 console.log('🔑 Admin user detected, returning unlimited daily count');
@@ -1006,16 +1015,27 @@ export function registerRoutes(app) {
                     resetTime: "2099-12-31T23:59:59Z"
                 });
             }
-            // 一般ユーザー向け
+            // 実際のデータベースから今日の問題数を取得
+            const todayStats = await db
+                .select({
+                todayCount: sql `COUNT(*)`
+            })
+                .from(trainingSessions)
+                .where(and(eq(trainingSessions.userId, userEmail), sql `DATE(created_at) = CURRENT_DATE`))
+                .execute();
+            const todayCount = Number(todayStats[0]?.todayCount || 0);
+            const limit = 100;
+            const remaining = Math.max(0, limit - todayCount);
+            console.log(`🎯 Real daily stats: ${todayCount}問完了, 残り: ${remaining}問 (上限: ${limit})`);
             res.json({
-                today: 23,
-                limit: 50,
-                remaining: 27,
-                resetTime: "2025-08-25T00:00:00Z"
+                today: todayCount,
+                limit: limit,
+                remaining: remaining,
+                resetTime: new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString()
             });
         }
         catch (error) {
-            console.error('Error fetching daily count:', error);
+            console.error('❌ Error fetching real daily count:', error);
             res.status(500).json({ error: 'Failed to fetch daily count' });
         }
     });
