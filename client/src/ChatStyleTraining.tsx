@@ -94,8 +94,6 @@ export default function ChatStyleTraining({
   const submittingRef = useRef(false);
   const initializedRef = useRef(false);
 
-  // messagesEndRef を無効化（自動スクロール防止）
-  // const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 難易度をAPIキーに変換するヘルパー関数
   const getDifficultyKey = (difficulty: DifficultyLevel): string => {
@@ -202,11 +200,6 @@ export default function ChatStyleTraining({
       </div>
     );
   };
-
-  // 自動スクロールを無効化（解説を読んでいる最中に邪魔されるため）
-  // useEffect(() => {
-  //   scrollToBottom();
-  // }, [messages]);
 
   // 初期問題の設定（二重実行防止）
   const initializeWithInitialProblem = () => {
