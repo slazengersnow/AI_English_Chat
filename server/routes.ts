@@ -393,7 +393,8 @@ export const handleProblemGeneration: RequestHandler = async (
     const userId = "anonymous"; // TODO: 実装時に実際のユーザーIDを取得
     
     // 日次制限チェック（管理者は無制限）
-    const isAdminUser = userId === 'slazengersnow@gmail.com';
+    // TODO: 実際のユーザー認証システム実装時に修正
+    const isAdminUser = false; // userId === 'slazengersnow@gmail.com';
     if (!isAdminUser) {
       const canProceed = await storage.incrementDailyCount();
       if (!canProceed) {
