@@ -115,20 +115,13 @@ export default function ChatStyleTraining({
   
   // 自動スクロール機能 - メッセージ追加時に最下部へスクロール
   const scrollToBottom = () => {
-    console.log("🔄 scrollToBottom called, messages length:", messages.length);
     setTimeout(() => {
-      if (messagesEndRef.current) {
-        console.log("✅ Scrolling to bottom, element found");
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      } else {
-        console.log("❌ messagesEndRef.current is null");
-      }
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   };
   
   // メッセージが追加されるたびに自動スクロール - より確実な実装
   useEffect(() => {
-    console.log("📝 Messages changed, triggering scroll. Message count:", messages.length);
     if (messages.length > 0) {
       scrollToBottom();
     }
