@@ -375,22 +375,109 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
 
     const { difficultyLevel } = parseResult.data;
 
-    // ✅ 重複防止のための問題選択（改良版）
-    const allSentences = problemSets[difficultyLevel] || problemSets["toeic"];
-    console.log(`📚 Available sentences for ${difficultyLevel}: ${allSentences.length} total`);
+    // ✅ Claude APIを使った動的問題生成（重複防止付き）
+    const maxRetries = 5;
+    let selectedSentence: string | null = null;
+    let attempts = 0;
     
-    if (allSentences.length === 0) {
-      return res.status(400).json({
-        message: `No problems available for difficulty: ${difficultyLevel}`,
-        hint: "利用可能な問題が見つかりません。"
-      });
+    // 最近の問題を取得して重複を防ぐ
+    const recentProblems = await getRecentUserProblems(userId, difficultyLevel);
+    console.log(`📋 User has ${recentProblems.length} recent problems to avoid duplicates`);
+    
+    // 難易度別のプロンプト
+    const difficultyPrompts: Record<string, string> = {
+      toeic: "TOEICレベルのビジネス英語。会議、売上、報告書、プロジェクト等のビジネス場面",
+      "middle-school": "中学英語レベル。日常生活、学校生活、家族、友達、趣味等の基本的な内容",
+      "high-school": "高校英語レベル。社会問題、環境、文化、未来の計画等のやや高度な内容",
+      "basic-verbs": "基本動詞を使った簡単な文。go, come, see, eat, study等の基本動詞中心",
+      "business-email": "ビジネスメール形式。依頼、確認、報告、お礼等のフォーマルな表現",
+      simulation: "実践的な会話形式。様々なシチュエーションでの実用的な表現"
+    };
+
+    const promptText = difficultyPrompts[difficultyLevel] || difficultyPrompts["middle-school"];
+    
+    while (attempts < maxRetries && !selectedSentence) {
+      attempts++;
+      console.log(`🎲 Claude API attempt ${attempts}/${maxRetries} for difficulty: ${difficultyLevel}`);
+      
+      try {
+        const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+        if (!anthropicApiKey) {
+          throw new Error("Anthropic API key not configured");
+        }
+
+        const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+        
+        const generatePrompt = `${promptText}の日本語文を1つ作成してください。
+
+【必須条件】
+- 10-20文字程度の適度な長さ
+- 英訳練習に適した自然な日本語
+- 学習者が理解しやすい内容
+- 翻訳が一意に定まるような明確な文
+
+${recentProblems.length > 0 ? `【重要】以下の文は避けて、全く異なる内容で作成してください：
+${recentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
+
+以下のJSON形式で返してください：
+{
+  "japaneseSentence": "作成した日本語文",
+  "modelAnswer": "自然な英訳",
+  "hints": ["重要語彙1", "重要語彙2", "重要語彙3"]
+}`;
+
+        const message = await anthropic.messages.create({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 500,
+          temperature: 0.8,
+          messages: [{ role: "user", content: generatePrompt }]
+        });
+
+        const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+        console.log(`📝 Claude response (attempt ${attempts}):`, responseText);
+
+        // JSONを抽出して解析
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const problemData = JSON.parse(jsonMatch[0]);
+          const generatedSentence = problemData.japaneseSentence;
+          
+          // 重複チェック
+          if (generatedSentence && !recentProblems.includes(generatedSentence)) {
+            selectedSentence = generatedSentence;
+            console.log(`✅ Generated unique problem: "${selectedSentence}"`);
+            
+            // セッションキャッシュにも追加
+            const sessionKey = `${userId}_${difficultyLevel}`;
+            if (!sessionRecentProblems.has(sessionKey)) {
+              sessionRecentProblems.set(sessionKey, new Set());
+            }
+            sessionRecentProblems.get(sessionKey)!.add(selectedSentence);
+            
+            const response: ProblemResponse = {
+              japaneseSentence: selectedSentence,
+              hints: problemData.hints || [`問題 - ${difficultyLevel}`],
+            };
+
+            return res.json(response);
+          } else {
+            console.log(`⚠️ Generated sentence already exists, retrying... (attempt ${attempts})`);
+          }
+        } else {
+          console.log(`❌ Invalid JSON response format (attempt ${attempts})`);
+        }
+      } catch (error) {
+        console.error(`❌ Claude API error (attempt ${attempts}):`, error);
+      }
     }
     
-    const selectedSentence = await getUnusedProblem(userId, difficultyLevel, allSentences);
-    console.log(`🎯 Selected sentence for user ${userId}: "${selectedSentence}" (difficulty: ${difficultyLevel})`);
+    // 最大リトライ回数に達した場合のフォールバック
+    console.log(`⚠️ Max retries reached, using fallback problem`);
+    const fallbackSentences = problemSets[difficultyLevel] || problemSets["middle-school"];
+    const fallbackSentence = await getUnusedProblem(userId, difficultyLevel, fallbackSentences);
 
     const response: ProblemResponse = {
-      japaneseSentence: selectedSentence,
+      japaneseSentence: fallbackSentence,
       hints: [`問題 - ${difficultyLevel}`],
     };
 
