@@ -1,0 +1,93 @@
+main.tsx:1 🔥 MAIN.TSX LOADED - ファイル読み込み開始
+main.tsx:6 🔥 MAIN.TSX - App imported successfully
+main.tsx:10 🔥 MAIN.TSX - React root created
+hash-handler.tsx:14 HashHandler - Full URL: https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/
+hash-handler.tsx:15 HashHandler - Hash: 
+hash-handler.tsx:16 HashHandler - Pathname: /
+hash-handler.tsx:19 HashHandler - No hash found
+hook.js:608 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. Error Component Stack
+    at GY (index.js:619:5)
+    at Mre (auth-provider.tsx:23:3)
+    at TX (QueryClientProvider.js:20:3)
+    at xxe (<anonymous>)
+overrideMethod @ hook.js:608この警告を分析
+hook.js:608 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. Error Component Stack
+    at GY (index.js:619:5)
+    at Mre (auth-provider.tsx:23:3)
+    at TX (QueryClientProvider.js:20:3)
+    at xxe (<anonymous>)
+overrideMethod @ hook.js:608この警告を分析
+auth-provider.tsx:31 🔄 AuthProvider: Initializing...
+auth-provider.tsx:47 🔄 Auth state change: Object
+auth-provider.tsx:61 ✅ AuthProvider: Initialized after first auth change
+auth-provider.tsx:66 🚀 User signed in: slazengersnow@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === Object
+auth-provider.tsx:35 🔄 Initial session check: Object
+App.tsx:151 === GUARD DEBUG === Object
+auth-provider.tsx:47 🔄 Auth state change: Object
+App.tsx:151 === GUARD DEBUG === Object
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:381031)このエラーを分析
+CompleteTrainingUI.tsx:39 🔗 Navigating to /my-page
+App.tsx:151 === GUARD DEBUG === Object
+queryClient.ts:33 📡 API Request: GET /api/user-subscription
+queryClient.ts:33 📡 API Request: GET /api/progress
+queryClient.ts:33 📡 API Request: GET /api/streak
+queryClient.ts:33 📡 API Request: GET /api/difficulty-stats
+queryClient.ts:33 📡 API Request: GET /api/monthly-stats
+queryClient.ts:33 📡 API Request: GET /api/review-sessions
+queryClient.ts:33 📡 API Request: GET /api/recent-sessions
+queryClient.ts:33 📡 API Request: GET /api/bookmarked-sessions
+queryClient.ts:33 📡 API Request: GET /api/custom-scenarios
+queryClient.ts:33 📡 API Request: GET /api/daily-count
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/user-subscription
+queryClient.ts:97 🔐 Auth token added for /api/user-subscription
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/progress
+queryClient.ts:97 🔐 Auth token added for /api/progress
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/streak
+queryClient.ts:97 🔐 Auth token added for /api/streak
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/difficulty-stats
+queryClient.ts:97 🔐 Auth token added for /api/difficulty-stats
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/monthly-stats
+queryClient.ts:97 🔐 Auth token added for /api/monthly-stats
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/review-sessions
+queryClient.ts:97 🔐 Auth token added for /api/review-sessions
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/recent-sessions
+queryClient.ts:97 🔐 Auth token added for /api/recent-sessions
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/bookmarked-sessions
+queryClient.ts:97 🔐 Auth token added for /api/bookmarked-sessions
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/custom-scenarios
+queryClient.ts:97 🔐 Auth token added for /api/custom-scenarios
+queryClient.ts:45 🔐 Auth token from Supabase session for /api/daily-count
+queryClient.ts:97 🔐 Auth token added for /api/daily-count
+queryClient.ts:110 📨 Response: 200 OK for /api/review-sessions
+queryClient.ts:124 ✅ API Success: /api/review-sessions Array(1)
+queryClient.ts:110 📨 Response: 200 OK for /api/user-subscription
+queryClient.ts:110 📨 Response: 200 OK for /api/streak
+queryClient.ts:110 📨 Response: 200 OK for /api/monthly-stats
+queryClient.ts:124 ✅ API Success: /api/user-subscription Object
+queryClient.ts:124 ✅ API Success: /api/streak Object
+queryClient.ts:124 ✅ API Success: /api/monthly-stats Array(3)
+queryClient.ts:110 📨 Response: 200 OK for /api/daily-count
+queryClient.ts:124 ✅ API Success: /api/daily-count Object
+queryClient.ts:110 📨 Response: 200 OK for /api/custom-scenarios
+queryClient.ts:110 📨 Response: 200 OK for /api/difficulty-stats
+queryClient.ts:110 📨 Response: 200 OK for /api/progress
+queryClient.ts:124 ✅ API Success: /api/custom-scenarios Array(2)
+queryClient.ts:124 ✅ API Success: /api/difficulty-stats Array(0)
+queryClient.ts:124 ✅ API Success: /api/progress Array(0)
+queryClient.ts:110 📨 Response: 200 OK for /api/recent-sessions
+queryClient.ts:124 ✅ API Success: /api/recent-sessions Array(1)
+queryClient.ts:110 📨 Response: 200 OK for /api/bookmarked-sessions
+queryClient.ts:124 ✅ API Success: /api/bookmarked-sessions Array(1)
+auth-provider.tsx:47 🔄 Auth state change: Object
+auth-provider.tsx:66 🚀 User signed in: slazengersnow@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:151 === GUARD DEBUG === Object
+
+                
+          
+          
+          
+         Chrome is moving towards a new experience that allows users to choose to browse without third-party cookies.この警告を分析
