@@ -193,9 +193,10 @@ export default function ChatStyleTraining({
     );
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // 自動スクロールを無効化（解説を読んでいる最中に邪魔されるため）
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages]);
 
   // 初期問題の設定（二重実行防止）
   const initializeWithInitialProblem = () => {
