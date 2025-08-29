@@ -246,12 +246,47 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
         </div>
 
         <Tabs defaultValue="progress" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
-            <TabsTrigger value="progress" className="text-sm">進捗レポート</TabsTrigger>
-            <TabsTrigger value="bookmarks" className="text-sm">ブックマーク</TabsTrigger>
-            <TabsTrigger value="practice" className="text-sm">繰り返し練習</TabsTrigger>
-            <TabsTrigger value="simulation" className="text-sm">シミュレーション</TabsTrigger>
-            <TabsTrigger value="account" className="text-sm">アカウント</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 min-h-[50px]">
+            <TabsTrigger 
+              value="progress" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">進捗レポート</span>
+              <span className="sm:hidden">📊</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">進捗</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bookmarks" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">ブックマーク</span>
+              <span className="sm:hidden">🔖</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">ブック</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="practice" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">繰り返し練習</span>
+              <span className="sm:hidden">🔄</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">練習</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="simulation" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">シミュレーション</span>
+              <span className="sm:hidden">🎯</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">模擬</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="account" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">アカウント</span>
+              <span className="sm:hidden">👤</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">情報</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Progress Report Tab */}

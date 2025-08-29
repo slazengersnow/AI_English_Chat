@@ -394,6 +394,10 @@ export default function MyPage() {
   const formatProgressData = () => {
     return progressData.map((item) => ({
       date: new Date(item.date).toLocaleDateString("ja-JP", {
+        month: "numeric",
+        day: "numeric",
+      }),
+      fullDate: new Date(item.date).toLocaleDateString("ja-JP", {
         month: "short",
         day: "numeric",
       }),
@@ -405,33 +409,69 @@ export default function MyPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Link to="/">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="p-2">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
             <div className="flex items-center gap-2">
-              <User className="w-6 h-6 text-blue-600" />
-              <h1 className="text-2xl font-bold">マイページ</h1>
+              <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <h1 className="text-lg sm:text-2xl font-bold">マイページ</h1>
             </div>
           </div>
           <Link to="/">
-            <Button variant="outline" size="sm" className="bg-white shadow-md">
-              <Home className="w-4 h-4 mr-2" />
-              トップページ
+            <Button variant="outline" size="sm" className="bg-white shadow-md text-xs sm:text-sm">
+              <Home className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">トップページ</span>
+              <span className="sm:hidden">ホーム</span>
             </Button>
           </Link>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="progress">進捗レポート</TabsTrigger>
-            <TabsTrigger value="bookmarks">ブックマーク</TabsTrigger>
-            <TabsTrigger value="review">振り返り機能</TabsTrigger>
-            <TabsTrigger value="scenarios">シミュレーション</TabsTrigger>
-            <TabsTrigger value="account">アカウント</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 min-h-[50px]">
+            <TabsTrigger 
+              value="progress" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">進捗レポート</span>
+              <span className="sm:hidden">📊</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">進捗</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bookmarks" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">ブックマーク</span>
+              <span className="sm:hidden">🔖</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">ブック</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="review" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">振り返り機能</span>
+              <span className="sm:hidden">🔄</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">振返</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="scenarios" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">シミュレーション</span>
+              <span className="sm:hidden">🎯</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">模擬</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="account" 
+              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
+            >
+              <span className="hidden sm:inline">アカウント</span>
+              <span className="sm:hidden">👤</span>
+              <span className="sm:hidden text-[10px] leading-tight mt-1">情報</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* 進捗レポート */}
@@ -534,10 +574,31 @@ export default function MyPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={formatProgressData()}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis yAxisId="left" />
-                      <YAxis yAxisId="right" orientation="right" />
-                      <Tooltip />
+                      <XAxis 
+                        dataKey="date" 
+                        fontSize={12}
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        interval={0}
+                        className="text-xs"
+                      />
+                      <YAxis yAxisId="left" fontSize={11} />
+                      <YAxis yAxisId="right" orientation="right" fontSize={11} />
+                      <Tooltip 
+                        labelFormatter={(value, payload) => {
+                          if (payload && payload[0]) {
+                            return payload[0].payload.fullDate;
+                          }
+                          return value;
+                        }}
+                        contentStyle={{
+                          fontSize: '12px',
+                          padding: '8px',
+                          borderRadius: '6px',
+                          border: '1px solid #e2e8f0'
+                        }}
+                      />
                       <Bar
                         yAxisId="left"
                         dataKey="problems"
@@ -549,6 +610,7 @@ export default function MyPage() {
                         type="monotone"
                         dataKey="rating"
                         stroke="#f59e0b"
+                        strokeWidth={2}
                         name="★評価"
                       />
                     </LineChart>
