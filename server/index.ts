@@ -23,8 +23,12 @@ app.use(
     origin: [
       /\.replit\.dev$/,
       /\.repl\.co$/,
+      /.*\.kirk\.replit\.dev$/,
+      /.*\..*\.replit\.dev$/,
       "http://localhost:5000",
+      "http://localhost:5001",
       "http://127.0.0.1:5000",
+      "http://127.0.0.1:5001",
     ],
     credentials: true,
   }),
@@ -59,8 +63,11 @@ app.use(
           "wss://*.supabase.in",
           "https://*.replit.dev",
           "https://*.repl.co",
+          "https://*.kirk.replit.dev",
           "http://localhost:5000",
+          "http://localhost:5001",
           "http://127.0.0.1:5000",
+          "http://127.0.0.1:5001",
           "https://accounts.google.com", // Google OAuth接続
           "https://*.googleapis.com", // Google API接続
           "https://api.stripe.com", // Stripe API
