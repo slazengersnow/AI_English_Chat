@@ -393,6 +393,10 @@ export default function ChatStyleTraining({
         difficulty,
       });
 
+      // Add timeout to prevent freezing
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch("/api/evaluate-with-claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -401,7 +405,10 @@ export default function ChatStyleTraining({
           userTranslation: userAnswer,
           difficultyLevel: difficultyKey,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       console.log("Claude API response status:", response.status);
 
@@ -416,7 +423,13 @@ export default function ChatStyleTraining({
       return evaluation;
     } catch (error) {
       console.error("Claude API failed with error:", error);
-      console.warn("Using enhanced fallback evaluation");
+      
+      // Handle timeout/abort specifically
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.warn("Claude API request timed out, using fallback evaluation");
+      } else {
+        console.warn("Using enhanced fallback evaluation");
+      }
 
       // Enhanced fallback with detailed analysis based on actual user input
       let rating = 3;
@@ -770,6 +783,7 @@ export default function ChatStyleTraining({
     } finally {
       setIsLoading(false);
       submittingRef.current = false;
+      evaluatingRef.current = false; // Critical: Reset evaluation flag
     }
   };
 

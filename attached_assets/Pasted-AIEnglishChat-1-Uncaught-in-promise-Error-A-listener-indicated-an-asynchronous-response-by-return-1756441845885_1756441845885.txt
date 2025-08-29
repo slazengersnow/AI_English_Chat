@@ -1,0 +1,87 @@
+AIEnglishChat:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was receivedこのエラーを分析
+eruda.js:2 Received problem data: {japaneseSentence: '彼は自転車に乗ります。', hints: Array(1)}
+eruda.js:2 Calling Claude API with: {userAnswer: 'He rides a bike.', japaneseSentence: '彼は自転車に乗ります。', modelAnswer: 'Please translate this sentence.', difficulty: 'middle_school'}
+workspace_iframe.html:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com https://*.googleapis.com https://*.gstatic.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+onIframeLoad @ workspace_iframe.html?initialPath=%2F&id=%3Aro4%3A:142このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2 Claude API failed with error: TypeError: Failed to fetch
+    at window.fetch (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:218642)
+    at Object.apply (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/injected.js:253:39)
+    at ht (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:271:61044)
+    at Gt (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:288:1684)
+    at onKeyPress (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:288:14909)
+    at HTMLUnknownElement.rt (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78:33003)
+    at Object.eT (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78:33342)
+    at Yx (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78:34309)
+    at p8 (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78:34366)
+    at p_ (ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90:10756)
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2
+ht @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:271
+await in ht
+Gt @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:288
+onKeyPress @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:288
+rt @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+eT @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+Yx @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+p8 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+p_ @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+lB @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+v_ @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+cB @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+（匿名） @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+uE @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:174
+QC @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+J0 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+MF @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+I0 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+RF @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2 Using enhanced fallback evaluation
+Mt.forEach.n.<computed> @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2
+ht @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:271
+await in ht
+Gt @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:288
+onKeyPress @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:288
+rt @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+eT @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+Yx @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+p8 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+p_ @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+lB @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+v_ @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+cB @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+（匿名） @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+uE @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:174
+QC @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+J0 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:90
+MF @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+I0 @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78
+RF @ ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-BCar4Inu.js:78この警告を分析
+m.stripe.network/inn…_[version]=acacia:1 Uncaught (in promise) undefined
+Promise.then
+s @ out-4.5.44.js:1
+h @ out-4.5.44.js:1
+e @ inner.html:1このエラーを分析
+framework-1bd0bd4104723137.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-1bd0bd4104723137.js:1
+（匿名） @ framework-1bd0bd4104723137.js:1
+uD @ framework-1bd0bd4104723137.js:1
+uI @ framework-1bd0bd4104723137.js:1
+uM @ framework-1bd0bd4104723137.js:1
+uS @ framework-1bd0bd4104723137.js:1
+C @ framework-1bd0bd4104723137.js:1
+z @ framework-1bd0bd4104723137.js:1このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'ambient-light-sensor'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'battery'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'execution-while-not-rendered'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'execution-while-out-of-viewport'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'layout-animations'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'legacy-image-formats'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'navigation-override'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'oversized-images'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'publickey-credentials'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'speaker-selection'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'unoptimized-images'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Unrecognized feature: 'unsized-media'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Allow attribute will take precedence over 'allowfullscreen'.この警告を分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/__replco/workspace_iframe.html?initialPath=%2F&id=%3Arpa%3A:32 Allow attribute will take precedence over 'allowpaymentrequest'.
