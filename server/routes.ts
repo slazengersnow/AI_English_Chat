@@ -24,13 +24,33 @@ const ProblemReq = z.object({
   sessionId: z.string().optional(),
 });
 
-// 難易度キー → 日本語指示文マップ
-const difficultyPrompts: Record<string, string> = {
-  toeic: "TOEICレベルのビジネス英語の文章",
-  "middle-school": "中学英語レベルの基本的な文章",
-  "high-school": "高校英語レベルの応用的な文章",
-  "basic-verbs": "基本動詞（go, get, make など）を使った日常会話の短い文章",
-  "business-email": "ビジネスメールで使われる実用的で丁寧な文章",
+// 難易度キー → 詳細プロンプト設定
+const difficultyPrompts: Record<string, { description: string, constraints: string, examples: string }> = {
+  toeic: {
+    description: "TOEICレベルのビジネス英語",
+    constraints: "15-25文字、ビジネス場面、丁寧語、専門用語使用可",
+    examples: "会議資料を準備してください。 / 売上が20%増加しました。 / 新商品の企画を検討中です。"
+  },
+  "middle-school": {
+    description: "中学1年生レベルの超基本英語",
+    constraints: "8-15文字、絶対に1文のみ、現在形・現在進行形のみ、基本語彙500語以内、複合文・複文は絶対禁止",
+    examples: "私は学生です。 / 今日は暑いです。 / 彼は走っています。 / 猫が寝ています。 / 雨が降ります。"
+  },
+  "high-school": {
+    description: "高校英語レベル",
+    constraints: "18-30文字、複合時制・関係代名詞・仮定法使用可、抽象的概念含む",
+    examples: "環境問題について考える必要があります。 / 将来の夢を実現するために努力しています。"
+  },
+  "basic-verbs": {
+    description: "基本動詞を使った超シンプルな文",
+    constraints: "6-12文字、go/come/eat/see/read/play/watch/study等の基本動詞のみ",
+    examples: "私は本を読みます。 / 彼女は音楽を聞きます。 / 友達と遊びます。"
+  },
+  "business-email": {
+    description: "ビジネスメール用の丁寧な表現",
+    constraints: "20-35文字、敬語・丁寧語必須、依頼・確認・報告の表現",
+    examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。"
+  }
 };
 
 // セッションベースの問題追跡（重複防止用）
@@ -359,16 +379,19 @@ export const handleProblemGeneration: RequestHandler = async (
     const { difficultyLevel } = parsed.data;
     console.log('Schema validation passed, difficultyLevel:', difficultyLevel);
 
-    // 日次制限チェック
-    const canProceed = await storage.incrementDailyCount();
-    if (!canProceed) {
-      return res.status(429).json({
-        message: "本日の最大出題数(100問)に達しました。明日また学習を再開できます。",
-        dailyLimitReached: true,
-      });
+    const userId = "anonymous"; // TODO: 実装時に実際のユーザーIDを取得
+    
+    // 日次制限チェック（管理者は無制限）
+    const isAdminUser = userId === 'slazengersnow@gmail.com';
+    if (!isAdminUser) {
+      const canProceed = await storage.incrementDailyCount();
+      if (!canProceed) {
+        return res.status(429).json({
+          message: "本日の最大出題数(100問)に達しました。明日また学習を再開できます。",
+          dailyLimitReached: true,
+        });
+      }
     }
-
-    const userId = "anonymous";
     console.log('Fetching previous problems for user:', userId);
 
     // 過去の問題履歴を取得（重複回避）
@@ -383,9 +406,9 @@ export const handleProblemGeneration: RequestHandler = async (
     );
     console.log('Attempted sentences set created, size:', attemptedSentences.size);
 
-    // 難易度に対応する指示文を取得
-    const levelLabel = difficultyPrompts[difficultyLevel];
-    if (!levelLabel) {
+    // 難易度に対応する詳細設定を取得
+    const promptConfig = difficultyPrompts[difficultyLevel];
+    if (!promptConfig) {
       return res.status(400).json({
         message: `Unsupported difficulty level: ${difficultyLevel}`,
         dailyLimitReached: false,
@@ -403,20 +426,26 @@ export const handleProblemGeneration: RequestHandler = async (
     }
 
     // Claudeに渡す厳密なプロンプト
-    const prompt = `あなたは英作文の出題者です。以下の条件で「日本語の短い文」を1つだけ出してください。
+    const prompt = `あなたは英作文の出題者です。以下の厳密な条件で「日本語文を1つだけ」出してください。
 
-- レベル: ${levelLabel}
-- 出力は日本語のみ
-- 15〜25文字程度
-- 実用的で自然、学習者が英訳しやすい内容
-- 例や説明、番号、余分なテキストは禁止。文のみを出力`.trim();
+【レベル】${promptConfig.description}
+【制約】${promptConfig.constraints}
+【例】${promptConfig.examples}
+
+【絶対ルール】
+- 日本語の文のみ出力（説明・番号・前後の文字は一切禁止）
+- 文字数制約を厳守
+- 例と同レベルの難易度を維持
+- 自然で学習効果の高い文章
+
+出力：日本語文のみ`.trim();
 
     try {
       const anthropic = new Anthropic({ apiKey: anthropicApiKey });
       const response = await anthropic.messages.create({
         model: "claude-3-haiku-20240307",
-        max_tokens: 200,
-        temperature: 0.8,
+        max_tokens: 100,
+        temperature: 0.3,
         messages: [{ role: "user", content: prompt }],
       });
 
@@ -436,8 +465,8 @@ ${Array.from(attemptedSentences).slice(-5).join("、")}`.trim();
         try {
           const retryResponse = await anthropic.messages.create({
             model: "claude-3-haiku-20240307",
-            max_tokens: 200,
-            temperature: 0.9,
+            max_tokens: 100,
+            temperature: 0.5,
             messages: [{ role: "user", content: retryPrompt }],
           });
 
@@ -491,11 +520,14 @@ ${Array.from(attemptedSentences).slice(-5).join("、")}`.trim();
           "来週までに報告書を提出してください。",
         ],
         "middle-school": [
-          "私は毎日学校に行きます。",
-          "今日は雨が降っています。",
-          "彼女は本を読むのが好きです。",
-          "私たちは昨日映画を見ました。",
-          "明日友達と会う予定です。",
+          "私は学生です。",
+          "今日は暑いです。",
+          "彼は走っています。",
+          "猫が寝ています。",
+          "雨が降ります。",
+          "本を読みます。",
+          "音楽を聞きます。",
+          "友達と話します。",
         ],
         "high-school": [
           "環境問題について考えることは重要です。",
@@ -505,11 +537,14 @@ ${Array.from(attemptedSentences).slice(-5).join("、")}`.trim();
           "もし時間があれば、一緒に旅行に行きませんか。",
         ],
         "basic-verbs": [
-          "彼は毎朝コーヒーを作ります。",
-          "子供たちが公園で遊んでいます。",
-          "母は料理を作っています。",
-          "私は友達に手紙を書きました。",
-          "電車が駅に到着しました。",
+          "本を読みます。",
+          "音楽を聞きます。",
+          "友達と遊びます。",
+          "テレビを見ます。",
+          "公園に行きます。",
+          "料理を作ります。",
+          "手紙を書きます。",
+          "電話をかけます。",
         ],
         "business-email": [
           "お世話になっております。",
