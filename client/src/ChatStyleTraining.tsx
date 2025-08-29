@@ -94,7 +94,8 @@ export default function ChatStyleTraining({
   const submittingRef = useRef(false);
   const initializedRef = useRef(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // messagesEndRef を無効化（自動スクロール防止）
+  // const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 難易度をAPIキーに変換するヘルパー関数
   const getDifficultyKey = (difficulty: DifficultyLevel): string => {
@@ -111,9 +112,10 @@ export default function ChatStyleTraining({
 
   const difficultyKey = getDifficultyKey(difficulty);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // 自動スクロール機能を完全に無効化
+  // const scrollToBottom = () => {
+  //   messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // };
 
   const toggleBookmark = (bookmarkKey: string) => {
     setBookmarkedProblems((prev) => {
@@ -1034,7 +1036,6 @@ export default function ChatStyleTraining({
           <div className="max-w-4xl mx-auto">
             {messages.map((message) => renderMessage(message))}
             {/* Remove loading message to fix flash issue */}
-            <div ref={messagesEndRef} />
           </div>
         </div>
       )}
