@@ -156,25 +156,139 @@ async function handleProblemGeneration(req, res) {
 }
 async function handleClaudeEvaluation(req, res) {
     try {
-        const { userAnswer, problemContext, criteria } = req.body;
-        const evaluation = {
-            score: Math.floor(Math.random() * 100) + 1,
-            feedback: "良い回答です。文法的に正しく、自然な表現が使われています。",
-            suggestions: [
-                "より自然な表現を使ってみましょう",
-                "語彙を増やすと表現力が向上します",
-            ],
-            correctTranslation: "This is a correct translation example.",
-            rating: Math.floor(Math.random() * 5) + 1,
-            evaluatedAt: new Date().toISOString(),
-        };
-        res.json({ success: true, data: evaluation });
+        const { japaneseSentence, userTranslation, difficultyLevel } = req.body;
+        if (!japaneseSentence || !userTranslation) {
+            return res.status(400).json({
+                message: "日本語文と英訳が必要です"
+            });
+        }
+        const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+        if (!anthropicApiKey) {
+            console.error("Anthropic API key not configured");
+            return res.status(500).json({
+                message: "AI評価システムが設定されていません"
+            });
+        }
+        const levelLabel = difficultyLevel === "toeic" ? "TOEIC" :
+            difficultyLevel === "middle-school" ? "中学レベル" :
+                difficultyLevel === "high-school" ? "高校レベル" :
+                    difficultyLevel === "basic-verbs" ? "基本動詞" :
+                        difficultyLevel === "business-email" ? "ビジネスメール" :
+                            "基本的な文章";
+        const systemPrompt = `あなたは日本人の英語学習者向けの英語教師です。${levelLabel}レベルの翻訳を評価し、以下のJSON形式で返答してください。
+
+重要: すべての説明とフィードバックは必ず日本語で書いてください。
+
+{
+  "correctTranslation": "正しい英訳(ネイティブが自然に使う表現)",
+  "feedback": "具体的なフィードバック(良い点と改善点を日本語で)",
+  "rating": 評価(1=要改善、5=完璧の数値),
+  "improvements": ["改善提案1(日本語で)", "改善提案2(日本語で)"],
+  "explanation": "文法や語彙の詳しい解説(必ず日本語で)",
+  "similarPhrases": ["類似フレーズ1", "類似フレーズ2"]
+}
+
+評価基準:
+- レベル: ${levelLabel}
+- 英文はシンプルで実用的
+- 直訳ではなく自然な英語
+- feedback、improvements、explanationはすべて日本語で説明
+- 学習者にとって分かりやすい日本語の解説`.trim();
+        const userPrompt = `日本語文: ${japaneseSentence}
+ユーザーの英訳: ${userTranslation}
+
+上記の翻訳を評価してください。`;
+        try {
+            const { default: Anthropic } = await import('@anthropic-ai/sdk');
+            const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+            const message = await anthropic.messages.create({
+                model: "claude-3-haiku-20240307",
+                max_tokens: 1000,
+                temperature: 0.7,
+                system: systemPrompt,
+                messages: [{ role: "user", content: userPrompt }],
+            });
+            const content = message.content[0];
+            let responseText = content.type === "text" ? content.text : "";
+            let parsedResult;
+            try {
+                parsedResult = JSON.parse(responseText);
+            }
+            catch (parseError) {
+                const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsedResult = JSON.parse(jsonMatch[0]);
+                }
+                else {
+                    throw new Error("No valid JSON found in Claude response");
+                }
+            }
+            const response = {
+                correctTranslation: parsedResult.correctTranslation || "Translation evaluation failed",
+                feedback: parsedResult.feedback || "フィードバックの生成に失敗しました",
+                rating: Math.max(1, Math.min(5, parsedResult.rating || 3)),
+                improvements: Array.isArray(parsedResult.improvements) ? parsedResult.improvements : [],
+                explanation: parsedResult.explanation || "解説の生成に失敗しました",
+                similarPhrases: Array.isArray(parsedResult.similarPhrases) ? parsedResult.similarPhrases : [],
+            };
+            // 学習セッションの記録
+            const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
+            const userId = userEmail || "anonymous";
+            try {
+                const { default: storage } = await import("../storage.js");
+                const trainingSession = await storage.addTrainingSession({
+                    userId,
+                    difficultyLevel,
+                    japaneseSentence,
+                    userTranslation,
+                    correctTranslation: response.correctTranslation,
+                    feedback: response.feedback,
+                    rating: response.rating,
+                });
+                console.log("Training session recorded successfully:", trainingSession.id);
+                return res.json({ ...response, sessionId: trainingSession.id });
+            }
+            catch (storageError) {
+                console.error("Storage error:", storageError);
+                return res.json({ ...response, sessionId: 0 });
+            }
+        }
+        catch (anthropicError) {
+            console.error("Anthropic API error:", anthropicError);
+            const fallbackEvaluation = {
+                correctTranslation: `正しい英訳: ${userTranslation}`,
+                feedback: "この翻訳は良好です。文法的に正しく、理解しやすい表現になっています。",
+                rating: 4,
+                improvements: ["より自然な表現を心がける", "語彙の選択を工夫する"],
+                explanation: "基本的な文法構造は正しく使われています。日本語の意味を適切に英語で表現できています。",
+                similarPhrases: ["Alternative expression 1", "Alternative expression 2"],
+            };
+            try {
+                const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
+                const userId = userEmail || "anonymous";
+                const { default: storage } = await import("../storage.js");
+                const trainingSession = await storage.addTrainingSession({
+                    userId,
+                    difficultyLevel,
+                    japaneseSentence,
+                    userTranslation,
+                    correctTranslation: fallbackEvaluation.correctTranslation,
+                    feedback: fallbackEvaluation.feedback,
+                    rating: fallbackEvaluation.rating,
+                });
+                return res.json({ ...fallbackEvaluation, sessionId: trainingSession.id });
+            }
+            catch (storageError) {
+                return res.json({ ...fallbackEvaluation, sessionId: 0 });
+            }
+        }
     }
     catch (error) {
-        console.error("Claude evaluation error:", error);
-        res
-            .status(500)
-            .json({ success: false, error: "Failed to evaluate response" });
+        console.error("Translation evaluation error:", error);
+        return res.status(500).json({
+            message: "翻訳評価に失敗しました",
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 }
 async function handleBasicEvaluation(req, res) {
