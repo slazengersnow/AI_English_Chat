@@ -1990,9 +1990,27 @@ export const handleGetAdminStats: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const userSubscription = await storage.getUserSubscription();
-    if (!userSubscription?.isAdmin) {
-      return res.status(403).json({ message: "管理者権限が必要です" });
+    const authHeader = req.headers.authorization;
+    let userEmail = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        userEmail = decodedToken.email;
+      } catch (error) {
+        console.error("Token decode error:", error);
+      }
+    }
+
+    console.log("Admin stats check - User email:", userEmail);
+
+    // 管理者専用アカウント: slazengersnow@gmail.com
+    if (userEmail !== "slazengersnow@gmail.com") {
+      console.log("Access denied - not admin user");
+      return res.status(403).json({ 
+        message: "管理者権限が必要です。管理者アカウント（slazengersnow@gmail.com）でログインしてください。" 
+      });
     }
 
     const stats = await storage.getAdminStats();
@@ -2008,9 +2026,24 @@ export const handleGetAdminUsers: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const userSubscription = await storage.getUserSubscription();
-    if (!userSubscription?.isAdmin) {
-      return res.status(403).json({ message: "管理者権限が必要です" });
+    const authHeader = req.headers.authorization;
+    let userEmail = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        userEmail = decodedToken.email;
+      } catch (error) {
+        console.error("Token decode error:", error);
+      }
+    }
+
+    // 管理者専用アカウント: slazengersnow@gmail.com
+    if (userEmail !== "slazengersnow@gmail.com") {
+      return res.status(403).json({ 
+        message: "管理者権限が必要です。管理者アカウント（slazengersnow@gmail.com）でログインしてください。" 
+      });
     }
 
     const users = await storage.getAllUsers();
@@ -2026,9 +2059,24 @@ export const handleGetAdminAnalytics: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const userSubscription = await storage.getUserSubscription();
-    if (!userSubscription?.isAdmin) {
-      return res.status(403).json({ message: "管理者権限が必要です" });
+    const authHeader = req.headers.authorization;
+    let userEmail = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        userEmail = decodedToken.email;
+      } catch (error) {
+        console.error("Token decode error:", error);
+      }
+    }
+
+    // 管理者専用アカウント: slazengersnow@gmail.com
+    if (userEmail !== "slazengersnow@gmail.com") {
+      return res.status(403).json({ 
+        message: "管理者権限が必要です。管理者アカウント（slazengersnow@gmail.com）でログインしてください。" 
+      });
     }
 
     const analytics = await storage.getLearningAnalytics();
@@ -2044,9 +2092,24 @@ export const handleAdminExport: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const userSubscription = await storage.getUserSubscription();
-    if (!userSubscription?.isAdmin) {
-      return res.status(403).json({ message: "管理者権限が必要です" });
+    const authHeader = req.headers.authorization;
+    let userEmail = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        userEmail = decodedToken.email;
+      } catch (error) {
+        console.error("Token decode error:", error);
+      }
+    }
+
+    // 管理者専用アカウント: slazengersnow@gmail.com
+    if (userEmail !== "slazengersnow@gmail.com") {
+      return res.status(403).json({ 
+        message: "管理者権限が必要です。管理者アカウント（slazengersnow@gmail.com）でログインしてください。" 
+      });
     }
 
     const { type } = req.params;
@@ -2069,9 +2132,24 @@ export const handleUpdateUserSubscription: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const userSubscription = await storage.getUserSubscription();
-    if (!userSubscription?.isAdmin) {
-      return res.status(403).json({ message: "管理者権限が必要です" });
+    const authHeader = req.headers.authorization;
+    let userEmail = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.substring(7);
+        const decodedToken = JSON.parse(atob(token.split(".")[1]));
+        userEmail = decodedToken.email;
+      } catch (error) {
+        console.error("Token decode error:", error);
+      }
+    }
+
+    // 管理者専用アカウント: slazengersnow@gmail.com
+    if (userEmail !== "slazengersnow@gmail.com") {
+      return res.status(403).json({ 
+        message: "管理者権限が必要です。管理者アカウント（slazengersnow@gmail.com）でログインしてください。" 
+      });
     }
 
     const { userId } = req.params;
