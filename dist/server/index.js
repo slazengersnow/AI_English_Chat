@@ -150,20 +150,33 @@ app.get("/__introspect", (_req, res) => {
     });
 });
 /* ---------- frontend serving logic ---------- */
-// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
-app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
-});
-console.log("📦 Forced production mode: Serving static client files from dist/client");
-/* ---------- 404 handler for API routes ---------- */
-app.use("/api/*", (_req, res) => {
-    res.status(404).json({
-        error: "API endpoint not found",
-        timestamp: new Date().toISOString(),
+// Viteミドルウェアを使って開発環境でフロントエンドとバックエンドを統合
+if (process.env.NODE_ENV === "production") {
+    const clientDist = path.resolve(process.cwd(), "dist/client");
+    app.use(express.static(clientDist));
+    app.get("*", (_req, res) => {
+        res.sendFile(path.join(clientDist, "index.html"));
     });
-});
+    console.log("📦 Production mode: Serving static client files from dist/client");
+}
+else {
+    // 開発環境：Viteミドルウェアを使用してポート5000で統合提供
+    try {
+        const { setupVite } = await import("./vite.js");
+        await setupVite(app, null);
+        console.log("🔧 Development mode: Vite middleware integrated on port 5000");
+    }
+    catch (viteError) {
+        console.error("❌ Failed to setup Vite middleware:", viteError);
+        // フォールバック：静的ファイル提供
+        const clientDist = path.resolve(process.cwd(), "dist/client");
+        app.use(express.static(clientDist));
+        app.get("*", (_req, res) => {
+            res.sendFile(path.join(clientDist, "index.html"));
+        });
+        console.log("📦 Fallback: Serving static files due to Vite error");
+    }
+}
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {
     console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
