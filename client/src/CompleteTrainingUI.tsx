@@ -31,7 +31,7 @@ interface CompleteTrainingUIProps {
   onLogout: () => void;
 }
 
-// スクリーンショットの完全な英作文トレーニング画面を再現
+// スクリーンショットの完全な英作文画面を再現
 export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingUIProps) {
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel | null>(null);
   const [currentPage, setCurrentPage] = useState<'menu' | 'training' | 'admin' | 'mypage' | 'login'>(() => {
@@ -203,15 +203,28 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
-          <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-            <div className="flex justify-between items-center">
-              <h1 className="text-xl font-bold text-gray-800">英作文トレーニング</h1>
+          {/* Header - Mobile Optimized */}
+          <div className="bg-white rounded-lg shadow-lg mb-4">
+            <div className="flex items-center justify-between p-3 md:p-4">
               <button 
                 onClick={handleBackToMenu}
-                className="text-gray-500 hover:text-gray-700"
+                className="flex flex-col items-center justify-center min-w-[60px] p-2 text-gray-600 hover:text-gray-800"
               >
-                ← メニューに戻る
+                <span className="text-lg">←</span>
+                <span className="text-[10px] leading-tight">メニュー</span>
               </button>
+              <h1 className="text-sm md:text-lg font-bold text-gray-800 flex items-center gap-2">
+                ✏️<span className="hidden sm:inline">英作文トレーニング</span><span className="sm:hidden">英作文</span>
+              </h1>
+              <button 
+                onClick={() => window.location.href = "/my-page"}
+                className="flex flex-col items-center justify-center min-w-[60px] p-2 text-gray-600 hover:text-gray-800"
+              >
+                <span className="text-lg">👤</span>
+                <span className="text-[10px] leading-tight">マイページ</span>
+              </button>
+            </div>
+          </div>
             </div>
           </div>
 
