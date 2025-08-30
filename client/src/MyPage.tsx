@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
 import { supabase } from './lib/supabaseClient';
+import './MyPage.css';
 
 interface DailyStats {
   streak: number;
@@ -248,43 +249,98 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
         </div>
 
         <Tabs defaultValue="progress" className="space-y-4 md:space-y-6">
-          {/* Mobile tabs - ERROR FIXED - NOW WORKING! */}
+          {/* Mobile tabs - FORCE STYLE OVERRIDE */}
           <div className="block md:hidden">
-            <TabsList className="!grid !w-full !grid-cols-5 !bg-white !rounded-lg !p-1 !h-16 !border !border-gray-200">
+            <TabsList 
+              className="grid w-full grid-cols-5"
+              style={{
+                height: '64px',
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                padding: '4px',
+                border: '1px solid #e5e7eb',
+                display: 'grid !important'
+              }}
+            >
               <TabsTrigger 
                 value="progress" 
-                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
+                className="flex flex-col items-center justify-center"
+                style={{
+                  height: '100%',
+                  padding: '4px',
+                  backgroundColor: 'transparent',
+                  display: 'flex !important',
+                  flexDirection: 'column !important',
+                  alignItems: 'center !important',
+                  justifyContent: 'center !important'
+                }}
               >
-                <span className="!text-lg !mb-1">📊</span>
-                <span className="!text-[9px] !leading-none !text-gray-700">進捗</span>
+                <span style={{ fontSize: '18px', marginBottom: '2px' }}>📊</span>
+                <span style={{ fontSize: '9px', lineHeight: 1, color: '#374151' }}>進捗</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="bookmarks" 
-                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
+                className="flex flex-col items-center justify-center"
+                style={{
+                  height: '100%',
+                  padding: '4px',
+                  backgroundColor: 'transparent',
+                  display: 'flex !important',
+                  flexDirection: 'column !important',
+                  alignItems: 'center !important',
+                  justifyContent: 'center !important'
+                }}
               >
-                <span className="!text-lg !mb-1">🔖</span>
-                <span className="!text-[9px] !leading-none !text-gray-700">ブック</span>
+                <span style={{ fontSize: '18px', marginBottom: '2px' }}>🔖</span>
+                <span style={{ fontSize: '9px', lineHeight: 1, color: '#374151' }}>ブック</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="practice" 
-                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
+                className="flex flex-col items-center justify-center"
+                style={{
+                  height: '100%',
+                  padding: '4px',
+                  backgroundColor: 'transparent',
+                  display: 'flex !important',
+                  flexDirection: 'column !important',
+                  alignItems: 'center !important',
+                  justifyContent: 'center !important'
+                }}
               >
-                <span className="!text-lg !mb-1">🔄</span>
-                <span className="!text-[9px] !leading-none !text-gray-700">練習</span>
+                <span style={{ fontSize: '18px', marginBottom: '2px' }}>🔄</span>
+                <span style={{ fontSize: '9px', lineHeight: 1, color: '#374151' }}>練習</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="simulation" 
-                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
+                className="flex flex-col items-center justify-center"
+                style={{
+                  height: '100%',
+                  padding: '4px',
+                  backgroundColor: 'transparent',
+                  display: 'flex !important',
+                  flexDirection: 'column !important',
+                  alignItems: 'center !important',
+                  justifyContent: 'center !important'
+                }}
               >
-                <span className="!text-lg !mb-1">🎯</span>
-                <span className="!text-[9px] !leading-none !text-gray-700">模擬</span>
+                <span style={{ fontSize: '18px', marginBottom: '2px' }}>🎯</span>
+                <span style={{ fontSize: '9px', lineHeight: 1, color: '#374151' }}>模擬</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="account" 
-                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
+                className="flex flex-col items-center justify-center"
+                style={{
+                  height: '100%',
+                  padding: '4px',
+                  backgroundColor: 'transparent',
+                  display: 'flex !important',
+                  flexDirection: 'column !important',
+                  alignItems: 'center !important',
+                  justifyContent: 'center !important'
+                }}
               >
-                <span className="!text-lg !mb-1">👤</span>
-                <span className="!text-[9px] !leading-none !text-gray-700">情報</span>
+                <span style={{ fontSize: '18px', marginBottom: '2px' }}>👤</span>
+                <span style={{ fontSize: '9px', lineHeight: 1, color: '#374151' }}>情報</span>
               </TabsTrigger>
             </TabsList>
           </div>

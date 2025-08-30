@@ -1,0 +1,41 @@
+/* Force mobile tab styles to override Shadcn/UI */
+@media (max-width: 768px) {
+  /* Force TabsList mobile style */
+  [role="tablist"] {
+    height: 64px !important;
+    background-color: white !important;
+    border-radius: 8px !important;
+    padding: 4px !important;
+    border: 1px solid #e5e7eb !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+  }
+
+  /* Force TabsTrigger mobile style */
+  [role="tab"] {
+    height: 100% !important;
+    padding: 4px !important;
+    background-color: transparent !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Force emoji and text styles */
+  [role="tab"] span:first-child {
+    font-size: 18px !important;
+    margin-bottom: 2px !important;
+  }
+
+  [role="tab"] span:last-child {
+    font-size: 9px !important;
+    line-height: 1 !important;
+    color: #374151 !important;
+  }
+
+  /* Active state */
+  [role="tab"][data-state="active"] {
+    background-color: #dbeafe !important;
+  }
+}
