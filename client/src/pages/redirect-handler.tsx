@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation } from 'wouter'
 import { useAuth } from '@/providers/auth-provider'
-import Login from '@/pages/login'
+import Login from './login'
 
 export default function RedirectHandler() {
   const [, setLocation] = useLocation()
