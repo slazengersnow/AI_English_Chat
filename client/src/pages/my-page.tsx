@@ -432,41 +432,41 @@ export default function MyPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Mobile タブリスト */}
           <div className="block md:hidden">
-            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-16">
+            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-20">
               <TabsTrigger 
                 value="progress" 
                 className="flex flex-col items-center justify-center h-full px-1 py-1"
               >
                 <span className="text-lg mb-1">📊</span>
-                <span className="text-[9px] leading-none">進捗</span>
+                <span className="text-xs leading-none">進捗</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="bookmarks" 
                 className="flex flex-col items-center justify-center h-full px-1 py-1"
               >
                 <span className="text-lg mb-1">🔖</span>
-                <span className="text-[9px] leading-none">ブック</span>
+                <span className="text-xs leading-none">ブック</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="review" 
                 className="flex flex-col items-center justify-center h-full px-1 py-1"
               >
                 <span className="text-lg mb-1">🔄</span>
-                <span className="text-[9px] leading-none">振返</span>
+                <span className="text-xs leading-none">振返</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="scenarios" 
                 className="flex flex-col items-center justify-center h-full px-1 py-1"
               >
                 <span className="text-lg mb-1">🎯</span>
-                <span className="text-[9px] leading-none">模擬</span>
+                <span className="text-xs leading-none">模擬</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="account" 
                 className="flex flex-col items-center justify-center h-full px-1 py-1"
               >
                 <span className="text-lg mb-1">👤</span>
-                <span className="text-[9px] leading-none">情報</span>
+                <span className="text-xs leading-none">情報</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -475,24 +475,24 @@ export default function MyPage() {
           <div className="hidden md:block">
             <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
               <TabsTrigger value="progress" className="text-sm px-3 py-2">
-                進捗レポート
+                進捗
               </TabsTrigger>
               <TabsTrigger value="bookmarks" className="text-sm px-3 py-2">
-                ブックマーク
+                ブック
               </TabsTrigger>
               <TabsTrigger value="review" className="text-sm px-3 py-2">
-                振り返り機能
+                練習
               </TabsTrigger>
               <TabsTrigger value="scenarios" className="text-sm px-3 py-2">
-                シミュレーション
+                模擬
               </TabsTrigger>
               <TabsTrigger value="account" className="text-sm px-3 py-2">
-                アカウント
+                情報
               </TabsTrigger>
             </TabsList>
           </div>
 
-          {/* 進捗レポート */}
+          {/* 進捗 */}
           <TabsContent value="progress" className="space-y-6">
             {/* 統計情報 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -695,16 +695,16 @@ export default function MyPage() {
             </Card>
           </TabsContent>
 
-          {/* ブックマーク */}
+          {/* ブック */}
           <TabsContent value="bookmarks" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bookmark className="w-5 h-5 text-blue-500" />
-                  ブックマークした問題
+                  ブックした問題
                 </CardTitle>
                 <CardDescription>
-                  重要な問題や復習したい問題をブックマークして管理
+                  重要な問題や練習したい問題をブックして管理
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -712,9 +712,9 @@ export default function MyPage() {
                   {bookmarkedSessions.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Bookmark className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p>ブックマークした問題がありません</p>
+                      <p>ブックした問題がありません</p>
                       <p className="text-sm mt-1">
-                        練習中に重要な問題をブックマークしてみましょう
+                        練習中に重要な問題をブックしてみましょう
                       </p>
                     </div>
                   ) : (
@@ -777,7 +777,7 @@ export default function MyPage() {
             </Card>
           </TabsContent>
 
-          {/* 振り返り機能 */}
+          {/* 練習 */}
           <TabsContent value="review" className="space-y-6">
             {/* 繰り返し練習 */}
             <Card>
@@ -787,7 +787,7 @@ export default function MyPage() {
                   繰り返し練習
                 </CardTitle>
                 <CardDescription>
-                  過去1週間に解いた問題をランダムに練習できます。復習に最適です。
+                  過去1週間に解いた問題をランダムに練習できます。練習に最適です。
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -838,15 +838,15 @@ export default function MyPage() {
               </CardContent>
             </Card>
 
-            {/* 要復習リスト */}
+            {/* 要練習リスト */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <RotateCcw className="w-5 h-5 text-red-500" />
-                  要復習リスト（★2以下）
+                  要練習リスト（★2以下）
                 </CardTitle>
                 <CardDescription>
-                  評価が低い問題を復習しましょう。クリックして再挑戦できます。
+                  評価が低い問題を練習しましょう。クリックして再挑戦できます。
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -915,14 +915,14 @@ export default function MyPage() {
             </Card>
           </TabsContent>
 
-          {/* シミュレーション作成 */}
+          {/* 模擬作成 */}
           <TabsContent value="scenarios" className="space-y-6">
             {!canAccessPremiumFeatures ? (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="w-5 h-5" />
-                    シミュレーション作成
+                    模擬作成
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -932,7 +932,7 @@ export default function MyPage() {
                         <strong>この機能はプレミアムプラン限定です。</strong>
                       </p>
                       <p className="text-sm text-yellow-700">
-                        リアルなビジネスシーンを想定したシミュレーション練習を体験したい方は、プレミアムプランをご検討ください。
+                        リアルなビジネスシーンを想定した模擬練習を体験したい方は、プレミアムプランをご検討ください。
                       </p>
                     </div>
                   </div>
@@ -945,7 +945,7 @@ export default function MyPage() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Plus className="w-5 h-5" />
-                      新しいシミュレーション作成
+                      新しい模擬作成
                     </CardTitle>
                     <CardDescription>
                       自分だけのオリジナル英語練習シーンを作成
@@ -953,7 +953,7 @@ export default function MyPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="title">シミュレーションタイトル</Label>
+                      <Label htmlFor="title">模擬タイトル</Label>
                       <Input
                         id="title"
                         placeholder="例：上司に英語で報告する場面"
@@ -989,7 +989,7 @@ export default function MyPage() {
                         !newScenario.description
                       }
                     >
-                      シミュレーションを作成
+                      模擬を作成
                     </Button>
                   </CardContent>
                 </Card>
@@ -997,9 +997,9 @@ export default function MyPage() {
                 {/* 作成済みシナリオ一覧 */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>作成済みシミュレーション</CardTitle>
+                    <CardTitle>作成済み模擬</CardTitle>
                     <CardDescription>
-                      シナリオを編集するか、「練習開始」で実際にシミュレーション練習ができます
+                      シナリオを編集するか、「練習開始」で実際に模擬練習ができます
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1035,7 +1035,7 @@ export default function MyPage() {
                                   size="sm"
                                   onClick={handleUpdateScenario}
                                 >
-                                  保存
+                                  ブック
                                 </Button>
                                 <Button
                                   size="sm"
@@ -1102,7 +1102,7 @@ export default function MyPage() {
             )}
           </TabsContent>
 
-          {/* アカウント情報タブ */}
+          {/* 情報情報タブ */}
           <TabsContent value="account" className="space-y-6">
             {/* 現在のプラン情報 */}
             <Card>
@@ -1387,7 +1387,7 @@ export default function MyPage() {
                       </tr>
                       <tr className="bg-gray-50/50">
                         <td className="border border-gray-200 px-4 py-3 font-medium">
-                          シミュレーション練習
+                          模擬練習
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-red-500">
                           ✗
@@ -1398,7 +1398,7 @@ export default function MyPage() {
                       </tr>
                       <tr>
                         <td className="border border-gray-200 px-4 py-3 font-medium">
-                          進捗レポート
+                          進捗
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
                           ✓
@@ -1409,7 +1409,7 @@ export default function MyPage() {
                       </tr>
                       <tr className="bg-gray-50/50">
                         <td className="border border-gray-200 px-4 py-3 font-medium">
-                          ブックマーク機能
+                          ブック機能
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
                           ✓
@@ -1472,10 +1472,10 @@ export default function MyPage() {
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center gap-2">
                         <Shield className="w-5 h-5 text-green-600" />
-                        <span className="font-medium text-green-800">管理者アカウント</span>
+                        <span className="font-medium text-green-800">管理者情報</span>
                       </div>
                       <p className="text-sm text-green-700 mt-1">
-                        このアカウントは支払い管理の対象外です。すべての機能を無料でご利用いただけます。
+                        この情報は支払い管理の対象外です。すべての機能を無料でご利用いただけます。
                       </p>
                     </div>
                   ) : (
@@ -1531,9 +1531,9 @@ export default function MyPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5 text-green-500" />
-                  アカウント情報
+                  情報情報
                 </CardTitle>
-                <CardDescription>ログイン情報とアカウント管理</CardDescription>
+                <CardDescription>ログイン情報と情報管理</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1550,7 +1550,7 @@ export default function MyPage() {
                           )}
                         </div>
                         <p className="text-sm text-gray-600">
-                          {isAdmin ? "管理者アカウント" : "ユーザーアカウント"}
+                          {isAdmin ? "管理者情報" : "ユーザー情報"}
                         </p>
                       </div>
                     </div>
