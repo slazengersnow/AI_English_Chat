@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@shared/supabase'
+import { supabase } from '../../../shared/supabase'
 import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 export default function ResetPassword() {
