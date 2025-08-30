@@ -1351,19 +1351,20 @@ export function registerRoutes(app: Express): void {
 
   router.get("/review-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
-      const mockSessions = [
-        {
-          id: 1,
-          japaneseSentence: "会議の資料を準備しておいてください。",
-          userTranslation: "Please prepare the meeting materials.",
-          correctTranslation: "Please prepare the materials for the meeting.",
-          rating: 4,
-          feedback: "良い翻訳です。前置詞の使い方が適切です。",
-          difficultyLevel: "toeic",
-          createdAt: "2025-08-24T10:30:00Z"
-        }
-      ];
-      res.json(mockSessions);
+      const userEmail = req.headers["x-user-email"] || req.headers["user-email"] || "anonymous";
+      
+      // ★2以下の要復習セッションを取得
+      const reviewSessions = await db
+        .select()
+        .from(trainingSessions)
+        .where(and(
+          eq(trainingSessions.userId, userEmail as string),
+          lte(trainingSessions.rating, 2)
+        ))
+        .orderBy(desc(trainingSessions.createdAt))
+        .limit(20);
+      
+      res.json(reviewSessions);
     } catch (error) {
       console.error('Error fetching review sessions:', error);
       res.status(500).json({ error: 'Failed to fetch review sessions' });
@@ -1569,12 +1570,18 @@ export function registerRoutes(app: Express): void {
   // Review system endpoints (with authentication)
   router.get("/review-list", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userEmail = req.headers["x-user-email"] || req.headers["user-email"] || "anonymous";
+      
+      // ★2以下の要復習セッションを取得
       const reviewProblems = await db
         .select()
         .from(trainingSessions)
-        .where(lte(trainingSessions.rating, 2))
+        .where(and(
+          eq(trainingSessions.userId, userEmail as string),
+          lte(trainingSessions.rating, 2)
+        ))
         .orderBy(desc(trainingSessions.createdAt))
-        .limit(10);
+        .limit(20);
       
       res.json(reviewProblems);
     } catch (error) {
@@ -1585,12 +1592,18 @@ export function registerRoutes(app: Express): void {
 
   router.get("/retry-list", requireAuth, async (req: Request, res: Response) => {
     try {
+      const userEmail = req.headers["x-user-email"] || req.headers["user-email"] || "anonymous";
+      
+      // ★3の再挑戦セッションを取得
       const retryProblems = await db
         .select()
         .from(trainingSessions)
-        .where(eq(trainingSessions.rating, 3))
+        .where(and(
+          eq(trainingSessions.userId, userEmail as string),
+          eq(trainingSessions.rating, 3)
+        ))
         .orderBy(desc(trainingSessions.createdAt))
-        .limit(10);
+        .limit(20);
       
       res.json(retryProblems);
     } catch (error) {
