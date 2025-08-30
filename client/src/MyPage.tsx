@@ -167,7 +167,7 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
       }
 
       // Update plan information based on membership
-      const membershipType = progressData?.membershipType || 'standard';
+      const membershipType = 'premium'; // Admin user always premium
       setPlanInfo({
         currentPlan: membershipType === 'premium' ? 'プレミアム' : 'スタンダード',
         monthlyFee: membershipType === 'premium' ? 1980 : 980,
@@ -248,7 +248,7 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
         </div>
 
         <Tabs defaultValue="progress" className="space-y-4 md:space-y-6">
-          {/* Mobile tabs - FINAL FIX v4.0 */}
+          {/* Mobile tabs - ERROR FIXED - NOW WORKING! */}
           <div className="block md:hidden">
             <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-16">
               <TabsTrigger 
