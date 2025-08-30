@@ -1107,41 +1107,27 @@ export default function ChatStyleTraining({
 
       {/* Mobile Tab Menu - Only visible on mobile */}
       <div className="block md:hidden bg-white border-t">
-        <div className="grid grid-cols-5 px-2 py-2">
+        <div className="grid grid-cols-3 h-16">
           <button 
             onClick={() => onBackToMenu()}
-            className="flex flex-col items-center justify-center py-2 px-1"
+            className="flex flex-col items-center justify-center py-2 px-2 hover:bg-gray-50"
           >
-            <span className="text-lg mb-1">🏠</span>
-            <span className="text-[9px] leading-none text-gray-700">ホーム</span>
+            <span className="text-lg mb-1">←</span>
+            <span className="text-xs text-gray-700">メニュー</span>
           </button>
           <button 
-            onClick={() => console.log('Progress clicked')}
-            className="flex flex-col items-center justify-center py-2 px-1"
+            className="flex flex-col items-center justify-center py-2 px-2 bg-blue-100"
+            disabled
           >
-            <span className="text-lg mb-1">📊</span>
-            <span className="text-[9px] leading-none text-gray-700">進捗</span>
-          </button>
-          <button 
-            onClick={() => console.log('Bookmark clicked')}
-            className="flex flex-col items-center justify-center py-2 px-1"
-          >
-            <span className="text-lg mb-1">🔖</span>
-            <span className="text-[9px] leading-none text-gray-700">ブック</span>
-          </button>
-          <button 
-            onClick={() => console.log('Practice clicked')}
-            className="flex flex-col items-center justify-center py-2 px-1 bg-blue-100"
-          >
-            <span className="text-lg mb-1">🔄</span>
-            <span className="text-[9px] leading-none text-blue-700 font-medium">練習</span>
+            <span className="text-lg mb-1">✏️</span>
+            <span className="text-xs text-blue-700 font-medium">英作文トレーニング</span>
           </button>
           <button 
             onClick={() => onGoToMyPage()}
-            className="flex flex-col items-center justify-center py-2 px-1"
+            className="flex flex-col items-center justify-center py-2 px-2 hover:bg-gray-50"
           >
             <span className="text-lg mb-1">👤</span>
-            <span className="text-[9px] leading-none text-gray-700">情報</span>
+            <span className="text-xs text-gray-700">マイページ</span>
           </button>
         </div>
       </div>
