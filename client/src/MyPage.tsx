@@ -250,41 +250,41 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
         <Tabs defaultValue="progress" className="space-y-4 md:space-y-6">
           {/* Mobile tabs - ERROR FIXED - NOW WORKING! */}
           <div className="block md:hidden">
-            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-16">
+            <TabsList className="!grid !w-full !grid-cols-5 !bg-white !rounded-lg !p-1 !h-16 !border !border-gray-200">
               <TabsTrigger 
                 value="progress" 
-                className="flex flex-col items-center justify-center h-full px-1 py-1"
+                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
               >
-                <span className="text-lg mb-1">📊</span>
-                <span className="text-[9px] leading-none">進捗</span>
+                <span className="!text-lg !mb-1">📊</span>
+                <span className="!text-[9px] !leading-none !text-gray-700">進捗</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="bookmarks" 
-                className="flex flex-col items-center justify-center h-full px-1 py-1"
+                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
               >
-                <span className="text-lg mb-1">🔖</span>
-                <span className="text-[9px] leading-none">ブック</span>
+                <span className="!text-lg !mb-1">🔖</span>
+                <span className="!text-[9px] !leading-none !text-gray-700">ブック</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="practice" 
-                className="flex flex-col items-center justify-center h-full px-1 py-1"
+                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
               >
-                <span className="text-lg mb-1">🔄</span>
-                <span className="text-[9px] leading-none">練習</span>
+                <span className="!text-lg !mb-1">🔄</span>
+                <span className="!text-[9px] !leading-none !text-gray-700">練習</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="simulation" 
-                className="flex flex-col items-center justify-center h-full px-1 py-1"
+                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
               >
-                <span className="text-lg mb-1">🎯</span>
-                <span className="text-[9px] leading-none">模擬</span>
+                <span className="!text-lg !mb-1">🎯</span>
+                <span className="!text-[9px] !leading-none !text-gray-700">模擬</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="account" 
-                className="flex flex-col items-center justify-center h-full px-1 py-1"
+                className="!flex !flex-col !items-center !justify-center !h-full !px-1 !py-1 !bg-transparent data-[state=active]:!bg-blue-100"
               >
-                <span className="text-lg mb-1">👤</span>
-                <span className="text-[9px] leading-none">情報</span>
+                <span className="!text-lg !mb-1">👤</span>
+                <span className="!text-[9px] !leading-none !text-gray-700">情報</span>
               </TabsTrigger>
             </TabsList>
           </div>
