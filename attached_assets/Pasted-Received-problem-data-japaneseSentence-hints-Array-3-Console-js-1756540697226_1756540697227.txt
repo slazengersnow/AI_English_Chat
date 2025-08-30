@@ -1,0 +1,16 @@
+Received problem data: {japaneseSentence: 'この度の件につきまして、ご確認いただけますと幸いです。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'Please check this issue.', japaneseSentence: 'この度の件につきまして、ご確認いただけますと幸いです。', modelAnswer: 'Please translate this sentence.', difficulty: 'business_email'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I would appreciate it if you could look into this matter.', feedback: 'この翻訳は簡潔ですが、ビジネスメールの文体としては少し直接的過ぎます。より丁寧な表現を使うことで、相手への配慮が感じられるようになります。', rating: 3, improvements: Array(2), explanation: 'ビジネスメールでは、相手への敬意を示すため、より丁寧な表現を使うことが重要です。「この度の件につきま…e it if you could...」のように表現を補足することで、より適切な英語になります。', …}
+Console.js:61 Fetching problem with difficulty: business_email
+Console.js:61 Received problem data: {japaneseSentence: 'この度の件につきまして、ご報告させていただきます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I will report it', japaneseSentence: 'この度の件につきまして、ご報告させていただきます。', modelAnswer: 'Please translate this sentence.', difficulty: 'business_email'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'Regarding this matter, I would like to report to you.', feedback: 'この翻訳は簡潔ですが、ビジネスメールに適した丁寧な表現になっていません。もう少し丁寧な言い回しが必要です。', rating: 3, improvements: Array(2), explanation: 'ビジネスメールでは、相手への敬意を示すために丁寧な表現を使うことが重要です。「I will repo… to you.」のように、主語を明確にし、丁寧な言葉遣いを使うことで、より適切な英訳になります。', …}
+Console.js:61 Fetching problem with difficulty: business_email
+Console.js:61 Received problem data: {japaneseSentence: 'この度の件につきまして、ご確認いただけますでしょうか。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'Please check it.', japaneseSentence: 'この度の件につきまして、ご確認いただけますでしょうか。', modelAnswer: 'Please translate this sentence.', difficulty: 'business_email'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'Could you please check this matter?', feedback: 'この翻訳は簡潔ですが、ビジネスメールとしては少し短すぎます。もう少し丁寧な表現が望ましいでしょう。', rating: 3, improvements: Array(2), explanation: '「この度の件につきまして」は、ビジネスメールでよく使われる定型句です。これを適切に訳すと、より丁寧な…認いただけますでしょうか」は、依頼の意味を含んでいるので、そのニュアンスを訳出することが重要です。', …}
+Console.js:61 Fetching problem with difficulty: business_email
+Console.js:61 Received problem data: {japaneseSentence: '本件につきまして、ご確認のほどよろしくお願い申し上げます。', hints: Array(3)}
