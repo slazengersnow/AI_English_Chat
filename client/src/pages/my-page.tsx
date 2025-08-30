@@ -407,136 +407,154 @@ export default function MyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-2 md:p-4">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-4">
             <Link to="/">
-              <Button variant="ghost" size="sm" className="p-2">
+              <Button variant="ghost" size="sm" className="p-1 md:p-2">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
-            <div className="flex items-center gap-2">
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-              <h1 className="text-lg sm:text-2xl font-bold">マイページ</h1>
+            <div className="flex items-center gap-1 md:gap-2">
+              <User className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
+              <h1 className="text-base md:text-2xl font-bold">マイページ</h1>
             </div>
           </div>
           <Link to="/">
-            <Button variant="outline" size="sm" className="bg-white shadow-md text-xs sm:text-sm">
-              <Home className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">トップページ</span>
-              <span className="sm:hidden">ホーム</span>
+            <Button variant="outline" size="sm" className="bg-white shadow-md text-xs px-2 py-1 md:px-3 md:py-2">
+              <Home className="w-3 h-3 md:w-4 md:h-4" />
+              <span className="ml-1 hidden md:inline">トップページ</span>
             </Button>
           </Link>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 min-h-[50px]">
-            <TabsTrigger 
-              value="progress" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">進捗レポート</span>
-              <span className="sm:hidden">📊</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">進捗</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bookmarks" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">ブックマーク</span>
-              <span className="sm:hidden">🔖</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">ブック</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="review" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">振り返り機能</span>
-              <span className="sm:hidden">🔄</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">振返</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="scenarios" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">シミュレーション</span>
-              <span className="sm:hidden">🎯</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">模擬</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="account" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">アカウント</span>
-              <span className="sm:hidden">👤</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">情報</span>
-            </TabsTrigger>
-          </TabsList>
+          {/* Mobile タブリスト */}
+          <div className="block md:hidden">
+            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-16">
+              <TabsTrigger 
+                value="progress" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">📊</span>
+                <span className="text-[9px] leading-none">進捗</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="bookmarks" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">🔖</span>
+                <span className="text-[9px] leading-none">ブック</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="review" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">🔄</span>
+                <span className="text-[9px] leading-none">振返</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="scenarios" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">🎯</span>
+                <span className="text-[9px] leading-none">模擬</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="account" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">👤</span>
+                <span className="text-[9px] leading-none">情報</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Desktop タブリスト */}
+          <div className="hidden md:block">
+            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
+              <TabsTrigger value="progress" className="text-sm px-3 py-2">
+                進捗レポート
+              </TabsTrigger>
+              <TabsTrigger value="bookmarks" className="text-sm px-3 py-2">
+                ブックマーク
+              </TabsTrigger>
+              <TabsTrigger value="review" className="text-sm px-3 py-2">
+                振り返り機能
+              </TabsTrigger>
+              <TabsTrigger value="scenarios" className="text-sm px-3 py-2">
+                シミュレーション
+              </TabsTrigger>
+              <TabsTrigger value="account" className="text-sm px-3 py-2">
+                アカウント
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* 進捗レポート */}
           <TabsContent value="progress" className="space-y-6">
             {/* 統計情報 */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     連続学習日数
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {(streakData as any)?.streak || 0}日
+                <CardContent className="pt-1 md:pt-2">
+                  <div className="text-lg md:text-2xl font-bold text-green-600">
+                    {(streakData as any)?.currentStreak || 0}日
                   </div>
-                  <p className="text-xs text-muted-foreground">連続達成中！</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">連続達成中！</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     今月の問題数
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">
+                <CardContent className="pt-1 md:pt-2">
+                  <div className="text-lg md:text-2xl font-bold text-blue-600">
                     {(monthlyStats as any)?.totalProblems || 0}問
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     今月の実績
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     平均★評価
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">
+                <CardContent className="pt-1 md:pt-2">
+                  <div className="text-lg md:text-2xl font-bold text-yellow-600">
                     ★{(monthlyStats as any)?.averageRating || 0}
                   </div>
-                  <p className="text-xs text-muted-foreground">今月の平均</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">今月の平均</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
+                <CardHeader className="pb-1 md:pb-2">
+                  <CardTitle className="text-xs md:text-sm font-medium">
                     今日の問題数
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {(dailyCount as any)?.count || 0}/100
+                <CardContent className="pt-1 md:pt-2">
+                  <div className="text-lg md:text-2xl font-bold text-orange-600">
+                    {(dailyCount as any)?.count || 0}/{(dailyCount as any)?.limit || 100}
                   </div>
                   <Progress
-                    value={(dailyCount as any)?.count || 0}
-                    className="mt-2"
+                    value={((dailyCount as any)?.count || 0) / ((dailyCount as any)?.limit || 100) * 100}
+                    className="mt-1 md:mt-2 h-2"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
                     残り {(dailyCount as any)?.remaining || 100}問
                   </p>
                 </CardContent>
@@ -545,12 +563,12 @@ export default function MyPage() {
 
             {/* 進捗グラフ */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+                  <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
                   正答率の推移
                 </CardTitle>
-                <div className="flex gap-2">
+                <div className="flex gap-1 md:gap-2">
                   {["day", "week", "month"].map((period) => (
                     <Button
                       key={period}
@@ -558,6 +576,7 @@ export default function MyPage() {
                         selectedPeriod === period ? "default" : "outline"
                       }
                       size="sm"
+                      className="text-xs md:text-sm px-2 md:px-3"
                       onClick={() => setSelectedPeriod(period)}
                     >
                       {period === "day"
@@ -569,22 +588,37 @@ export default function MyPage() {
                   ))}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="h-80">
+              <CardContent className="px-2 md:px-6">
+                <div className="h-64 md:h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={formatProgressData()}>
-                      <CartesianGrid strokeDasharray="3 3" />
+                    <LineChart data={formatProgressData()} margin={{ bottom: 40, left: 10, right: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                       <XAxis 
                         dataKey="date" 
-                        fontSize={12}
-                        angle={-45}
+                        fontSize={9}
+                        angle={-90}
                         textAnchor="end"
-                        height={60}
+                        height={50}
                         interval={0}
-                        className="text-xs"
+                        tick={{ fontSize: 9 }}
+                        axisLine={{ stroke: '#e2e8f0' }}
+                        tickLine={{ stroke: '#e2e8f0' }}
                       />
-                      <YAxis yAxisId="left" fontSize={11} />
-                      <YAxis yAxisId="right" orientation="right" fontSize={11} />
+                      <YAxis 
+                        yAxisId="left" 
+                        fontSize={9} 
+                        tick={{ fontSize: 9 }}
+                        axisLine={{ stroke: '#e2e8f0' }}
+                        tickLine={{ stroke: '#e2e8f0' }}
+                      />
+                      <YAxis 
+                        yAxisId="right" 
+                        orientation="right" 
+                        fontSize={9}
+                        tick={{ fontSize: 9 }}
+                        axisLine={{ stroke: '#e2e8f0' }}
+                        tickLine={{ stroke: '#e2e8f0' }}
+                      />
                       <Tooltip 
                         labelFormatter={(value, payload) => {
                           if (payload && payload[0]) {
@@ -593,10 +627,12 @@ export default function MyPage() {
                           return value;
                         }}
                         contentStyle={{
-                          fontSize: '12px',
-                          padding: '8px',
+                          fontSize: '11px',
+                          padding: '6px 8px',
                           borderRadius: '6px',
-                          border: '1px solid #e2e8f0'
+                          border: '1px solid #e2e8f0',
+                          backgroundColor: 'white',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
                       />
                       <Bar
@@ -604,6 +640,7 @@ export default function MyPage() {
                         dataKey="problems"
                         fill="#3b82f6"
                         name="問題数"
+                        radius={[2, 2, 0, 0]}
                       />
                       <Line
                         yAxisId="right"
@@ -612,6 +649,8 @@ export default function MyPage() {
                         stroke="#f59e0b"
                         strokeWidth={2}
                         name="★評価"
+                        dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
+                        activeDot={{ r: 5, stroke: '#f59e0b', strokeWidth: 2 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
