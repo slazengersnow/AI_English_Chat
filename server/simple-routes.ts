@@ -1351,7 +1351,8 @@ export function registerRoutes(app: Express): void {
 
   router.get("/review-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
-      const userEmail = req.headers["x-user-email"] || req.headers["user-email"] || "anonymous";
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`📋 Fetching review sessions for user: ${userEmail}`);
       
       // ★2以下の要復習セッションを取得
       const reviewSessions = await db
@@ -1364,6 +1365,7 @@ export function registerRoutes(app: Express): void {
         .orderBy(desc(trainingSessions.createdAt))
         .limit(20);
       
+      console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail}`);
       res.json(reviewSessions);
     } catch (error) {
       console.error('Error fetching review sessions:', error);
@@ -1570,7 +1572,8 @@ export function registerRoutes(app: Express): void {
   // Review system endpoints (with authentication)
   router.get("/review-list", requireAuth, async (req: Request, res: Response) => {
     try {
-      const userEmail = req.headers["x-user-email"] || req.headers["user-email"] || "anonymous";
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`📋 Fetching review list for user: ${userEmail}`);
       
       // ★2以下の要復習セッションを取得
       const reviewProblems = await db
@@ -1583,6 +1586,7 @@ export function registerRoutes(app: Express): void {
         .orderBy(desc(trainingSessions.createdAt))
         .limit(20);
       
+      console.log(`📋 Found ${reviewProblems.length} review problems for ${userEmail}`);
       res.json(reviewProblems);
     } catch (error) {
       console.error('Error fetching review list:', error);
@@ -1592,7 +1596,8 @@ export function registerRoutes(app: Express): void {
 
   router.get("/retry-list", requireAuth, async (req: Request, res: Response) => {
     try {
-      const userEmail = req.headers["x-user-email"] || req.headers["user-email"] || "anonymous";
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`📋 Fetching retry list for user: ${userEmail}`);
       
       // ★3の再挑戦セッションを取得
       const retryProblems = await db
@@ -1605,6 +1610,7 @@ export function registerRoutes(app: Express): void {
         .orderBy(desc(trainingSessions.createdAt))
         .limit(20);
       
+      console.log(`📋 Found ${retryProblems.length} retry problems for ${userEmail}`);
       res.json(retryProblems);
     } catch (error) {
       console.error('Error fetching retry list:', error);
