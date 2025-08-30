@@ -247,7 +247,7 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
         </div>
 
         <Tabs defaultValue="progress" className="space-y-4 md:space-y-6">
-          {/* Mobile tabs */}
+          {/* Mobile tabs - Cache busting v2.0 */}
           <div className="block md:hidden">
             <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-16">
               <TabsTrigger 
