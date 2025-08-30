@@ -10,21 +10,12 @@ export const queryClient = new QueryClient({
       retry: false,
       refetchOnWindowFocus: false,
       // Silently handle aborted queries during logout
-      onError: (error: any) => {
-        if (error.name === 'AbortError') {
-          console.log('Query aborted - this is expected during logout');
-        }
-      },
     },
     mutations: {
       mutationFn: async ({ url, ...options }: any) => {
         return apiRequest(url, options);
       },
-      onError: (error: any) => {
-        if (error.name === 'AbortError') {
-          console.log('Mutation aborted - this is expected during logout');
-        }
-      },
+      // Silently handle aborted mutations during logout
     },
   },
 });
@@ -161,7 +152,7 @@ export async function claudeApiRequest(endpoint: string, data: any) {
     // Intelligent fallback system for seamless learning experience
     if (endpoint.includes('/api/problem')) {
       return getFallbackProblem(data.difficultyLevel);
-    } else if (endpoint.includes('/api/evaluate')) {
+    } else if (endpoint.includes('/api/evaluate-with-claude')) {
       return getFallbackEvaluation(data.userAnswer, data.problem);
     }
     
