@@ -1283,9 +1283,10 @@ export function registerRoutes(app: Express): void {
       } catch (anthropicError) {
         console.error("❌ Anthropic API error:", anthropicError);
         console.error("❌ API Error details:", {
-          name: anthropicError.name,
-          message: anthropicError.message,
-          status: anthropicError.status
+          name: anthropicError?.name || 'Unknown',
+          message: anthropicError?.message || 'Unknown error',
+          status: anthropicError?.status || 'No status',
+          stack: anthropicError?.stack || 'No stack trace'
         });
 
         // 問題固有のフォールバック評価を生成
