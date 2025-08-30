@@ -1353,38 +1353,20 @@ export function registerRoutes(app: Express): void {
   router.get("/review-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
       const userEmail = req.user?.email || "anonymous";
-      const threshold = parseInt(req.query.threshold as string) || 2;
+      console.log(`📋 Fetching review sessions for user: ${userEmail}`);
       
-      console.log(`📋 Fetching review sessions for user: ${userEmail}, threshold: ${threshold}`);
+      // ★2以下の要復習セッションを取得
+      const reviewSessions = await db
+        .select()
+        .from(trainingSessions)
+        .where(and(
+          eq(trainingSessions.userId, userEmail as string),
+          lte(trainingSessions.rating, 2)
+        ))
+        .orderBy(desc(trainingSessions.createdAt))
+        .limit(20);
       
-      let query;
-      if (threshold === 3) {
-        // ★3の再挑戦リスト
-        query = db
-          .select()
-          .from(trainingSessions)
-          .where(and(
-            eq(trainingSessions.userId, userEmail as string),
-            eq(trainingSessions.rating, 3)
-          ))
-          .orderBy(desc(trainingSessions.createdAt))
-          .limit(20);
-      } else {
-        // ★2以下の要復習セッション
-        query = db
-          .select()
-          .from(trainingSessions)
-          .where(and(
-            eq(trainingSessions.userId, userEmail as string),
-            lte(trainingSessions.rating, threshold)
-          ))
-          .orderBy(desc(trainingSessions.createdAt))
-          .limit(20);
-      }
-      
-      const reviewSessions = await query;
-      
-      console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail} with threshold ${threshold}`);
+      console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail}`);
       res.json(reviewSessions);
     } catch (error) {
       console.error('Error fetching review sessions:', error);
@@ -1753,16 +1735,3 @@ export function registerRoutes(app: Express): void {
 
   app.use("/api", router);
 }
-
-  router.get("/debug/sessions", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const userEmail = req.user?.email || "anonymous";
-      const allSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.userId, userEmail as string)).orderBy(desc(trainingSessions.createdAt)).limit(10);
-      console.log(`🔍 Debug: Found ${allSessions.length} total sessions for ${userEmail}`);
-      allSessions.forEach(s => console.log(`  - Rating: ${s.rating}, Sentence: ${s.japaneseSentence?.substring(0, 30)}...`));
-      res.json(allSessions);
-    } catch (error) {
-      console.error("Debug error:", error);
-      res.status(500).json({ error: "Debug failed" });
-    }
-  });

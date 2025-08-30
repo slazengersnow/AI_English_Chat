@@ -324,7 +324,7 @@ export default function MyPage() {
       navigate(`/simulation-practice?scenario=${scenarioId}`);
     } else {
       // Navigate to home page with difficulty selection
-      navigate(`/?difficulty=${session.difficultyLevel}`);
+      navigate(`/practice/${session.difficultyLevel}`);
     }
   };
 
