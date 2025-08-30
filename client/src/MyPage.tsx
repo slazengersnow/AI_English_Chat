@@ -220,111 +220,131 @@ export default function MyPage({ onBackToMenu, onStartTraining, onShowAuth }: {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-2 md:p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-3">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
+          <div className="flex items-center gap-2 md:gap-3">
             <button 
               onClick={onBackToMenu}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 p-1"
             >
               ←
             </button>
-            <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center">
-              <span className="text-sm">A</span>
+            <div className="w-6 h-6 md:w-8 md:h-8 bg-blue-500 text-white rounded-full flex items-center justify-center">
+              <span className="text-xs md:text-sm">A</span>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">マイページ</h1>
+            <h1 className="text-base md:text-xl font-bold text-gray-900">マイページ</h1>
           </div>
           <button 
             onClick={onBackToMenu}
-            className="flex items-center space-x-1 text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-xs md:text-sm"
           >
             <span>🏠</span>
-            <span>トップページ</span>
+            <span className="hidden md:inline">トップページ</span>
+            <span className="md:hidden">ホーム</span>
           </button>
         </div>
 
-        <Tabs defaultValue="progress" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 min-h-[50px]">
-            <TabsTrigger 
-              value="progress" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">進捗レポート</span>
-              <span className="sm:hidden">📊</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">進捗</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bookmarks" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">ブックマーク</span>
-              <span className="sm:hidden">🔖</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">ブック</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="practice" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">繰り返し練習</span>
-              <span className="sm:hidden">🔄</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">練習</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="simulation" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">シミュレーション</span>
-              <span className="sm:hidden">🎯</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">模擬</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="account" 
-              className="text-xs sm:text-sm px-1 sm:px-3 py-2 flex flex-col sm:flex-row items-center justify-center h-full"
-            >
-              <span className="hidden sm:inline">アカウント</span>
-              <span className="sm:hidden">👤</span>
-              <span className="sm:hidden text-[10px] leading-tight mt-1">情報</span>
-            </TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="progress" className="space-y-4 md:space-y-6">
+          {/* Mobile tabs */}
+          <div className="block md:hidden">
+            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-16">
+              <TabsTrigger 
+                value="progress" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">📊</span>
+                <span className="text-[9px] leading-none">進捗</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="bookmarks" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">🔖</span>
+                <span className="text-[9px] leading-none">ブック</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="practice" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">🔄</span>
+                <span className="text-[9px] leading-none">練習</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="simulation" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">🎯</span>
+                <span className="text-[9px] leading-none">模擬</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="account" 
+                className="flex flex-col items-center justify-center h-full px-1 py-1"
+              >
+                <span className="text-lg mb-1">👤</span>
+                <span className="text-[9px] leading-none">情報</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Desktop tabs */}
+          <div className="hidden md:block">
+            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
+              <TabsTrigger value="progress" className="text-sm px-3 py-2">
+                進捗レポート
+              </TabsTrigger>
+              <TabsTrigger value="bookmarks" className="text-sm px-3 py-2">
+                ブックマーク
+              </TabsTrigger>
+              <TabsTrigger value="practice" className="text-sm px-3 py-2">
+                繰り返し練習
+              </TabsTrigger>
+              <TabsTrigger value="simulation" className="text-sm px-3 py-2">
+                シミュレーション
+              </TabsTrigger>
+              <TabsTrigger value="account" className="text-sm px-3 py-2">
+                アカウント
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Progress Report Tab */}
           <TabsContent value="progress">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
               {/* Streak Days */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600 mb-1">連続学習日数</div>
-                  <div className="text-3xl font-bold text-green-600">{dailyStats.streak}日</div>
-                  <div className="text-xs text-gray-500">連続頑張り中！</div>
+                <CardContent className="p-2 md:p-4">
+                  <div className="text-xs md:text-sm text-gray-600 mb-1">連続学習日数</div>
+                  <div className="text-lg md:text-3xl font-bold text-green-600">{dailyStats.streak}日</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">連続頑張り中！</div>
                 </CardContent>
               </Card>
 
               {/* Monthly Problems */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600 mb-1">今月の問題数</div>
-                  <div className="text-3xl font-bold text-blue-600">{dailyStats.monthlyProblems}問</div>
-                  <div className="text-xs text-gray-500">今月の実績</div>
+                <CardContent className="p-2 md:p-4">
+                  <div className="text-xs md:text-sm text-gray-600 mb-1">今月の問題数</div>
+                  <div className="text-lg md:text-3xl font-bold text-blue-600">{dailyStats.monthlyProblems}問</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">今月の実績</div>
                 </CardContent>
               </Card>
 
               {/* Average Rating */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600 mb-1">平均★評価</div>
-                  <div className="text-3xl font-bold text-yellow-600">★{dailyStats.averageRating}</div>
-                  <div className="text-xs text-gray-500">今月の平均</div>
+                <CardContent className="p-2 md:p-4">
+                  <div className="text-xs md:text-sm text-gray-600 mb-1">平均★評価</div>
+                  <div className="text-lg md:text-3xl font-bold text-yellow-600">★{dailyStats.averageRating}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">今月の平均</div>
                 </CardContent>
               </Card>
 
               {/* Today Problems */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm text-gray-600 mb-1">今日の問題数</div>
-                  <div className="text-3xl font-bold text-orange-600">{dailyStats.todayProblems}/{dailyStats.dailyLimit}</div>
-                  <div className="text-xs text-gray-500">残り {dailyStats.dailyLimit - dailyStats.todayProblems}問</div>
+                <CardContent className="p-2 md:p-4">
+                  <div className="text-xs md:text-sm text-gray-600 mb-1">今日の問題数</div>
+                  <div className="text-lg md:text-3xl font-bold text-orange-600">{dailyStats.todayProblems}/{dailyStats.dailyLimit}</div>
+                  <div className="text-[10px] md:text-xs text-gray-500">残り {dailyStats.dailyLimit - dailyStats.todayProblems}問</div>
                 </CardContent>
               </Card>
             </div>
