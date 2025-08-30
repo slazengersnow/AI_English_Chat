@@ -1032,13 +1032,6 @@ export default function ChatStyleTraining({
           >
             <span className="text-lg">👤</span>
             <span className="text-[10px] leading-tight">マイページ</span>
-          >
-            <span className="text-lg">👤</span>
-            <span className="text-[10px] leading-tight">マイページ</span>
-          </button>
-        </div>
-      </div>
-            👤 マイページ
           </button>
         </div>
       </div>
