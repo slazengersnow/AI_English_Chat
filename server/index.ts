@@ -25,6 +25,7 @@ app.use(
       /\.repl\.co$/,
       /.*\.kirk\.replit\.dev$/,
       /.*\..*\.replit\.dev$/,
+      /ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z\.kirk\.replit\.dev/,
       "http://localhost:5000",
       "http://localhost:5001",
       "http://127.0.0.1:5000",
@@ -43,15 +44,17 @@ app.use(
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "default-src": ["'self'"],
+        "default-src": ["'self'", "'unsafe-inline'", "https:", "data:", "blob:"],
         "script-src": [
           "'self'", 
           "'unsafe-inline'",
           "'unsafe-eval'", // Google認証で必要
+          "'unsafe-dynamic'", // 動的スクリプト
           "https://js.stripe.com", // Stripe.js
           "https://accounts.google.com", // Google OAuth
           "https://*.googleapis.com", // Google APIs
           "https://*.gstatic.com", // Google静的リソース
+          "https://replit.com", // Replit公式
         ],
         "connect-src": [
           "'self'",
