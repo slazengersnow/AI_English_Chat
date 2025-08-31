@@ -183,12 +183,12 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(clientDist, "index.html"));
   });
   console.log("📦 Production mode: Serving static client files from dist/client");
-} else {
-  // 開発環境：Viteミドルウェアを使用してポート5000で統合提供
-  try {
-    const { setupVite } = await import("./vite.js");
-    await setupVite(app, null);
-    console.log("🔧 Development mode: Vite middleware integrated on port 5000");
+// } else {
+//   // 開発環境：Viteミドルウェアを使用してポート5000で統合提供
+//   try {
+//     const { setupVite } = await import("./vite.js");
+//     await setupVite(app, null);
+//     console.log("🔧 Development mode: Vite middleware integrated on port 5000");
   } catch (viteError) {
     console.error("❌ Failed to setup Vite middleware:", viteError);
     // フォールバック：静的ファイル提供

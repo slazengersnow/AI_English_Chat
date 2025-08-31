@@ -1,21 +1,24 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm start"
+run = "npm run dev"
 hidden = [".config", ".git", "node_modules", "dist"]
 language = "nodejs"
-
-[nix]
-channel = "stable-24_05"
+entrypoint = "server/index.ts"
 
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 24678
+localPort = 5001
+externalPort = 3001
+
+[[ports]]
+localPort = 5002
 externalPort = 3000
 
-[deployment]
-run = ["npm", "start"]
+[[ports]]
+localPort = 24678
+externalPort = 3002
 
 [agent]
-integrations = ["javascript_database==1.0.0", "javascript_log_in_with_replit==1.0.0", "javascript_supabase==1.0.0", "javascript_sendgrid==1.0.0", "javascript_stripe==1.0.0", "javascript_anthropic==1.0.0"]
+integrations = ["javascript_stripe==1.0.0", "javascript_supabase==1.0.0", "javascript_database==1.0.0", "javascript_sendgrid==1.0.0", "javascript_anthropic==1.0.0", "javascript_log_in_with_replit==1.0.0"]

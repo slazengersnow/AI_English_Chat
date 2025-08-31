@@ -13,6 +13,6 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5001,
-    allowedHosts: 'all'
+    allowedHosts: ["localhost", "127.0.0.1", "0.0.0.0", ".replit.dev", ".kirk.replit.dev"]
   }
 })
