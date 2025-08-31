@@ -308,13 +308,18 @@ export default function MyPage() {
   };
 
   const handleReviewProblem = (session: TrainingSession) => {
-    // Store the problem data in sessionStorage for the practice interface
+    // Store the complete problem data in sessionStorage for the practice interface
     sessionStorage.setItem(
       "reviewProblem",
       JSON.stringify({
+        id: session.id,
         japaneseSentence: session.japaneseSentence,
+        userTranslation: session.userTranslation,
+        correctTranslation: session.correctTranslation,
         difficultyLevel: session.difficultyLevel,
+        rating: session.rating,
         isReview: true,
+        isRetry: true
       }),
     );
 
