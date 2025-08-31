@@ -36,7 +36,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
     if (reviewProblemData) {
       try {
         const parsedData = JSON.parse(reviewProblemData);
-        console.log("Review problem detected:", parsedData);
+        console.log("🔄 REVIEW PROBLEM DETECTED:", parsedData);
         
         // Use the complete problem data from review
         setProblemData({
@@ -50,15 +50,19 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
           isRetry: parsedData.isRetry || false
         });
         
+        // CRITICAL: Force problem state immediately
         setState("problem");
-        // Skip initial state to prevent showing start button
         hasStartedRef.current = true;
         sessionStorage.removeItem("reviewProblem");
+        
+        console.log("✅ REVIEW PROBLEM LOADED - SKIPPING INITIAL STATE");
         
       } catch (error) {
         console.error("Failed to parse review problem data:", error);
         setState("initial");
       }
+    } else {
+      console.log("ℹ️ No review problem - will show initial state");
     }
   }, []);
 
