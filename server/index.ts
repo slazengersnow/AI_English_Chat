@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5002;
+const PORT = Number(process.env.PORT) || 5000;
 
 /* ---------- middlewares ---------- */
 
@@ -25,9 +25,9 @@ app.use(
       /\.repl\.co$/,
       /.*\.kirk\.replit\.dev$/,
       /.*\..*\.replit\.dev$/,
-      "http://localhost:5002",
+      "http://localhost:5000",
       "http://localhost:5001",
-      "http://127.0.0.1:5002",
+      "http://127.0.0.1:5000",
       "http://127.0.0.1:5001",
     ],
     credentials: true,

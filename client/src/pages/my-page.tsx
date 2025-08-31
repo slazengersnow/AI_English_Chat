@@ -308,6 +308,7 @@ export default function MyPage() {
   };
 
   const handleReviewProblem = (session: TrainingSession) => {
+    console.log("🔥 handleReviewProblem called with:", session);
     // Store the complete problem data in sessionStorage for the practice interface
     sessionStorage.setItem(
       "reviewProblem",
@@ -322,6 +323,7 @@ export default function MyPage() {
         isRetry: true
       }),
     );
+    console.log("💾 Data saved to sessionStorage:", JSON.parse(sessionStorage.getItem("reviewProblem")));
 
     // Navigate to appropriate practice interface
     if (session.difficultyLevel.startsWith("simulation-")) {

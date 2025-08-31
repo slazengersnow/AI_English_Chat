@@ -9,7 +9,7 @@ process.env.HOST = process.env.HOST || "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 5002;
 /* ---------- middlewares ---------- */
 // CORS（Replit公開URL / repl.co / localhost からのアクセスを許可）
 app.use(cors({
@@ -18,9 +18,9 @@ app.use(cors({
         /\.repl\.co$/,
         /.*\.kirk\.replit\.dev$/,
         /.*\..*\.replit\.dev$/,
-        "http://localhost:5000",
+        "http://localhost:5002",
         "http://localhost:5001",
-        "http://127.0.0.1:5000",
+        "http://127.0.0.1:5002",
         "http://127.0.0.1:5001",
     ],
     credentials: true,
@@ -53,9 +53,9 @@ app.use(helmet({
                 "https://*.replit.dev",
                 "https://*.repl.co",
                 "https://*.kirk.replit.dev",
-                "http://localhost:5000",
+                "http://localhost:5002",
                 "http://localhost:5001",
-                "http://127.0.0.1:5000",
+                "http://127.0.0.1:5002",
                 "http://127.0.0.1:5001",
                 "https://accounts.google.com", // Google OAuth接続
                 "https://*.googleapis.com", // Google API接続

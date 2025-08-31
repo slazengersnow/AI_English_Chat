@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Star } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { SpeechButton } from "@/components/speech-button";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabaseClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
 interface ProblemPracticeProps {
