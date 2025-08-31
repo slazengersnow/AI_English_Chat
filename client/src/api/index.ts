@@ -13,7 +13,7 @@ export const evaluateWithClaude = async (data: {
   modelAnswer: string;
   difficulty: string;
 }) => {
-  const res = await fetch("/api/evaluate-with-claude-with-claude", {
+  const res = await fetch("/api/evaluate-with-claude", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

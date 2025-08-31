@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../../../shared/supabase'
+import { supabase } from '@shared/supabase'
 
 export default function CreateAdmin() {
   const [email] = useState('slazengersnow@gmail.com')

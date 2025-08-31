@@ -4,6 +4,13 @@ hidden = [".config", ".git", "node_modules", "dist"]
 language = "nodejs"
 entrypoint = "server/index.ts"
 
+[nix]
+channel = "stable-24_05"
+packages = ["q", "lsof", "fly", "psmisc", "openssh"]
+
+[deployment]
+run = ["echo", "Skip deploy on Replit"]
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -14,11 +21,19 @@ externalPort = 3001
 
 [[ports]]
 localPort = 5002
-externalPort = 3000
+externalPort = 3002
+
+[[ports]]
+localPort = 5003
+externalPort = 3003
+
+[[ports]]
+localPort = 5004
+externalPort = 4200
 
 [[ports]]
 localPort = 24678
-externalPort = 3002
+externalPort = 3000
 
 [agent]
-integrations = ["javascript_stripe==1.0.0", "javascript_supabase==1.0.0", "javascript_database==1.0.0", "javascript_sendgrid==1.0.0", "javascript_anthropic==1.0.0", "javascript_log_in_with_replit==1.0.0"]
+integrations = ["javascript_database==1.0.0", "javascript_anthropic==1.0.0", "javascript_supabase==1.0.0", "javascript_stripe==1.0.0", "javascript_log_in_with_replit==1.0.0", "javascript_sendgrid==1.0.0"]

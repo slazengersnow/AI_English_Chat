@@ -25,7 +25,6 @@ app.use(
       /\.repl\.co$/,
       /.*\.kirk\.replit\.dev$/,
       /.*\..*\.replit\.dev$/,
-      /ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z\.kirk\.replit\.dev/,
       "http://localhost:5000",
       "http://localhost:5001",
       "http://127.0.0.1:5000",
@@ -44,17 +43,15 @@ app.use(
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "default-src": ["'self'", "'unsafe-inline'", "https:", "data:", "blob:"],
+        "default-src": ["'self'"],
         "script-src": [
           "'self'", 
           "'unsafe-inline'",
           "'unsafe-eval'", // Google認証で必要
-          "'unsafe-dynamic'", // 動的スクリプト
           "https://js.stripe.com", // Stripe.js
           "https://accounts.google.com", // Google OAuth
           "https://*.googleapis.com", // Google APIs
           "https://*.gstatic.com", // Google静的リソース
-          "https://replit.com", // Replit公式
         ],
         "connect-src": [
           "'self'",
@@ -175,31 +172,23 @@ app.get("/__introspect", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// Viteミドルウェアを使って開発環境でフロントエンドとバックエンドを統合
-if (process.env.NODE_ENV === "production") {
-  const clientDist = path.resolve(process.cwd(), "dist/client");
-  app.use(express.static(clientDist));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
+// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
+console.log(
+  "📦 Forced production mode: Serving static client files from dist/client",
+);
+
+/* ---------- 404 handler for API routes ---------- */
+app.use("/api/*", (_req, res) => {
+  res.status(404).json({
+    error: "API endpoint not found",
+    timestamp: new Date().toISOString(),
   });
-  console.log("📦 Production mode: Serving static client files from dist/client");
-// } else {
-//   // 開発環境：Viteミドルウェアを使用してポート5000で統合提供
-//   try {
-//     const { setupVite } = await import("./vite.js");
-//     await setupVite(app, null);
-//     console.log("🔧 Development mode: Vite middleware integrated on port 5000");
-  } catch (viteError) {
-    console.error("❌ Failed to setup Vite middleware:", viteError);
-    // フォールバック：静的ファイル提供
-    const clientDist = path.resolve(process.cwd(), "dist/client");
-    app.use(express.static(clientDist));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(clientDist, "index.html"));
-    });
-    console.log("📦 Fallback: Serving static files due to Vite error");
-  }
-}
+});
 
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {

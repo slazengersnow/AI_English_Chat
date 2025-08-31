@@ -197,77 +197,11 @@ const problemSets = {
         "私たちはゲームをします。"
     ],
     "business-email": [
-        "お疲れさまです。",
-        "新商品の販売戦略について相談したいです。",
-        "来週の出張スケジュールをお送りします。",
-        "システムメンテナンスのお知らせです。",
-        "契約内容の変更点がございます。",
-        "研修プログラムの参加者を募集中です。",
-        "月末の売上報告をいたします。",
-        "商品の配送が遅れる予定です。",
-        "面接の候補日程を教えてください。",
-        "顧客満足度調査の結果をご報告します。",
-        "プロジェクトの進捗状況はいかがですか。",
-        "予算の見直しが必要になりました。",
-        "サービス利用のキャンセルポリシーをお知らせします。",
-        "返金ポリシーと適用条件について説明いたします。",
-        "定期購読の解約方法をご案内します。",
-        "返金申請の手順をお教えします。",
-        "キャンセル受付期間は30日間です。",
-        "部分返金について詳細をお送りします。",
-        "返金不可となるケースがございます。",
-        "無料試用期間中のキャンセルは可能です。",
-        "解約後のデータ保持方針をご確認ください。",
-        "自動更新の停止方法をお知らせします。",
-        "返金処理には7営業日かかります。",
-        "返金方法をお選びいただけます。",
-        "キャンセル手数料は発生いたしません。",
-        "注文番号をお教えいただけますでしょうか。",
-        "キャンセル窓口の受付時間は平日9時から17時です。",
-        "代理購入の返金対応についてご相談します。",
-        "利用規約違反による返金は承れません。",
-        "当社裁量による返金対応も可能です。",
-        "送料のご負担をお願いいたします。",
-        "月末でのキャンセル適用となります。",
-        "返金額の計算方法をご説明します。",
-        "キャンセルポリシー改定のお知らせです。",
-        "アカウント削除のご案内をいたします。",
-        "返金処理の進捗をお知らせします。",
-        "よくある質問をまとめました。",
-        "オンラインフォームでお手続きください。",
-        "キャンセル前にご確認いただきたい点があります。",
-        "クーポン適用時の返金ルールをご案内します。",
-        "利用クレジットでの返金も可能です。",
-        "新規ユーザーのご登録手続きをご案内します。",
-        "パスワードリセットの手順をお送りします。",
-        "仕入れ価格の交渉をお願いいたします。",
-        "在庫不足により代替商品をご提案します。",
-        "個人情報漏洩の報告と対応策をお知らせします。",
-        "プロモーションキャンペーンを開始いたします。",
-        "パートナーシップ終了のお知らせです。",
-        "サービス復旧と補償についてご案内します。",
-        "サービスレベル変更をお知らせします。",
-        "ベータテスターを募集しております。",
-        "オンボーディング資料をお送りします。",
-        "コラボレーション提案をさせていただきます。",
-        "アップセルのご提案がございます。",
-        "プランダウングレードをご確認ください。",
-        "機能要望を承りました。",
-        "上長へのエスカレーションをいたします。",
-        "請求書の不一致についてお尋ねします。",
-        "製品リコールの手続きをご案内します。",
-        "無料トライアル終了のお知らせです。",
-        "レビュー投稿をお願いいたします。",
-        "紹介プログラムにご招待します。",
-        "コンプライアンス監査の予定をお知らせします。",
-        "データ削除のご依頼を承りました。",
-        "セキュリティアップデートを実施します。",
-        "API仕様変更のお知らせです。",
-        "多言語対応のご依頼を確認いたします。",
-        "配慮対応の申し出を承りました。",
-        "サブスクリプション一時停止を承ります。",
-        "大口注文の納期を確定いたします。",
-        "年末年始の休業案内をお送りします。",
+        "会議の件でご連絡いたします。",
+        "資料を添付いたします。",
+        "ご確認のほど、よろしくお願いいたします。",
+        "お忙しいところ恐れ入ります。",
+        "ご返信をお待ちしております。",
         "ご質問がございましたらお気軽にお声かけください。",
         "今後ともよろしくお願いいたします。",
         "お疲れ様でございます。",
@@ -419,8 +353,8 @@ export const handleProblemGeneration = async (req, res) => {
             },
             "business-email": {
                 description: "ビジネスメール用の丁寧な表現",
-                constraints: "15-30文字、敬語・丁寧語必須、幅広いビジネスシーン：【基本業務】挨拶・依頼・確認・報告・提案・案内・スケジュール・契約・顧客対応・社内外連絡・プレゼン・出張・人事関連 【キャンセル・返金】サービス解約・返金申請・キャンセルポリシー・部分返金・自動更新停止・データ保持・手数料・受付窓口・処理期間・計算方法 【カスタマーサポート】オンボーディング・パスワードリセット・価格交渉・在庫管理・情報漏洩対応・プロモーション・パートナーシップ・サービス復旧・レベル変更・ベータテスト・エスカレーション・請求書・製品リコール・レビュー・紹介・監査・データ削除・セキュリティ・API変更・多言語・配慮対応・一時停止・大口取引・休業案内など",
-                examples: "お疲れさまです。 / キャンセルポリシーをお知らせします。 / 返金申請の手順をご案内します。 / オンボーディング資料をお送りします。 / セキュリティアップデートを実施します。"
+                constraints: "20-35文字、敬語・丁寧語必須、依頼・確認・報告の表現",
+                examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。"
             },
             simulation: {
                 description: "実用的な日常会話",
@@ -1218,10 +1152,9 @@ export function registerRoutes(app) {
             catch (anthropicError) {
                 console.error("❌ Anthropic API error:", anthropicError);
                 console.error("❌ API Error details:", {
-                    name: anthropicError?.name || 'Unknown',
-                    message: anthropicError?.message || 'Unknown error',
-                    status: anthropicError?.status || 'No status',
-                    stack: anthropicError?.stack || 'No stack trace'
+                    name: anthropicError.name,
+                    message: anthropicError.message,
+                    status: anthropicError.status
                 });
                 // 問題固有のフォールバック評価を生成
                 const fallbackEvaluation = {
@@ -1284,31 +1217,19 @@ export function registerRoutes(app) {
     });
     router.get("/review-sessions", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            const threshold = parseInt(req.query.threshold) || 2;
-            console.log(`📋 Fetching review sessions for user: ${userEmail}, threshold: ${threshold}`);
-            let query;
-            if (threshold === 3) {
-                // ★3の再挑戦リスト
-                query = db
-                    .select()
-                    .from(trainingSessions)
-                    .where(and(eq(trainingSessions.userId, userEmail), eq(trainingSessions.rating, 3)))
-                    .orderBy(desc(trainingSessions.createdAt))
-                    .limit(20);
-            }
-            else {
-                // ★2以下の要復習セッション
-                query = db
-                    .select()
-                    .from(trainingSessions)
-                    .where(and(eq(trainingSessions.userId, userEmail), lte(trainingSessions.rating, threshold)))
-                    .orderBy(desc(trainingSessions.createdAt))
-                    .limit(20);
-            }
-            const reviewSessions = await query;
-            console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail} with threshold ${threshold}`);
-            res.json(reviewSessions);
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "会議の資料を準備しておいてください。",
+                    userTranslation: "Please prepare the meeting materials.",
+                    correctTranslation: "Please prepare the materials for the meeting.",
+                    rating: 4,
+                    feedback: "良い翻訳です。前置詞の使い方が適切です。",
+                    difficultyLevel: "toeic",
+                    createdAt: "2025-08-24T10:30:00Z"
+                }
+            ];
+            res.json(mockSessions);
         }
         catch (error) {
             console.error('Error fetching review sessions:', error);
@@ -1497,16 +1418,12 @@ export function registerRoutes(app) {
     // Review system endpoints (with authentication)
     router.get("/review-list", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📋 Fetching review list for user: ${userEmail}`);
-            // ★2以下の要復習セッションを取得
             const reviewProblems = await db
                 .select()
                 .from(trainingSessions)
-                .where(and(eq(trainingSessions.userId, userEmail), lte(trainingSessions.rating, 2)))
+                .where(lte(trainingSessions.rating, 2))
                 .orderBy(desc(trainingSessions.createdAt))
-                .limit(20);
-            console.log(`📋 Found ${reviewProblems.length} review problems for ${userEmail}`);
+                .limit(10);
             res.json(reviewProblems);
         }
         catch (error) {
@@ -1516,16 +1433,12 @@ export function registerRoutes(app) {
     });
     router.get("/retry-list", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📋 Fetching retry list for user: ${userEmail}`);
-            // ★3の再挑戦セッションを取得
             const retryProblems = await db
                 .select()
                 .from(trainingSessions)
-                .where(and(eq(trainingSessions.userId, userEmail), eq(trainingSessions.rating, 3)))
+                .where(eq(trainingSessions.rating, 3))
                 .orderBy(desc(trainingSessions.createdAt))
-                .limit(20);
-            console.log(`📋 Found ${retryProblems.length} retry problems for ${userEmail}`);
+                .limit(10);
             res.json(retryProblems);
         }
         catch (error) {
@@ -1632,16 +1545,3 @@ export function registerRoutes(app) {
     });
     app.use("/api", router);
 }
-router.get("/debug/sessions", requireAuth, async (req, res) => {
-    try {
-        const userEmail = req.user?.email || "anonymous";
-        const allSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.userId, userEmail)).orderBy(desc(trainingSessions.createdAt)).limit(10);
-        console.log(`🔍 Debug: Found ${allSessions.length} total sessions for ${userEmail}`);
-        allSessions.forEach(s => console.log(`  - Rating: ${s.rating}, Sentence: ${s.japaneseSentence?.substring(0, 30)}...`));
-        res.json(allSessions);
-    }
-    catch (error) {
-        console.error("Debug error:", error);
-        res.status(500).json({ error: "Debug failed" });
-    }
-});

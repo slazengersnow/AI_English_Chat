@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "../../../shared/supabase";
+import { supabase } from "@shared/supabase";
 import { Mail, Settings, AlertCircle } from "lucide-react";
 
 export default function ComprehensiveDebug() {
