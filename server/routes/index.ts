@@ -47,6 +47,19 @@ export function registerRoutes(app: Express) {
   router.put("/user/profile", handleUpdateUserProfile);
   router.get("/user/stats", handleUserStats);
 
+  /* ----------------------- マイページ統計API ----------------------- */
+  router.get("/progress", handleProgress);
+  router.get("/streak", handleStreak);
+  router.get("/difficulty-stats", handleDifficultyStats);
+  router.get("/monthly-stats", handleMonthlyStats);
+  router.get("/recent-sessions", handleRecentSessions);
+  router.get("/review-sessions", handleReviewSessions);
+  router.get("/bookmarked-sessions", handleBookmarkedSessions);
+  router.get("/daily-count", handleDailyCount);
+  router.get("/custom-scenarios", handleCustomScenarios);
+  router.get("/subscription-details", handleSubscriptionDetails);
+  router.get("/user-subscription", handleUserSubscription);
+
   /* ----------------------- 学習セッション ----------------------- */
   router.get("/sessions", handleGetSessions);
   router.post("/sessions", handleCreateSession);
@@ -616,5 +629,182 @@ async function handleDeleteScenario(req: Request, res: Response) {
     res
       .status(500)
       .json({ success: false, error: "Failed to delete scenario" });
+  }
+}
+
+/* ----------------------- マイページAPIハンドラー ----------------------- */
+
+async function handleProgress(req: Request, res: Response) {
+  try {
+    const period = req.query.period || 'week';
+    res.json([
+      { date: "2025-09-01", problems: 12, averageRating: 4.2 },
+      { date: "2025-09-02", problems: 8, averageRating: 3.8 },
+      { date: "2025-09-03", problems: 15, averageRating: 4.5 }
+    ]);
+  } catch (error) {
+    console.error("Progress error:", error);
+    res.status(500).json({ error: "Failed to get progress" });
+  }
+}
+
+async function handleStreak(req: Request, res: Response) {
+  try {
+    res.json({ 
+      currentStreak: 7, 
+      longestStreak: 15,
+      streakStart: "2025-08-27"
+    });
+  } catch (error) {
+    console.error("Streak error:", error);
+    res.status(500).json({ error: "Failed to get streak" });
+  }
+}
+
+async function handleDifficultyStats(req: Request, res: Response) {
+  try {
+    res.json([
+      { difficulty: "TOEIC", problems: 45, averageRating: 4.1 },
+      { difficulty: "中学英語", problems: 32, averageRating: 4.3 },
+      { difficulty: "高校英語", problems: 28, averageRating: 3.9 },
+      { difficulty: "基本動詞", problems: 21, averageRating: 4.0 },
+      { difficulty: "ビジネスメール", problems: 18, averageRating: 3.7 },
+      { difficulty: "シミュレーション練習", problems: 12, averageRating: 4.2 }
+    ]);
+  } catch (error) {
+    console.error("Difficulty stats error:", error);
+    res.status(500).json({ error: "Failed to get difficulty stats" });
+  }
+}
+
+async function handleMonthlyStats(req: Request, res: Response) {
+  try {
+    res.json({
+      totalProblems: 156,
+      averageRating: 4.1,
+      studyDays: 22,
+      totalStudyTime: 840 // minutes
+    });
+  } catch (error) {
+    console.error("Monthly stats error:", error);
+    res.status(500).json({ error: "Failed to get monthly stats" });
+  }
+}
+
+async function handleRecentSessions(req: Request, res: Response) {
+  try {
+    res.json([
+      {
+        id: 1,
+        difficultyLevel: "TOEIC",
+        japaneseSentence: "彼は毎朝コーヒーを飲みます。",
+        userTranslation: "He drinks coffee every morning.",
+        correctTranslation: "He drinks coffee every morning.",
+        rating: 4,
+        createdAt: "2025-09-03T10:30:00Z"
+      }
+    ]);
+  } catch (error) {
+    console.error("Recent sessions error:", error);
+    res.status(500).json({ error: "Failed to get recent sessions" });
+  }
+}
+
+async function handleReviewSessions(req: Request, res: Response) {
+  try {
+    const threshold = req.query.threshold ? Number(req.query.threshold) : 2;
+    res.json([
+      {
+        id: 2,
+        difficultyLevel: "高校英語", 
+        japaneseSentence: "私は昨日映画を見に行きました。",
+        userTranslation: "I go to see movie yesterday.",
+        correctTranslation: "I went to see a movie yesterday.",
+        rating: threshold === 3 ? 3 : 1,
+        createdAt: "2025-09-02T15:20:00Z"
+      }
+    ]);
+  } catch (error) {
+    console.error("Review sessions error:", error);
+    res.status(500).json({ error: "Failed to get review sessions" });
+  }
+}
+
+async function handleBookmarkedSessions(req: Request, res: Response) {
+  try {
+    res.json([
+      {
+        id: 3,
+        difficultyLevel: "ビジネスメール",
+        japaneseSentence: "ご連絡いただき、ありがとうございます。",
+        userTranslation: "Thank you for contacting us.",
+        correctTranslation: "Thank you for contacting us.",
+        rating: 5,
+        isBookmarked: true,
+        createdAt: "2025-09-01T14:15:00Z"
+      }
+    ]);
+  } catch (error) {
+    console.error("Bookmarked sessions error:", error);
+    res.status(500).json({ error: "Failed to get bookmarked sessions" });
+  }
+}
+
+async function handleDailyCount(req: Request, res: Response) {
+  try {
+    res.json({
+      today: 15,
+      limit: 100,
+      remaining: 85,
+      resetTime: new Date(Date.now() + 24*60*60*1000).toISOString()
+    });
+  } catch (error) {
+    console.error("Daily count error:", error);
+    res.status(500).json({ error: "Failed to get daily count" });
+  }
+}
+
+async function handleCustomScenarios(req: Request, res: Response) {
+  try {
+    res.json([
+      {
+        id: 1,
+        title: "レストランでの注文",
+        description: "レストランでの注文シーン",
+        createdAt: "2025-09-01T12:00:00Z"
+      }
+    ]);
+  } catch (error) {
+    console.error("Custom scenarios error:", error);
+    res.status(500).json({ error: "Failed to get custom scenarios" });
+  }
+}
+
+async function handleSubscriptionDetails(req: Request, res: Response) {
+  try {
+    res.json({
+      plan: "Premium",
+      status: "active",
+      nextBillingDate: "2025-10-01",
+      amount: 1300
+    });
+  } catch (error) {
+    console.error("Subscription details error:", error);
+    res.status(500).json({ error: "Failed to get subscription details" });
+  }
+}
+
+async function handleUserSubscription(req: Request, res: Response) {
+  try {
+    res.json({
+      id: 1,
+      userId: "user123",
+      subscriptionType: "premium",
+      subscriptionStatus: "active",
+      trialStart: null
+    });
+  } catch (error) {
+    console.error("User subscription error:", error);
+    res.status(500).json({ error: "Failed to get user subscription" });
   }
 }
