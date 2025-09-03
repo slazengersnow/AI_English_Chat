@@ -17,19 +17,24 @@ const PORT = Number(process.env.PORT) || 5000;
 
 /* ---------- middlewares ---------- */
 
-// CORS（Replit公開URL / repl.co / localhost からのアクセスを許可）
+// CORS（すべてのReplit公開URLを許可 - より寛容な設定）
 app.use(
   cors({
-    origin: [
-      /\.replit\.dev$/,
-      /\.repl\.co$/,
-      /.*\.kirk\.replit\.dev$/,
-      /.*\..*\.replit\.dev$/,
-      "http://localhost:5000",
-      "http://localhost:5001",
-      "http://127.0.0.1:5000",
-      "http://127.0.0.1:5001",
-    ],
+    origin: function (origin, callback) {
+      // Allow all Replit domains and localhost
+      if (!origin) return callback(null, true); // Allow requests with no origin (mobile apps, etc.)
+      
+      const allowedPatterns = [
+        /\.replit\.dev$/,
+        /\.repl\.co$/,
+        /\.kirk\.replit\.dev$/,
+        /localhost/,
+        /127\.0\.0\.1/,
+      ];
+      
+      const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+      callback(null, isAllowed);
+    },
     credentials: true,
   }),
 );

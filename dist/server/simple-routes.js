@@ -1252,29 +1252,6 @@ export function registerRoutes(app) {
             res.json(reviewSessions);
         }
         catch (error) {
-            console.error("Error fetching review sessions:", error);
-            // Fallback to mock data
-            const mockReviewSessions = [
-                {
-                    id: 1,
-                    japaneseSentence: "この度の件につきまして、ご確認いただけますでしょうか。",
-                    userTranslation: "Could you please confirm about this matter?",
-                    correctTranslation: "Could you please confirm this matter for us?",
-                    rating: 3,
-                    difficultyLevel: "business-email",
-                    createdAt: "2025-08-30T10:00:00Z"
-                },
-                {
-                    id: 2,
-                    japaneseSentence: "この度は、ご報告させていただきます。",
-                    userTranslation: "I would like to report this to you.",
-                    correctTranslation: "I would like to report this matter to you.",
-                    rating: 3,
-                    difficultyLevel: "business-email",
-                    createdAt: "2025-08-29T14:30:00Z"
-                }
-            ];
-            res.json(mockReviewSessions);
         }
     });
     // Original error handler (replace)
