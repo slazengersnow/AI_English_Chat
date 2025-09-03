@@ -42,59 +42,27 @@ app.use(
 // きつすぎる独自 setHeader は削除（コメントアウトでもOK）
 // ❌ 削除: res.setHeader("Content-Security-Policy", "default-src 'none'");
 
-// Helmet で "通すべきものだけ通す" CSP を設定
+// Replit環境用のCSP設定（プレビュー対応）
 app.use(
   helmet({
     contentSecurityPolicy: {
-      useDefaults: true,
+      useDefaults: false, // デフォルト無効化でReplit対応
       directives: {
-        "default-src": ["'self'"],
+        "default-src": ["'self'", "https:", "wss:", "'unsafe-inline'"],
         "script-src": [
           "'self'", 
           "'unsafe-inline'",
-          "'unsafe-eval'", // Google認証で必要
-          "https://js.stripe.com", // Stripe.js
-          "https://accounts.google.com", // Google OAuth
-          "https://*.googleapis.com", // Google APIs
-          "https://*.gstatic.com", // Google静的リソース
+          "'unsafe-eval'",
+          "https:",
+          "blob:",
         ],
-        "connect-src": [
-          "'self'",
-          "https://*.supabase.co",
-          "https://*.supabase.net",
-          "https://*.supabase.in",
-          "wss://*.supabase.co",
-          "wss://*.supabase.net",
-          "wss://*.supabase.in",
-          "https://*.replit.dev",
-          "https://*.repl.co",
-          "https://*.kirk.replit.dev",
-          "http://localhost:5002",
-          "http://localhost:5001",
-          "http://127.0.0.1:5002",
-          "http://127.0.0.1:5001",
-          "https://accounts.google.com", // Google OAuth接続
-          "https://*.googleapis.com", // Google API接続
-          "https://api.stripe.com", // Stripe API
-        ],
+        "style-src": ["'self'", "'unsafe-inline'", "https:"],
         "img-src": ["'self'", "data:", "blob:", "https:"],
-        "style-src": ["'self'", "'unsafe-inline'"],
-        "frame-src": [
-          "'self'",
-          "https://*.supabase.co",
-          "https://*.supabase.net",
-          "https://accounts.google.com", // Google認証iframe
-          "https://js.stripe.com", // Stripe iframe
-        ],
-        "frame-ancestors": [
-          "'self'",
-          "https://replit.com",
-          "https://*.replit.com",
-        ],
-        "form-action": [
-          "'self'",
-          "https://accounts.google.com", // Google OAuth
-        ],
+        "connect-src": ["'self'", "https:", "wss:"],
+        "frame-src": ["'self'", "https:"],
+        "font-src": ["'self'", "https:", "data:"],
+        "object-src": ["'none'"],
+        "base-uri": ["'self'"],
       },
     },
     crossOriginEmbedderPolicy: false,
