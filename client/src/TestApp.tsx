@@ -105,16 +105,13 @@ export default function TestApp() {
     
     dispatch({ type: "SET_LOADING", loading: true });
     try {
-      const response = await fetch("/api/evaluate-with-claude", {
+      const response = await fetch("/api/evaluate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           japaneseSentence: state.currentProblem.japaneseSentence,
-          userAnswer: state.userAnswer,
           userTranslation: state.userAnswer,
-          modelAnswer: state.currentProblem.modelAnswer || "Standard model answer",
           difficultyLevel: state.selectedDifficulty,
-          difficulty: state.selectedDifficulty,
         }),
       });
       

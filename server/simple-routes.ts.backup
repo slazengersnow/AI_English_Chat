@@ -1394,13 +1394,6 @@ export function registerRoutes(app: Express): void {
       console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail} with threshold ${threshold}`);
       res.json(reviewSessions);
     } catch (error) {
-    }
-  });
-
-  // Original error handler (replace)
-  router.get("/review-sessions-old", requireAuth, async (req: Request, res: Response) => {
-    try {
-    } catch (error) {
       console.error('Error fetching review sessions:', error);
       res.status(500).json({ error: 'Failed to fetch review sessions' });
     }
@@ -1425,6 +1418,29 @@ export function registerRoutes(app: Express): void {
       res.status(500).json({ error: 'Failed to fetch recent sessions' });
     }
   });
+
+  router.get("/bookmarked-sessions", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const mockSessions = [
+        {
+          id: 1,
+          japaneseSentence: "環境問題について考える必要があります。",
+          userTranslation: "We need to think about environmental problems.",
+          correctTranslation: "We need to consider environmental issues.",
+          rating: 3,
+          difficultyLevel: "high-school",
+          isBookmarked: true,
+          createdAt: "2025-08-23T14:15:00Z"
+        }
+      ];
+      res.json(mockSessions);
+    } catch (error) {
+      console.error('Error fetching bookmarked sessions:', error);
+      res.status(500).json({ error: 'Failed to fetch bookmarked sessions' });
+    }
+  });
+
+  router.get("/custom-scenarios", requireAuth, async (req: Request, res: Response) => {
     try {
       const mockScenarios = [
         {

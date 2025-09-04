@@ -197,18 +197,11 @@ const problemSets = {
         "私たちはゲームをします。"
     ],
     "business-email": [
-        "お疲れさまです。",
-        "新商品の販売戦略について相談したいです。",
-        "来週の出張スケジュールをお送りします。",
-        "システムメンテナンスのお知らせです。",
-        "契約内容の変更点がございます。",
-        "研修プログラムの参加者を募集中です。",
-        "月末の売上報告をいたします。",
-        "商品の配送が遅れる予定です。",
-        "面接の候補日程を教えてください。",
-        "顧客満足度調査の結果をご報告します。",
-        "プロジェクトの進捗状況はいかがですか。",
-        "予算の見直しが必要になりました。",
+        "会議の件でご連絡いたします。",
+        "資料を添付いたします。",
+        "ご確認のほど、よろしくお願いいたします。",
+        "お忙しいところ恐れ入ります。",
+        "ご返信をお待ちしております。",
         "ご質問がございましたらお気軽にお声かけください。",
         "今後ともよろしくお願いいたします。",
         "お疲れ様でございます。",
@@ -360,8 +353,8 @@ export const handleProblemGeneration = async (req, res) => {
             },
             "business-email": {
                 description: "ビジネスメール用の丁寧な表現",
-                constraints: "15-30文字、敬語・丁寧語必須、多様なビジネスシーン：挨拶・依頼・確認・報告・提案・案内・スケジュール・顧客対応・緊急事態・人事関連など",
-                examples: "お疲れさまです。 / 新企画の提案をさせていただきます。 / システム障害が発生しています。 / 来月の研修についてお知らせします。 / 契約条件を見直したいです。"
+                constraints: "20-35文字、敬語・丁寧語必須、依頼・確認・報告の表現",
+                examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。"
             },
             simulation: {
                 description: "実用的な日常会話",
@@ -1159,10 +1152,9 @@ export function registerRoutes(app) {
             catch (anthropicError) {
                 console.error("❌ Anthropic API error:", anthropicError);
                 console.error("❌ API Error details:", {
-                    name: anthropicError?.name || 'Unknown',
-                    message: anthropicError?.message || 'Unknown error',
-                    status: anthropicError?.status || 'No status',
-                    stack: anthropicError?.stack || 'No stack trace'
+                    name: anthropicError.name,
+                    message: anthropicError.message,
+                    status: anthropicError.status
                 });
                 // 問題固有のフォールバック評価を生成
                 const fallbackEvaluation = {
@@ -1225,38 +1217,19 @@ export function registerRoutes(app) {
     });
     router.get("/review-sessions", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            const threshold = parseInt(req.query.threshold) || 2;
-            console.log(`📋 Fetching review sessions for user: ${userEmail}, threshold: ${threshold}`);
-            let query;
-            if (threshold === 3) {
-                // ★3の再挑戦リスト
-                query = db
-                    .select()
-                    .from(trainingSessions)
-                    .where(and(eq(trainingSessions.userId, userEmail), eq(trainingSessions.rating, 3)))
-                    .orderBy(desc(trainingSessions.createdAt))
-                    .limit(20);
-            }
-            else {
-                // ★2以下の要復習セッション
-                query = db
-                    .select()
-                    .from(trainingSessions)
-                    .where(and(eq(trainingSessions.userId, userEmail), lte(trainingSessions.rating, threshold)))
-                    .orderBy(desc(trainingSessions.createdAt))
-                    .limit(20);
-            }
-            const reviewSessions = await query;
-            console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail} with threshold ${threshold}`);
-            res.json(reviewSessions);
-        }
-        catch (error) {
-        }
-    });
-    // Original error handler (replace)
-    router.get("/review-sessions-old", requireAuth, async (req, res) => {
-        try {
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "会議の資料を準備しておいてください。",
+                    userTranslation: "Please prepare the meeting materials.",
+                    correctTranslation: "Please prepare the materials for the meeting.",
+                    rating: 4,
+                    feedback: "良い翻訳です。前置詞の使い方が適切です。",
+                    difficultyLevel: "toeic",
+                    createdAt: "2025-08-24T10:30:00Z"
+                }
+            ];
+            res.json(mockSessions);
         }
         catch (error) {
             console.error('Error fetching review sessions:', error);
@@ -1445,16 +1418,12 @@ export function registerRoutes(app) {
     // Review system endpoints (with authentication)
     router.get("/review-list", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📋 Fetching review list for user: ${userEmail}`);
-            // ★2以下の要復習セッションを取得
             const reviewProblems = await db
                 .select()
                 .from(trainingSessions)
-                .where(and(eq(trainingSessions.userId, userEmail), lte(trainingSessions.rating, 2)))
+                .where(lte(trainingSessions.rating, 2))
                 .orderBy(desc(trainingSessions.createdAt))
-                .limit(20);
-            console.log(`📋 Found ${reviewProblems.length} review problems for ${userEmail}`);
+                .limit(10);
             res.json(reviewProblems);
         }
         catch (error) {
@@ -1464,16 +1433,12 @@ export function registerRoutes(app) {
     });
     router.get("/retry-list", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📋 Fetching retry list for user: ${userEmail}`);
-            // ★3の再挑戦セッションを取得
             const retryProblems = await db
                 .select()
                 .from(trainingSessions)
-                .where(and(eq(trainingSessions.userId, userEmail), eq(trainingSessions.rating, 3)))
+                .where(eq(trainingSessions.rating, 3))
                 .orderBy(desc(trainingSessions.createdAt))
-                .limit(20);
-            console.log(`📋 Found ${retryProblems.length} retry problems for ${userEmail}`);
+                .limit(10);
             res.json(retryProblems);
         }
         catch (error) {
@@ -1580,16 +1545,3 @@ export function registerRoutes(app) {
     });
     app.use("/api", router);
 }
-router.get("/debug/sessions", requireAuth, async (req, res) => {
-    try {
-        const userEmail = req.user?.email || "anonymous";
-        const allSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.userId, userEmail)).orderBy(desc(trainingSessions.createdAt)).limit(10);
-        console.log(`🔍 Debug: Found ${allSessions.length} total sessions for ${userEmail}`);
-        allSessions.forEach(s => console.log(`  - Rating: ${s.rating}, Sentence: ${s.japaneseSentence?.substring(0, 30)}...`));
-        res.json(allSessions);
-    }
-    catch (error) {
-        console.error("Debug error:", error);
-        res.status(500).json({ error: "Debug failed" });
-    }
-});

@@ -308,22 +308,15 @@ export default function MyPage() {
   };
 
   const handleReviewProblem = (session: TrainingSession) => {
-    console.log("🔥 handleReviewProblem called with:", session);
-    // Store the complete problem data in sessionStorage for the practice interface
+    // Store the problem data in sessionStorage for the practice interface
     sessionStorage.setItem(
       "reviewProblem",
       JSON.stringify({
-        id: session.id,
         japaneseSentence: session.japaneseSentence,
-        userTranslation: session.userTranslation,
-        correctTranslation: session.correctTranslation,
         difficultyLevel: session.difficultyLevel,
-        rating: session.rating,
         isReview: true,
-        isRetry: true
       }),
     );
-    console.log("💾 Data saved to sessionStorage:", JSON.parse(sessionStorage.getItem("reviewProblem")));
 
     // Navigate to appropriate practice interface
     if (session.difficultyLevel.startsWith("simulation-")) {

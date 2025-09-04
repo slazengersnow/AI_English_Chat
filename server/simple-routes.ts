@@ -1357,7 +1357,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  router.get("/review-sessions", async (req: Request, res: Response) => {
+  router.get("/review-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
       const userEmail = req.user?.email || "anonymous";
       const threshold = parseInt(req.query.threshold as string) || 2;
@@ -1394,14 +1394,6 @@ export function registerRoutes(app: Express): void {
       console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail} with threshold ${threshold}`);
       res.json(reviewSessions);
     } catch (error) {
-      console.error("Error fetching review sessions:", error);
-      res.status(500).json({ error: "Failed to fetch review sessions" });
-    }
-
-  // Original error handler (replace)
-  router.get("/review-sessions-old", requireAuth, async (req: Request, res: Response) => {
-    try {
-    } catch (error) {
       console.error('Error fetching review sessions:', error);
       res.status(500).json({ error: 'Failed to fetch review sessions' });
     }
@@ -1409,23 +1401,41 @@ export function registerRoutes(app: Express): void {
 
   router.get("/recent-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
-      const mockSessions = [
-        {
-          id: 1,
-          japaneseSentence: "売上が前年比20%増加しました。",
-          userTranslation: "Sales increased 20% compared to last year.",
-          correctTranslation: "Sales increased by 20% compared to the previous year.",
-          rating: 4,
-          difficultyLevel: "toeic",
-          createdAt: "2025-08-24T15:20:00Z"
-        }
-      ];
-      res.json(mockSessions);
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`📋 Fetching recent sessions for user: ${userEmail}`);
+      
+      const recentSessions = await db
+        .select()
+        .from(trainingSessions)
+        .where(eq(trainingSessions.userId, userEmail as string))
+        .orderBy(desc(trainingSessions.createdAt))
+        .limit(10);
+      
+      console.log(`📋 Found ${recentSessions.length} recent sessions for ${userEmail}`);
+      res.json(recentSessions);
     } catch (error) {
       console.error('Error fetching recent sessions:', error);
       res.status(500).json({ error: 'Failed to fetch recent sessions' });
     }
   });
+
+  router.get("/bookmarked-sessions", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`📋 Fetching bookmarked sessions for user: ${userEmail}`);
+      
+      // ブックマーク機能は未実装のため、空の配列を返す
+      const bookmarkedSessions: any[] = [];
+      
+      console.log(`📋 Found ${bookmarkedSessions.length} bookmarked sessions for ${userEmail}`);
+      res.json(bookmarkedSessions);
+    } catch (error) {
+      console.error('Error fetching bookmarked sessions:', error);
+      res.status(500).json({ error: 'Failed to fetch bookmarked sessions' });
+    }
+  });
+
+  router.get("/custom-scenarios", requireAuth, async (req: Request, res: Response) => {
     try {
       const mockScenarios = [
         {

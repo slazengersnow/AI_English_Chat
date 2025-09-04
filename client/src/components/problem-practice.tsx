@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Star } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { SpeechButton } from "@/components/speech-button";
-import { supabase } from "@/lib/supabaseClient";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
 interface ProblemPracticeProps {
@@ -29,42 +28,6 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   const [evaluation, setEvaluation] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [problemCount, setProblemCount] = useState(0);
-
-  // Check for review problem from sessionStorage
-  useEffect(() => {
-    const reviewProblemData = sessionStorage.getItem("reviewProblem");
-    if (reviewProblemData) {
-      try {
-        const parsedData = JSON.parse(reviewProblemData);
-        console.log("🔄 REVIEW PROBLEM DETECTED:", parsedData);
-        
-        // Use the complete problem data from review
-        setProblemData({
-          id: parsedData.id,
-          japaneseSentence: parsedData.japaneseSentence,
-          userTranslation: parsedData.userTranslation,
-          correctTranslation: parsedData.correctTranslation,
-          difficultyLevel: parsedData.difficultyLevel,
-          rating: parsedData.rating,
-          isReview: true,
-          isRetry: parsedData.isRetry || false
-        });
-        
-        // CRITICAL: Force problem state immediately
-        setState("problem");
-        hasStartedRef.current = true;
-        sessionStorage.removeItem("reviewProblem");
-        
-        console.log("✅ REVIEW PROBLEM LOADED - SKIPPING INITIAL STATE");
-        
-      } catch (error) {
-        console.error("Failed to parse review problem data:", error);
-        setState("initial");
-      }
-    } else {
-      console.log("ℹ️ No review problem - will show initial state");
-    }
-  }, []);
 
   // CRITICAL: Prevent any duplicate execution
   const isExecutingRef = useRef(false);
@@ -120,8 +83,6 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
       setProblemData(data);
       setProblemCount((prev) => prev + 1);
       setState("problem");
-      // Skip initial state to prevent showing start button
-      hasStartedRef.current = true;
     },
     onError: (error: any) => {
       console.log("🛑 MUTATION ERROR:", error.message);
@@ -141,40 +102,17 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   // Evaluation mutation
   const evaluateMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-      
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-      
-      // For review problems, use existing correct translation
-      const modelAnswer = problemData.isReview && problemData.correctTranslation 
-        ? problemData.correctTranslation 
-        : problemData.modelAnswer || "Standard model answer";
-      
-      const response = await fetch("/api/evaluate-with-claude", {
+      const response = await fetch("/api/evaluate", {
         method: "POST",
-        headers,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           japaneseSentence: problemData.japaneseSentence,
-          userAnswer: userInput,
           userTranslation: userInput,
-          modelAnswer: modelAnswer,
-          difficultyLevel: problemData.difficultyLevel,
-          difficulty: problemData.difficultyLevel,
+          difficultyLevel: difficulty,
         }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Evaluation API error:", response.status, errorText);
-        throw new Error(`Evaluation failed: ${response.status}`);
-      }
+      if (!response.ok) throw new Error("Evaluation failed");
       return await response.json();
     },
     retry: false,
@@ -182,8 +120,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
       setEvaluation(data);
       setState("result");
     },
-    onError: (error) => {
-      console.error("Evaluation mutation error:", error);
+    onError: () => {
       setErrorMessage("評価に失敗しました。");
       setState("error");
     },
@@ -347,9 +284,9 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
                     模範解答
                   </h4>
                   <p className="text-green-700 bg-green-50 p-3 rounded border-l-4 border-green-400">
-                    {evaluation.correctTranslation || evaluation.modelAnswer || problemData.correctTranslation}
+                    {evaluation.modelAnswer}
                   </p>
-                  <SpeechButton text={evaluation.correctTranslation || evaluation.modelAnswer || problemData.correctTranslation} />
+                  <SpeechButton text={evaluation.modelAnswer} />
                 </div>
 
                 <div>

@@ -1,26 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import { useAuth } from "../providers/auth-provider";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  // ログイン済みユーザーを強制ログアウト
-  useEffect(() => {
-    if (user) {
-      console.log("🔓 Forcing logout for already signed-in user");
-      supabase.auth.signOut().then(() => {
-        localStorage.clear(); // すべてのローカルストレージをクリア
-        window.location.reload(); // ページをリロードして認証状態をリセット
-      });
-    }
-  }, [user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

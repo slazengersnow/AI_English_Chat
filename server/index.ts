@@ -17,24 +17,19 @@ const PORT = Number(process.env.PORT) || 5000;
 
 /* ---------- middlewares ---------- */
 
-// CORS（すべてのReplit公開URLを許可 - より寛容な設定）
+// CORS（Replit公開URL / repl.co / localhost からのアクセスを許可）
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow all Replit domains and localhost
-      if (!origin) return callback(null, true); // Allow requests with no origin (mobile apps, etc.)
-      
-      const allowedPatterns = [
-        /\.replit\.dev$/,
-        /\.repl\.co$/,
-        /\.kirk\.replit\.dev$/,
-        /localhost/,
-        /127\.0\.0\.1/,
-      ];
-      
-      const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
-      callback(null, isAllowed);
-    },
+    origin: [
+      /\.replit\.dev$/,
+      /\.repl\.co$/,
+      /.*\.kirk\.replit\.dev$/,
+      /.*\..*\.replit\.dev$/,
+      "http://localhost:5000",
+      "http://localhost:5001",
+      "http://127.0.0.1:5000",
+      "http://127.0.0.1:5001",
+    ],
     credentials: true,
   }),
 );
@@ -42,27 +37,59 @@ app.use(
 // きつすぎる独自 setHeader は削除（コメントアウトでもOK）
 // ❌ 削除: res.setHeader("Content-Security-Policy", "default-src 'none'");
 
-// Replit環境用のCSP設定（プレビュー対応）
+// Helmet で "通すべきものだけ通す" CSP を設定
 app.use(
   helmet({
     contentSecurityPolicy: {
-      useDefaults: false, // デフォルト無効化でReplit対応
+      useDefaults: true,
       directives: {
-        "default-src": ["'self'", "https:", "wss:", "'unsafe-inline'"],
+        "default-src": ["'self'"],
         "script-src": [
           "'self'", 
           "'unsafe-inline'",
-          "'unsafe-eval'",
-          "https:",
-          "blob:",
+          "'unsafe-eval'", // Google認証で必要
+          "https://js.stripe.com", // Stripe.js
+          "https://accounts.google.com", // Google OAuth
+          "https://*.googleapis.com", // Google APIs
+          "https://*.gstatic.com", // Google静的リソース
         ],
-        "style-src": ["'self'", "'unsafe-inline'", "https:"],
+        "connect-src": [
+          "'self'",
+          "https://*.supabase.co",
+          "https://*.supabase.net",
+          "https://*.supabase.in",
+          "wss://*.supabase.co",
+          "wss://*.supabase.net",
+          "wss://*.supabase.in",
+          "https://*.replit.dev",
+          "https://*.repl.co",
+          "https://*.kirk.replit.dev",
+          "http://localhost:5000",
+          "http://localhost:5001",
+          "http://127.0.0.1:5000",
+          "http://127.0.0.1:5001",
+          "https://accounts.google.com", // Google OAuth接続
+          "https://*.googleapis.com", // Google API接続
+          "https://api.stripe.com", // Stripe API
+        ],
         "img-src": ["'self'", "data:", "blob:", "https:"],
-        "connect-src": ["'self'", "https:", "wss:"],
-        "frame-src": ["'self'", "https:"],
-        "font-src": ["'self'", "https:", "data:"],
-        "object-src": ["'none'"],
-        "base-uri": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "frame-src": [
+          "'self'",
+          "https://*.supabase.co",
+          "https://*.supabase.net",
+          "https://accounts.google.com", // Google認証iframe
+          "https://js.stripe.com", // Stripe iframe
+        ],
+        "frame-ancestors": [
+          "'self'",
+          "https://replit.com",
+          "https://*.replit.com",
+        ],
+        "form-action": [
+          "'self'",
+          "https://accounts.google.com", // Google OAuth
+        ],
       },
     },
     crossOriginEmbedderPolicy: false,
