@@ -1,0 +1,91 @@
+Console.js:61 === GUARD DEBUG === {pathname: '/login', isPublicPath: true, user: false, initialized: true, isLoading: false}
+AuthProvider.tsx:18 Uncaught Error: useAuth must be used within an AuthProvider
+    at useAuth (AuthProvider.tsx:18:11)
+    at Login (login.tsx:8:20)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=a01f43cb:11548:26)
+    at mountIndeterminateComponent (chunk-NFC5BX5N.js?v=a01f43cb:14926:21)
+    at beginWork (chunk-NFC5BX5N.js?v=a01f43cb:15914:22)
+    at HTMLUnknownElement.callCallback2 (chunk-NFC5BX5N.js?v=a01f43cb:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-NFC5BX5N.js?v=a01f43cb:3699:24)
+    at invokeGuardedCallback (chunk-NFC5BX5N.js?v=a01f43cb:3733:39)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=a01f43cb:19765:15)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=a01f43cb:19198:20)
+useAuth @ AuthProvider.tsx:18
+Login @ login.tsx:8
+renderWithHooks @ chunk-NFC5BX5N.js?v=a01f43cb:11548
+mountIndeterminateComponent @ chunk-NFC5BX5N.js?v=a01f43cb:14926
+beginWork @ chunk-NFC5BX5N.js?v=a01f43cb:15914
+callCallback2 @ chunk-NFC5BX5N.js?v=a01f43cb:3674
+invokeGuardedCallbackDev @ chunk-NFC5BX5N.js?v=a01f43cb:3699
+invokeGuardedCallback @ chunk-NFC5BX5N.js?v=a01f43cb:3733
+beginWork$1 @ chunk-NFC5BX5N.js?v=a01f43cb:19765
+performUnitOfWork @ chunk-NFC5BX5N.js?v=a01f43cb:19198
+workLoopSync @ chunk-NFC5BX5N.js?v=a01f43cb:19137
+renderRootSync @ chunk-NFC5BX5N.js?v=a01f43cb:19116
+recoverFromConcurrentError @ chunk-NFC5BX5N.js?v=a01f43cb:18736
+performConcurrentWorkOnRoot @ chunk-NFC5BX5N.js?v=a01f43cb:18684
+workLoop @ chunk-NFC5BX5N.js?v=a01f43cb:197
+flushWork @ chunk-NFC5BX5N.js?v=a01f43cb:176
+performWorkUntilDeadline @ chunk-NFC5BX5N.js?v=a01f43cb:384このエラーを分析
+Console.js:61 The above error occurred in the <Login> component:
+
+    at Login (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/src/pages/login.tsx?t=1756971427352:24:20)
+    at Guard (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/src/App.tsx?t=1756971427352:162:18)
+    at RenderedRoute (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=f61d7626:4088:5)
+    at Routes (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=f61d7626:4558:5)
+    at AppRoutes
+    at AuthInitializedWrapper (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/src/App.tsx?t=1756971427352:1715:35)
+    at Provider (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-LSFMIM7C.js?v=a01f43cb:22:15)
+    at TooltipProvider (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=346bbc82:2586:5)
+    at Router (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=f61d7626:4501:15)
+    at BrowserRouter (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=f61d7626:5247:5)
+    at AuthProvider (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/src/providers/auth-provider.tsx:32:3)
+    at QueryClientProvider (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev:3001/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4c784747:2934:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+Mt.forEach.n.<computed> @ Console.js:61
+logCapturedError @ chunk-NFC5BX5N.js?v=a01f43cb:14032
+update.callback @ chunk-NFC5BX5N.js?v=a01f43cb:14052
+callCallback @ chunk-NFC5BX5N.js?v=a01f43cb:11248
+commitUpdateQueue @ chunk-NFC5BX5N.js?v=a01f43cb:11265
+commitLayoutEffectOnFiber @ chunk-NFC5BX5N.js?v=a01f43cb:17093
+commitLayoutMountEffects_complete @ chunk-NFC5BX5N.js?v=a01f43cb:17980
+commitLayoutEffects_begin @ chunk-NFC5BX5N.js?v=a01f43cb:17969
+commitLayoutEffects @ chunk-NFC5BX5N.js?v=a01f43cb:17920
+commitRootImpl @ chunk-NFC5BX5N.js?v=a01f43cb:19353
+commitRoot @ chunk-NFC5BX5N.js?v=a01f43cb:19277
+finishConcurrentRender @ chunk-NFC5BX5N.js?v=a01f43cb:18760
+performConcurrentWorkOnRoot @ chunk-NFC5BX5N.js?v=a01f43cb:18718
+workLoop @ chunk-NFC5BX5N.js?v=a01f43cb:197
+flushWork @ chunk-NFC5BX5N.js?v=a01f43cb:176
+performWorkUntilDeadline @ chunk-NFC5BX5N.js?v=a01f43cb:384このエラーを分析
+chunk-NFC5BX5N.js?v=a01f43cb:19413 Uncaught Error: useAuth must be used within an AuthProvider
+    at useAuth (AuthProvider.tsx:18:11)
+    at Login (login.tsx:8:20)
+    at renderWithHooks (chunk-NFC5BX5N.js?v=a01f43cb:11548:26)
+    at mountIndeterminateComponent (chunk-NFC5BX5N.js?v=a01f43cb:14926:21)
+    at beginWork (chunk-NFC5BX5N.js?v=a01f43cb:15914:22)
+    at beginWork$1 (chunk-NFC5BX5N.js?v=a01f43cb:19753:22)
+    at performUnitOfWork (chunk-NFC5BX5N.js?v=a01f43cb:19198:20)
+    at workLoopSync (chunk-NFC5BX5N.js?v=a01f43cb:19137:13)
+    at renderRootSync (chunk-NFC5BX5N.js?v=a01f43cb:19116:15)
+    at recoverFromConcurrentError (chunk-NFC5BX5N.js?v=a01f43cb:18736:28)
+useAuth @ AuthProvider.tsx:18
+Login @ login.tsx:8
+renderWithHooks @ chunk-NFC5BX5N.js?v=a01f43cb:11548
+mountIndeterminateComponent @ chunk-NFC5BX5N.js?v=a01f43cb:14926
+beginWork @ chunk-NFC5BX5N.js?v=a01f43cb:15914
+beginWork$1 @ chunk-NFC5BX5N.js?v=a01f43cb:19753
+performUnitOfWork @ chunk-NFC5BX5N.js?v=a01f43cb:19198
+workLoopSync @ chunk-NFC5BX5N.js?v=a01f43cb:19137
+renderRootSync @ chunk-NFC5BX5N.js?v=a01f43cb:19116
+recoverFromConcurrentError @ chunk-NFC5BX5N.js?v=a01f43cb:18736
+performConcurrentWorkOnRoot @ chunk-NFC5BX5N.js?v=a01f43cb:18684
+workLoop @ chunk-NFC5BX5N.js?v=a01f43cb:197
+flushWork @ chunk-NFC5BX5N.js?v=a01f43cb:176
+performWorkUntilDeadline @ chunk-NFC5BX5N.js?v=a01f43cb:384このエラーを分析
+web-client-content-script.js:2 Uncaught TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+    at HTMLIFrameElement.<anonymous> (web-client-content-script.js:2:381031)
+（匿名） @ web-client-content-script.js:2このエラーを分析
