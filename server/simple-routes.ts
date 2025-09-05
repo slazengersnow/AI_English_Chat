@@ -16,6 +16,7 @@ import {
   type TranslateResponse,
   trainingSessions,
   userSubscriptions,
+  customScenarios,
 } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
@@ -480,10 +481,10 @@ ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
             console.log(`✅ Generated unique problem: "${selectedSentence}"`);
             
             // セッションキャッシュにも追加
-            sessionProblems.add(selectedSentence);
+            if (selectedSentence) sessionProblems.add(selectedSentence);
             
             const response: ProblemResponse = {
-              japaneseSentence: selectedSentence,
+              japaneseSentence: selectedSentence!,
               hints: problemData.hints || [`問題 - ${difficultyLevel}`],
             };
 
