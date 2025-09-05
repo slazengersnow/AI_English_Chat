@@ -308,31 +308,21 @@ export default function MyPage() {
   };
 
   const handleReviewProblem = (session: TrainingSession) => {
-    console.log("🔍 MyPage - handleReviewProblem called with session:", session);
-    
     const reviewData = {
       japaneseSentence: session.japaneseSentence,
       difficultyLevel: session.difficultyLevel,
       isReview: true,
     };
     
-    console.log("💾 MyPage - Storing reviewProblem in sessionStorage:", reviewData);
-    
     // Store the problem data in sessionStorage for the practice interface
     sessionStorage.setItem("reviewProblem", JSON.stringify(reviewData));
-    
-    // Verify storage
-    const storedData = sessionStorage.getItem("reviewProblem");
-    console.log("✅ MyPage - Verified stored data:", storedData);
 
     // Navigate to appropriate practice interface
     if (session.difficultyLevel.startsWith("simulation-")) {
       const scenarioId = session.difficultyLevel.replace("simulation-", "");
-      console.log("🚀 MyPage - Navigating to simulation practice:", scenarioId);
       navigate(`/simulation-practice?scenario=${scenarioId}`);
     } else {
       // Navigate to home page with difficulty selection
-      console.log("🚀 MyPage - Navigating to practice:", session.difficultyLevel);
       navigate(`/practice/${session.difficultyLevel}`);
     }
   };

@@ -105,7 +105,7 @@ export default function TestApp() {
     
     dispatch({ type: "SET_LOADING", loading: true });
     try {
-      const response = await fetch("/api/evaluate", {
+      const response = await fetch("/api/evaluate-with-claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

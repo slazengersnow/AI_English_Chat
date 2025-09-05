@@ -174,15 +174,10 @@ export default function ChatStyleTraining({
     }
 
     // Check for review problem from sessionStorage (マイページから遷移)
-    console.log("🔍 Checking sessionStorage for reviewProblem...");
     const reviewProblemData = sessionStorage.getItem("reviewProblem");
-    console.log("🔍 sessionStorage reviewProblem data:", reviewProblemData);
-    console.log("🔍 Current isStarted state:", isStarted);
-    
     if (reviewProblemData && !isStarted) {
       try {
         const reviewProblem = JSON.parse(reviewProblemData);
-        console.log("✅ Loading review problem from MyPage:", reviewProblem);
         
         // Clear the sessionStorage data to prevent reuse
         sessionStorage.removeItem("reviewProblem");
@@ -191,11 +186,9 @@ export default function ChatStyleTraining({
         initializeWithReviewProblem(reviewProblem);
         return;
       } catch (error) {
-        console.error("❌ Failed to parse review problem data:", error);
+        console.error("Failed to parse review problem data:", error);
         sessionStorage.removeItem("reviewProblem");
       }
-    } else {
-      console.log("🔍 No review problem found or already started, continuing with normal flow");
     }
 
     // 初期問題の自動読み込み（React Strict Mode対応）

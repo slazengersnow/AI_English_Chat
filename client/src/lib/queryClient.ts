@@ -185,7 +185,7 @@ export async function claudeApiRequest(endpoint: string, data: any) {
       if (endpoint.includes('/api/problem')) {
         console.log('Using fallback problem due to Claude API failure');
         return getFallbackProblem(data.difficultyLevel);
-      } else if (endpoint.includes('/api/evaluate')) {
+      } else if (endpoint.includes('/api/evaluate-with-claude')) {
         console.log('Using fallback evaluation due to Claude API failure');
         return getFallbackEvaluation(data);
       }
