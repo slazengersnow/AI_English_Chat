@@ -413,8 +413,11 @@ export default function ChatStyleTraining({
       console.log("Claude API evaluation received:", evaluation);
       return evaluation;
     } catch (error) {
-      console.error("Claude API failed with error:", error);
-      console.warn("Claude API request timed out, using fallback evaluation");
+      // Claude API request function already handles retries and fallbacks
+      console.error("Claude API failed after all retries:", error);
+      
+      // If claudeApiRequest didn't return a fallback, create one here
+      console.log("Creating local fallback evaluation");
 
       // Provide meaningful fallback based on user input quality
       return {

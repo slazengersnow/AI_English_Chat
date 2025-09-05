@@ -134,38 +134,64 @@ export async function apiRequest(url: string, options: RequestInit = {}) {
   }
 }
 
-// Claude API request function with intelligent fallback
+// Claude API request function with robust timeout and retry handling
 export async function claudeApiRequest(endpoint: string, data: any) {
-  try {
-    console.log(`Claude API request to ${endpoint}:`, data);
+  const maxRetries = 2;
+  const timeoutMs = 25000; // 25 seconds timeout
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      console.log(`Claude API request to ${endpoint} (attempt ${attempt + 1}/${maxRetries + 1}):`, data);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+      clearTimeout(timeoutId);
 
-    const result = await response.json();
-    console.log(`Claude API response from ${endpoint}:`, result);
-    return result;
-    
-  } catch (error) {
-    console.error(`Claude API error for ${endpoint}:`, error);
-    
-    // Intelligent fallback system for seamless learning experience
-    if (endpoint.includes('/api/problem')) {
-      return getFallbackProblem(data.difficultyLevel);
-    } else if (endpoint.includes('/api/evaluate')) {
-      return getFallbackEvaluation(data.userAnswer, data.problem);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log(`Claude API response from ${endpoint}:`, result);
+      return result;
+      
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      const isLastAttempt = attempt === maxRetries;
+      const isAbortError = error.name === 'AbortError';
+      const isTimeoutError = isAbortError || error.message?.includes('timeout');
+      
+      if (!isLastAttempt && (isTimeoutError || error.message?.includes('500'))) {
+        console.log(`Claude API ${isTimeoutError ? 'timeout' : 'server error'} on attempt ${attempt + 1}, retrying...`);
+        // Wait before retry: 1s, 2s, 3s
+        await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 1000));
+        continue;
+      }
+      
+      console.error(`Claude API error for ${endpoint} (attempt ${attempt + 1}):`, error);
+      
+      // Intelligent fallback system for seamless learning experience
+      if (endpoint.includes('/api/problem')) {
+        console.log('Using fallback problem due to Claude API failure');
+        return getFallbackProblem(data.difficultyLevel);
+      } else if (endpoint.includes('/api/evaluate')) {
+        console.log('Using fallback evaluation due to Claude API failure');
+        return getFallbackEvaluation(data);
+      }
+      
+      throw error;
     }
-    
-    throw error;
   }
 }
 
@@ -213,15 +239,20 @@ function getFallbackProblem(difficulty: string) {
   return problems[difficulty as keyof typeof problems] || problems.toeic;
 }
 
-function getFallbackEvaluation(userAnswer: string, problem: any) {
+function getFallbackEvaluation(data: any) {
   return {
     rating: 4,
-    modelAnswer: problem?.modelAnswer || "Great job!",
-    feedback: "良い回答です！継続して練習を続けましょう。",
+    correctTranslation: "I will create a sales forecast for next month.",
+    feedback: "良い回答です！継続して練習を続けましょう。AI評価が復旧次第、より詳細な評価をお届けします。",
+    improvements: [
+      "継続的な練習を続けてください",
+      "語彙を増やしていきましょう"
+    ],
+    explanation: "現在AI評価システムが一時的に利用できませんが、あなたの英語学習への取り組み姿勢は素晴らしいです。",
     similarPhrases: [
-      "Alternative expression 1",
-      "Alternative expression 2",
-      "Alternative expression 3"
+      "Keep up the great work!",
+      "Continue your excellent progress!",
+      "Your dedication is admirable!"
     ]
   };
 }
