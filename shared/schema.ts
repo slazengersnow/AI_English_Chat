@@ -94,6 +94,7 @@ export const dailyProgress = pgTable("daily_progress", {
 // Custom scenarios table - Updated
 export const customScenarios = pgTable("custom_scenarios", {
   id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
@@ -148,6 +149,7 @@ export const insertDailyProgressSchema = z.object({
 });
 
 export const insertCustomScenarioSchema = z.object({
+  userId: z.string().optional(),
   title: z.string(),
   description: z.string(),
   isActive: z.boolean().optional(),

@@ -1354,11 +1354,31 @@ export function registerRoutes(app: Express): void {
 
   router.get("/monthly-stats", requireAuth, async (req: Request, res: Response) => {
     try {
-      res.json([
-        { month: '2025-06', problemsCompleted: 245, averageRating: 4.1 },
-        { month: '2025-07', problemsCompleted: 312, averageRating: 4.3 },
-        { month: '2025-08', problemsCompleted: 186, averageRating: 4.2 }
-      ]);
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`📊 Fetching monthly stats for user: ${userEmail}`);
+      
+      // Get training sessions from the database grouped by month
+      const monthlyData = await db
+        .select({
+          month: sql<string>`DATE_TRUNC('month', created_at)`,
+          problemsCompleted: sql<number>`COUNT(*)`,
+          averageRating: sql<number>`AVG(rating)`
+        })
+        .from(trainingSessions)
+        .where(eq(trainingSessions.userId, userEmail as string))
+        .groupBy(sql`DATE_TRUNC('month', created_at)`)
+        .orderBy(sql`DATE_TRUNC('month', created_at) DESC`)
+        .limit(12); // Last 12 months
+      
+      // Format the data for the client
+      const formattedData = monthlyData.map(item => ({
+        month: new Date(item.month).toISOString().slice(0, 7), // Format as YYYY-MM
+        problemsCompleted: Number(item.problemsCompleted),
+        averageRating: Math.round(Number(item.averageRating) * 10) / 10 // Round to 1 decimal
+      }));
+      
+      console.log(`📊 Found ${formattedData.length} months of data for ${userEmail}`);
+      res.json(formattedData);
     } catch (error) {
       console.error('Error fetching monthly stats:', error);
       res.status(500).json({ error: 'Failed to fetch monthly stats' });
@@ -1445,24 +1465,90 @@ export function registerRoutes(app: Express): void {
 
   router.get("/custom-scenarios", requireAuth, async (req: Request, res: Response) => {
     try {
-      const mockScenarios = [
-        {
-          id: 1,
-          title: "海外旅行",
-          description: "空港、ホテル、レストランでの会話",
-          createdAt: "2025-08-20T09:00:00Z"
-        },
-        {
-          id: 2,
-          title: "ビジネス会議",
-          description: "プレゼンテーション、議論、質疑応答",
-          createdAt: "2025-08-22T11:30:00Z"
-        }
-      ];
-      res.json(mockScenarios);
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`🎯 Fetching custom scenarios for user: ${userEmail}`);
+      
+      // Get custom scenarios from the database for the current user
+      const scenarios = await db
+        .select()
+        .from(customScenarios)
+        .where(eq(customScenarios.userId, userEmail as string))
+        .orderBy(desc(customScenarios.createdAt));
+      
+      console.log(`🎯 Found ${scenarios.length} custom scenarios for ${userEmail}`);
+      res.json(scenarios);
     } catch (error) {
       console.error('Error fetching custom scenarios:', error);
       res.status(500).json({ error: 'Failed to fetch custom scenarios' });
+    }
+  });
+
+  // Create a new custom scenario
+  router.post("/custom-scenarios", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userEmail = req.user?.email || "anonymous";
+      console.log(`🎯 Creating custom scenario for user: ${userEmail}`);
+      
+      const { title, description } = req.body;
+      
+      if (!title || !description) {
+        return res.status(400).json({ error: 'Title and description are required' });
+      }
+      
+      const newScenario = await db
+        .insert(customScenarios)
+        .values({
+          userId: userEmail as string,
+          title,
+          description,
+          isActive: true
+        })
+        .returning()
+        .execute();
+      
+      console.log(`🎯 Created custom scenario with ID: ${newScenario[0].id}`);
+      res.status(201).json(newScenario[0]);
+    } catch (error) {
+      console.error('Error creating custom scenario:', error);
+      res.status(500).json({ error: 'Failed to create custom scenario' });
+    }
+  });
+
+  // Delete a custom scenario
+  router.delete("/custom-scenarios/:id", requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userEmail = req.user?.email || "anonymous";
+      const scenarioId = parseInt(req.params.id);
+      
+      console.log(`🎯 Deleting custom scenario ${scenarioId} for user: ${userEmail}`);
+      
+      // First check if the scenario belongs to the user
+      const scenario = await db
+        .select()
+        .from(customScenarios)
+        .where(and(
+          eq(customScenarios.id, scenarioId),
+          eq(customScenarios.userId, userEmail as string)
+        ))
+        .execute();
+      
+      if (scenario.length === 0) {
+        return res.status(404).json({ error: 'Scenario not found or not owned by user' });
+      }
+      
+      await db
+        .delete(customScenarios)
+        .where(and(
+          eq(customScenarios.id, scenarioId),
+          eq(customScenarios.userId, userEmail as string)
+        ))
+        .execute();
+      
+      console.log(`🎯 Successfully deleted custom scenario ${scenarioId}`);
+      res.json({ message: 'Scenario deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting custom scenario:', error);
+      res.status(500).json({ error: 'Failed to delete custom scenario' });
     }
   });
 
