@@ -102,7 +102,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   // Evaluation mutation
   const evaluateMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/evaluate", {
+      const response = await fetch("/api/evaluate-with-claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
