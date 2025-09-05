@@ -226,10 +226,11 @@ export const translateResponseSchema = z.object({
 export const problemRequestSchema = z.object({
   difficultyLevel: z.enum([
     "toeic",
-    "middle-school",
+    "middle-school", 
     "high-school",
     "basic-verbs",
     "business-email",
+    "simulation",
   ]),
 });
 
@@ -281,6 +282,12 @@ export const DIFFICULTY_LEVELS = {
     description: "実務メール作成",
     color: "red",
     icon: "mail",
+  },
+  simulation: {
+    name: "シミュレーション練習",
+    description: "実際の場面を想定した英会話",
+    color: "orange",
+    icon: "users",
   },
 } as const;
 
