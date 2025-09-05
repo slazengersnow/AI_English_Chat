@@ -173,6 +173,25 @@ export default function ChatStyleTraining({
       }
     }
 
+    // Check for review problem from sessionStorage (マイページから遷移)
+    const reviewProblemData = sessionStorage.getItem("reviewProblem");
+    if (reviewProblemData && !isStarted) {
+      try {
+        const reviewProblem = JSON.parse(reviewProblemData);
+        console.log("Loading review problem from MyPage:", reviewProblem);
+        
+        // Clear the sessionStorage data to prevent reuse
+        sessionStorage.removeItem("reviewProblem");
+        
+        // Initialize with the review problem
+        initializeWithReviewProblem(reviewProblem);
+        return;
+      } catch (error) {
+        console.error("Failed to parse review problem data:", error);
+        sessionStorage.removeItem("reviewProblem");
+      }
+    }
+
     // 初期問題の自動読み込み（React Strict Mode対応）
     if (initialProblem && !isStarted) {
       initializeWithInitialProblem();
@@ -227,6 +246,41 @@ export default function ChatStyleTraining({
     };
     setMessages([problemMessage]);
     scrollToBottom();
+  };
+
+  // 復習問題の設定（マイページから遷移時）
+  const initializeWithReviewProblem = (reviewData: any) => {
+    if (loadingProblemRef.current || isStarted) return;
+    
+    console.log("Initializing with review problem:", reviewData);
+    
+    setIsStarted(true);
+    setCurrentProblem({
+      japaneseSentence: reviewData.japaneseSentence,
+      modelAnswer: "Please translate this sentence.", // Default model answer
+      hints: [],
+      difficulty: difficulty,
+    });
+    setAwaitingAnswer(true);
+
+    // Add review indicator message
+    const reviewIndicatorMessage: ChatMessage = {
+      id: (Date.now() - 1).toString(),
+      type: "system",
+      content: "📝 復習問題: この問題を再度解いてみましょう",
+      timestamp: new Date(),
+    };
+
+    const problemMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: "problem", 
+      content: reviewData.japaneseSentence,
+      timestamp: new Date(),
+    };
+
+    setMessages([reviewIndicatorMessage, problemMessage]);
+    scrollToBottom();
+    setProblemCount(1);
   };
 
   // 新しい問題の読み込み（二重実行防止付き）
