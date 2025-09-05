@@ -578,57 +578,98 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 
 上記の翻訳を評価してください。`;
 
-    try {
-      const anthropic = new Anthropic({ apiKey: anthropicApiKey });
-      const message = await anthropic.messages.create({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 1000,
-        temperature: 0.7,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }],
-      });
-
-      const content =
-        message.content[0]?.type === "text" ? message.content[0].text : "";
-      let parsedResult: any;
-
+    // 🚀 PRODUCTION-GRADE 5-RETRY SYSTEM WITH EXPONENTIAL BACKOFF
+    const maxRetries = 4; // 5 total attempts (0-4)
+    let parsedResult: any = null;
+    let lastError: any = null;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        parsedResult = JSON.parse(content);
-      } catch (parseError) {
-        console.log("JSON parse failed, attempting cleanup:", parseError);
+        console.log(`🤖 Claude API attempt ${attempt + 1}/${maxRetries + 1} for evaluation`);
+        
+        const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+        const message = await anthropic.messages.create({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 1000,
+          temperature: 0.7,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
+        });
+
+        const content =
+          message.content[0]?.type === "text" ? message.content[0].text : "";
+        console.log(`📝 Claude response (attempt ${attempt + 1}):`, content.substring(0, 200) + "...");
+
+        // Advanced JSON parsing with 3-stage fallback
         try {
-          // Clean up content and try again
-          let cleanContent = content.replace(/[\x00-\x1F\x7F]/g, '');
-          cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-          parsedResult = JSON.parse(cleanContent);
-        } catch (cleanupError) {
-          // Try to extract JSON from content
-          const jsonMatch = content?.match?.(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try {
-              let jsonContent = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, '');
-              jsonContent = jsonContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-              parsedResult = JSON.parse(jsonContent);
-            } catch (finalError) {
-              console.error("All JSON parsing attempts failed:", finalError);
-              parsedResult = {};
+          parsedResult = JSON.parse(content);
+          console.log(`✅ Successfully parsed Claude response on attempt ${attempt + 1}`);
+          break; // Success! Exit retry loop
+        } catch (parseError) {
+          console.log(`⚠️ JSON parse failed on attempt ${attempt + 1}, trying cleanup...`);
+          try {
+            // Stage 2: Clean up content and try again
+            let cleanContent = content.replace(/[\x00-\x1F\x7F]/g, '');
+            cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+            parsedResult = JSON.parse(cleanContent);
+            console.log(`✅ Successfully parsed cleaned Claude response on attempt ${attempt + 1}`);
+            break; // Success! Exit retry loop
+          } catch (cleanupError) {
+            // Stage 3: Extract JSON from content
+            const jsonMatch = content?.match?.(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              try {
+                let jsonContent = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, '');
+                jsonContent = jsonContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                parsedResult = JSON.parse(jsonContent);
+                console.log(`✅ Successfully extracted and parsed JSON on attempt ${attempt + 1}`);
+                break; // Success! Exit retry loop
+              } catch (finalError) {
+                console.error(`❌ All JSON parsing failed on attempt ${attempt + 1}:`, finalError);
+                lastError = finalError;
+              }
+            } else {
+              console.error(`❌ No JSON found in Claude response on attempt ${attempt + 1}`);
+              lastError = cleanupError;
             }
-          } else {
-            parsedResult = {};
           }
         }
-      }
 
-      // Check if parsing failed or result is incomplete
-      if (!parsedResult || Object.keys(parsedResult).length === 0 || 
-          !parsedResult.correctTranslation || 
-          parsedResult.correctTranslation === "Translation evaluation failed") {
-        console.log("Using enhanced fallback due to invalid Claude response");
-        const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
-        res.json(fallbackResponse);
-        return;
+      } catch (apiError: any) {
+        lastError = apiError;
+        const isLastAttempt = attempt === maxRetries;
+        const isRateLimited = apiError.message?.includes('429') || apiError.message?.includes('rate limit');
+        const isServerError = apiError.message?.includes('500') || apiError.message?.includes('502') || apiError.message?.includes('503');
+        const isTimeoutError = apiError.message?.includes('timeout') || apiError.code === 'ECONNRESET';
+        
+        console.error(`❌ Claude API error on attempt ${attempt + 1}:`, {
+          message: apiError.message,
+          type: apiError.type,
+          status: apiError.status,
+          code: apiError.code
+        });
+        
+        if (!isLastAttempt && (isRateLimited || isServerError || isTimeoutError)) {
+          // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+          const backoffMs = Math.pow(2, attempt) * 1000;
+          const errorType = isRateLimited ? 'rate limit' : (isServerError ? 'server error' : 'timeout');
+          
+          console.log(`⏳ ${errorType} on attempt ${attempt + 1}, retrying in ${backoffMs/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          continue; // Retry
+        } else if (isLastAttempt) {
+          console.error(`❌ All Claude API attempts failed. Last error:`, apiError);
+          break; // Exit retry loop and use fallback
+        }
       }
+    }
 
+    // Check if we got a successful result from Claude API
+    if (parsedResult && Object.keys(parsedResult).length > 0 && 
+        parsedResult.correctTranslation && 
+        parsedResult.correctTranslation !== "Translation evaluation failed") {
+      console.log("✅ Successfully got valid Claude API response");
+      
       const response: TranslateResponse = {
         correctTranslation: parsedResult.correctTranslation,
         feedback: parsedResult.feedback,
@@ -660,53 +701,13 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
         // Continue without sessionId if database save fails
       }
 
-      res.json(response);
-    } catch (error) {
-      console.error("❌ MAIN Claude API error - DETAILED:", {
-        message: error.message,
-        status: error.status,
-        type: error.type,
-        error_type: error.error_type,
-        headers: error.headers,
-        stack: error.stack,
-        fullError: error
-      });
-      console.error("Claude API error:", error);
-      // Fallback with database save
-      const fallback: TranslateResponse = {
-        correctTranslation: "Please coordinate with your team members.",
-        feedback: `お疲れ様でした！「${normalized.userTranslation ?? ""}」という回答をいただきました。現在AI評価システムに一時的な問題が発生していますが、継続して学習を続けましょう。`,
-        rating: 3,
-        improvements: [
-          "短く自然な表現を意識しましょう",
-          "動詞と時制の一致を確認しましょう",
-        ],
-        explanation: "システム復旧中のため、詳細な評価ができません。",
-        similarPhrases: [
-          "Work closely with your teammates.",
-          "Collaborate with your team.",
-        ],
-      };
-      
-      // Save fallback training session to database
-      try {
-        const sessionData = {
-          difficultyLevel: normalized.difficultyLevel || "middle-school",
-          japaneseSentence: japaneseSentence,
-          userTranslation: normalized.userTranslation || "",
-          correctTranslation: fallback.correctTranslation,
-          feedback: fallback.feedback,
-          rating: fallback.rating,
-        };
-        
-        const insertResult = await db.insert(trainingSessions).values(sessionData).returning();
-        fallback.sessionId = insertResult[0]?.id;
-      } catch (dbError) {
-        console.error('Database save error for fallback:', dbError);
-      }
-      
-      res.json(fallback);
+      return res.json(response);
     }
+    
+    // If we reach here, all Claude API attempts failed - use high-quality fallback
+    console.log("⚠️ All Claude API attempts failed, using enhanced fallback system");
+    const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
+    return res.json(fallbackResponse);
   } catch (error) {
     console.error("Evaluation error:", error);
     res.status(500).json({
