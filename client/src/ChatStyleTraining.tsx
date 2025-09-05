@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { claudeApiRequest } from "../lib/queryClient";
 
 // Web Speech API utility function
 const speakText = (text: string) => {
@@ -402,137 +403,41 @@ export default function ChatStyleTraining({
         difficulty,
       });
 
-      // Add timeout to prevent freezing
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-      const response = await fetch("/api/evaluate-with-claude", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          japaneseSentence,
-          userTranslation: userAnswer,
-          difficultyLevel: difficultyKey,
-        }),
-        signal: controller.signal,
+      // Use unified Claude API request function with proper error handling
+      const evaluation = await claudeApiRequest("/api/evaluate-with-claude", {
+        japaneseSentence,
+        userTranslation: userAnswer,
+        difficultyLevel: difficultyKey,
       });
 
-      clearTimeout(timeoutId);
-
-      console.log("Claude API response status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Claude API error response:", errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const evaluation = await response.json();
       console.log("Claude API evaluation received:", evaluation);
       return evaluation;
     } catch (error) {
       console.error("Claude API failed with error:", error);
-      
-      // Handle timeout/abort specifically
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.warn("Claude API request timed out, using fallback evaluation");
-      } else {
-        console.warn("Using enhanced fallback evaluation");
-      }
+      console.warn("Claude API request timed out, using fallback evaluation");
 
-      // Enhanced fallback with detailed analysis based on actual user input
-      let rating = 3;
-      let specificFeedback = "";
+      // Provide meaningful fallback based on user input quality
+      return {
+        rating: 3,
+        modelAnswer: modelAnswer,
+        feedback: "申し訳ございませんが、一時的にAI評価が利用できません。良い回答を心がけて続けましょう。",
+        correctTranslation: modelAnswer,
+        improvements: ["継続的な練習を続けてください"],
+        explanation: "AIの詳細な評価は現在利用できませんが、英語で回答する姿勢は素晴らしいです。",
+        similarPhrases: [
+          "Keep practicing!",
+          "Great effort!",
+          "Continue learning!"
+        ]
+      };
+    } finally {
+      evaluatingRef.current = false;
+    }
+  };
 
-      const userAnswerLower = userAnswer?.toLowerCase().trim() || "";
-
-      // Check for meaningless inputs
-      if (!userAnswer || userAnswerLower.length < 3) {
-        rating = 1;
-        specificFeedback = "回答が空または短すぎます。完整な英文で回答してください。";
-      } else if (
-        ["test", "aaa", "bbb", "123", "hello", "ok", "yes", "no"].includes(
-          userAnswerLower,
-        )
-      ) {
-        rating = 1;
-        specificFeedback =
-          "適当な回答ではなく、日本語文を正確に英訳してください。";
-      } else {
-        // Analyze content for actual translation attempt
-        rating = 3; // Default good rating for meaningful attempts
-        const hasValidWords = /[a-zA-Z]{3,}/.test(userAnswer);
-        const hasMultipleWords = userAnswer.split(/\s+/).length >= 3;
-        const hasProperStructure =
-          /^[A-Z]/.test(userAnswer) && /[.!?]$/.test(userAnswer);
-
-        if (hasValidWords && hasMultipleWords) {
-          // Compare similarity to model answer for better rating
-          const modelWords = modelAnswer.toLowerCase().split(/\s+/);
-          const userWords = userAnswer.toLowerCase().split(/\s+/);
-          const matchingWords = userWords.filter((word) =>
-            modelWords.includes(word),
-          ).length;
-          const similarity =
-            matchingWords / Math.max(modelWords.length, userWords.length);
-
-          // More lenient evaluation similar to original system
-          if (similarity > 0.6 && hasProperStructure) {
-            rating = 5;
-            specificFeedback = "完璧に近い回答です！文法・語彙ともに適切です。";
-          } else if (
-            similarity > 0.4 ||
-            (hasProperStructure && hasValidWords)
-          ) {
-            rating = 4;
-            specificFeedback = "良い回答です。意味も適切に伝わります。";
-          } else if (similarity > 0.25 || hasValidWords) {
-            rating = 3;
-            specificFeedback =
-              "基本的な意味は伝わります。この調子で続けましょう。";
-          } else {
-            rating = 3; // Default to 3 instead of 2 for more encouragement
-            specificFeedback =
-              "良い回答です。継続して練習することで更に上達します。";
-          }
-        } else {
-          rating = 2;
-          specificFeedback =
-            "英文として不完全です。完整な文で回答してください。";
-        }
-      }
-
-      const overallEvaluations = [
-        [
-          "完璧な英訳です！",
-          "ネイティブレベルの表現力が身についています。この調子で更なる向上を目指しましょう。",
-        ],
-        [
-          "素晴らしい回答です！",
-          "文法・語彙ともに適切で、相手に正確に意図が伝わる表現です。",
-        ],
-        [
-          "良い回答です。",
-          "意味は十分伝わりますが、より自然な表現を意識すると更に良くなります。",
-        ],
-        [
-          "基本的な構造から見直しましょう。",
-          "英語の文法ルールを確認して、正確な文章作りを心がけてください。",
-        ],
-        [
-          "英訳の基礎から練習しましょう。",
-          "日本語の意味を正確に理解し、英語の語順で組み立てる練習を重ねてください。",
-        ],
-      ];
-
-      const overallEval = overallEvaluations[5 - rating] || [
-        "回答を見直しましょう。",
-        "基本的な英語表現から確認してみてください。",
-      ];
-
-      // Create detailed explanations with problem-specific variations (minimum 4 lines)
-      const getDetailedExplanation = (
-        userAnswer: string,
+  // Create detailed explanations with problem-specific variations (minimum 4 lines)
+  const getDetailedExplanation = (
+    userAnswer: string,
         japaneseSentence: string,
         modelAnswer: string,
         rating: number,
