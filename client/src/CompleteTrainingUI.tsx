@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getRandomProblem, evaluateAnswer as mockEvaluateAnswer } from "./MockProblemData";
+// Removed mock data import - using only real API data
 import { claudeApiRequest } from "./lib/queryClient";
 import ChatStyleTraining from "./ChatStyleTraining";
 import AdminDashboard from "./AdminDashboard";
@@ -225,8 +225,6 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
               </button>
             </div>
           </div>
-            </div>
-          </div>
 
           {/* Problem Display */}
           {currentProblem && (
@@ -325,6 +323,7 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
       </div>
     );
   }
+
   return (
     <div className="min-h-screen p-4" style={{ backgroundColor: '#e7effe' }}>
       {/* Header with buttons - positioned absolutely to screen edge */}
