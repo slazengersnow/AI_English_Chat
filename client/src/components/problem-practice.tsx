@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Send, Star } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import { SpeechButton } from "@/components/speech-button";
 import { DIFFICULTY_LEVELS, type DifficultyKey } from "@/lib/constants";
 
@@ -22,6 +23,7 @@ type AppState =
   | "error";
 
 export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
+  const { user } = useAuth();
   const [state, setState] = useState<AppState>("initial");
   const [problemData, setProblemData] = useState<any>(null);
   const [userInput, setUserInput] = useState("");
@@ -32,6 +34,20 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   // CRITICAL: Prevent any duplicate execution
   const isExecutingRef = useRef(false);
   const hasStartedRef = useRef(false);
+
+  // Get auth token helper function
+  const getAuthToken = () => {
+    try {
+      const storedSession = localStorage.getItem('supabase.auth.token');
+      if (storedSession) {
+        const session = JSON.parse(storedSession);
+        return session.access_token;
+      }
+    } catch (error) {
+      console.warn('Could not get auth token:', error);
+    }
+    return 'anonymous';
+  };
 
   // Problem generation - STRICT SINGLE EXECUTION
   const generateMutation = useMutation({
@@ -48,9 +64,14 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
       isExecutingRef.current = true;
 
       try {
+        console.log("Fetching problem with difficulty:", difficulty);
+        
         const response = await fetch("/api/problem", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getAuthToken()}`
+          },
           body: JSON.stringify({ difficultyLevel: difficulty }),
         });
 
@@ -69,7 +90,7 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         }
 
         const data = await response.json();
-        console.log("✅ SUCCESS:", data);
+        console.log("Received problem data:", data);
         return data;
       } catch (err) {
         throw err;
@@ -102,9 +123,19 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
   // Evaluation mutation
   const evaluateMutation = useMutation({
     mutationFn: async () => {
+      console.log("Calling Claude API with:", {
+        userAnswer: userInput,
+        japaneseSentence: problemData.japaneseSentence,
+        modelAnswer: "Please translate this sentence.",
+        difficulty: difficulty,
+      });
+
       const response = await fetch("/api/evaluate-with-claude", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getAuthToken()}`
+        },
         body: JSON.stringify({
           japaneseSentence: problemData.japaneseSentence,
           userTranslation: userInput,
@@ -112,8 +143,12 @@ export function ProblemPractice({ difficulty, onBack }: ProblemPracticeProps) {
         }),
       });
 
+      console.log("Claude API response status:", response.status);
       if (!response.ok) throw new Error("Evaluation failed");
-      return await response.json();
+      
+      const result = await response.json();
+      console.log("Claude API evaluation received:", result);
+      return result;
     },
     retry: false,
     onSuccess: (data) => {

@@ -429,6 +429,9 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
           throw new Error("Anthropic API key not configured");
         }
 
+        console.log(`🔑 Problem generation - API Key available: ${!!anthropicApiKey}`);
+        console.log(`🔑 Problem generation - API Key length: ${anthropicApiKey?.length || 0}`);
+
         const anthropic = new Anthropic({ apiKey: anthropicApiKey });
         
         const generatePrompt = `${promptConfig.description}の日本語文を1つ作成してください。
@@ -658,6 +661,15 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 
       res.json(response);
     } catch (error) {
+      console.error("❌ MAIN Claude API error - DETAILED:", {
+        message: error.message,
+        status: error.status,
+        type: error.type,
+        error_type: error.error_type,
+        headers: error.headers,
+        stack: error.stack,
+        fullError: error
+      });
       console.error("Claude API error:", error);
       // Fallback with database save
       const fallback: TranslateResponse = {
@@ -753,6 +765,13 @@ Respond only with valid JSON, no extra text.`
         }
       }
     } catch (error) {
+      console.error(`❌ DETAILED Claude evaluation error:`, {
+        message: error.message,
+        status: error.status,
+        type: error.type,
+        error_type: error.error_type,
+        error: error
+      });
       console.log(`⚠️ Claude evaluation failed: ${error.message}, using static fallback`);
     }
   }
@@ -1203,10 +1222,17 @@ export function registerRoutes(app: Express): void {
 上記の翻訳を評価してください。`;
 
       console.log(`🤖 Calling Claude API for: "${japaneseSentence}" -> "${userTranslation}"`);
+      console.log(`🔑 API Key available: ${!!anthropicApiKey}`);
+      console.log(`🔑 API Key length: ${anthropicApiKey?.length || 0}`);
       
       try {
         const { default: Anthropic } = await import('@anthropic-ai/sdk');
         const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+        
+        console.log(`📤 Sending request to Claude with model: claude-3-haiku-20240307`);
+        console.log(`📤 System prompt length: ${systemPrompt.length}`);
+        console.log(`📤 User prompt length: ${userPrompt.length}`);
+        
         const message = await anthropic.messages.create({
           model: "claude-3-haiku-20240307",
           max_tokens: 1000,
@@ -1215,9 +1241,12 @@ export function registerRoutes(app: Express): void {
           messages: [{ role: "user", content: userPrompt }],
         });
 
+        console.log(`📥 Claude API call successful`);
+        console.log(`📥 Response usage: ${JSON.stringify(message.usage)}`);
+        
         const content = message.content[0];
         let responseText = content.type === "text" ? content.text : "";
-        console.log(`🤖 Claude raw response: ${responseText.substring(0, 200)}...`);
+        console.log(`🤖 Claude raw response (${responseText.length} chars): ${responseText.substring(0, 200)}...`);
         let parsedResult;
 
         try {
