@@ -1,0 +1,224 @@
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+attached_assets/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-09-05%2017.38.18_1757061521641.png:1 
+            
+            
+           GET https://replit.com/@slazengersnow/attached_assets/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-09-05%2017.38.18_1757061521641.png 404 (Not Found)
+Image
+_ @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1
+oq @ framework-118a5c94840a326f.js:1
+oQ @ framework-118a5c94840a326f.js:1このエラーを分析
+Console.js:61 No initial problem provided, generating first problem
+Console.js:61 Fetching problem with difficulty: toeic
+Console.js:61 Received problem data: {japaneseSentence: '来月の海外出張の日程を確認いたします。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I would like to check.', japaneseSentence: '来月の海外出張の日程を確認いたします。', modelAnswer: 'Please translate this sentence.', difficulty: 'toeic'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I would like to confirm the schedule for my overseas business trip next month.', feedback: 'この翻訳は短すぎて、原文の意味を十分に表現できていません。出張の日程を確認したいという意図が明確に表現されていません。', rating: 2, improvements: Array(2), explanation: 'この文章は、相手に対して出張の日程を確認したいという依頼を行っています。そのため、単に「確認したい」…現する必要があります。また、依頼の表現も丁寧な言い回しを使うことで、より適切な英語表現になります。', …}
+Console.js:61 Fetching problem with difficulty: toeic
+Console.js:61 Received problem data: {japaneseSentence: 'この度の製品開発会議の議事録を作成させていただきます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I will make minutes.', japaneseSentence: 'この度の製品開発会議の議事録を作成させていただきます。', modelAnswer: 'Please translate this sentence.', difficulty: 'toeic'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I will prepare the minutes from the product development meeting.', feedback: 'この翻訳は簡潔ですが、原文の意味を正確に表現できています。ただし、「作成させていただきます」という丁寧な表現が抜けているため、少し直接的な感じがします。', rating: 4, improvements: Array(1), explanation: 'この文では、「作成させていただきます」という敬語表現が重要です。単に「I will make」では丁寧さが足りません。また、「議事録を作成する」という意味を明確に表現する必要があります。', …}
+Console.js:61 Fetching problem with difficulty: toeic
+Console.js:61 Received problem data: {japaneseSentence: 'この度の人事評価面談の準備を進めております。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I proceed with interview.', japaneseSentence: 'この度の人事評価面談の準備を進めております。', modelAnswer: 'Please translate this sentence.', difficulty: 'toeic'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: '適切な英訳: I proceed with interview.', feedback: '「この度の人事評価面談の準備を進めております。」の翻訳として、基本的な構造は理解されています。AIが一時的に利用できないため、簡易評価を表示しています。', rating: 3, improvements: Array(2), explanation: '「この度の人事評価面談の準備を進めております。」という日本語文の英訳について、AI評価システムが一時的に利用できません。', …}
+Console.js:61 Fetching problem with difficulty: toeic
+Console.js:61 Received problem data: {japaneseSentence: 'この度の製造工程の改善策を検討させていただきます。', hints: Array(3)}

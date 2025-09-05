@@ -586,8 +586,14 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         console.log(`🤖 Claude API attempt ${attempt + 1}/${maxRetries + 1} for evaluation`);
+        console.log(`📝 Request: "${japaneseSentence}" -> "${userTranslation}"`);
         
-        const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+        const anthropic = new Anthropic({ 
+          apiKey: anthropicApiKey,
+          timeout: 30000, // 30 seconds timeout for production reliability
+        });
+        
+        const startTime = Date.now();
         const message = await anthropic.messages.create({
           model: "claude-3-haiku-20240307",
           max_tokens: 1000,
@@ -595,6 +601,9 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
         });
+        
+        const duration = Date.now() - startTime;
+        console.log(`⏱️ Claude API response time: ${duration}ms`);
 
         const content =
           message.content[0]?.type === "text" ? message.content[0].text : "";
@@ -721,17 +730,26 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 async function generateFallbackEvaluation(japaneseSentence: string, userTranslation: string, difficultyLevel: string): Promise<TranslateResponse> {
   console.log(`🤖 Generating complete dynamic evaluation for: "${japaneseSentence}" with user answer: "${userTranslation}"`);
   
-  // Try Claude API for complete evaluation
+  // 🚀 PRODUCTION-GRADE 5-RETRY SYSTEM FOR FALLBACK EVALUATION
   if (process.env.ANTHROPIC_API_KEY) {
-    try {
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      
-      const response = await anthropic.messages.create({
-        model: 'claude-3-haiku-20240307',
-        max_tokens: 400,
-        messages: [{
-          role: 'user',
-          content: `You are an English learning AI tutor. Evaluate this Japanese-to-English translation:
+    const maxRetries = 4; // 5 total attempts (0-4)
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`🤖 Fallback Claude API attempt ${attempt + 1}/${maxRetries + 1}`);
+        
+        const anthropic = new Anthropic({ 
+          apiKey: process.env.ANTHROPIC_API_KEY,
+          timeout: 25000, // 25 seconds timeout
+        });
+        
+        const startTime = Date.now();
+        const response = await anthropic.messages.create({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 400,
+          messages: [{
+            role: 'user',
+            content: `You are an English learning AI tutor. Evaluate this Japanese-to-English translation:
 
 Japanese: "${japaneseSentence}"
 User's answer: "${userTranslation}"
@@ -746,36 +764,77 @@ Provide a JSON response with:
 6. "similarPhrases": Array of 3 similar English expressions
 
 Respond only with valid JSON, no extra text.`
-        }]
-      });
+          }]
+        });
 
-      const content = response.content[0];
-      if (content.type === 'text') {
-        try {
-          const claudeResult = JSON.parse(content.text);
-          console.log(`✅ Claude complete evaluation generated successfully`);
-          return {
-            correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
-            feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
-            rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
-            improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
-            explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
-            similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
-          };
-        } catch (parseError) {
-          console.log('⚠️ Claude JSON parsing failed, falling back to static generation');
+        const duration = Date.now() - startTime;
+        console.log(`⏱️ Fallback Claude API response time: ${duration}ms`);
+
+        const content = response.content[0];
+        if (content.type === 'text') {
+          try {
+            const claudeResult = JSON.parse(content.text);
+            console.log(`✅ Fallback Claude complete evaluation generated successfully on attempt ${attempt + 1}`);
+            return {
+              correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
+              feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
+              rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
+              improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
+              explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
+              similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
+            };
+          } catch (parseError) {
+            console.log(`⚠️ Fallback Claude JSON parsing failed on attempt ${attempt + 1}, trying cleanup...`);
+            
+            // Advanced JSON cleanup (same as main API)
+            try {
+              let cleanContent = content.text.replace(/[\x00-\x1F\x7F]/g, '');
+              cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+              const claudeResult = JSON.parse(cleanContent);
+              console.log(`✅ Fallback Claude cleanup parsing successful on attempt ${attempt + 1}`);
+              return {
+                correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
+                feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
+                rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
+                improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
+                explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
+                similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
+              };
+            } catch (cleanupError) {
+              if (attempt < maxRetries) {
+                console.log(`⚠️ Fallback attempt ${attempt + 1} failed, retrying...`);
+                continue; // Try again
+              }
+            }
+          }
+        }
+
+      } catch (apiError: any) {
+        const isLastAttempt = attempt === maxRetries;
+        const isRateLimited = apiError.message?.includes('429') || apiError.message?.includes('rate limit');
+        const isServerError = apiError.message?.includes('500') || apiError.message?.includes('502') || apiError.message?.includes('503');
+        const isTimeoutError = apiError.message?.includes('timeout') || apiError.code === 'ECONNRESET';
+        
+        console.error(`❌ Fallback Claude API error on attempt ${attempt + 1}:`, {
+          message: apiError.message,
+          status: apiError.status,
+          type: apiError.type,
+          error_type: apiError.error_type,
+        });
+        
+        if (!isLastAttempt && (isRateLimited || isServerError || isTimeoutError)) {
+          // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+          const backoffMs = Math.pow(2, attempt) * 1000;
+          const errorType = isRateLimited ? 'rate limit' : (isServerError ? 'server error' : 'timeout');
+          
+          console.log(`⏳ Fallback ${errorType} on attempt ${attempt + 1}, retrying in ${backoffMs/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          continue; // Retry
         }
       }
-    } catch (error) {
-      console.error(`❌ DETAILED Claude evaluation error:`, {
-        message: error.message,
-        status: error.status,
-        type: error.type,
-        error_type: error.error_type,
-        error: error
-      });
-      console.log(`⚠️ Claude evaluation failed: ${error.message}, using static fallback`);
     }
+    
+    console.log('⚠️ All fallback Claude API attempts failed, using static evaluation');
   }
   
   // Static fallback system (only used when Claude API fails)
