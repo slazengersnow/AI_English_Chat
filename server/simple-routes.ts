@@ -796,38 +796,50 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           message.content[0]?.type === "text" ? message.content[0].text : "";
         console.log(`📝 Claude response (attempt ${attempt + 1}):`, content.substring(0, 200) + "...");
 
-        // Advanced JSON parsing with 3-stage fallback
+        // 🔥 CRITICAL FIX: Robust JSON parsing for Claude responses with control characters
         try {
+          // Stage 1: Direct parse (try with raw content first)
           parsedResult = JSON.parse(content);
           console.log(`✅ Successfully parsed Claude response on attempt ${attempt + 1}`);
           break; // Success! Exit retry loop
         } catch (parseError) {
-          console.log(`⚠️ JSON parse failed on attempt ${attempt + 1}, trying cleanup...`);
+          console.log(`⚠️ JSON parse failed on attempt ${attempt + 1}, error:`, parseError.message);
+          console.log(`📝 Raw content length:`, content.length);
+          
           try {
-            // Stage 2: Clean up content and try again
-            let cleanContent = content.replace(/[\x00-\x1F\x7F]/g, '');
-            cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-            parsedResult = JSON.parse(cleanContent);
+            // Stage 2: Safe JSON extraction and cleaning
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+              throw new Error('No JSON block found in Claude response');
+            }
+            
+            let jsonString = jsonMatch[0];
+            console.log(`📝 Extracted JSON length:`, jsonString.length);
+            
+            // Fix control characters in JSON string values only - CRITICAL FIX
+            jsonString = jsonString.replace(/"explanation":\s*"([^"]*(?:\\.[^"]*)*)"/g, (match, explanation) => {
+              const cleaned = explanation
+                .replace(/\n/g, '\\\\n')
+                .replace(/\r/g, '\\\\r')
+                .replace(/\t/g, '\\\\t');
+              return `"explanation": "${cleaned}"`;
+            });
+            
+            // Also clean other text fields that might have control characters
+            jsonString = jsonString.replace(/"feedback":\s*"([^"]*(?:\\.[^"]*)*)"/g, (match, feedback) => {
+              const cleaned = feedback
+                .replace(/\n/g, '\\\\n')
+                .replace(/\r/g, '\\\\r')
+                .replace(/\t/g, '\\\\t');
+              return `"feedback": "${cleaned}"`;
+            });
+            
+            parsedResult = JSON.parse(jsonString);
             console.log(`✅ Successfully parsed cleaned Claude response on attempt ${attempt + 1}`);
             break; // Success! Exit retry loop
           } catch (cleanupError) {
-            // Stage 3: Extract JSON from content
-            const jsonMatch = content?.match?.(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              try {
-                let jsonContent = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, '');
-                jsonContent = jsonContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-                parsedResult = JSON.parse(jsonContent);
-                console.log(`✅ Successfully extracted and parsed JSON on attempt ${attempt + 1}`);
-                break; // Success! Exit retry loop
-              } catch (finalError) {
-                console.error(`❌ All JSON parsing failed on attempt ${attempt + 1}:`, finalError);
-                lastError = finalError;
-              }
-            } else {
-              console.error(`❌ No JSON found in Claude response on attempt ${attempt + 1}`);
-              lastError = cleanupError;
-            }
+            console.error(`❌ JSON cleanup failed on attempt ${attempt + 1}:`, cleanupError);
+            lastError = cleanupError;
           }
         }
 
