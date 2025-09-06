@@ -226,8 +226,8 @@ export default function MyPage() {
   const createCustomerPortalMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest(
-        "/api/create-customer-portal",
         "POST",
+        "/api/create-customer-portal",
         {},
       );
       return response.json();
@@ -246,7 +246,7 @@ export default function MyPage() {
 
   const upgradeSubscriptionMutation = useMutation({
     mutationFn: (planType: "monthly" | "yearly") =>
-      apiRequest("/api/upgrade-subscription", "POST", { planType }),
+      apiRequest("POST", "/api/upgrade-subscription", { planType }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-subscription"] });
       toast({
