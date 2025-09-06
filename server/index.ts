@@ -137,22 +137,13 @@ try {
 }
 
 /* ---------- main api routes registration ---------- */
-// その後に /api の通常ルートを登録
+// 統一実装である routes/index.js を使用
 try {
-  // simple-routes.js から registerRoutes をインポート
-  const { registerRoutes } = await import("./simple-routes.js");
+  const { registerRoutes } = await import("./routes/index.js");
   registerRoutes(app);
-  console.log("✅ Simple routes registered successfully");
+  console.log("✅ Unified routes registered successfully");
 } catch (error) {
-  // fallback として routes/index.js からインポートを試行
-  try {
-    const { registerRoutes } = await import("./routes/index.js");
-    registerRoutes(app);
-    console.log("✅ Index routes registered successfully");
-  } catch (fallbackError) {
-    console.error("Routes registration error:", error);
-    console.error("Fallback routes registration error:", fallbackError);
-  }
+  console.error("Unified routes registration error:", error);
 }
 
 /* ---------- introspection endpoint (一時的なデバッグ用) ---------- */
