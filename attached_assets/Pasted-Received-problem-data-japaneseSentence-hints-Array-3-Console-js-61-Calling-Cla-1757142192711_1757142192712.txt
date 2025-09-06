@@ -1,0 +1,36 @@
+Received problem data: {japaneseSentence: '毎朝コーヒーを飲みます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I drink coffee.', japaneseSentence: '毎朝コーヒーを飲みます。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I drink coffee every morning.', feedback: 'この翻訳は基本的に正しいですが、「毎朝」という時間表現が抜けているため、より自然な英語表現とは言えません。', rating: 4, improvements: Array(1), explanation: 'この文章は基本的な動詞「飲む」を使った簡単な文章です。文法的にも正しく、語彙も適切に使われています。…重要な時間表現が抜けているため、より自然な英語表現にするためにはこの部分を追加する必要があります。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '学校へ歩きます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I walk to the school.', japaneseSentence: '学校へ歩きます。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I walk to school.', feedback: 'この翻訳は概ね正確です。文法的にも問題なく、基本的な英語表現が使われています。ただし、「the school」ではなく「school」とするのがより自然な表現です。', rating: 4, improvements: Array(1), explanation: 'この文は基本的な動詞「walk」を使った単純な文章です。英語では学校の前に冠詞「the」をつけるのが一般的ですが、単に「school」と言うのも正しい表現です。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '友達と遊びます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I play with my friend.', japaneseSentence: '友達と遊びます。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: "I'm going to play with my friends.", feedback: 'この翻訳は基本的に正しいですが、少し改善の余地があります。「遊びます」は単に「play」ではなく、「…未来の意味を含む表現のほうが自然です。また、「友達」は複数形の「friends」のほうが適切です。', rating: 4, improvements: Array(2), explanation: '日本語の「友達と遊びます」は、単に「play」ではなく、「going to play」のように未来の…の「friends」のほうが適切です。基本的な文法と語彙は正しいですが、少し改善の余地があります。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '図書館で本を読みます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I read a book in the library,', japaneseSentence: '図書館で本を読みます。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I read a book at the library.', feedback: 'この翻訳は概ね正しいですが、いくつか改善の余地があります。前置詞の使い分けが適切で、文法的にも問題あ…だし、「in the library」よりも「at the library」の方が自然な表現です。', rating: 4, improvements: Array(1), explanation: 'この文では、図書館という場所で本を読むという意味を表しています。場所を表す前置詞としては、「in」よ…書館という場所で本を読むという意味なので、「at the library」が自然な表現になります。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '夕食を作ります。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I will cook dinner.', japaneseSentence: '夕食を作ります。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I will make dinner.', feedback: 'この翻訳は文法的に正確で、適切な語彙を使用しています。「make dinner」の方が「cook dinner」よりも自然な英語表現です。基本的な動詞の使用レベルとしては適切です。', rating: 4, improvements: Array(0), explanation: '「make dinner」は「夕食を作る」という意味を表す自然な英語表現です。「cook dinne…い表現ですが、「make」の方がより一般的に使われます。基本的な動詞の使用としては問題ありません。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '毎日公園を走ります。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I run in the park every day.', japaneseSentence: '毎日公園を走ります。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I run in the park every day.', feedback: 'この英訳は非常に良く、文法的に正確で自然な表現になっています。動詞「run」の使い方、前置詞「in」…います。基本動詞レベルの英語学習者にとって、この翻訳は理解しやすく、参考になる良い例だと言えます。', rating: 5, improvements: Array(0), explanation: 'この文章は基本的な英語の文法構造「主語 + 動詞 + 場所 + 頻度」を正しく使っています。動詞「r…が作成した翻訳としては、文法、語彙、表現力のバランスが良く、非常に優れた出来栄えだと評価できます。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '午後に散歩します。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I take a walk in the afternoon.', japaneseSentence: '午後に散歩します。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: '適切な英訳: I take a walk in the afternoon.', feedback: '「午後に散歩します。」の翻訳として良い出来映えです！基本的な語順と文法構造が適切に使われており、意味もしっかりと伝わる英語表現になっています。継続的な練習でさらに自然な表現力が身につくでしょう。', rating: 3, improvements: Array(2), explanation: '「午後に散歩します。」という日本語文の英訳について分析します。基本的な文構造は理解されており、語彙選択も適切です。英語の語順に慣れることで、より自然で流暢な表現が身につくでしょう。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '家で勉強します。', hints: Array(3)}
