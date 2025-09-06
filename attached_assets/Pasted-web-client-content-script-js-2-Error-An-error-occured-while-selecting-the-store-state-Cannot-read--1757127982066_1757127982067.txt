@@ -1,0 +1,49 @@
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+Console.js:61 No initial problem provided, generating first problem
+Console.js:61 Fetching problem with difficulty: toeic
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+Console.js:61 Received problem data: 
+{japaneseSentence: '来週の経営会議の議事録を作成いたします。', hints: Array(3)}
+attached_assets/%E3%…1757126520412.png:1 
+ GET https://replit.com/@slazengersnow/attached_assets/%E3%82%B9%E3%82%AF%E3%83%…82%B7%E3%83%A7%E3%83%83%E3%83%88%202025-09-06%2011.41.46_1757126520412.png 404 (Not Found)
+Console.js:61 Calling Claude API with: 
+{userAnswer: 'I will make minutes of management meeting for next week.', japaneseSentence: '来週の経営会議の議事録を作成いたします。', modelAnswer: 'Please translate this sentence.', difficulty: 'toeic'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: 
+{correctTranslation: '適切な英訳: I will make minutes of management meeting for next week.', feedback: '「来週の経営会議の議事録を作成いたします。」の翻訳として、基本的な構造は理解されています。AIが一時的に利用できないため、簡易評価を表示しています。', rating: 3, improvements: Array(2), explanation: '「来週の経営会議の議事録を作成いたします。」という日本語文の英訳について、AI評価システムが一時的に利用できません。', …}
+Console.js:61 Fetching problem with difficulty: toeic
+Console.js:61 Received problem data: 
+{japaneseSentence: '来年度の研修プログラムの企画を進めさせていただきます。', hints: Array(3)}
+﻿
