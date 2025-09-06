@@ -774,9 +774,9 @@ export default function MyPage() {
             </Card>
           </TabsContent>
 
-          {/* 練習 */}
+          {/* 練習 - 統合された繰り返し練習のみ */}
           <TabsContent value="review" className="space-y-6">
-            {/* 繰り返し練習 */}
+            {/* 繰り返し練習 - 全ての過去問題が対象 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
