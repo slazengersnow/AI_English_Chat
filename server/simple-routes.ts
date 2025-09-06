@@ -703,29 +703,8 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 
     const { japaneseSentence, userTranslation } = result.data;
 
-    // 🔥 CRITICAL FIX: Use direct evaluation for problematic cases - FULLY EXPANDED COVERAGE
-    const problematicPatterns = [
-      '朝ご飯', '面談', '人事評価', '毎日、学校の帰りに',
-      '私は本を読みます', '今日は金曜日です', '彼は自転車に乗ります',
-      'もし時間があれば', '製品開発会議', '議事録',
-      '公園に行きます', '手紙を書きます', '料理を作ります',
-      '契約書の内容', '研修の参加者', '駅までの道を',
-      '将来の夢を実現', '科学技術の発展', '努力を続けた',
-      'プロジェクトを完了', '彼女は音楽を', '写真を撮ります',
-      '買い物に行きます', '映画を見ます', '商品の納期',
-      '荷物を預けたい', '海外出張の日程',
-      '公園で走ります', 'スーパーで野菜を買います', '朝早く起きて勉強します'
-    ];
-    
-    const isProblematicCase = problematicPatterns.some(pattern => 
-      japaneseSentence.includes(pattern)
-    );
-    
-    if (isProblematicCase) {
-      console.log('🎯 BYPASSING CLAUDE API - Using direct high-quality evaluation for:', japaneseSentence);
-      const directEvaluation = getDirectHighQualityEvaluation(japaneseSentence, userTranslation, normalized.difficultyLevel || 'middle_school');
-      return res.json(directEvaluation);
-    }
+    // 🚀 ALWAYS USE CLAUDE API FOR MAXIMUM QUALITY AND CONSISTENCY
+    console.log('✅ Using Claude API for all evaluations - ensuring maximum quality and reliability');
 
     const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
     if (!anthropicApiKey) {
