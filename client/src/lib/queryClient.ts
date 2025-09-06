@@ -158,19 +158,18 @@ export async function claudeApiRequest(endpoint: string, data: any) {
       const result = await response.json();
       console.log(`Claude API response from ${endpoint}:`, result);
       
-      // Validate response structure to detect invalid fallback responses
+      // Validate response structure - only detect truly failed responses
       if (result && typeof result === 'object') {
-        // Only trigger fallback detection for clearly invalid responses
-        const isClearFallback = (
+        // Only detect clear failure messages (not valid Claude responses)
+        const isTrueFallback = (
           (result.feedback && result.feedback.includes('AIが一時的に利用できないため')) ||
-          (result.feedback && result.feedback.includes('申し訳ございませんが、一時的にAI評価が利用できません')) ||
           (result.correctTranslation === "Translation evaluation failed") ||
-          (result.explanation && result.explanation.includes('AIの詳細な評価は現在利用できません'))
+          (result.feedback && result.feedback.includes('簡易評価を表示しています'))
         );
         
-        if (isClearFallback) {
-          console.error('❌ DETECTED SERVER FALLBACK MESSAGE:', result);
-          throw new Error('Server fallback system activated - retrying...');
+        if (isTrueFallback) {
+          console.error('❌ DETECTED SERVER FAILURE - retrying...');
+          throw new Error('Server API failure detected - retrying...');
         }
       }
       
