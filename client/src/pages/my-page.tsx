@@ -311,8 +311,15 @@ export default function MyPage() {
     const reviewData = {
       japaneseSentence: session.japaneseSentence,
       difficultyLevel: session.difficultyLevel,
+      correctTranslation: session.correctTranslation, // ✅ 過去の模範回答を含める
+      userTranslation: session.userTranslation, // ✅ 前回の回答を含める
+      rating: session.rating, // ✅ 前回の評価を含める
+      feedback: session.feedback, // ✅ 前回のフィードバックを含める
+      sessionId: session.id, // ✅ セッションIDを含める
       isReview: true,
     };
+    
+    console.log("🔄 Review problem data:", reviewData);
     
     // Store the problem data in sessionStorage for the practice interface
     sessionStorage.setItem("reviewProblem", JSON.stringify(reviewData));

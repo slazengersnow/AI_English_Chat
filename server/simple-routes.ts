@@ -1211,10 +1211,10 @@ export function registerRoutes(app: Express): void {
         });
 
         // Claude APIが利用不可の場合でも適切なフォールバック評価を生成
-        const fallbackEvaluation = await generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel);
+        const userId = req.user?.email || "anonymous";
+        const fallbackEvaluation = await generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel, userId);
 
         try {
-          const userId = req.user?.email || "anonymous";
           const [session] = await db
             .insert(trainingSessions)
             .values({

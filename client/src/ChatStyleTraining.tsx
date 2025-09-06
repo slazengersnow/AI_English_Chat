@@ -251,33 +251,41 @@ export default function ChatStyleTraining({
   const initializeWithReviewProblem = (reviewData: any) => {
     if (loadingProblemRef.current || isStarted) return;
     
-    console.log("Initializing with review problem:", reviewData);
+    console.log("🔄 Initializing with review problem:", reviewData);
     
     setIsStarted(true);
     setCurrentProblem({
       japaneseSentence: reviewData.japaneseSentence,
-      modelAnswer: "Please translate this sentence.", // Default model answer
+      modelAnswer: reviewData.correctTranslation || "Please translate this sentence.", // ✅ 過去の模範回答を使用
       hints: [],
       difficulty: difficulty,
     });
     setAwaitingAnswer(true);
 
-    // Add review indicator message
+    // Add review indicator message with previous context
     const reviewIndicatorMessage: ChatMessage = {
-      id: (Date.now() - 1).toString(),
+      id: (Date.now() - 3).toString(),
       type: "system",
       content: "📝 復習問題: この問題を再度解いてみましょう",
       timestamp: new Date(),
     };
 
+    // Add previous attempt info if available
+    const previousAttemptMessage: ChatMessage = {
+      id: (Date.now() - 2).toString(),
+      type: "system",
+      content: `前回の回答: "${reviewData.userTranslation || 'なし'}" (評価: ★${reviewData.rating || 'なし'})`,
+      timestamp: new Date(),
+    };
+
     const problemMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: (Date.now() - 1).toString(),
       type: "problem", 
       content: reviewData.japaneseSentence,
       timestamp: new Date(),
     };
 
-    setMessages([reviewIndicatorMessage, problemMessage]);
+    setMessages([reviewIndicatorMessage, previousAttemptMessage, problemMessage]);
     scrollToBottom();
     setProblemCount(1);
   };
