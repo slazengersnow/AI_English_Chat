@@ -528,6 +528,10 @@ ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
 
 export const handleClaudeEvaluation = async (req: Request, res: Response) => {
   try {
+    // ✅ ユーザーID取得（認証ミドルウェアから）
+    const userId = req.user?.email || req.user?.id || "anonymous";
+    console.log(`📝 Evaluation request from user: ${userId}`);
+    
     // ★ まずは正規化
     const normalized = {
       japaneseSentence: req.body?.japaneseSentence,
@@ -715,6 +719,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
       // Save training session to database
       try {
         const sessionData = {
+          userId: userId, // ✅ ユーザーIDを含める
           difficultyLevel: normalized.difficultyLevel || "middle-school",
           japaneseSentence: japaneseSentence,
           userTranslation: normalized.userTranslation || "",
@@ -723,10 +728,12 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
           rating: response.rating,
         };
         
+        console.log(`📝 Saving training session for user: ${userId}`);
         const insertResult = await db.insert(trainingSessions).values(sessionData).returning();
         response.sessionId = insertResult[0]?.id;
+        console.log(`✅ Training session saved with ID: ${response.sessionId}`);
       } catch (dbError) {
-        console.error('Database save error:', dbError);
+        console.error('❌ Database save error:', dbError);
         // Continue without sessionId if database save fails
       }
 
@@ -735,7 +742,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
     
     // If we reach here, all Claude API attempts failed - use high-quality fallback
     console.log("⚠️ All Claude API attempts failed, using enhanced fallback system");
-    const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
+    const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school", userId);
     return res.json(fallbackResponse);
   } catch (error) {
     console.error("Evaluation error:", error);
@@ -747,7 +754,7 @@ export const handleClaudeEvaluation = async (req: Request, res: Response) => {
 };
 
 // Enhanced Claude-powered dynamic evaluation function
-async function generateFallbackEvaluation(japaneseSentence: string, userTranslation: string, difficultyLevel: string): Promise<TranslateResponse> {
+async function generateFallbackEvaluation(japaneseSentence: string, userTranslation: string, difficultyLevel: string, userId: string): Promise<TranslateResponse> {
   console.log(`🤖 Generating complete dynamic evaluation for: "${japaneseSentence}" with user answer: "${userTranslation}"`);
   
   // 🚀 PRODUCTION-GRADE 5-RETRY SYSTEM FOR FALLBACK EVALUATION
