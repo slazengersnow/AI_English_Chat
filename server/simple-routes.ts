@@ -1321,14 +1321,19 @@ export function registerRoutes(app: Express): void {
   router.get("/recent-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
       const userEmail = req.user?.email || "anonymous";
-      console.log(`📋 Fetching recent sessions for user: ${userEmail}`);
+      console.log(`📋 Fetching recent sessions (past 10 days) for user: ${userEmail}`);
       
+      // ✅ 過去10日間のセッションを取得（制限なし）
       const recentSessions = await db
         .select()
         .from(trainingSessions)
-        .where(eq(trainingSessions.userId, userEmail as string))
-        .orderBy(desc(trainingSessions.createdAt))
-        .limit(10);
+        .where(
+          and(
+            eq(trainingSessions.userId, userEmail as string),
+            sql`created_at >= CURRENT_DATE - INTERVAL '10 days'`
+          )
+        )
+        .orderBy(desc(trainingSessions.createdAt));
       
       console.log(`📋 Found ${recentSessions.length} recent sessions for ${userEmail}`);
       res.json(recentSessions);

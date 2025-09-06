@@ -29,11 +29,9 @@ import {
 } from "recharts";
 import {
   User,
-  TrendingUp,
   Calendar,
   Star,
   Bookmark,
-  RotateCcw,
   Plus,
   Edit,
   Trash2,
@@ -48,6 +46,7 @@ import {
   LogOut,
   Shield,
   Mail,
+  TrendingUp,
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -72,6 +71,7 @@ interface TrainingSession {
   userTranslation: string;
   correctTranslation: string;
   rating: number;
+  feedback?: string;
   isBookmarked?: boolean;
   createdAt: string;
 }
@@ -141,9 +141,6 @@ export default function MyPage() {
     queryKey: ["/api/monthly-stats"],
   });
 
-  const { data: reviewSessions = [] } = useQuery<TrainingSession[]>({
-    queryKey: ["/api/review-sessions"],
-  });
 
   // Recent sessions (past week)
   const { data: recentSessions = [] } = useQuery<TrainingSession[]>({
@@ -156,14 +153,6 @@ export default function MyPage() {
     enabled: activeTab === "account",
   });
 
-  const { data: rechallengeList = [] } = useQuery<TrainingSession[]>({
-    queryKey: ["/api/review-sessions", { threshold: 3 }],
-    queryFn: () =>
-      fetch("/api/review-sessions?threshold=3").then((res) => {
-        if (!res.ok) return [];
-        return res.json();
-      }),
-  });
 
   const { data: bookmarkedSessions = [] } = useQuery<TrainingSession[]>({
     queryKey: ["/api/bookmarked-sessions"],
@@ -237,8 +226,8 @@ export default function MyPage() {
   const createCustomerPortalMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest(
-        "POST",
         "/api/create-customer-portal",
+        "POST",
         {},
       );
       return response.json();
@@ -314,7 +303,7 @@ export default function MyPage() {
       correctTranslation: session.correctTranslation, // ✅ 過去の模範回答を含める
       userTranslation: session.userTranslation, // ✅ 前回の回答を含める
       rating: session.rating, // ✅ 前回の評価を含める
-      feedback: session.feedback, // ✅ 前回のフィードバックを含める
+      feedback: session.feedback || '', // ✅ 前回のフィードバックを含める
       sessionId: session.id, // ✅ セッションIDを含める
       isReview: true,
     };
@@ -369,7 +358,9 @@ export default function MyPage() {
       queryClient.cancelQueries();
       
       // Sign out from auth provider
-      await signOut();
+      if (signOut) {
+        await signOut();
+      }
       
       // Clear all cached query data
       queryClient.clear();
@@ -793,7 +784,7 @@ export default function MyPage() {
                   繰り返し練習
                 </CardTitle>
                 <CardDescription>
-                  過去1週間に解いた問題をランダムに練習できます。練習に最適です。
+                  過去10日間に解いた全ての問題を練習できます。評価の低い問題も含まれます。
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -801,7 +792,7 @@ export default function MyPage() {
                   {recentSessions.length === 0 ? (
                     <div className="py-8 text-gray-500">
                       <RefreshCw className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="text-sm">直近1週間の練習履歴がありません</p>
+                      <p className="text-sm">直近10日間の練習履歴がありません</p>
                       <p className="text-sm mt-1">
                         練習を開始して履歴を蓄積しましょう
                       </p>
@@ -809,7 +800,7 @@ export default function MyPage() {
                   ) : (
                     <div className="space-y-3">
                       <div className="text-sm text-muted-foreground">
-                        過去1週間で {recentSessions.length} 問の履歴があります
+                        過去10日間で {recentSessions.length} 問の履歴があります
                       </div>
                       {subscription?.subscriptionType === "premium" ? (
                         <Button
@@ -844,81 +835,6 @@ export default function MyPage() {
               </CardContent>
             </Card>
 
-            {/* 要練習リスト */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <RotateCcw className="w-5 h-5 text-red-500" />
-                  要練習リスト（★2以下）
-                </CardTitle>
-                <CardDescription>
-                  評価が低い問題を練習しましょう。クリックして再挑戦できます。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {reviewSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
-                      onClick={() => handleReviewProblem(session)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">
-                            {session.japaneseSentence}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {getDifficultyName(session.difficultyLevel)}
-                          </div>
-                        </div>
-                        <div className="text-blue-600">
-                          <ArrowRight className="w-4 h-4" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 再挑戦リスト */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                  再挑戦リスト（★3）
-                </CardTitle>
-                <CardDescription>
-                  もう一度チャレンジしてスコアアップを目指しましょう。クリックして再挑戦できます。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {rechallengeList.map((session) => (
-                    <div
-                      key={session.id}
-                      className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-300 transition-colors"
-                      onClick={() => handleReviewProblem(session)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">
-                            {session.japaneseSentence}
-                          </div>
-                          <div className="text-xs text-muted-foreground mt-1">
-                            {getDifficultyName(session.difficultyLevel)}
-                          </div>
-                        </div>
-                        <div className="text-blue-600">
-                          <ArrowRight className="w-4 h-4" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* 模擬作成 */}
@@ -1458,8 +1374,7 @@ export default function MyPage() {
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-medium">次回請求日</h4>
                       <span className="text-sm text-gray-600">
-                        {isAdmin ? "なし" : subscriptionDetails?.nextBillingDate || 
-                          (() => {
+                        {isAdmin ? "なし" : (() => {
                             const trialEndDate = new Date();
                             trialEndDate.setDate(trialEndDate.getDate() + 7);
                             return trialEndDate.toLocaleDateString("ja-JP");
@@ -1469,7 +1384,7 @@ export default function MyPage() {
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">請求金額</h4>
                       <span className="text-lg font-bold">
-                        {isAdmin ? "¥0" : subscriptionDetails?.price || "月額1,300円"}
+                        {isAdmin ? "¥0" : "月額1,300円"}
                       </span>
                     </div>
                   </div>
