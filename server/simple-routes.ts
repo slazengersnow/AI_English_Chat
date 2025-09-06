@@ -448,6 +448,9 @@ ${promptConfig.examples}
 - 指定されたレベルを超えない語彙・文法のみ使用
 - 1文のみ（複文・複合文禁止、特にmiddle-schoolは絶対1文）
 - 自然で翻訳しやすい日本語
+- 【多様性最重要】同じ表現パターンは避け、文構造・語彙選択・主語・動詞をランダムに変える
+- TOEIC・BUSINESS_EMAIL: 「この度」「つきまして」は30%以下に制限
+- 毎回異なるテーマ・分野から1つランダム選択
 
 ${allRecentProblems.length > 0 ? `【重複回避】以下の文は絶対に避け、全く異なる内容で作成：
 ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
