@@ -24,6 +24,7 @@ export function registerRoutes(app: Express) {
   router.get("/supabase-status", handleSupabaseStatus);
 
   /* ----------------------- Claude関連 ----------------------- */
+  router.get("/generate-problem", handleProblemGeneration);
   router.post("/problem", handleProblemGeneration);
   router.post("/evaluate-with-claude", handleClaudeEvaluation);
   router.post("/evaluate", handleBasicEvaluation);
@@ -170,27 +171,148 @@ async function handleAuthLogout(req: Request, res: Response) {
   }
 }
 
-// Claude関連
+// Claude関連 - 問題生成
 async function handleProblemGeneration(req: Request, res: Response) {
   try {
-    const { topic, difficulty, type } = req.body;
-    const problem = {
-      id: Date.now().toString(),
-      topic: topic || "general",
-      difficulty: difficulty || "beginner",
-      type: type || "conversation",
-      content: `これは${topic || "一般的な"}トピックに関する${difficulty || "初級"}レベルの問題です。`,
-      japaneseSentence: "これは日本語の例文です。",
-      englishHint: "This is an English hint.",
-      createdAt: new Date().toISOString(),
-    };
+    // GETリクエストからdifficultyを取得
+    const difficultyLevel = req.query.difficulty as string || 'middle_school';
+    
+    console.log(`🔍 Problem generation request for difficulty: ${difficultyLevel}`);
+    
+    // 実際のClaude API呼び出しによる問題生成
+    const problem = await generateProblemWithClaude(difficultyLevel);
     res.json({ success: true, data: problem });
+    
   } catch (error) {
     console.error("Problem generation error:", error);
-    res
-      .status(500)
-      .json({ success: false, error: "Failed to generate problem" });
+    
+    // フォールバック: 高品質なデフォルト問題を提供
+    const fallbackProblem = getFallbackProblem(req.query.difficulty as string || 'middle_school');
+    res.json({ success: true, data: fallbackProblem });
   }
+}
+
+// 🎯 Claude APIによる実際の問題生成
+async function generateProblemWithClaude(difficultyLevel: string) {
+  console.log(`🤖 [CLAUDE] Generating problem for difficulty: ${difficultyLevel}`);
+  
+  try {
+    const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicApiKey) {
+      throw new Error("ANTHROPIC_API_KEY not found");
+    }
+
+    const { default: Anthropic } = await import('@anthropic-ai/sdk');
+    const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+    
+    // 各レベルに応じたプロンプト
+    const promptTemplates = {
+      toeic: "TOEIC対策向けのビジネス英語の日本語文を生成してください。",
+      middle_school: "中学生レベルの基本的な日本語文を生成してください。",
+      high_school: "高校生レベルの少し複雑な日本語文を生成してください。",
+      basic_verbs: "基本動詞（食べる、見る、行く、来るなど）を使った日本語文を生成してください。",
+      business_email: "ビジネスメール向けの丁寧な日本語文を生成してください。",
+      simulation: "日常会話シミュレーション向けの実用的な日本語文を生成してください。"
+    };
+    
+    const prompt = promptTemplates[difficultyLevel as keyof typeof promptTemplates] || promptTemplates.middle_school;
+    
+    const message = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 300,
+      temperature: 0.8,
+      messages: [{
+        role: "user", 
+        content: `${prompt}
+
+以下のJSON形式で1つの問題を返してください：
+{
+  "japaneseSentence": "日本語の例文",
+  "modelAnswer": "対応する英訳",
+  "hints": ["ヒント1", "ヒント2", "ヒント3"]
+}`
+      }]
+    });
+
+    const content = message.content[0];
+    if (content.type === "text") {
+      const responseText = content.text;
+      
+      // JSONを抽出
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsedData = JSON.parse(jsonMatch[0]);
+        
+        return {
+          id: Date.now().toString(),
+          topic: "generated",
+          difficulty: difficultyLevel,
+          type: "translation",
+          content: parsedData.japaneseSentence,
+          japaneseSentence: parsedData.japaneseSentence,
+          modelAnswer: parsedData.modelAnswer,
+          hints: parsedData.hints || [],
+          createdAt: new Date().toISOString(),
+        };
+      }
+    }
+    
+    throw new Error("Failed to parse Claude response");
+    
+  } catch (error) {
+    console.error("Claude API error:", error);
+    throw error;
+  }
+}
+
+// 🔄 フォールバック問題提供
+function getFallbackProblem(difficultyLevel: string) {
+  const fallbackProblems = {
+    toeic: {
+      japaneseSentence: "会議は来週月曜日に延期されました。",
+      modelAnswer: "The meeting has been postponed to next Monday.",
+      hints: ["postponed", "next Monday", "meeting"]
+    },
+    middle_school: {
+      japaneseSentence: "私は毎日英語を勉強しています。",
+      modelAnswer: "I study English every day.",
+      hints: ["study", "every day", "English"]
+    },
+    high_school: {
+      japaneseSentence: "将来の夢を実現するために毎日努力しています。",
+      modelAnswer: "I work hard every day to realize my future dreams.",
+      hints: ["work hard", "realize", "dreams"]
+    },
+    basic_verbs: {
+      japaneseSentence: "私は写真を撮ります。",
+      modelAnswer: "I take photos.",
+      hints: ["take", "photos", "pictures"]
+    },
+    business_email: {
+      japaneseSentence: "商品の納期が遅れる可能性があります。",
+      modelAnswer: "There is a possibility that the product delivery may be delayed.",
+      hints: ["delivery", "delayed", "possibility"]
+    },
+    simulation: {
+      japaneseSentence: "駅はどこにありますか？",
+      modelAnswer: "Where is the station?",
+      hints: ["where", "station", "location"]
+    }
+  };
+  
+  const problem = fallbackProblems[difficultyLevel as keyof typeof fallbackProblems] || fallbackProblems.middle_school;
+  
+  return {
+    id: Date.now().toString(),
+    topic: "fallback",
+    difficulty: difficultyLevel,
+    type: "translation",
+    content: problem.japaneseSentence,
+    japaneseSentence: problem.japaneseSentence,
+    modelAnswer: problem.modelAnswer,
+    hints: problem.hints,
+    createdAt: new Date().toISOString(),
+  };
 }
 
 // 🎯 UNIFIED CLAUDE API - Direct high-quality evaluation for specific problematic cases
