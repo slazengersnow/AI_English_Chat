@@ -1,0 +1,17 @@
+Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '夕方に買い物に行きます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I go for shopping in the evning.', japaneseSentence: '夕方に買い物に行きます。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I will go shopping in the evening.', feedback: 'この翻訳は基本的な文法は正しいですが、語彙と表現が少し自然ではありません。「go for shopp…レーズは自然な英語表現ではありません。また、「in the evning」のスペルミスがあります。', rating: 3, improvements: Array(2), explanation: '英語では「go shopping」と動詞と目的語の組み合わせで「買い物に行く」と表現します。また、時間を表す場合は前置詞「in」を使って「in the evening」と表現するのが自然です。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: '買い物に行きます。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I will go shopping.', japaneseSentence: '買い物に行きます。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: "I'm going shopping.", feedback: 'この翻訳は文法的に正しく、自然な英語表現を使っています。ただし、「will go」ではなく「am going」を使うことで、より現在進行形の意味合いを表現できます。', rating: 4, improvements: Array(1), explanation: '「買い物に行きます」は現在進行形の意味合いがあるため、「I will go shopping」ではな…が適切な英訳になります。現在進行形を使うことで、今すぐ買い物に行くという意味を表すことができます。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: 'スーパーで買い物をします。', hints: Array(3)}
+Console.js:61 Calling Claude API with: {userAnswer: 'I will go for shopping at the supermarket.', japaneseSentence: 'スーパーで買い物をします。', modelAnswer: 'Please translate this sentence.', difficulty: 'basic_verbs'}
+Console.js:61 Claude API response status: 200
+Console.js:61 Claude API evaluation received: {correctTranslation: 'I will go shopping at the supermarket.', feedback: 'この翻訳は概ね正確ですが、一部の表現がやや不自然です。「go for shopping」よりも「go…he supermarket」の部分も「at a supermarket」の方が一般的な表現です。', rating: 4, improvements: Array(2), explanation: 'この文では、基本的な動詞「go」と名詞「shopping」を使って、スーパーで買い物をする行為を表現…ket」と特定の店舗を指すよりも、「a supermarket」と一般的な場所を表す方が適切です。', …}
+Console.js:61 Fetching problem with difficulty: basic_verbs
+Console.js:61 Received problem data: {japaneseSentence: 'お茶を飲みます。', hints: Array(1)}
