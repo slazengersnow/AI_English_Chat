@@ -123,10 +123,6 @@ export default function MyPage() {
   );
   const { subscription, canAccessPremiumFeatures } = useSubscription();
 
-  // Temporary: Clear all React Query cache on component mount
-  useEffect(() => {
-    queryClient.clear();
-    console.log("🗑️ Cleared all React Query cache");
   }, []);
 
   // API queries
@@ -782,6 +778,7 @@ export default function MyPage() {
 
           {/* 練習 - 統合された繰り返し練習のみ */}
           <TabsContent value="review" className="space-y-6">
+            {/* 繰り返し練習 - 全ての過去問題が対象 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -798,22 +795,48 @@ export default function MyPage() {
                     <div className="py-8 text-gray-500">
                       <RefreshCw className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                       <p className="text-sm">直近10日間の練習履歴がありません</p>
-                      <p className="text-sm mt-1">練習を開始して履歴を蓄積しましょう</p>
+                      <p className="text-sm mt-1">
+                        練習を開始して履歴を蓄積しましょう
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       <div className="text-sm text-muted-foreground">
                         過去10日間で {recentSessions.length} 問の履歴があります
                       </div>
-                      <Button onClick={() => handleRepeatPractice()} className="w-full" size="lg">
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        繰り返し練習を開始
-                      </Button>
+                      {subscription?.subscriptionType === "premium" ? (
+                        <Button
+                          onClick={() => handleRepeatPractice()}
+                          className="w-full"
+                          size="lg"
+                        >
+                          <RefreshCw className="w-4 h-4 mr-2" />
+                          繰り返し練習を開始
+                        </Button>
+                      ) : (
+                        <div className="space-y-3">
+                          <Button className="w-full" size="lg" disabled>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            繰り返し練習を開始
+                          </Button>
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800 mb-2">
+                              <strong>
+                                この機能はプレミアムプラン限定です。
+                              </strong>
+                            </p>
+                            <p className="text-sm text-yellow-700">
+                              繰り返すだけで、フレーズが定着し、確実に話せる英語が増えていきます。
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
+
           </TabsContent>
 
           {/* 模擬作成 */}

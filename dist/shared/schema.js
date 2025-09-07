@@ -66,7 +66,6 @@ export const dailyProgress = pgTable("daily_progress", {
 // Custom scenarios table - Updated
 export const customScenarios = pgTable("custom_scenarios", {
     id: serial("id").primaryKey(),
-    userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
     title: text("title").notNull(),
     description: text("description").notNull(),
     isActive: boolean("is_active").default(true).notNull(),
@@ -111,7 +110,6 @@ export const insertDailyProgressSchema = z.object({
     averageRating: z.number(),
 });
 export const insertCustomScenarioSchema = z.object({
-    userId: z.string().optional(),
     title: z.string(),
     description: z.string(),
     isActive: z.boolean().optional(),
@@ -171,7 +169,6 @@ export const problemRequestSchema = z.object({
         "high-school",
         "basic-verbs",
         "business-email",
-        "simulation",
     ]),
 });
 export const problemResponseSchema = z.object({
@@ -219,11 +216,5 @@ export const DIFFICULTY_LEVELS = {
         description: "実務メール作成",
         color: "red",
         icon: "mail",
-    },
-    simulation: {
-        name: "シミュレーション練習",
-        description: "実際の場面を想定した英会話",
-        color: "orange",
-        icon: "users",
     },
 };
