@@ -129,8 +129,6 @@ export default function MyPage() {
     console.log("🗑️ Cleared all React Query cache");
   }, []);
 
-  }, []);
-
   // API queries
 
   const { data: progressData = [] } = useQuery<ProgressData[]>({

@@ -421,7 +421,14 @@ async function handleClaudeEvaluation(req: Request, res: Response) {
 
     // If all retries failed, use high-quality fallback
     console.log(`⚠️ [UNIFIED] All Claude API attempts failed, using high-quality fallback evaluation`);
-    const fallbackEvaluation = getDirectHighQualityEvaluation(japaneseSentence, userTranslation, difficultyLevel || 'middle_school');
+    const fallbackEvaluation = {
+      correctTranslation: "AI評価が一時的に利用できません。",
+      feedback: "システムが一時的に利用できませんが、継続的な練習を続けることで確実に向上します。",
+      rating: 3,
+      improvements: ["継続的な練習を続けてください"],
+      explanation: "AI評価システムが復旧次第、詳細なフィードバックをお届けします。",
+      similarPhrases: ["Keep practicing", "Stay motivated", "Continue learning"]
+    };
     return res.json(fallbackEvaluation);
 
   } catch (error) {
