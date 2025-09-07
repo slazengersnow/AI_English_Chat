@@ -123,6 +123,12 @@ export default function MyPage() {
   );
   const { subscription, canAccessPremiumFeatures } = useSubscription();
 
+  // Force clear any cached review-sessions queries on component mount
+  useEffect(() => {
+    queryClient.removeQueries({ queryKey: ["/api/review-sessions"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/review-sessions"] });
+  }, []);
+
   // API queries
 
   const { data: progressData = [] } = useQuery<ProgressData[]>({
