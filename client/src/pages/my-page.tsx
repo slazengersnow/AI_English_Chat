@@ -107,6 +107,17 @@ export default function MyPage() {
     };
   }, [isLoggingOut]);
 
+  // Clear any legacy review-sessions queries
+  useEffect(() => {
+    queryClient.removeQueries({ 
+      predicate: (query) => {
+        const queryKey = query.queryKey as string[];
+        return queryKey.some(key => typeof key === 'string' && key.includes('review-sessions'));
+      }
+    });
+    console.log('🗑️ Cleared legacy review-sessions queries');
+  }, []);
+
   // Check URL for tab parameter
   const urlParams = new URLSearchParams(window.location.search);
   const tabFromUrl = urlParams.get("tab");

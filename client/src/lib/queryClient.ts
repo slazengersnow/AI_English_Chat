@@ -9,7 +9,8 @@ export const queryClient = new QueryClient({
         // Block deprecated review-sessions endpoint completely
         if (url?.includes('review-sessions')) {
           console.log(`🚫 Blocked deprecated API call to: ${url}`);
-          throw new Error('Deprecated API endpoint blocked: review-sessions has been consolidated into recent-sessions');
+          // Return empty array instead of throwing error to prevent query failures
+          return Promise.resolve([]);
         }
         
         return apiRequest(url, { signal });
