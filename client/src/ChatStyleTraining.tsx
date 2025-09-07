@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { claudeApiRequest } from "@/lib/queryClient";
+import { claudeApiRequest } from "../lib/queryClient";
 
 // Web Speech API utility function
 const speakText = (text: string) => {
@@ -251,33 +251,41 @@ export default function ChatStyleTraining({
   const initializeWithReviewProblem = (reviewData: any) => {
     if (loadingProblemRef.current || isStarted) return;
     
-    console.log("Initializing with review problem:", reviewData);
+    console.log("🔄 Initializing with review problem:", reviewData);
     
     setIsStarted(true);
     setCurrentProblem({
       japaneseSentence: reviewData.japaneseSentence,
-      modelAnswer: "Please translate this sentence.", // Default model answer
+      modelAnswer: reviewData.correctTranslation || "Please translate this sentence.", // ✅ 過去の模範回答を使用
       hints: [],
       difficulty: difficulty,
     });
     setAwaitingAnswer(true);
 
-    // Add review indicator message
+    // Add review indicator message with previous context
     const reviewIndicatorMessage: ChatMessage = {
-      id: (Date.now() - 1).toString(),
+      id: (Date.now() - 3).toString(),
       type: "system",
       content: "📝 復習問題: この問題を再度解いてみましょう",
       timestamp: new Date(),
     };
 
+    // Add previous attempt info if available
+    const previousAttemptMessage: ChatMessage = {
+      id: (Date.now() - 2).toString(),
+      type: "system",
+      content: `前回の回答: "${reviewData.userTranslation || 'なし'}" (評価: ★${reviewData.rating || 'なし'})`,
+      timestamp: new Date(),
+    };
+
     const problemMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: (Date.now() - 1).toString(),
       type: "problem", 
       content: reviewData.japaneseSentence,
       timestamp: new Date(),
     };
 
-    setMessages([reviewIndicatorMessage, problemMessage]);
+    setMessages([reviewIndicatorMessage, previousAttemptMessage, problemMessage]);
     scrollToBottom();
     setProblemCount(1);
   };
@@ -608,6 +616,39 @@ export default function ChatStyleTraining({
         ],
       };
 
+      // Generate appropriate model answer based on Japanese sentence
+      const generateModelAnswer = (japaneseSentence: string): string => {
+        const modelAnswers: Record<string, string> = {
+          "明日は友達と遊びます。": "I will play with my friends tomorrow.",
+          "私は毎日学校に行きます。": "I go to school every day.",
+          "今日は雨が降っています。": "It is raining today.",
+          "彼女は本を読むのが好きです。": "She likes reading books.",
+          "私たちは昨日映画を見ました。": "We watched a movie yesterday.",
+          "彼は毎朝走ります。": "He runs every morning.",
+          "私は本を読みます。": "I read books.",
+          "彼女は料理を作ります。": "She cooks meals.",
+          "私たちは音楽を聞きます。": "We listen to music.",
+          "子供たちは公園で遊びます。": "Children play in the park.",
+        };
+        return modelAnswers[japaneseSentence] || "Please translate this sentence accurately.";
+      };
+
+      return {
+        rating,
+        overallEvaluation: overallEval[0] || "良い回答です",
+        detailedComment: overallEval[1] || "継続的な練習で更に向上できます",
+        correctTranslation: generateModelAnswer(japaneseSentence),
+        modelAnswer: generateModelAnswer(japaneseSentence),
+        explanation: detailedExplanation,
+        similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
+          "Good effort! Keep practicing.",
+          "Try using more natural English expressions.",
+        ],
+      };
+    } finally {
+      evaluatingRef.current = false;
+    }
+  };
 
   const submitAnswer = async () => {
     if (!userInput.trim() || !currentProblem || !awaitingAnswer) return;
