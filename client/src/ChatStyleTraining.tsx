@@ -251,41 +251,33 @@ export default function ChatStyleTraining({
   const initializeWithReviewProblem = (reviewData: any) => {
     if (loadingProblemRef.current || isStarted) return;
     
-    console.log("🔄 Initializing with review problem:", reviewData);
+    console.log("Initializing with review problem:", reviewData);
     
     setIsStarted(true);
     setCurrentProblem({
       japaneseSentence: reviewData.japaneseSentence,
-      modelAnswer: reviewData.correctTranslation || "Please translate this sentence.", // ✅ 過去の模範回答を使用
+      modelAnswer: "Please translate this sentence.", // Default model answer
       hints: [],
       difficulty: difficulty,
     });
     setAwaitingAnswer(true);
 
-    // Add review indicator message with previous context
+    // Add review indicator message
     const reviewIndicatorMessage: ChatMessage = {
-      id: (Date.now() - 3).toString(),
+      id: (Date.now() - 1).toString(),
       type: "system",
       content: "📝 復習問題: この問題を再度解いてみましょう",
       timestamp: new Date(),
     };
 
-    // Add previous attempt info if available
-    const previousAttemptMessage: ChatMessage = {
-      id: (Date.now() - 2).toString(),
-      type: "system",
-      content: `前回の回答: "${reviewData.userTranslation || 'なし'}" (評価: ★${reviewData.rating || 'なし'})`,
-      timestamp: new Date(),
-    };
-
     const problemMessage: ChatMessage = {
-      id: (Date.now() - 1).toString(),
+      id: Date.now().toString(),
       type: "problem", 
       content: reviewData.japaneseSentence,
       timestamp: new Date(),
     };
 
-    setMessages([reviewIndicatorMessage, previousAttemptMessage, problemMessage]);
+    setMessages([reviewIndicatorMessage, problemMessage]);
     scrollToBottom();
     setProblemCount(1);
   };
@@ -633,7 +625,7 @@ export default function ChatStyleTraining({
         return modelAnswers[japaneseSentence] || "Please translate this sentence accurately.";
       };
 
-      return {
+      const result = {
         rating,
         overallEvaluation: overallEval[0] || "良い回答です",
         detailedComment: overallEval[1] || "継続的な練習で更に向上できます",
@@ -645,9 +637,9 @@ export default function ChatStyleTraining({
           "Try using more natural English expressions.",
         ],
       };
-    } finally {
+      
       evaluatingRef.current = false;
-    }
+      return result;
   };
 
   const submitAnswer = async () => {
