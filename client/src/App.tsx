@@ -14,7 +14,7 @@ import { AuthProvider, useAuth } from "./providers/auth-provider";
 import { SubscriptionGuard } from "./components/subscription-guard.js";
 import Home from "./pages/home.js";
 import CompleteTrainingUI from "./pages/CompleteTrainingUI.js";
-import MyPage from "./pages/my-page.js";
+import MyPage from "./pages/my-page.tsx";
 import SimulationSelection from "./pages/simulation-selection.js";
 import SimulationPractice from "./pages/simulation-practice.js";
 import Admin from "./pages/admin.js";
