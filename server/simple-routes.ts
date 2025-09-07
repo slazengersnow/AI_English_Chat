@@ -1276,47 +1276,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  router.get("/review-sessions", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const userEmail = req.user?.email || "anonymous";
-      const threshold = parseInt(req.query.threshold as string) || 2;
-      
-      console.log(`📋 Fetching review sessions for user: ${userEmail}, threshold: ${threshold}`);
-      
-      let query;
-      if (threshold === 3) {
-        // ★3の再挑戦リスト
-        query = db
-          .select()
-          .from(trainingSessions)
-          .where(and(
-            eq(trainingSessions.userId, userEmail as string),
-            eq(trainingSessions.rating, 3)
-          ))
-          .orderBy(desc(trainingSessions.createdAt))
-          .limit(20);
-      } else {
-        // ★2以下の要復習セッション
-        query = db
-          .select()
-          .from(trainingSessions)
-          .where(and(
-            eq(trainingSessions.userId, userEmail as string),
-            lte(trainingSessions.rating, threshold)
-          ))
-          .orderBy(desc(trainingSessions.createdAt))
-          .limit(20);
-      }
-      
-      const reviewSessions = await query;
-      
-      console.log(`📋 Found ${reviewSessions.length} review sessions for ${userEmail} with threshold ${threshold}`);
-      res.json(reviewSessions);
-    } catch (error) {
-      console.error('Error fetching review sessions:', error);
-      res.status(500).json({ error: 'Failed to fetch review sessions' });
-    }
-  });
+  // 削除済み: review-sessions エンドポイント（統合された繰り返し練習に置き換え）
 
   router.get("/recent-sessions", requireAuth, async (req: Request, res: Response) => {
     try {
