@@ -784,7 +784,7 @@ export default function MyPage() {
                   繰り返し練習
                 </CardTitle>
                 <CardDescription>
-                  過去10日間に解いた問題をランダムに練習できます。プレミアム会員限定機能です。
+                  過去10日間に解いた全ての問題をランダムに練習できます。評価に関係なく全ての問題が対象です。
                 </CardDescription>
               </CardHeader>
               <CardContent>
