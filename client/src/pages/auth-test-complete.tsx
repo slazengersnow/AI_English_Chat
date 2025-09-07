@@ -72,8 +72,8 @@ export default function AuthTestComplete() {
       }
       
       try {
-        const reviewData = await apiRequest('/api/review-list');
-        addLog(`✅ Review API successful: got ${reviewData?.length || 0} items`);
+        const recentData = await apiRequest('/api/recent-sessions');
+        addLog(`✅ Recent sessions API successful: got ${recentData?.length || 0} items`);
       } catch (error: any) {
         addLog(`❌ Review API failed: ${error.message}`);
       }

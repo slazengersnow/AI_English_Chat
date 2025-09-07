@@ -1580,54 +1580,9 @@ export function registerRoutes(app: Express): void {
     }
   });
   
-  // Review system endpoints (with authentication)
-  router.get("/review-list", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const userEmail = req.user?.email || "anonymous";
-      console.log(`📋 Fetching review list for user: ${userEmail}`);
-      
-      // ★2以下の要復習セッションを取得
-      const reviewProblems = await db
-        .select()
-        .from(trainingSessions)
-        .where(and(
-          eq(trainingSessions.userId, userEmail as string),
-          lte(trainingSessions.rating, 2)
-        ))
-        .orderBy(desc(trainingSessions.createdAt))
-        .limit(20);
-      
-      console.log(`📋 Found ${reviewProblems.length} review problems for ${userEmail}`);
-      res.json(reviewProblems);
-    } catch (error) {
-      console.error('Error fetching review list:', error);
-      res.status(500).json({ error: 'Failed to fetch review list' });
-    }
-  });
+  // 削除済み: review-list エンドポイント（統合された繰り返し練習に置き換え）
 
-  router.get("/retry-list", requireAuth, async (req: Request, res: Response) => {
-    try {
-      const userEmail = req.user?.email || "anonymous";
-      console.log(`📋 Fetching retry list for user: ${userEmail}`);
-      
-      // ★3の再挑戦セッションを取得
-      const retryProblems = await db
-        .select()
-        .from(trainingSessions)
-        .where(and(
-          eq(trainingSessions.userId, userEmail as string),
-          eq(trainingSessions.rating, 3)
-        ))
-        .orderBy(desc(trainingSessions.createdAt))
-        .limit(20);
-      
-      console.log(`📋 Found ${retryProblems.length} retry problems for ${userEmail}`);
-      res.json(retryProblems);
-    } catch (error) {
-      console.error('Error fetching retry list:', error);
-      res.status(500).json({ error: 'Failed to fetch retry list' });
-    }
-  });
+  // 削除済み: retry-list エンドポイント（統合された繰り返し練習に置き換え）
 
   // Progress report endpoint (with authentication)
   router.get("/progress-report", requireAuth, async (req: Request, res: Response) => {

@@ -59,7 +59,7 @@ export default function EmergencyFix() {
   const testAPIAccess = async () => {
     addLog('📡 Testing API access...');
     
-    const testEndpoints = ['/api/health', '/api/progress-report', '/api/review-list'];
+    const testEndpoints = ['/api/health', '/api/progress-report', '/api/recent-sessions'];
     
     for (const endpoint of testEndpoints) {
       try {
