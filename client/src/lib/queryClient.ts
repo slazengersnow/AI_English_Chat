@@ -5,6 +5,13 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: async ({ queryKey, signal }) => {
         const [url] = queryKey as [string];
+        
+        // Block deprecated review-sessions endpoint completely
+        if (url?.includes('review-sessions')) {
+          console.log(`🚫 Blocked deprecated API call to: ${url}`);
+          throw new Error('Deprecated API endpoint blocked: review-sessions has been consolidated into recent-sessions');
+        }
+        
         return apiRequest(url, { signal });
       },
       retry: false,

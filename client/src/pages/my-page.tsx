@@ -125,8 +125,14 @@ export default function MyPage() {
 
   // Force clear any cached review-sessions queries on component mount
   useEffect(() => {
-    queryClient.removeQueries({ queryKey: ["/api/review-sessions"] });
-    queryClient.invalidateQueries({ queryKey: ["/api/review-sessions"] });
+    // Clear all review-sessions related queries
+    queryClient.removeQueries({ 
+      predicate: (query) => {
+        const queryKey = query.queryKey as string[];
+        return queryKey.some(key => typeof key === 'string' && key.includes('review-sessions'));
+      }
+    });
+    console.log('🗑️ Cleared all review-sessions queries from cache');
   }, []);
 
   // API queries
