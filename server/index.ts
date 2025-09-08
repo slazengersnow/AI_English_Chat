@@ -4,12 +4,11 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createProxyMiddleware } from 'http-proxy-middleware';
 // import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 
 dotenv.config();
 
-process.env.HOST = "0.0.0.0";
+process.env.HOST = process.env.HOST || "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -174,32 +173,23 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// Vite開発サーバーへのプロキシ設定
-
-// Vite開発サーバー（ポート5001）へのプロキシ
-app.use('/', createProxyMiddleware({
-  target: 'http://localhost:5001',
-  changeOrigin: true,
-  ws: true, // WebSocket対応（ホットリロード用）
-  router: (req) => {
-    // API リクエストはプロキシしない
-    if (req.url?.startsWith('/api/') || req.url?.startsWith('/__introspect')) {
-      return false;
-    }
-    return 'http://localhost:5001';
-  },
-  onError: (err, req, res) => {
-    console.error('Vite proxy error:', err.message);
-    res.status(500).send('Vite development server not available');
-  }
-}));
+// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
+console.log(
+  "📦 Forced production mode: Serving static client files from dist/client",
+);
 
 /* ---------- server start ---------- */
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
-  console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
-  console.log(`🔍 Introspect: http://0.0.0.0:${PORT}/__introspect`);
+app.listen(PORT, process.env.HOST, () => {
+  console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
+  console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
+  console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log("🔄 Proxying to Vite dev server on port 5001");
-  console.log("✅ TypeScript compilation via Vite proxy");
+  console.log(
+    `📁 Serve client: ${process.env.SERVE_CLIENT || "auto (dev: true, prod: false)"}`,
+  );
 });

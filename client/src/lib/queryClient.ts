@@ -6,10 +6,11 @@ export const queryClient = new QueryClient({
       queryFn: async ({ queryKey, signal }) => {
         const [url] = queryKey as [string];
         
-        // Block deprecated review-sessions endpoint completely
-        if (url?.includes('review-sessions')) {
-          console.log(`🚫 Blocked deprecated API call to: ${url}`);
-          // Return empty array instead of throwing error to prevent query failures
+        // 🛡️ ROBUST PROTECTION: Block all deprecated endpoints
+        const deprecatedEndpoints = ['review-sessions', 'practice-sessions', 'retry-sessions'];
+        if (deprecatedEndpoints.some(endpoint => url?.includes(endpoint))) {
+          console.log(`🚫 PROTECTION: Blocked deprecated API call to: ${url}`);
+          // Return empty array to prevent UI failures
           return Promise.resolve([]);
         }
         

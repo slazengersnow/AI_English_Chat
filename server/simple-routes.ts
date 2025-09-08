@@ -1276,7 +1276,19 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // 削除済み: review-sessions エンドポイント（統合された繰り返し練習に置き換え）
+  // 🛡️ PROTECTION: Permanently block deprecated endpoints (prevents future issues)
+  const deprecatedEndpoints = ['/api/review-sessions', '/api/practice-sessions', '/api/retry-sessions'];
+  
+  deprecatedEndpoints.forEach(endpoint => {
+    app.all(endpoint, (req, res) => {
+      console.log(`🚫 BLOCKED deprecated endpoint access: ${endpoint}`);
+      res.status(410).json({
+        error: 'Endpoint deprecated and consolidated into unified repeat practice system',
+        redirect: '/api/recent-sessions',
+        timestamp: new Date().toISOString()
+      });
+    });
+  });
 
   router.get("/recent-sessions", requireAuth, async (req: Request, res: Response) => {
     try {

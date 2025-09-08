@@ -180,10 +180,3 @@
     opacity: 1;
   }
 }
-/* 要練習リスト・再挑戦リストを非表示 */
-[data-testid="review-list"],
-[aria-label*="要練習"],
-[aria-label*="再挑戦"],
-.review-section {
-  display: none !important;
-}
