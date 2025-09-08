@@ -173,15 +173,17 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(clientDist, "index.html"));
+// 開発モード: clientディレクトリから直接配信
+const clientPath = path.resolve(process.cwd(), "client");
+app.use(express.static(clientPath));
+
+// SPA用フォールバック - index.htmlを返す
+app.get("*", (req, res) => {
+  if (!req.path.startsWith('/api/') && !req.path.startsWith('/__introspect')) {
+    res.sendFile(path.join(clientPath, 'index.html'));
+  }
 });
-console.log(
-  "📦 Forced production mode: Serving static client files from dist/client",
-);
+console.log("🔥 Development mode: Serving from client directory with hot reload support");
 
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {
