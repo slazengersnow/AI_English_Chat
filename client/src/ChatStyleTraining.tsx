@@ -645,9 +645,6 @@ export default function ChatStyleTraining({
           "Try using more natural English expressions.",
         ],
       };
-    } finally {
-      evaluatingRef.current = false;
-    }
   };
 
   const submitAnswer = async () => {

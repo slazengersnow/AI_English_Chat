@@ -173,17 +173,30 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// 開発モード: clientディレクトリから直接配信
-const clientPath = path.resolve(process.cwd(), "client");
-app.use(express.static(clientPath));
+// 緊急修正: シンプルな一時ビルド方式
+// npm run build を実行してdistファイルを作成する必要がある
+console.log("🔧 Temporary fix: Using static build files");
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
 
-// SPA用フォールバック - index.htmlを返す
+// SPA routing support
 app.get("*", (req, res) => {
-  if (!req.path.startsWith('/api/') && !req.path.startsWith('/__introspect')) {
-    res.sendFile(path.join(clientPath, 'index.html'));
+  // API endpoints はスキップ
+  if (req.path.startsWith('/api/') || req.path.startsWith('/__introspect')) {
+    return;
+  }
+  
+  // dist/client/index.html が存在するかチェック
+  const indexPath = path.join(clientDist, "index.html");
+  if (require('fs').existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ 
+      error: "Build files not found. Please run 'npm run build' first.",
+      path: indexPath 
+    });
   }
 });
-console.log("🔥 Development mode: Serving from client directory with hot reload support");
 
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {
