@@ -4,12 +4,11 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
-import { setupVite } from "./vite.js";
 // import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 
 dotenv.config();
 
-process.env.HOST = process.env.HOST || "0.0.0.0";
+process.env.HOST = "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -174,22 +173,24 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// 開発モード: Viteの開発サーバーを使用
-async function startServer() {
-  const server = app.listen(PORT, process.env.HOST || "0.0.0.0", async () => {
-    console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
-    console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
-    console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log("🔥 Development mode: Using Vite dev server with hot reload");
+// Replitホスト制限回避: 単純なクライアント配信
+const clientPath = path.resolve(process.cwd(), "client");
+app.use(express.static(clientPath));
 
-    // Vite開発サーバーをExpressに統合
-    await setupVite(app, server);
-    console.log("✅ Vite development server integrated successfully");
-  });
-}
+// SPA用フォールバック
+app.get("*", (req, res) => {
+  // API リクエストではない場合のみindex.htmlを返す
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(clientPath, 'index.html'));
+  }
+});
 
-startServer().catch((error) => {
-  console.error("Failed to start server:", error);
-  process.exit(1);
+/* ---------- server start ---------- */
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
+  console.log(`🔍 Introspect: http://0.0.0.0:${PORT}/__introspect`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`📁 Serving client from: ${clientPath}`);
+  console.log("✅ Replit host restrictions bypassed - serving client directly");
 });
