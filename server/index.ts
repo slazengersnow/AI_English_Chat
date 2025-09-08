@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createProxyMiddleware } from 'http-proxy-middleware';
 // import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 
 dotenv.config();
@@ -173,17 +174,25 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// Replitホスト制限回避: 単純なクライアント配信
-const clientPath = path.resolve(process.cwd(), "client");
-app.use(express.static(clientPath));
+// Vite開発サーバーへのプロキシ設定
 
-// SPA用フォールバック
-app.get("*", (req, res) => {
-  // API リクエストではない場合のみindex.htmlを返す
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(clientPath, 'index.html'));
+// Vite開発サーバー（ポート5001）へのプロキシ
+app.use('/', createProxyMiddleware({
+  target: 'http://localhost:5001',
+  changeOrigin: true,
+  ws: true, // WebSocket対応（ホットリロード用）
+  router: (req) => {
+    // API リクエストはプロキシしない
+    if (req.url?.startsWith('/api/') || req.url?.startsWith('/__introspect')) {
+      return false;
+    }
+    return 'http://localhost:5001';
+  },
+  onError: (err, req, res) => {
+    console.error('Vite proxy error:', err.message);
+    res.status(500).send('Vite development server not available');
   }
-});
+}));
 
 /* ---------- server start ---------- */
 app.listen(PORT, "0.0.0.0", () => {
@@ -191,6 +200,6 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`📊 Health check: http://0.0.0.0:${PORT}/health`);
   console.log(`🔍 Introspect: http://0.0.0.0:${PORT}/__introspect`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`📁 Serving client from: ${clientPath}`);
-  console.log("✅ Replit host restrictions bypassed - serving client directly");
+  console.log("🔄 Proxying to Vite dev server on port 5001");
+  console.log("✅ TypeScript compilation via Vite proxy");
 });
