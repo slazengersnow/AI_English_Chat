@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
+import { setupVite } from "./vite.js";
 // import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 
 dotenv.config();
@@ -173,23 +174,22 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(clientDist, "index.html"));
-});
-console.log(
-  "📦 Forced production mode: Serving static client files from dist/client",
-);
+// 開発モード: Viteの開発サーバーを使用
+async function startServer() {
+  const server = app.listen(PORT, process.env.HOST || "0.0.0.0", async () => {
+    console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
+    console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
+    console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log("🔥 Development mode: Using Vite dev server with hot reload");
 
-/* ---------- server start ---------- */
-app.listen(PORT, process.env.HOST, () => {
-  console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
-  console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
-  console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(
-    `📁 Serve client: ${process.env.SERVE_CLIENT || "auto (dev: true, prod: false)"}`,
-  );
+    // Vite開発サーバーをExpressに統合
+    await setupVite(app, server);
+    console.log("✅ Vite development server integrated successfully");
+  });
+}
+
+startServer().catch((error) => {
+  console.error("Failed to start server:", error);
+  process.exit(1);
 });
