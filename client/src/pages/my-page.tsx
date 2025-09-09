@@ -134,7 +134,6 @@ export default function MyPage() {
   );
   const { subscription, canAccessPremiumFeatures } = useSubscription();
 
-  }, []);
 
   // API queries
 
