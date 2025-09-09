@@ -173,19 +173,23 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
+// 開発環境：Viteホスト制限回避のため直接ファイル配信
+const clientPath = path.resolve(process.cwd(), "client");
+app.use('/src', express.static(path.join(clientPath, 'src')));
+app.use(express.static(clientPath));
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(clientDist, "index.html"));
+  if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
+    res.sendFile(path.join(clientPath, "index.html"));
+  }
 });
 console.log(
-  "📦 Forced production mode: Serving static client files from dist/client",
+  "🔥 Development mode: Direct file serving (Vite host bypass)",
 );
 
 /* ---------- server start ---------- */
-app.listen(PORT, process.env.HOST, () => {
-  console.log(`🚀 Server running on http://${process.env.HOST}:${PORT}`);
+const HOST = process.env.HOST || "0.0.0.0";
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
   console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
