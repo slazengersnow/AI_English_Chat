@@ -173,28 +173,15 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// 開発環境：環境変数に基づく適切な配信設定
-if (process.env.NODE_ENV === "development" || process.env.SERVE_CLIENT === "true") {
-  // 開発モード：静的ファイル配信のみ（ViteがHMR処理）
-  const clientPath = path.resolve(process.cwd(), "client");
-  app.use(express.static(clientPath));
-  
-  // SPAフォールバック：APIルート以外をindex.htmlに転送
-  app.get("*", (req, res) => {
-    if (!req.path.startsWith('/api/') && !req.path.startsWith('/__introspect')) {
-      res.sendFile(path.join(clientPath, 'index.html'));
-    }
-  });
-  console.log("🔥 Development mode: Serving from client directory");
-} else {
-  // 本番モード：ビルドファイル配信
-  const clientDist = path.resolve(process.cwd(), "dist/client");
-  app.use(express.static(clientDist));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(clientDist, "index.html"));
-  });
-  console.log("📦 Production mode: Serving from dist/client");
-}
+// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
+console.log(
+  "📦 Forced production mode: Serving static client files from dist/client",
+);
 
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {
