@@ -182,13 +182,15 @@ if (process.env.NODE_ENV === "production") {
   });
   console.log("📦 Production mode: Serving from dist/client");
 } else {
-  // 開発モード：Viteが直接配信するため最小限の設定
+  // 開発モード：クライアントフォルダから直接配信
+  const clientPath = path.resolve(process.cwd(), "client");
+  app.use(express.static(clientPath));
   app.get("*", (req, res) => {
     if (!req.path.startsWith('/api/') && !req.path.startsWith('/__introspect')) {
-      res.redirect('http://localhost:5001' + req.path);
+      res.sendFile(path.join(clientPath, 'index.html'));
     }
   });
-  console.log("🔥 Development mode: Redirecting to Vite dev server");
+  console.log("🔥 Development mode: Serving static files from client directory");
 }
 
 /* ---------- server start ---------- */
