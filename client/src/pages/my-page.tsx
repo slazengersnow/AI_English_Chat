@@ -431,7 +431,7 @@ export default function MyPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           {/* Mobile タブリスト */}
           <div className="block md:hidden">
-            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1 h-20">
+            <TabsList className="grid w-full grid-cols-3 bg-white rounded-lg p-1 h-20">
               <TabsTrigger 
                 value="progress" 
                 className="flex flex-col items-center justify-center h-full px-1 py-1"
@@ -472,18 +472,12 @@ export default function MyPage() {
           
           {/* Desktop タブリスト */}
           <div className="hidden md:block">
-            <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-3 bg-white rounded-lg p-1">
               <TabsTrigger value="progress" className="text-sm px-3 py-2">
                 進捗
               </TabsTrigger>
               <TabsTrigger value="bookmarks" className="text-sm px-3 py-2">
                 ブック
-              </TabsTrigger>
-              <TabsTrigger value="review" className="text-sm px-3 py-2">
-                練習
-              </TabsTrigger>
-              <TabsTrigger value="scenarios" className="text-sm px-3 py-2">
-                模擬
               </TabsTrigger>
               <TabsTrigger value="account" className="text-sm px-3 py-2">
                 情報
@@ -777,254 +771,8 @@ export default function MyPage() {
           </TabsContent>
 
           {/* 練習 - 統合された繰り返し練習のみ */}
-          <TabsContent value="review" className="space-y-6">
-            {/* 繰り返し練習 - 全ての過去問題が対象 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <RefreshCw className="w-5 h-5 text-blue-500" />
-                  繰り返し練習
-                </CardTitle>
-                <CardDescription>
-                  過去10日間に解いた問題をランダムに練習できます。プレミアム会員限定機能です。
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center space-y-4">
-                  {recentSessions.length === 0 ? (
-                    <div className="py-8 text-gray-500">
-                      <RefreshCw className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p className="text-sm">直近10日間の練習履歴がありません</p>
-                      <p className="text-sm mt-1">
-                        練習を開始して履歴を蓄積しましょう
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="text-sm text-muted-foreground">
-                        過去10日間で {recentSessions.length} 問の履歴があります
-                      </div>
-                      {subscription?.subscriptionType === "premium" ? (
-                        <Button
-                          onClick={() => handleRepeatPractice()}
-                          className="w-full"
-                          size="lg"
-                        >
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          繰り返し練習を開始
-                        </Button>
-                      ) : (
-                        <div className="space-y-3">
-                          <Button className="w-full" size="lg" disabled>
-                            <RefreshCw className="w-4 h-4 mr-2" />
-                            繰り返し練習を開始
-                          </Button>
-                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-sm text-yellow-800 mb-2">
-                              <strong>
-                                この機能はプレミアムプラン限定です。
-                              </strong>
-                            </p>
-                            <p className="text-sm text-yellow-700">
-                              繰り返すだけで、フレーズが定着し、確実に話せる英語が増えていきます。
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-          </TabsContent>
 
           {/* 模擬作成 */}
-          <TabsContent value="scenarios" className="space-y-6">
-            {!canAccessPremiumFeatures ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    模擬作成
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800 mb-2">
-                        <strong>この機能はプレミアムプラン限定です。</strong>
-                      </p>
-                      <p className="text-sm text-yellow-700">
-                        リアルなビジネスシーンを想定した模擬練習を体験したい方は、プレミアムプランをご検討ください。
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* 新しいシナリオ作成 */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Plus className="w-5 h-5" />
-                      新しい模擬作成
-                    </CardTitle>
-                    <CardDescription>
-                      自分だけのオリジナル英語練習シーンを作成
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="title">模擬タイトル</Label>
-                      <Input
-                        id="title"
-                        placeholder="例：上司に英語で報告する場面"
-                        value={newScenario.title}
-                        onChange={(e) =>
-                          setNewScenario({
-                            ...newScenario,
-                            title: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="description">詳細説明</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="例：プロジェクトの進捗を上司に英語で報告する際に使える表現を練習します。報告内容には成果、課題、今後の予定を含めてください。"
-                        value={newScenario.description}
-                        onChange={(e) =>
-                          setNewScenario({
-                            ...newScenario,
-                            description: e.target.value,
-                          })
-                        }
-                        rows={4}
-                      />
-                    </div>
-                    <Button
-                      onClick={handleCreateScenario}
-                      disabled={
-                        createScenarioMutation.isPending ||
-                        !newScenario.title ||
-                        !newScenario.description
-                      }
-                    >
-                      模擬を作成
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* 作成済みシナリオ一覧 */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>作成済み模擬</CardTitle>
-                    <CardDescription>
-                      シナリオを編集するか、「練習開始」で実際に模擬練習ができます
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {customScenarios.map((scenario) => (
-                        <div
-                          key={scenario.id}
-                          className="p-4 border rounded-lg"
-                        >
-                          {editingScenario?.id === scenario.id ? (
-                            <div className="space-y-3">
-                              <Input
-                                value={editingScenario.title}
-                                onChange={(e) =>
-                                  setEditingScenario({
-                                    ...editingScenario,
-                                    title: e.target.value,
-                                  })
-                                }
-                              />
-                              <Textarea
-                                value={editingScenario.description}
-                                onChange={(e) =>
-                                  setEditingScenario({
-                                    ...editingScenario,
-                                    description: e.target.value,
-                                  })
-                                }
-                                rows={3}
-                              />
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={handleUpdateScenario}
-                                >
-                                  ブック
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setEditingScenario(null)}
-                                >
-                                  キャンセル
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <h3 className="font-medium">
-                                    {scenario.title}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    {scenario.description}
-                                  </p>
-                                  <div className="text-xs text-muted-foreground mt-2">
-                                    作成日:{" "}
-                                    {new Date(
-                                      scenario.createdAt,
-                                    ).toLocaleDateString("ja-JP")}
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="default"
-                                    onClick={() =>
-                                      navigate(`/simulation/${scenario.id}`)
-                                    }
-                                  >
-                                    練習開始
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setEditingScenario(scenario)}
-                                  >
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      handleDeleteScenario(scenario.id)
-                                    }
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </TabsContent>
 
           {/* 情報情報タブ */}
           <TabsContent value="account" className="space-y-6">
