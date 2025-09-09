@@ -180,12 +180,3 @@
     opacity: 1;
   }
 }
-/* 要練習リスト非表示化（問題解決用） */
-.practice-list-item,
-.retry-list-item,
-[data-testid*='practice'],
-[data-testid*='retry'],
-*:contains('要練習リスト'),
-*:contains('再挑戦リスト') {
-  display: none \!important;
-}
