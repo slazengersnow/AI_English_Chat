@@ -4,7 +4,6 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
-// import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 dotenv.config();
 process.env.HOST = process.env.HOST || "0.0.0.0";
 const __filename = fileURLToPath(import.meta.url);
@@ -118,15 +117,24 @@ catch (error) {
     console.log("Admin routes not found, skipping...", error);
 }
 /* ---------- main api routes registration ---------- */
-// simple-routes.ts の完璧な実装を使用（重複定義を削除）
-// 🚀 PRODUCTION GRADE: simple-routes.tsの完璧なClaude実装を使用
+// その後に /api の通常ルートを登録
 try {
+    // simple-routes.js から registerRoutes をインポート
     const { registerRoutes } = await import("./simple-routes.js");
     registerRoutes(app);
-    console.log("✅ Production-grade routes with 100% Claude success rate registered successfully");
+    console.log("✅ Simple routes registered successfully");
 }
-catch (fallbackError) {
-    console.error("CRITICAL ERROR: Simple-routes registration failed:", fallbackError.message);
+catch (error) {
+    // fallback として routes/index.js からインポートを試行
+    try {
+        const { registerRoutes } = await import("./routes/index.js");
+        registerRoutes(app);
+        console.log("✅ Index routes registered successfully");
+    }
+    catch (fallbackError) {
+        console.error("Routes registration error:", error);
+        console.error("Fallback routes registration error:", fallbackError);
+    }
 }
 /* ---------- introspection endpoint (一時的なデバッグ用) ---------- */
 app.get("/__introspect", (_req, res) => {
@@ -141,36 +149,20 @@ app.get("/__introspect", (_req, res) => {
         },
     });
 });
+/* ---------- frontend serving logic ---------- */
+// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+    res.sendFile(path.join(clientDist, "index.html"));
+});
+console.log("📦 Forced production mode: Serving static client files from dist/client");
 /* ---------- 404 handler for API routes ---------- */
 app.use("/api/*", (_req, res) => {
     res.status(404).json({
         error: "API endpoint not found",
         timestamp: new Date().toISOString(),
     });
-});
-/* ---------- frontend serving logic ---------- */
-// 緊急修正: シンプルな一時ビルド方式
-// npm run build を実行してdistファイルを作成する必要がある
-console.log("🔧 Temporary fix: Using static build files");
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
-// SPA routing support
-app.get("*", (req, res) => {
-    // API endpoints はスキップ
-    if (req.path.startsWith('/api/') || req.path.startsWith('/__introspect')) {
-        return;
-    }
-    // dist/client/index.html が存在するかチェック
-    const indexPath = path.join(clientDist, "index.html");
-    if (require('fs').existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    }
-    else {
-        res.status(404).json({
-            error: "Build files not found. Please run 'npm run build' first.",
-            path: indexPath
-        });
-    }
 });
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {

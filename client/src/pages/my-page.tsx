@@ -134,6 +134,8 @@ export default function MyPage() {
   );
   const { subscription, canAccessPremiumFeatures } = useSubscription();
 
+  }, []);
+
   // API queries
 
   const { data: progressData = [] } = useQuery<ProgressData[]>({
@@ -236,7 +238,11 @@ export default function MyPage() {
 
   const createCustomerPortalMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("/api/create-customer-portal", { method: "POST" });
+      const response = await apiRequest(
+        "POST",
+        "/api/create-customer-portal",
+        {},
+      );
       return response.json();
     },
     onSuccess: (data) => {
@@ -252,15 +258,8 @@ export default function MyPage() {
   });
 
   const upgradeSubscriptionMutation = useMutation({
-    mutationFn: async (planType: "monthly" | "yearly") => {
-      const response = await fetch("/api/upgrade-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planType }),
-      });
-      if (!response.ok) throw new Error("Failed to upgrade subscription");
-      return response.json();
-    },
+    mutationFn: (planType: "monthly" | "yearly") =>
+      apiRequest("POST", "/api/upgrade-subscription", { planType }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-subscription"] });
       toast({

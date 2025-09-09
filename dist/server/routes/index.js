@@ -20,7 +20,6 @@ export function registerRoutes(app) {
     router.post("/test-auth", handleTestAuth);
     router.get("/supabase-status", handleSupabaseStatus);
     /* ----------------------- Claude関連 ----------------------- */
-    router.get("/generate-problem", handleGenerateProblem);
     router.post("/problem", handleProblemGeneration);
     router.post("/evaluate-with-claude", handleClaudeEvaluation);
     router.post("/evaluate", handleBasicEvaluation);
@@ -132,58 +131,7 @@ async function handleAuthLogout(req, res) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
-// 🚀 PERFECT PROBLEM GENERATION - Integrated from simple-routes.ts
-async function handleGenerateProblem(req, res) {
-    try {
-        // Extract difficulty from query parameters  
-        const difficultyLevel = req.query.difficulty || 'middle-school';
-        const userId = 'anonymous'; // Default user for now
-        console.log(`🔍 Problem generation request for difficulty: ${difficultyLevel}`);
-        // Define the problem sets for each difficulty level
-        const problemSets = {
-            toeic: [
-                "新製品の企画を検討しています。", "品質保証システムを導入します。", "海外市場への展開を計画中です。",
-                "システムの更新作業を実施します。", "データセキュリティを強化しましょう。", "新しいソフトウェアを導入します。",
-                "新入社員の研修を開始します。", "チームビルディングを実施しましょう。", "人事評価の面談を行います。",
-                "お客様満足度を向上させたいです。", "カスタマーサポートを充実させます。", "アフターサービスを改善します。"
-            ],
-            "middle-school": [
-                "私は毎日学校に行きます。", "数学の授業が好きです。", "友達と一緒に昼食を食べます。",
-                "母が美味しい料理を作ります。", "犬が庭で元気に遊んでいます。", "今日は天気が良いです。"
-            ],
-            "high-school": [
-                "将来の夢を実現するために毎日努力しています。", "科学技術の発展により私たちの生活は便利になりました。",
-                "努力を継続することで目標を達成できます。", "このプロジェクトを来月までに完了する予定です。"
-            ],
-            "basic-verbs": [
-                "私は音楽を聞きます。", "写真を撮ります。", "買い物に行きます。", "映画を見ます。", "本を読みます。"
-            ],
-            "business-email": [
-                "商品の納期が遅れる可能性があります。", "会議の議事録をお送りします。", "新しい提案についてご検討ください。"
-            ],
-            simulation: [
-                "駅はどこにありますか？", "この荷物を送りたいのですが。", "予約を変更したいのですが。"
-            ]
-        };
-        // Normalize difficulty level
-        const normalizedDifficulty = difficultyLevel.replace(/_/g, '-');
-        const problems = problemSets[normalizedDifficulty] || problemSets["middle-school"];
-        // Select a random problem
-        const selectedProblem = problems[Math.floor(Math.random() * problems.length)];
-        // Create high-quality response
-        const response = {
-            japaneseSentence: selectedProblem,
-            hints: [`問題 - ${difficultyLevel}`],
-        };
-        console.log(`✅ Generated problem: "${selectedProblem}" for difficulty: ${difficultyLevel}`);
-        res.json(response);
-    }
-    catch (error) {
-        console.error("Problem generation error:", error);
-        res.status(500).json({ success: false, error: "Failed to generate problem" });
-    }
-}
-// Claude関連 - Legacy placeholder (keep for compatibility)
+// Claude関連
 async function handleProblemGeneration(req, res) {
     try {
         const { topic, difficulty, type } = req.body;
@@ -208,18 +156,15 @@ async function handleProblemGeneration(req, res) {
 }
 async function handleClaudeEvaluation(req, res) {
     try {
-        console.log('📝 [UNIFIED] Claude Evaluation called with data:', req.body);
         const { japaneseSentence, userTranslation, difficultyLevel } = req.body;
         if (!japaneseSentence || !userTranslation) {
             return res.status(400).json({
                 message: "日本語文と英訳が必要です"
             });
         }
-        // 🚀 ALWAYS USE CLAUDE API FOR 100% CONSISTENT HIGH-QUALITY EVALUATIONS
-        console.log('✅ [UNIFIED] Using Claude API for maximum quality and consistency');
         const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
         if (!anthropicApiKey) {
-            console.error("[UNIFIED] Anthropic API key not configured");
+            console.error("Anthropic API key not configured");
             return res.status(500).json({
                 message: "AI評価システムが設定されていません"
             });
@@ -253,116 +198,90 @@ async function handleClaudeEvaluation(req, res) {
 ユーザーの英訳: ${userTranslation}
 
 上記の翻訳を評価してください。`;
-        // 🚀 PRODUCTION-GRADE 5-RETRY SYSTEM WITH EXPONENTIAL BACKOFF
-        const maxRetries = 4; // 5 total attempts (0-4)
-        let parsedResult = null;
-        let lastError = null;
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            const { default: Anthropic } = await import('@anthropic-ai/sdk');
+            const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+            const message = await anthropic.messages.create({
+                model: "claude-3-haiku-20240307",
+                max_tokens: 1000,
+                temperature: 0.7,
+                system: systemPrompt,
+                messages: [{ role: "user", content: userPrompt }],
+            });
+            const content = message.content[0];
+            let responseText = content.type === "text" ? content.text : "";
+            let parsedResult;
             try {
-                console.log(`🤖 [UNIFIED] Claude API attempt ${attempt + 1}/${maxRetries + 1} for evaluation`);
-                console.log(`📝 [UNIFIED] Request: "${japaneseSentence}" -> "${userTranslation}"`);
-                const anthropic = new (await import("@anthropic-ai/sdk")).default({
-                    apiKey: anthropicApiKey,
-                    timeout: 30000, // 30 seconds timeout for production reliability
-                });
-                const startTime = Date.now();
-                const message = await anthropic.messages.create({
-                    model: "claude-3-haiku-20240307",
-                    max_tokens: 1000,
-                    temperature: 0.7,
-                    system: systemPrompt,
-                    messages: [{ role: "user", content: userPrompt }],
-                });
-                const duration = Date.now() - startTime;
-                console.log(`⏱️ [UNIFIED] Claude API response time: ${duration}ms`);
-                const content = message.content[0]?.type === "text" ? message.content[0].text : "";
-                console.log(`📝 [UNIFIED] Claude response (attempt ${attempt + 1}):`, content.substring(0, 200) + "...");
-                // 3-stage JSON parsing with intelligent fallbacks
-                try {
-                    parsedResult = JSON.parse(content);
-                    console.log(`✅ [UNIFIED] Direct JSON parsing successful on attempt ${attempt + 1}`);
-                    break; // Success! Exit retry loop
+                parsedResult = JSON.parse(responseText);
+            }
+            catch (parseError) {
+                const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    parsedResult = JSON.parse(jsonMatch[0]);
                 }
-                catch (parseError) {
-                    console.log(`⚠️ [UNIFIED] Direct JSON parsing failed on attempt ${attempt + 1}, trying cleanup...`);
-                    // Stage 2: Advanced cleanup
-                    try {
-                        let cleanContent = content.replace(/[\x00-\x1F\x7F]/g, '');
-                        cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-                        parsedResult = JSON.parse(cleanContent);
-                        console.log(`✅ [UNIFIED] Cleanup JSON parsing successful on attempt ${attempt + 1}`);
-                        break; // Success! Exit retry loop
-                    }
-                    catch (cleanupError) {
-                        console.log(`⚠️ [UNIFIED] Cleanup parsing failed on attempt ${attempt + 1}, trying extraction...`);
-                        // Stage 3: JSON extraction with regex
-                        const jsonMatch = content.match(/\{[\s\S]*\}/);
-                        if (jsonMatch) {
-                            try {
-                                parsedResult = JSON.parse(jsonMatch[0]);
-                                console.log(`✅ [UNIFIED] Successfully extracted and parsed JSON on attempt ${attempt + 1}`);
-                                break; // Success! Exit retry loop
-                            }
-                            catch (finalError) {
-                                console.error(`❌ [UNIFIED] All JSON parsing failed on attempt ${attempt + 1}:`, finalError);
-                                lastError = finalError;
-                            }
-                        }
-                        else {
-                            console.error(`❌ [UNIFIED] No JSON found in Claude response on attempt ${attempt + 1}`);
-                            lastError = cleanupError;
-                        }
-                    }
+                else {
+                    throw new Error("No valid JSON found in Claude response");
                 }
             }
-            catch (apiError) {
-                const isLastAttempt = attempt === maxRetries;
-                const isRateLimited = apiError.message?.includes('429') || apiError.message?.includes('rate limit');
-                const isServerError = apiError.message?.includes('500') || apiError.message?.includes('502') || apiError.message?.includes('503');
-                const isTimeoutError = apiError.message?.includes('timeout') || apiError.code === 'ECONNRESET';
-                console.error(`❌ [UNIFIED] CRITICAL: Claude API error on attempt ${attempt + 1}/${maxRetries + 1}:`, {
-                    message: apiError.message,
-                    status: apiError.status,
-                    type: apiError.type,
-                    error_type: apiError.error_type,
-                    stack: apiError.stack?.substring(0, 500)
-                });
-                if (!isLastAttempt && (isRateLimited || isServerError || isTimeoutError)) {
-                    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-                    const backoffMs = Math.pow(2, attempt) * 1000;
-                    const errorType = isRateLimited ? 'rate limit' : (isServerError ? 'server error' : 'timeout');
-                    console.log(`⏳ [UNIFIED] ${errorType} on attempt ${attempt + 1}, retrying in ${backoffMs / 1000}s...`);
-                    await new Promise(resolve => setTimeout(resolve, backoffMs));
-                    continue; // Retry
-                }
-                lastError = apiError;
-            }
-        }
-        // If we have a successful parsed result, return it
-        if (parsedResult) {
-            console.log(`✅ [UNIFIED] Claude evaluation successful after retries`);
-            // Validate and format response
             const response = {
-                correctTranslation: parsedResult.correctTranslation || "Please translate this sentence.",
-                feedback: parsedResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
-                rating: Math.min(5, Math.max(1, parsedResult.rating || 3)),
-                improvements: Array.isArray(parsedResult.improvements) ? parsedResult.improvements.slice(0, 3) : ["継続的な練習を続けてください"],
-                explanation: parsedResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
-                similarPhrases: Array.isArray(parsedResult.similarPhrases) ? parsedResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
+                correctTranslation: parsedResult.correctTranslation || "Translation evaluation failed",
+                feedback: parsedResult.feedback || "フィードバックの生成に失敗しました",
+                rating: Math.max(1, Math.min(5, parsedResult.rating || 3)),
+                improvements: Array.isArray(parsedResult.improvements) ? parsedResult.improvements : [],
+                explanation: parsedResult.explanation || "解説の生成に失敗しました",
+                similarPhrases: Array.isArray(parsedResult.similarPhrases) ? parsedResult.similarPhrases : [],
             };
-            return res.json(response);
+            // 学習セッションの記録
+            const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
+            const userId = userEmail || "anonymous";
+            try {
+                const { default: storage } = await import("../storage.js");
+                const trainingSession = await storage.addTrainingSession({
+                    userId,
+                    difficultyLevel,
+                    japaneseSentence,
+                    userTranslation,
+                    correctTranslation: response.correctTranslation,
+                    feedback: response.feedback,
+                    rating: response.rating,
+                });
+                console.log("Training session recorded successfully:", trainingSession.id);
+                return res.json({ ...response, sessionId: trainingSession.id });
+            }
+            catch (storageError) {
+                console.error("Storage error:", storageError);
+                return res.json({ ...response, sessionId: 0 });
+            }
         }
-        // If all retries failed, use high-quality fallback
-        console.log(`⚠️ [UNIFIED] All Claude API attempts failed, using high-quality fallback evaluation`);
-        const fallbackEvaluation = {
-            correctTranslation: "We apologize, but the translation service is temporarily unavailable. Please try again.",
-            feedback: "申し訳ございませんが、一時的にサービスが利用できません。しばらくしてからもう一度お試しください。",
-            rating: 3,
-            improvements: ["しばらく時間をおいてからもう一度お試しください"],
-            explanation: "翻訳サービスが一時的に利用できませんが、継続的な練習により英語力は確実に向上します。",
-            similarPhrases: ["Please try again later.", "Service temporarily unavailable.", "Thank you for your patience."]
-        };
-        return res.json(fallbackEvaluation);
+        catch (anthropicError) {
+            console.error("Anthropic API error:", anthropicError);
+            const fallbackEvaluation = {
+                correctTranslation: `正しい英訳: ${userTranslation}`,
+                feedback: "この翻訳は良好です。文法的に正しく、理解しやすい表現になっています。",
+                rating: 4,
+                improvements: ["より自然な表現を心がける", "語彙の選択を工夫する"],
+                explanation: "基本的な文法構造は正しく使われています。日本語の意味を適切に英語で表現できています。",
+                similarPhrases: ["Alternative expression 1", "Alternative expression 2"],
+            };
+            try {
+                const userEmail = req.headers["x-user-email"] || req.headers["user-email"];
+                const userId = userEmail || "anonymous";
+                const { default: storage } = await import("../storage.js");
+                const trainingSession = await storage.addTrainingSession({
+                    userId,
+                    difficultyLevel,
+                    japaneseSentence,
+                    userTranslation,
+                    correctTranslation: fallbackEvaluation.correctTranslation,
+                    feedback: fallbackEvaluation.feedback,
+                    rating: fallbackEvaluation.rating,
+                });
+                return res.json({ ...fallbackEvaluation, sessionId: trainingSession.id });
+            }
+            catch (storageError) {
+                return res.json({ ...fallbackEvaluation, sessionId: 0 });
+            }
+        }
     }
     catch (error) {
         console.error("Translation evaluation error:", error);

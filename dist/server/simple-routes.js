@@ -1,9 +1,9 @@
 import { Router } from "express";
 import storage from "./storage.js";
-import { problemRequestSchema, translateRequestSchema, trainingSessions, userSubscriptions, customScenarios, } from "../shared/schema.js";
+import { problemRequestSchema, translateRequestSchema, trainingSessions, userSubscriptions, } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
-import { eq, desc, gte, and, sql } from "drizzle-orm";
+import { eq, lte, desc, gte, and, sql } from "drizzle-orm";
 const router = Router();
 /* -------------------- データベースベース重複防止 -------------------- */
 /**
@@ -104,90 +104,104 @@ function extractUserTranslation(body) {
 /* -------------------- 出題セット -------------------- */
 const problemSets = {
     toeic: [
-        // ビジネス・経営
-        "新製品の企画を検討しています。", "品質保証システムを導入します。", "海外市場への展開を計画中です。",
-        // IT・技術
-        "システムの更新作業を実施します。", "データセキュリティを強化しましょう。", "新しいソフトウェアを導入します。",
-        // 人事・研修
-        "新入社員の研修を開始します。", "チームビルディングを実施しましょう。", "人事評価の面談を行います。",
-        // 顧客サービス
-        "お客様満足度を向上させたいです。", "カスタマーサポートを充実させます。", "アフターサービスを改善します。",
-        // 経理・財務
-        "今期の予算を見直しましょう。", "経費削減策を提案します。", "投資計画を再検討中です。",
-        // 営業・マーケティング
-        "新規顧客を開拓したいです。", "広告戦略を変更しましょう。", "販売実績を分析します。",
-        // 製造・物流
-        "生産効率を改善する必要があります。", "配送システムを最適化します。", "在庫管理を見直しましょう。",
-        // 国際・出張
-        "海外出張の準備をしています。", "国際会議に参加予定です。", "現地スタッフと連携します。"
+        "会議の資料を準備しておいてください。",
+        "売上が前年比20%増加しました。",
+        "新しいプロジェクトの進捗はいかがですか。",
+        "顧客からのフィードバックを検討する必要があります。",
+        "来週までに報告書を提出してください。",
+        "この商品の在庫を確認してください。",
+        "明日の会議はオンラインで行います。",
+        "予算の詳細について話し合いましょう。",
+        "契約書の内容を確認する必要があります。",
+        "来月の売上目標を設定しました。",
+        "お客様からの問い合わせに対応してください。",
+        "今四半期の業績は予想を上回りました。",
+        "新しいマーケティング戦略を検討中です。",
+        "品質管理の改善が必要です。",
+        "チームメンバーとのミーティングを予定しています。",
+        "プロジェクトの期限を延長する必要があります。",
+        "市場調査の結果を分析してください。",
+        "コスト削減の提案を検討しています。",
+        "新しい技術の導入を検討しています。",
+        "クライアントとの関係を改善したいと思います。"
     ],
     "middle-school": [
-        // 学校生活
-        "私は毎日学校に行きます。", "数学の授業が好きです。", "友達と一緒に昼食を食べます。",
-        // 家族・家庭
-        "母は料理を作っています。", "父は車で仕事に行きます。", "姉は大学で勉強しています。",
-        // 趣味・娯楽
-        "彼女は本を読むのが好きです。", "私たちは映画を見ました。", "音楽を聞いています。",
-        // スポーツ・運動
-        "彼は野球が上手です。", "友達とテニスをします。", "毎朝ジョギングをします。",
-        // 天気・季節
-        "今日は雨が降っています。", "夏は暑いです。", "今日は風が強いです。",
-        // 動物・ペット
-        "私は犬を飼っています。", "猫が庭で遊んでいます。", "鳥が空を飛んでいます。",
-        // 日常生活
-        "朝ごはんを食べます。", "宿題をしました。", "早く寝ます。",
-        // 時間・曜日
-        "今日は金曜日です。", "明日は土曜日です。", "来週は忙しいです。",
-        // 交通・移動
-        "バスで学校に行きます。", "自転車に乗ります。", "電車は速いです。"
+        "私は毎日学校に行きます。",
+        "今日は雨が降っています。",
+        "彼女は本を読むのが好きです。",
+        "私たちは昨日映画を見ました。",
+        "明日は友達と遊びます。",
+        "私は英語を勉強しています。",
+        "彼は野球が上手です。",
+        "母は料理を作っています。",
+        "私たちは公園で遊びました。",
+        "彼女は音楽を聞いています。",
+        "私は宿題をしました。",
+        "今日は暖かい日です。",
+        "私の兄は大学生です。",
+        "私たちは夏休みが好きです。",
+        "彼は自転車に乗ります。",
+        "私は朝ごはんを食べます。",
+        "彼女は絵を描くのが得意です。",
+        "私たちは図書館で勉強します。",
+        "今日は金曜日です。",
+        "私は犬を飼っています。",
+        "彼は毎朝ジョギングをします。",
+        "私たちは家族と旅行します。",
+        "彼女は数学が好きです。",
+        "私は新しい友達を作りました。",
+        "今日は風が強いです。"
     ],
     "high-school": [
-        // 環境・社会問題
-        "環境問題について考える必要があります。", "気候変動の影響が深刻化しています。", "持続可能な社会を目指しています。",
-        // 科学技術
-        "技術の発展により生活が便利になりました。", "人工知能が様々な分野で活用されています。", "デジタル技術が教育現場で活用されています。",
-        // 国際・文化
-        "多様性を尊重することが大切です。", "国際協力が世界平和に重要な役割を果たします。", "異文化理解が今後ますます重要になります。",
-        // 教育・進路
-        "教育は社会の発展にとって不可欠です。", "将来の進路について真剣に考えています。", "大学受験の準備をしています。",
-        // 経済・政治
-        "グローバル化が進んでいます。", "経済格差の問題が深刻化しています。", "民主主義の価値を守ることが大切です。",
-        // 文化・芸術
-        "文学作品は人間の心を豊かにします。", "芸術の価値を理解することが重要です。", "伝統文化を保護する必要があります。",
-        // 社会・心理
-        "高齢化社会への対応が課題となっています。", "心理学に興味を持っています。", "ボランティア活動に参加したいです。"
+        "環境問題について考える必要があります。",
+        "技術の発展により生活が便利になりました。",
+        "多様性を尊重することが大切です。",
+        "グローバル化が進んでいます。",
+        "持続可能な社会を目指しています。",
+        "科学技術の進歩は私たちの生活を変えています。",
+        "文化の違いを理解することが重要です。",
+        "教育は社会の発展にとって不可欠です。",
+        "人工知能が様々な分野で活用されています。",
+        "気候変動の影響が深刻化しています。",
+        "情報化社会では適切な判断力が求められます。",
+        "国際協力が世界平和に重要な役割を果たします。",
+        "再生可能エネルギーの開発が急務です。",
+        "高齢化社会への対応が課題となっています。",
+        "デジタル技術が教育現場で活用されています。",
+        "経済格差の問題が深刻化しています。",
+        "文学作品は人間の心を豊かにします。",
+        "民主主義の価値を守ることが大切です。",
+        "科学的思考を身につけることが重要です。",
+        "異文化理解が今後ますます重要になります。"
     ],
     "basic-verbs": [
-        // 移動・行動
-        "彼は毎朝走ります。", "学校に歩いて行きます。", "友達の家に行きます。",
-        // 学習・読書
-        "私は本を読みます。", "英語を勉強します。", "宿題を書きます。",
-        // 食事・生活
-        "彼女は料理を作ります。", "朝ごはんを食べます。", "お茶を飲みます。",
-        // 娯楽・趣味
-        "音楽を聞きます。", "テレビを見ます。", "ゲームをします。",
-        // 睡眠・休息
-        "早く寝ます。", "公園で休みます。", "家で寝ます。",
-        // 仕事・掃除
-        "部屋を掃除します。", "皿を洗います。", "働きます。",
-        // 会話・交流
-        "友達と話します。", "先生に聞きます。", "家族と会います。",
-        // その他の行動
-        "彼女は写真を撮ります。", "バスを待ちます。", "手紙を送ります。"
+        "彼は毎朝走ります。",
+        "私は本を読みます。",
+        "彼女は料理を作ります。",
+        "私たちは音楽を聞きます。",
+        "子供たちは公園で遊びます。",
+        "私は友達と話します。",
+        "彼女は写真を撮ります。",
+        "私たちは一緒に歌います。",
+        "彼は車を運転します。",
+        "私は手紙を書きます。",
+        "彼女は花を植えます。",
+        "私たちは映画を見ます。",
+        "彼は魚を釣ります。",
+        "私は服を洗います。",
+        "彼女は犬と歩きます。",
+        "私たちはパンを買います。",
+        "彼は部屋を掃除します。",
+        "私は水を飲みます。",
+        "彼女は絵を描きます。",
+        "私たちはゲームをします。"
     ],
     "business-email": [
-        "お疲れさまです。",
-        "新商品の販売戦略について相談したいです。",
-        "来週の出張スケジュールをお送りします。",
-        "システムメンテナンスのお知らせです。",
-        "契約内容の変更点がございます。",
-        "研修プログラムの参加者を募集中です。",
-        "月末の売上報告をいたします。",
-        "商品の配送が遅れる予定です。",
-        "面接の候補日程を教えてください。",
-        "顧客満足度調査の結果をご報告します。",
-        "プロジェクトの進捗状況はいかがですか。",
-        "予算の見直しが必要になりました。",
+        "会議の件でご連絡いたします。",
+        "資料を添付いたします。",
+        "ご確認のほど、よろしくお願いいたします。",
+        "お忙しいところ恐れ入ります。",
+        "ご返信をお待ちしております。",
         "ご質問がございましたらお気軽にお声かけください。",
         "今後ともよろしくお願いいたします。",
         "お疲れ様でございます。",
@@ -315,37 +329,37 @@ export const handleProblemGeneration = async (req, res) => {
         // データベース + セッション両方の問題を重複回避リストに含める
         const allRecentProblems = [...recentProblems, ...Array.from(sessionProblems)];
         console.log(`📋 User has ${recentProblems.length} DB problems + ${sessionProblems.size} session problems to avoid duplicates`);
-        // 難易度別の詳細プロンプト（大幅多様化）
+        // 難易度別の詳細プロンプト
         const difficultyPrompts = {
             toeic: {
-                description: "TOEICレベルのビジネス英語（多様なシーン）",
-                constraints: "12-22文字、ビジネス場面、丁寧語、専門用語使用可。【多様性必須】IT・マーケティング・人事・経理・製造・医療・教育・金融・法務・物流・顧客サービス・海外出張・国際会議・研修・面接・品質管理・環境対策・安全管理・コンプライアンス・イノベーション・データ分析・プロジェクト管理・リスク管理・投資・保険・不動産・広告・PR・販売・購買・調達など30業界から1つ選択し、「この度」以外の多様な表現を使用",
-                examples: "品質管理システムを導入します。 / チームの生産性を向上させましょう。 / 新規事業戦略を検討中です。 / 環境保護対策を強化します。 / データ分析結果を共有します。 / 安全基準の見直しが必要です。"
+                description: "TOEICレベルのビジネス英語",
+                constraints: "15-25文字、ビジネス場面、丁寧語、専門用語使用可",
+                examples: "会議資料を準備してください。 / 売上が20%増加しました。 / 新商品の企画を検討中です。"
             },
             "middle-school": {
-                description: "中学1年生レベルの超基本英語（生活全般）",
-                constraints: "8-15文字、絶対に1文のみ、現在形・現在進行形のみ、基本語彙500語以内、複合文・複文は絶対禁止。【重要】学校・家族・友達・趣味・スポーツ・食事・動物・天気・季節・時間・場所・感情・色・数字・交通・買い物など多様なテーマから選択",
-                examples: "私は本を読みます。 / 母が料理を作っています。 / 友達とテニスをします。 / 今日は雨が降っています。 / 猫が庭で遊んでいます。 / 兄は大学生です。 / バスで学校に行きます。 / 夏休みが楽しいです。 / 数学の宿題をします。"
+                description: "中学1年生レベルの超基本英語",
+                constraints: "8-15文字、絶対に1文のみ、現在形・現在進行形のみ、基本語彙500語以内、複合文・複文は絶対禁止",
+                examples: "私は学生です。 / 今日は暑いです。 / 彼は走っています。 / 猫が寝ています。 / 雨が降ります。"
             },
             "high-school": {
-                description: "高校英語レベル（社会・学術分野）",
-                constraints: "15-25文字、複合時制・関係代名詞・仮定法使用可、抽象的概念含む。【多様性必須】環境・科学技術・歴史・文学・政治・経済・社会問題・国際関係・文化・芸術・哲学・心理学・進路・大学受験・部活動・ボランティア・医学・法学・数学・物理・化学・生物・地理・現代社会・倫理・情報技術・メディア・ジャーナリズム・スポーツ・音楽・美術など30以上の分野からランダムに1つ選択",
-                examples: "古典文学の魅力を発見しました。 / 数学の定理が美しいと感じます。 / 部活動でリーダーシップを学んでいます。 / 憲法の条文を暗記しています。 / 化学実験の結果を分析します。 / 美術館で感動を覚えました。"
+                description: "高校英語レベル",
+                constraints: "18-30文字、複合時制・関係代名詞・仮定法使用可、抽象的概念含む",
+                examples: "環境問題について考える必要があります。 / 将来の夢を実現するために努力しています。"
             },
             "basic-verbs": {
-                description: "基本動詞を使った超シンプルな文（日常行動）",
-                constraints: "6-12文字、go/come/eat/see/read/play/watch/study/sleep/work/cook/clean/buy/drink/walk/run等の基本動詞のみ。【重要】朝の行動・食事・移動・勉強・遊び・家事・買い物・運動・就寝など日常の様々な行動をカバー",
-                examples: "朝ごはんを食べます。 / 公園を散歩します。 / テレビを見ます。 / 水を飲みます。 / 部屋を掃除します。 / 友達に会います。 / 本屋に行きます。 / 早く寝ます。"
+                description: "基本動詞を使った超シンプルな文",
+                constraints: "6-12文字、go/come/eat/see/read/play/watch/study等の基本動詞のみ",
+                examples: "私は本を読みます。 / 彼女は音楽を聞きます。 / 友達と遊びます。"
             },
             "business-email": {
-                description: "ビジネスメール用の丁寧な表現（多岐分野）",
-                constraints: "15-25文字、敬語・丁寧語必須。【多様性必須】挨拶・依頼・確認・報告・提案・案内・スケジュール・顧客対応・緊急事態・人事・経理・法務・営業・技術・研修・会議・出張・契約・品質管理・プロジェクト管理・苦情対応・感謝・謝罪・祝賀・お知らせ・招待・質問・回答など25以上のシーンから1つ選択し、「この度」「つきまして」以外の多様な表現パターンを使用",
-                examples: "新システム導入についてご案内します。 / お忙しい中、ありがとうございます。 / 会議の議題を送付いたします。 / ご質問がございましたらお聞かせください。 / 来週の予定を調整させていただきます。 / おかげ様で売上が向上しました。"
+                description: "ビジネスメール用の丁寧な表現",
+                constraints: "20-35文字、敬語・丁寧語必須、依頼・確認・報告の表現",
+                examples: "資料をお送りいただけますでしょうか。 / 会議の日程を調整させていただきます。"
             },
             simulation: {
-                description: "実用的な日常会話（実生活の多様なシチュエーション）",
-                constraints: "10-20文字、場面設定明確、自然な話し言葉。【多様性最優先】以下の実生活場面から毎回ランダムに選択：\n\n旅行手配・ショッピング・レストラン注文・病院診察・銀行手続き・郵便局・電車バス・ホテル宿泊・観光案内・緊急時対応・道案内・予約変更・お礼挨拶・謝罪・タクシー・両替・Wi-Fi・荷物・チェックアウト・薬局・クレジットカード・トイレ・メニュー・価格確認・営業時間・サイズ交換・返品・修理・配送など30以上の実用場面\n\n【重要】毎回異なる場面設定で、実際に使える自然な日本語表現を作成",
-                examples: "この電車は空港に行きますか。 / レストランを予約したいです。 / 薬局はどこにありますか。 / WiFiのパスワードを教えてください。 / この服のサイズはありますか。 / タクシーを呼んでもらえますか。 / 両替はここでできますか。 / 道に迷ってしまいました。 / チェックアウトは何時ですか。 / この商品を返品したいです。"
+                description: "実用的な日常会話",
+                constraints: "10-20文字、場面設定明確、自然な話し言葉",
+                examples: "駅までどのくらいかかりますか。 / この商品はいくらですか。"
             }
         };
         const promptConfig = difficultyPrompts[difficultyLevel] || difficultyPrompts["middle-school"];
@@ -357,8 +371,6 @@ export const handleProblemGeneration = async (req, res) => {
                 if (!anthropicApiKey) {
                     throw new Error("Anthropic API key not configured");
                 }
-                console.log(`🔑 Problem generation - API Key available: ${!!anthropicApiKey}`);
-                console.log(`🔑 Problem generation - API Key length: ${anthropicApiKey?.length || 0}`);
                 const anthropic = new Anthropic({ apiKey: anthropicApiKey });
                 const generatePrompt = `${promptConfig.description}の日本語文を1つ作成してください。
 
@@ -373,9 +385,6 @@ ${promptConfig.examples}
 - 指定されたレベルを超えない語彙・文法のみ使用
 - 1文のみ（複文・複合文禁止、特にmiddle-schoolは絶対1文）
 - 自然で翻訳しやすい日本語
-- 【多様性最重要】同じ表現パターンは避け、文構造・語彙選択・主語・動詞をランダムに変える
-- TOEIC・BUSINESS_EMAIL: 「この度」「つきまして」は30%以下に制限
-- 毎回異なるテーマ・分野から1つランダム選択
 
 ${allRecentProblems.length > 0 ? `【重複回避】以下の文は絶対に避け、全く異なる内容で作成：
 ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
@@ -389,7 +398,7 @@ ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
                 const message = await anthropic.messages.create({
                     model: "claude-3-haiku-20240307",
                     max_tokens: 500,
-                    temperature: 0.9, // 多様性を最大化するため高めに設定
+                    temperature: 0.4, // より一貫性のあるレベル制御のため低めに設定
                     messages: [{ role: "user", content: generatePrompt }]
                 });
                 const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
@@ -404,8 +413,7 @@ ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
                         selectedSentence = generatedSentence;
                         console.log(`✅ Generated unique problem: "${selectedSentence}"`);
                         // セッションキャッシュにも追加
-                        if (selectedSentence)
-                            sessionProblems.add(selectedSentence);
+                        sessionProblems.add(selectedSentence);
                         const response = {
                             japaneseSentence: selectedSentence,
                             hints: problemData.hints || [`問題 - ${difficultyLevel}`],
@@ -443,12 +451,8 @@ ${allRecentProblems.slice(0, 10).map(p => `- ${p}`).join('\n')}` : ''}
     }
 };
 /* -------------------- Claude 評価 -------------------- */
-// 🚀 All evaluations now use Claude API for maximum quality and consistency
 export const handleClaudeEvaluation = async (req, res) => {
     try {
-        // ✅ ユーザーID取得（認証ミドルウェアから）
-        const userId = req.user?.email || req.user?.id || "anonymous";
-        console.log(`📝 Evaluation request from user: ${userId}`);
         // ★ まずは正規化
         const normalized = {
             japaneseSentence: req.body?.japaneseSentence,
@@ -463,8 +467,6 @@ export const handleClaudeEvaluation = async (req, res) => {
             });
         }
         const { japaneseSentence, userTranslation } = result.data;
-        // 🚀 ALWAYS USE CLAUDE API FOR MAXIMUM QUALITY AND CONSISTENCY
-        console.log('✅ Using Claude API for all evaluations - ensuring maximum quality and reliability');
         const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
         if (!anthropicApiKey) {
             return res
@@ -500,105 +502,56 @@ export const handleClaudeEvaluation = async (req, res) => {
 ユーザーの英訳: ${userTranslation}
 
 上記の翻訳を評価してください。`;
-        // 🚀 PRODUCTION-GRADE 5-RETRY SYSTEM WITH EXPONENTIAL BACKOFF
-        const maxRetries = 4; // 5 total attempts (0-4)
-        let parsedResult = null;
-        let lastError = null;
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+            const message = await anthropic.messages.create({
+                model: "claude-3-haiku-20240307",
+                max_tokens: 1000,
+                temperature: 0.7,
+                system: systemPrompt,
+                messages: [{ role: "user", content: userPrompt }],
+            });
+            const content = message.content[0]?.type === "text" ? message.content[0].text : "";
+            let parsedResult;
             try {
-                console.log(`🤖 Claude API attempt ${attempt + 1}/${maxRetries + 1} for evaluation`);
-                console.log(`📝 Request: "${japaneseSentence}" -> "${userTranslation}"`);
-                const anthropic = new Anthropic({
-                    apiKey: anthropicApiKey,
-                    timeout: 30000, // 30 seconds timeout for production reliability
-                });
-                const startTime = Date.now();
-                const message = await anthropic.messages.create({
-                    model: "claude-3-haiku-20240307",
-                    max_tokens: 1000,
-                    temperature: 0.7,
-                    system: systemPrompt,
-                    messages: [{ role: "user", content: userPrompt }],
-                });
-                const duration = Date.now() - startTime;
-                console.log(`⏱️ Claude API response time: ${duration}ms`);
-                const content = message.content[0]?.type === "text" ? message.content[0].text : "";
-                console.log(`📝 Claude response (attempt ${attempt + 1}):`, content.substring(0, 200) + "...");
-                // 🔥 CRITICAL FIX: Robust JSON parsing for Claude responses with control characters
+                parsedResult = JSON.parse(content);
+            }
+            catch (parseError) {
+                console.log("JSON parse failed, attempting cleanup:", parseError);
                 try {
-                    // Stage 1: Direct parse (try with raw content first)
-                    parsedResult = JSON.parse(content);
-                    console.log(`✅ Successfully parsed Claude response on attempt ${attempt + 1}`);
-                    break; // Success! Exit retry loop
+                    // Clean up content and try again
+                    let cleanContent = content.replace(/[\x00-\x1F\x7F]/g, '');
+                    cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                    parsedResult = JSON.parse(cleanContent);
                 }
-                catch (parseError) {
-                    console.log(`⚠️ JSON parse failed on attempt ${attempt + 1}, error:`, parseError.message);
-                    console.log(`📝 Raw content length:`, content.length);
-                    try {
-                        // Stage 2: Safe JSON extraction and cleaning
-                        const jsonMatch = content.match(/\{[\s\S]*\}/);
-                        if (!jsonMatch) {
-                            throw new Error('No JSON block found in Claude response');
+                catch (cleanupError) {
+                    // Try to extract JSON from content
+                    const jsonMatch = content?.match?.(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        try {
+                            let jsonContent = jsonMatch[0].replace(/[\x00-\x1F\x7F]/g, '');
+                            jsonContent = jsonContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+                            parsedResult = JSON.parse(jsonContent);
                         }
-                        let jsonString = jsonMatch[0];
-                        console.log(`📝 Extracted JSON length:`, jsonString.length);
-                        // Fix control characters in JSON string values only - CRITICAL FIX
-                        jsonString = jsonString.replace(/"explanation":\s*"([^"]*(?:\\.[^"]*)*)"/g, (match, explanation) => {
-                            const cleaned = explanation
-                                .replace(/\n/g, '\\\\n')
-                                .replace(/\r/g, '\\\\r')
-                                .replace(/\t/g, '\\\\t');
-                            return `"explanation": "${cleaned}"`;
-                        });
-                        // Also clean other text fields that might have control characters
-                        jsonString = jsonString.replace(/"feedback":\s*"([^"]*(?:\\.[^"]*)*)"/g, (match, feedback) => {
-                            const cleaned = feedback
-                                .replace(/\n/g, '\\\\n')
-                                .replace(/\r/g, '\\\\r')
-                                .replace(/\t/g, '\\\\t');
-                            return `"feedback": "${cleaned}"`;
-                        });
-                        parsedResult = JSON.parse(jsonString);
-                        console.log(`✅ Successfully parsed cleaned Claude response on attempt ${attempt + 1}`);
-                        break; // Success! Exit retry loop
+                        catch (finalError) {
+                            console.error("All JSON parsing attempts failed:", finalError);
+                            parsedResult = {};
+                        }
                     }
-                    catch (cleanupError) {
-                        console.error(`❌ JSON cleanup failed on attempt ${attempt + 1}:`, cleanupError);
-                        lastError = cleanupError;
+                    else {
+                        parsedResult = {};
                     }
                 }
             }
-            catch (apiError) {
-                lastError = apiError;
-                const isLastAttempt = attempt === maxRetries;
-                const isRateLimited = apiError.message?.includes('429') || apiError.message?.includes('rate limit');
-                const isServerError = apiError.message?.includes('500') || apiError.message?.includes('502') || apiError.message?.includes('503');
-                const isTimeoutError = apiError.message?.includes('timeout') || apiError.code === 'ECONNRESET';
-                console.error(`❌ Claude API error on attempt ${attempt + 1}:`, {
-                    message: apiError.message,
-                    type: apiError.type,
-                    status: apiError.status,
-                    code: apiError.code
-                });
-                if (!isLastAttempt && (isRateLimited || isServerError || isTimeoutError)) {
-                    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-                    const backoffMs = Math.pow(2, attempt) * 1000;
-                    const errorType = isRateLimited ? 'rate limit' : (isServerError ? 'server error' : 'timeout');
-                    console.log(`⏳ ${errorType} on attempt ${attempt + 1}, retrying in ${backoffMs / 1000}s...`);
-                    await new Promise(resolve => setTimeout(resolve, backoffMs));
-                    continue; // Retry
-                }
-                else if (isLastAttempt) {
-                    console.error(`❌ All Claude API attempts failed. Last error:`, apiError);
-                    break; // Exit retry loop and use fallback
-                }
+            // Check if parsing failed or result is incomplete
+            if (!parsedResult || Object.keys(parsedResult).length === 0 ||
+                !parsedResult.correctTranslation ||
+                parsedResult.correctTranslation === "Translation evaluation failed") {
+                console.log("Using enhanced fallback due to invalid Claude response");
+                const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school");
+                res.json(fallbackResponse);
+                return;
             }
-        }
-        // Check if we got a successful result from Claude API
-        if (parsedResult && Object.keys(parsedResult).length > 0 &&
-            parsedResult.correctTranslation &&
-            parsedResult.correctTranslation !== "Translation evaluation failed") {
-            console.log("✅ Successfully got valid Claude API response");
             const response = {
                 correctTranslation: parsedResult.correctTranslation,
                 feedback: parsedResult.feedback,
@@ -614,7 +567,6 @@ export const handleClaudeEvaluation = async (req, res) => {
             // Save training session to database
             try {
                 const sessionData = {
-                    userId: userId, // ✅ ユーザーIDを含める
                     difficultyLevel: normalized.difficultyLevel || "middle-school",
                     japaneseSentence: japaneseSentence,
                     userTranslation: normalized.userTranslation || "",
@@ -622,21 +574,50 @@ export const handleClaudeEvaluation = async (req, res) => {
                     feedback: response.feedback,
                     rating: response.rating,
                 };
-                console.log(`📝 Saving training session for user: ${userId}`);
                 const insertResult = await db.insert(trainingSessions).values(sessionData).returning();
                 response.sessionId = insertResult[0]?.id;
-                console.log(`✅ Training session saved with ID: ${response.sessionId}`);
             }
             catch (dbError) {
-                console.error('❌ Database save error:', dbError);
+                console.error('Database save error:', dbError);
                 // Continue without sessionId if database save fails
             }
-            return res.json(response);
+            res.json(response);
         }
-        // If we reach here, all Claude API attempts failed - use high-quality fallback
-        console.log("⚠️ All Claude API attempts failed, using enhanced fallback system");
-        const fallbackResponse = await generateFallbackEvaluation(japaneseSentence, normalized.userTranslation || "", normalized.difficultyLevel || "middle-school", userId);
-        return res.json(fallbackResponse);
+        catch (error) {
+            console.error("Claude API error:", error);
+            // Fallback with database save
+            const fallback = {
+                correctTranslation: "Please coordinate with your team members.",
+                feedback: `お疲れ様でした！「${normalized.userTranslation ?? ""}」という回答をいただきました。現在AI評価システムに一時的な問題が発生していますが、継続して学習を続けましょう。`,
+                rating: 3,
+                improvements: [
+                    "短く自然な表現を意識しましょう",
+                    "動詞と時制の一致を確認しましょう",
+                ],
+                explanation: "システム復旧中のため、詳細な評価ができません。",
+                similarPhrases: [
+                    "Work closely with your teammates.",
+                    "Collaborate with your team.",
+                ],
+            };
+            // Save fallback training session to database
+            try {
+                const sessionData = {
+                    difficultyLevel: normalized.difficultyLevel || "middle-school",
+                    japaneseSentence: japaneseSentence,
+                    userTranslation: normalized.userTranslation || "",
+                    correctTranslation: fallback.correctTranslation,
+                    feedback: fallback.feedback,
+                    rating: fallback.rating,
+                };
+                const insertResult = await db.insert(trainingSessions).values(sessionData).returning();
+                fallback.sessionId = insertResult[0]?.id;
+            }
+            catch (dbError) {
+                console.error('Database save error for fallback:', dbError);
+            }
+            res.json(fallback);
+        }
     }
     catch (error) {
         console.error("Evaluation error:", error);
@@ -647,25 +628,18 @@ export const handleClaudeEvaluation = async (req, res) => {
     }
 };
 // Enhanced Claude-powered dynamic evaluation function
-async function generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel, userId) {
+async function generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel) {
     console.log(`🤖 Generating complete dynamic evaluation for: "${japaneseSentence}" with user answer: "${userTranslation}"`);
-    // 🚀 PRODUCTION-GRADE 5-RETRY SYSTEM FOR FALLBACK EVALUATION
+    // Try Claude API for complete evaluation
     if (process.env.ANTHROPIC_API_KEY) {
-        const maxRetries = 4; // 5 total attempts (0-4)
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-                console.log(`🤖 Fallback Claude API attempt ${attempt + 1}/${maxRetries + 1}`);
-                const anthropic = new Anthropic({
-                    apiKey: process.env.ANTHROPIC_API_KEY,
-                    timeout: 25000, // 25 seconds timeout
-                });
-                const startTime = Date.now();
-                const response = await anthropic.messages.create({
-                    model: 'claude-3-haiku-20240307',
-                    max_tokens: 400,
-                    messages: [{
-                            role: 'user',
-                            content: `You are an English learning AI tutor. Evaluate this Japanese-to-English translation:
+        try {
+            const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+            const response = await anthropic.messages.create({
+                model: 'claude-3-haiku-20240307',
+                max_tokens: 400,
+                messages: [{
+                        role: 'user',
+                        content: `You are an English learning AI tutor. Evaluate this Japanese-to-English translation:
 
 Japanese: "${japaneseSentence}"
 User's answer: "${userTranslation}"
@@ -680,77 +654,217 @@ Provide a JSON response with:
 6. "similarPhrases": Array of 3 similar English expressions
 
 Respond only with valid JSON, no extra text.`
-                        }]
-                });
-                const duration = Date.now() - startTime;
-                console.log(`⏱️ Fallback Claude API response time: ${duration}ms`);
-                const content = response.content[0];
-                if (content.type === 'text') {
-                    try {
-                        const claudeResult = JSON.parse(content.text);
-                        console.log(`✅ Fallback Claude complete evaluation generated successfully on attempt ${attempt + 1}`);
-                        return {
-                            correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
-                            feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
-                            rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
-                            improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
-                            explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
-                            similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
-                        };
-                    }
-                    catch (parseError) {
-                        console.log(`⚠️ Fallback Claude JSON parsing failed on attempt ${attempt + 1}, trying cleanup...`);
-                        // Advanced JSON cleanup (same as main API)
-                        try {
-                            let cleanContent = content.text.replace(/[\x00-\x1F\x7F]/g, '');
-                            cleanContent = cleanContent.replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-                            const claudeResult = JSON.parse(cleanContent);
-                            console.log(`✅ Fallback Claude cleanup parsing successful on attempt ${attempt + 1}`);
-                            return {
-                                correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
-                                feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
-                                rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
-                                improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
-                                explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
-                                similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
-                            };
-                        }
-                        catch (cleanupError) {
-                            if (attempt < maxRetries) {
-                                console.log(`⚠️ Fallback attempt ${attempt + 1} failed, retrying...`);
-                                continue; // Try again
-                            }
-                        }
-                    }
+                    }]
+            });
+            const content = response.content[0];
+            if (content.type === 'text') {
+                try {
+                    const claudeResult = JSON.parse(content.text);
+                    console.log(`✅ Claude complete evaluation generated successfully`);
+                    return {
+                        correctTranslation: claudeResult.correctTranslation || "Please translate this sentence.",
+                        feedback: claudeResult.feedback || "良い回答です。継続的な練習で更に向上できます。",
+                        rating: Math.min(5, Math.max(1, claudeResult.rating || 3)),
+                        improvements: Array.isArray(claudeResult.improvements) ? claudeResult.improvements.slice(0, 2) : ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"],
+                        explanation: claudeResult.explanation || "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。",
+                        similarPhrases: Array.isArray(claudeResult.similarPhrases) ? claudeResult.similarPhrases.slice(0, 3) : ["Please practice more.", "Keep improving your English.", "Try different expressions."]
+                    };
                 }
-            }
-            catch (apiError) {
-                const isLastAttempt = attempt === maxRetries;
-                const isRateLimited = apiError.message?.includes('429') || apiError.message?.includes('rate limit');
-                const isServerError = apiError.message?.includes('500') || apiError.message?.includes('502') || apiError.message?.includes('503');
-                const isTimeoutError = apiError.message?.includes('timeout') || apiError.code === 'ECONNRESET';
-                console.error(`❌ Fallback Claude API error on attempt ${attempt + 1}:`, {
-                    message: apiError.message,
-                    status: apiError.status,
-                    type: apiError.type,
-                    error_type: apiError.error_type,
-                });
-                if (!isLastAttempt && (isRateLimited || isServerError || isTimeoutError)) {
-                    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-                    const backoffMs = Math.pow(2, attempt) * 1000;
-                    const errorType = isRateLimited ? 'rate limit' : (isServerError ? 'server error' : 'timeout');
-                    console.log(`⏳ Fallback ${errorType} on attempt ${attempt + 1}, retrying in ${backoffMs / 1000}s...`);
-                    await new Promise(resolve => setTimeout(resolve, backoffMs));
-                    continue; // Retry
+                catch (parseError) {
+                    console.log('⚠️ Claude JSON parsing failed, falling back to static generation');
                 }
             }
         }
-        console.log('⚠️ All fallback Claude API attempts failed, using static evaluation');
+        catch (error) {
+            console.log(`⚠️ Claude evaluation failed: ${error.message}, using static fallback`);
+        }
     }
-    // 🚀 If all Claude API attempts failed, return error instead of using static fallback
-    console.error('❌ ALL Claude API attempts failed, returning error instead of static fallback');
-    // 🚀 No static fallbacks - always throw error if Claude API fails completely
-    throw new Error("Claude API is required for evaluation and is currently unavailable. Please try again later.");
+    // Static fallback system (only used when Claude API fails)
+    const modelAnswers = {
+        "私たちは昨日映画を見ました。": "We watched a movie yesterday.",
+        "明日は友達と遊びます。": "I will play with my friends tomorrow.",
+        "私は毎日学校に行きます。": "I go to school every day.",
+        "今日は雨が降っています。": "It is raining today.",
+        "彼女は本を読むのが好きです。": "She likes reading books.",
+        "彼は毎朝走ります。": "He runs every morning.",
+        "私は本を読みます。": "I read books.",
+        "彼女は料理を作ります。": "She cooks meals.",
+        "私たちは音楽を聞きます。": "We listen to music.",
+        "子供たちは公園で遊びます。": "Children play in the park.",
+        "私たちは夏休みが好きです。": "We like summer vacation.",
+        "私は英語を勉強しています。": "I am studying English.",
+        "私は朝ごはんを食べます。": "I have breakfast.",
+        "私たちは公園で遊びました。": "We played in the park.",
+        "私は宿題をしました。": "I did my homework.",
+        "今日は暖かい日です。": "Today is a warm day.",
+        "私の兄は大学生です。": "My brother is a university student.",
+        "彼は自転車に乗ります。": "He rides a bicycle.",
+        "彼女は絵を描くのが得意です。": "She is good at drawing pictures.",
+        "私たちは図書館で勉強します。": "We study in the library.",
+        "今日は金曜日です。": "Today is Friday.",
+        "私は犬を飼っています。": "I have a dog.",
+        "彼は毎朝ジョギングをします。": "He jogs every morning.",
+        "私たちは家族と旅行します。": "We travel with our family.",
+        "彼女は数学が好きです。": "She likes math.",
+        "私は新しい友達を作りました。": "I made a new friend.",
+        "今日は風が強いです。": "It is windy today.",
+    };
+    const similarPhrases = {
+        "私たちは昨日映画を見ました。": [
+            "We saw a film yesterday.",
+            "Yesterday, we went to see a movie.",
+        ],
+        "明日は友達と遊びます。": [
+            "I will hang out with my friends tomorrow.",
+            "Tomorrow I'm going to spend time with my friends.",
+        ],
+        "彼女は本を読むのが好きです。": [
+            "She enjoys reading books.",
+            "Reading books is one of her hobbies.",
+        ],
+        "私たちは夏休みが好きです。": [
+            "We love summer vacation.",
+            "We enjoy summer break.",
+            "Summer holidays are our favorite.",
+        ],
+        "私は英語を勉強しています。": [
+            "I'm learning English.",
+            "I study English.",
+            "I'm working on my English.",
+        ],
+        "私は朝ごはんを食べます。": [
+            "I eat breakfast.",
+            "I have my morning meal.",
+            "I take breakfast.",
+        ],
+        "私たちは公園で遊びました。": [
+            "We had fun in the park.",
+            "We played at the park.",
+            "We enjoyed ourselves in the park.",
+        ],
+        "彼女は数学が好きです。": [
+            "She loves mathematics.",
+            "She enjoys math.",
+            "Mathematics is her favorite subject.",
+        ],
+        "私は犬を飼っています。": [
+            "I own a dog.",
+            "I have a pet dog.",
+            "I keep a dog as a pet.",
+        ],
+        "彼は毎朝ジョギングをします。": [
+            "He runs every morning.",
+            "He goes jogging each morning.",
+            "Morning jogging is his routine.",
+        ],
+        "私たちは家族と旅行します。": [
+            "We take trips with our family.",
+            "We go on family trips.",
+            "Family travel is our hobby.",
+        ],
+        "私は新しい友達を作りました。": [
+            "I made a new friend.",
+            "I befriended someone new.",
+            "I gained a new friendship.",
+        ],
+        "今日は風が強いです。": [
+            "It's very windy today.",
+            "There's a strong wind today.",
+            "The wind is blowing hard today.",
+        ],
+    };
+    // Basic translation generator for unknown sentences
+    function generateBasicTranslation(japaneseSentence) {
+        // Simple pattern matching for basic translation
+        if (japaneseSentence.includes("好きです")) {
+            return "I/We like...";
+        }
+        else if (japaneseSentence.includes("行きます")) {
+            return "I/We go...";
+        }
+        else if (japaneseSentence.includes("します")) {
+            return "I/We do...";
+        }
+        else if (japaneseSentence.includes("です")) {
+            return "It is...";
+        }
+        else {
+            return "Please provide a translation for this sentence.";
+        }
+    }
+    // Generate intelligent similar phrases for unknown sentences
+    function generateIntelligentSimilarPhrases(japaneseSentence, correctTranslation) {
+        // Context-aware phrase generation based on the sentence content
+        const phrases = [];
+        // Pattern-based similar phrase generation
+        if (japaneseSentence.includes("好きです") || japaneseSentence.includes("好き")) {
+            phrases.push(`I/She/He enjoy(s) ${correctTranslation.split(' ').slice(1).join(' ')}`);
+            phrases.push(`${correctTranslation.replace('like', 'love')}`);
+            phrases.push(`It's my/her/his favorite to ${correctTranslation.split(' ').slice(1).join(' ')}`);
+        }
+        else if (japaneseSentence.includes("します") || japaneseSentence.includes("やります")) {
+            phrases.push(`Alternative: ${correctTranslation.replace('do', 'perform')}`);
+            phrases.push(`Another way: ${correctTranslation.replace('do', 'engage in')}`);
+            phrases.push(`Similar: ${correctTranslation.replace('I', 'We')}`);
+        }
+        else if (japaneseSentence.includes("行きます") || japaneseSentence.includes("行く")) {
+            phrases.push(`${correctTranslation.replace('go', 'visit')}`);
+            phrases.push(`${correctTranslation.replace('go to', 'head to')}`);
+            phrases.push(`${correctTranslation.replace('I go', 'I travel')}`);
+        }
+        else if (japaneseSentence.includes("です") || japaneseSentence.includes("だ")) {
+            phrases.push(`${correctTranslation.replace('is', 'seems to be')}`);
+            phrases.push(`${correctTranslation.replace('It is', 'This is')}`);
+            phrases.push(`Similar meaning: ${correctTranslation}`);
+        }
+        else {
+            // Generic intelligent phrases
+            phrases.push(`Alternative: ${correctTranslation}`);
+            phrases.push(`Another way: Please practice more.`);
+            phrases.push(`Keep improving: Your English is getting better!`);
+        }
+        // Ensure we have exactly 3 phrases
+        while (phrases.length < 3) {
+            phrases.push(`Practice phrase: Keep learning English!`);
+        }
+        return phrases.slice(0, 3);
+    }
+    // Static fallback evaluation (used only when Claude API completely fails)
+    console.log('⚠️ Using static fallback evaluation system');
+    const staticCorrectTranslation = modelAnswers[japaneseSentence] || generateBasicTranslation(japaneseSentence);
+    // Simple evaluation based on user input quality
+    let staticRating = 3;
+    let staticFeedback = "良い回答です。継続的な練習で更に向上できます。";
+    let staticImprovements = ["自然な英語表現を心がけましょう", "文法と語彙の確認をしましょう"];
+    let staticExplanation = "基本的な文構造は理解されています。より自然な表現を使うことで、さらに良い英訳になります。";
+    if (!userTranslation || userTranslation.trim().length < 3) {
+        staticRating = 1;
+        staticFeedback = "回答が短すぎます。完整な英文で回答してください。";
+        staticImprovements = ["完整な英文を作成しましょう", "主語と動詞を含めましょう"];
+        staticExplanation = "英訳では主語、動詞、目的語を含む完整な文を作ることが大切です。";
+    }
+    else if (userTranslation.toLowerCase().includes("movee") || userTranslation.toLowerCase().includes("bouk")) {
+        staticRating = 2;
+        staticFeedback = "スペルミスがあります。正しい英単語を使いましょう。";
+        staticImprovements = ["単語のスペルを確認しましょう", "基本的な英単語を覚えましょう"];
+        staticExplanation = "英語の基本単語を正確に覚えることで、より良い英訳ができるようになります。";
+    }
+    // Use static similar phrases or intelligent generation as last resort
+    let dynamicSimilarPhrases;
+    if (similarPhrases[japaneseSentence]) {
+        dynamicSimilarPhrases = similarPhrases[japaneseSentence];
+    }
+    else {
+        dynamicSimilarPhrases = generateIntelligentSimilarPhrases(japaneseSentence, staticCorrectTranslation);
+    }
+    return {
+        correctTranslation: staticCorrectTranslation,
+        feedback: staticFeedback,
+        rating: staticRating,
+        improvements: staticImprovements,
+        explanation: staticExplanation,
+        similarPhrases: dynamicSimilarPhrases,
+    };
 }
 /* -------------------- 認証ミドルウェア -------------------- */
 async function requireAuth(req, res, next) {
@@ -977,14 +1091,9 @@ export function registerRoutes(app) {
 
 上記の翻訳を評価してください。`;
             console.log(`🤖 Calling Claude API for: "${japaneseSentence}" -> "${userTranslation}"`);
-            console.log(`🔑 API Key available: ${!!anthropicApiKey}`);
-            console.log(`🔑 API Key length: ${anthropicApiKey?.length || 0}`);
             try {
                 const { default: Anthropic } = await import('@anthropic-ai/sdk');
                 const anthropic = new Anthropic({ apiKey: anthropicApiKey });
-                console.log(`📤 Sending request to Claude with model: claude-3-haiku-20240307`);
-                console.log(`📤 System prompt length: ${systemPrompt.length}`);
-                console.log(`📤 User prompt length: ${userPrompt.length}`);
                 const message = await anthropic.messages.create({
                     model: "claude-3-haiku-20240307",
                     max_tokens: 1000,
@@ -992,11 +1101,9 @@ export function registerRoutes(app) {
                     system: systemPrompt,
                     messages: [{ role: "user", content: userPrompt }],
                 });
-                console.log(`📥 Claude API call successful`);
-                console.log(`📥 Response usage: ${JSON.stringify(message.usage)}`);
                 const content = message.content[0];
                 let responseText = content.type === "text" ? content.text : "";
-                console.log(`🤖 Claude raw response (${responseText.length} chars): ${responseText.substring(0, 200)}...`);
+                console.log(`🤖 Claude raw response: ${responseText.substring(0, 200)}...`);
                 let parsedResult;
                 try {
                     parsedResult = JSON.parse(responseText);
@@ -1045,15 +1152,29 @@ export function registerRoutes(app) {
             catch (anthropicError) {
                 console.error("❌ Anthropic API error:", anthropicError);
                 console.error("❌ API Error details:", {
-                    name: anthropicError?.name || 'Unknown',
-                    message: anthropicError?.message || 'Unknown error',
-                    status: anthropicError?.status || 'No status',
-                    stack: anthropicError?.stack || 'No stack trace'
+                    name: anthropicError.name,
+                    message: anthropicError.message,
+                    status: anthropicError.status
                 });
-                // Claude APIが利用不可の場合でも適切なフォールバック評価を生成
-                const userId = req.user?.email || "anonymous";
-                const fallbackEvaluation = await generateFallbackEvaluation(japaneseSentence, userTranslation, difficultyLevel, userId);
+                // 問題固有のフォールバック評価を生成
+                const fallbackEvaluation = {
+                    correctTranslation: userTranslation.includes("good at") ?
+                        "She is good at drawing pictures." :
+                        `適切な英訳: ${userTranslation}`,
+                    feedback: `「${japaneseSentence}」の翻訳として、基本的な構造は理解されています。AIが一時的に利用できないため、簡易評価を表示しています。`,
+                    rating: 3,
+                    improvements: [
+                        "より詳細な評価は後ほど再試行してください",
+                        "基本的な文法構造は良好です"
+                    ],
+                    explanation: `「${japaneseSentence}」という日本語文の英訳について、AI評価システムが一時的に利用できません。`,
+                    similarPhrases: [
+                        japaneseSentence.includes("得意") ? "She excels at drawing" : "Alternative expression",
+                        japaneseSentence.includes("得意") ? "She's skilled at painting" : "Another way to say it"
+                    ],
+                };
                 try {
+                    const userId = req.user?.email || "anonymous";
                     const [session] = await db
                         .insert(trainingSessions)
                         .values({
@@ -1083,58 +1204,52 @@ export function registerRoutes(app) {
     });
     router.get("/monthly-stats", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📊 Fetching monthly stats for user: ${userEmail}`);
-            // Get training sessions from the database grouped by month
-            const monthlyData = await db
-                .select({
-                month: sql `DATE_TRUNC('month', created_at)`,
-                problemsCompleted: sql `COUNT(*)`,
-                averageRating: sql `AVG(rating)`
-            })
-                .from(trainingSessions)
-                .where(eq(trainingSessions.userId, userEmail))
-                .groupBy(sql `DATE_TRUNC('month', created_at)`)
-                .orderBy(sql `DATE_TRUNC('month', created_at) DESC`)
-                .limit(12); // Last 12 months
-            // Format the data for the client
-            const formattedData = monthlyData.map(item => ({
-                month: new Date(item.month).toISOString().slice(0, 7), // Format as YYYY-MM
-                problemsCompleted: Number(item.problemsCompleted),
-                averageRating: Math.round(Number(item.averageRating) * 10) / 10 // Round to 1 decimal
-            }));
-            console.log(`📊 Found ${formattedData.length} months of data for ${userEmail}`);
-            res.json(formattedData);
+            res.json([
+                { month: '2025-06', problemsCompleted: 245, averageRating: 4.1 },
+                { month: '2025-07', problemsCompleted: 312, averageRating: 4.3 },
+                { month: '2025-08', problemsCompleted: 186, averageRating: 4.2 }
+            ]);
         }
         catch (error) {
             console.error('Error fetching monthly stats:', error);
             res.status(500).json({ error: 'Failed to fetch monthly stats' });
         }
     });
-    // 🛡️ PROTECTION: Permanently block deprecated endpoints (prevents future issues)
-    const deprecatedEndpoints = ['/api/review-sessions', '/api/practice-sessions', '/api/retry-sessions'];
-    deprecatedEndpoints.forEach(endpoint => {
-        app.all(endpoint, (req, res) => {
-            console.log(`🚫 BLOCKED deprecated endpoint access: ${endpoint}`);
-            res.status(410).json({
-                error: 'Endpoint deprecated and consolidated into unified repeat practice system',
-                redirect: '/api/recent-sessions',
-                timestamp: new Date().toISOString()
-            });
-        });
+    router.get("/review-sessions", requireAuth, async (req, res) => {
+        try {
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "会議の資料を準備しておいてください。",
+                    userTranslation: "Please prepare the meeting materials.",
+                    correctTranslation: "Please prepare the materials for the meeting.",
+                    rating: 4,
+                    feedback: "良い翻訳です。前置詞の使い方が適切です。",
+                    difficultyLevel: "toeic",
+                    createdAt: "2025-08-24T10:30:00Z"
+                }
+            ];
+            res.json(mockSessions);
+        }
+        catch (error) {
+            console.error('Error fetching review sessions:', error);
+            res.status(500).json({ error: 'Failed to fetch review sessions' });
+        }
     });
     router.get("/recent-sessions", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📋 Fetching recent sessions (past 10 days) for user: ${userEmail}`);
-            // ✅ 過去10日間のセッションを取得（制限なし）
-            const recentSessions = await db
-                .select()
-                .from(trainingSessions)
-                .where(and(eq(trainingSessions.userId, userEmail), sql `created_at >= CURRENT_DATE - INTERVAL '10 days'`))
-                .orderBy(desc(trainingSessions.createdAt));
-            console.log(`📋 Found ${recentSessions.length} recent sessions for ${userEmail}`);
-            res.json(recentSessions);
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "売上が前年比20%増加しました。",
+                    userTranslation: "Sales increased 20% compared to last year.",
+                    correctTranslation: "Sales increased by 20% compared to the previous year.",
+                    rating: 4,
+                    difficultyLevel: "toeic",
+                    createdAt: "2025-08-24T15:20:00Z"
+                }
+            ];
+            res.json(mockSessions);
         }
         catch (error) {
             console.error('Error fetching recent sessions:', error);
@@ -1143,12 +1258,19 @@ export function registerRoutes(app) {
     });
     router.get("/bookmarked-sessions", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`📋 Fetching bookmarked sessions for user: ${userEmail}`);
-            // ブックマーク機能は未実装のため、空の配列を返す
-            const bookmarkedSessions = [];
-            console.log(`📋 Found ${bookmarkedSessions.length} bookmarked sessions for ${userEmail}`);
-            res.json(bookmarkedSessions);
+            const mockSessions = [
+                {
+                    id: 1,
+                    japaneseSentence: "環境問題について考える必要があります。",
+                    userTranslation: "We need to think about environmental problems.",
+                    correctTranslation: "We need to consider environmental issues.",
+                    rating: 3,
+                    difficultyLevel: "high-school",
+                    isBookmarked: true,
+                    createdAt: "2025-08-23T14:15:00Z"
+                }
+            ];
+            res.json(mockSessions);
         }
         catch (error) {
             console.error('Error fetching bookmarked sessions:', error);
@@ -1157,74 +1279,25 @@ export function registerRoutes(app) {
     });
     router.get("/custom-scenarios", requireAuth, async (req, res) => {
         try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`🎯 Fetching custom scenarios for user: ${userEmail}`);
-            // Get custom scenarios from the database for the current user
-            const scenarios = await db
-                .select()
-                .from(customScenarios)
-                .where(eq(customScenarios.userId, userEmail))
-                .orderBy(desc(customScenarios.createdAt));
-            console.log(`🎯 Found ${scenarios.length} custom scenarios for ${userEmail}`);
-            res.json(scenarios);
+            const mockScenarios = [
+                {
+                    id: 1,
+                    title: "海外旅行",
+                    description: "空港、ホテル、レストランでの会話",
+                    createdAt: "2025-08-20T09:00:00Z"
+                },
+                {
+                    id: 2,
+                    title: "ビジネス会議",
+                    description: "プレゼンテーション、議論、質疑応答",
+                    createdAt: "2025-08-22T11:30:00Z"
+                }
+            ];
+            res.json(mockScenarios);
         }
         catch (error) {
             console.error('Error fetching custom scenarios:', error);
             res.status(500).json({ error: 'Failed to fetch custom scenarios' });
-        }
-    });
-    // Create a new custom scenario
-    router.post("/custom-scenarios", requireAuth, async (req, res) => {
-        try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`🎯 Creating custom scenario for user: ${userEmail}`);
-            const { title, description } = req.body;
-            if (!title || !description) {
-                return res.status(400).json({ error: 'Title and description are required' });
-            }
-            const newScenario = await db
-                .insert(customScenarios)
-                .values({
-                userId: userEmail,
-                title,
-                description,
-                isActive: true
-            })
-                .returning()
-                .execute();
-            console.log(`🎯 Created custom scenario with ID: ${newScenario[0].id}`);
-            res.status(201).json(newScenario[0]);
-        }
-        catch (error) {
-            console.error('Error creating custom scenario:', error);
-            res.status(500).json({ error: 'Failed to create custom scenario' });
-        }
-    });
-    // Delete a custom scenario
-    router.delete("/custom-scenarios/:id", requireAuth, async (req, res) => {
-        try {
-            const userEmail = req.user?.email || "anonymous";
-            const scenarioId = parseInt(req.params.id);
-            console.log(`🎯 Deleting custom scenario ${scenarioId} for user: ${userEmail}`);
-            // First check if the scenario belongs to the user
-            const scenario = await db
-                .select()
-                .from(customScenarios)
-                .where(and(eq(customScenarios.id, scenarioId), eq(customScenarios.userId, userEmail)))
-                .execute();
-            if (scenario.length === 0) {
-                return res.status(404).json({ error: 'Scenario not found or not owned by user' });
-            }
-            await db
-                .delete(customScenarios)
-                .where(and(eq(customScenarios.id, scenarioId), eq(customScenarios.userId, userEmail)))
-                .execute();
-            console.log(`🎯 Successfully deleted custom scenario ${scenarioId}`);
-            res.json({ message: 'Scenario deleted successfully' });
-        }
-        catch (error) {
-            console.error('Error deleting custom scenario:', error);
-            res.status(500).json({ error: 'Failed to delete custom scenario' });
         }
     });
     router.get("/daily-count", requireAuth, async (req, res) => {
@@ -1342,8 +1415,37 @@ export function registerRoutes(app) {
             });
         }
     });
-    // 削除済み: review-list エンドポイント（統合された繰り返し練習に置き換え）
-    // 削除済み: retry-list エンドポイント（統合された繰り返し練習に置き換え）
+    // Review system endpoints (with authentication)
+    router.get("/review-list", requireAuth, async (req, res) => {
+        try {
+            const reviewProblems = await db
+                .select()
+                .from(trainingSessions)
+                .where(lte(trainingSessions.rating, 2))
+                .orderBy(desc(trainingSessions.createdAt))
+                .limit(10);
+            res.json(reviewProblems);
+        }
+        catch (error) {
+            console.error('Error fetching review list:', error);
+            res.status(500).json({ error: 'Failed to fetch review list' });
+        }
+    });
+    router.get("/retry-list", requireAuth, async (req, res) => {
+        try {
+            const retryProblems = await db
+                .select()
+                .from(trainingSessions)
+                .where(eq(trainingSessions.rating, 3))
+                .orderBy(desc(trainingSessions.createdAt))
+                .limit(10);
+            res.json(retryProblems);
+        }
+        catch (error) {
+            console.error('Error fetching retry list:', error);
+            res.status(500).json({ error: 'Failed to fetch retry list' });
+        }
+    });
     // Progress report endpoint (with authentication)
     router.get("/progress-report", requireAuth, async (req, res) => {
         try {
@@ -1443,16 +1545,3 @@ export function registerRoutes(app) {
     });
     app.use("/api", router);
 }
-router.get("/debug/sessions", requireAuth, async (req, res) => {
-    try {
-        const userEmail = req.user?.email || "anonymous";
-        const allSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.userId, userEmail)).orderBy(desc(trainingSessions.createdAt)).limit(10);
-        console.log(`🔍 Debug: Found ${allSessions.length} total sessions for ${userEmail}`);
-        allSessions.forEach(s => console.log(`  - Rating: ${s.rating}, Sentence: ${s.japaneseSentence?.substring(0, 30)}...`));
-        res.json(allSessions);
-    }
-    catch (error) {
-        console.error("Debug error:", error);
-        res.status(500).json({ error: "Debug failed" });
-    }
-});

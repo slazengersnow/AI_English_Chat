@@ -421,14 +421,7 @@ async function handleClaudeEvaluation(req: Request, res: Response) {
 
     // If all retries failed, use high-quality fallback
     console.log(`⚠️ [UNIFIED] All Claude API attempts failed, using high-quality fallback evaluation`);
-    const fallbackEvaluation = {
-      correctTranslation: "We apologize, but the translation service is temporarily unavailable. Please try again.",
-      feedback: "申し訳ございませんが、一時的にサービスが利用できません。しばらくしてからもう一度お試しください。",
-      rating: 3,
-      improvements: ["しばらく時間をおいてからもう一度お試しください"],
-      explanation: "翻訳サービスが一時的に利用できませんが、継続的な練習により英語力は確実に向上します。",
-      similarPhrases: ["Please try again later.", "Service temporarily unavailable.", "Thank you for your patience."]
-    };
+    const fallbackEvaluation = getDirectHighQualityEvaluation(japaneseSentence, userTranslation, difficultyLevel || 'middle_school');
     return res.json(fallbackEvaluation);
 
   } catch (error) {

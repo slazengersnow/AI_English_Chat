@@ -173,30 +173,15 @@ app.use("/api/*", (_req, res) => {
 });
 
 /* ---------- frontend serving logic ---------- */
-// 緊急修正: シンプルな一時ビルド方式
-// npm run build を実行してdistファイルを作成する必要がある
-console.log("🔧 Temporary fix: Using static build files");
+// Replit環境では常に本番ビルドを使用（Viteホスト制限回避）
 const clientDist = path.resolve(process.cwd(), "dist/client");
 app.use(express.static(clientDist));
-
-// SPA routing support
-app.get("*", (req, res) => {
-  // API endpoints はスキップ
-  if (req.path.startsWith('/api/') || req.path.startsWith('/__introspect')) {
-    return;
-  }
-  
-  // dist/client/index.html が存在するかチェック
-  const indexPath = path.join(clientDist, "index.html");
-  if (require('fs').existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).json({ 
-      error: "Build files not found. Please run 'npm run build' first.",
-      path: indexPath 
-    });
-  }
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
 });
+console.log(
+  "📦 Forced production mode: Serving static client files from dist/client",
+);
 
 /* ---------- server start ---------- */
 app.listen(PORT, process.env.HOST, () => {
