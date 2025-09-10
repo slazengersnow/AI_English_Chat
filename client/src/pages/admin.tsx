@@ -93,7 +93,7 @@ export default function Admin() {
 
   const exportDataMutation = useMutation({
     mutationFn: async (type: string) => {
-      const response = await apiRequest("GET", `/api/admin/export/${type}`);
+      const response = await apiRequest(`/api/admin/export/${type}`, { method: "GET" });
       return response.blob();
     },
     onSuccess: (blob, type) => {
@@ -121,8 +121,10 @@ export default function Admin() {
 
   const updateSubscriptionMutation = useMutation({
     mutationFn: async ({ userId, subscriptionType }: { userId: string; subscriptionType: string }) => {
-      return await apiRequest("PUT", `/api/admin/users/${userId}/subscription`, {
-        subscriptionType,
+      return await apiRequest(`/api/admin/users/${userId}/subscription`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscriptionType }),
       });
     },
     onSuccess: () => {
