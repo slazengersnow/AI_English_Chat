@@ -3,6 +3,8 @@ import { trainingSessions } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 // 実際のデータベース接続を使用するストレージ
 export class Storage {
+    // Expose db for admin routes
+    db = db;
     async addTrainingSession(data) {
         try {
             const [session] = await db
@@ -235,3 +237,11 @@ export class Storage {
 // デフォルトエクスポート
 const storage = new Storage();
 export default storage;
+// getStorage function for admin routes
+export function getStorage() {
+    return {
+        db: storage.db,
+    };
+}
+// Export the db for direct access
+export { db } from "./db.js";

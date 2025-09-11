@@ -99,7 +99,7 @@ app.use(
 
 // Stripe webhook用のraw bodyハンドリング（必要な場合）
 try {
-  const stripeWebhookRouter = await import("./routes/stripe-webhook.js");
+  const stripeWebhookRouter = await import("./routes/stripe-webhook");
   app.use(
     "/api/stripe-webhook",
     express.raw({ type: "application/json" }),
@@ -129,7 +129,7 @@ app.use("/api", (req, _res, next) => {
 /* ---------- admin routes registration (優先) ---------- */
 // 管理ルート登録（/api/admin配下）
 try {
-  const { registerAdminRoutes } = await import("./routes/admin.js");
+  const { registerAdminRoutes } = await import("./routes/admin");
   registerAdminRoutes(app);
   console.log("✅ Admin routes registered successfully");
 } catch (error) {
@@ -141,7 +141,7 @@ try {
 
 // 🚀 PRODUCTION GRADE: simple-routes.tsの完璧なClaude実装を使用
 try {
-  const { registerRoutes } = await import("./simple-routes.js");
+  const { registerRoutes } = await import("./simple-routes");
   registerRoutes(app);
   console.log("✅ Production-grade routes with 100% Claude success rate registered successfully");
 } catch (fallbackError) {
