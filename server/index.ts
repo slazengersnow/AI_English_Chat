@@ -4,6 +4,18 @@ import cors from "cors";
 import helmet from "helmet";
 import path from "path";
 import { fileURLToPath } from "url";
+
+console.log("🚀 Bootstrapping server...");
+
+// Global error handlers
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("🚨 Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("🚨 Uncaught Exception:", error);
+  process.exit(1);
+});
 // import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 
 dotenv.config();
@@ -43,8 +55,8 @@ app.use(
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "default-src": ["'self'"],
-        "script-src": [
+        defaultSrc: ["'self'"],
+        scriptSrc: [
           "'self'", 
           "'unsafe-inline'",
           "'unsafe-eval'", // Google認証で必要
@@ -53,7 +65,7 @@ app.use(
           "https://*.googleapis.com", // Google APIs
           "https://*.gstatic.com", // Google静的リソース
         ],
-        "connect-src": [
+        connectSrc: [
           "'self'",
           "https://*.supabase.co",
           "https://*.supabase.net",
@@ -72,21 +84,21 @@ app.use(
           "https://*.googleapis.com", // Google API接続
           "https://api.stripe.com", // Stripe API
         ],
-        "img-src": ["'self'", "data:", "blob:", "https:"],
-        "style-src": ["'self'", "'unsafe-inline'"],
-        "frame-src": [
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        frameSrc: [
           "'self'",
           "https://*.supabase.co",
           "https://*.supabase.net",
           "https://accounts.google.com", // Google認証iframe
           "https://js.stripe.com", // Stripe iframe
         ],
-        "frame-ancestors": [
+        frameAncestors: [
           "'self'",
           "https://replit.com",
           "https://*.replit.com",
         ],
-        "form-action": [
+        formAction: [
           "'self'",
           "https://accounts.google.com", // Google OAuth
         ],
@@ -97,17 +109,7 @@ app.use(
   }),
 );
 
-// Stripe webhook用のraw bodyハンドリング（必要な場合）
-try {
-  const stripeWebhookRouter = await import("./routes/stripe-webhook.js");
-  app.use(
-    "/api/stripe-webhook",
-    express.raw({ type: "application/json" }),
-    stripeWebhookRouter.default,
-  );
-} catch (error) {
-  console.log("Stripe webhook routes not found, skipping...");
-}
+// Stripe webhook moved to async loader section
 
 app.use(express.json());
 
@@ -126,27 +128,45 @@ app.use("/api", (req, _res, next) => {
   next();
 });
 
-/* ---------- admin routes registration (優先) ---------- */
-// 管理ルート登録（/api/admin配下）
-try {
-  const { registerAdminRoutes } = await import("./routes/admin.js");
-  registerAdminRoutes(app);
-  console.log("✅ Admin routes registered successfully");
-} catch (error) {
-  console.log("Admin routes not found, skipping...", error);
-}
+/* ---------- ASYNC ROUTE LOADING WITH TIMEOUT ---------- */
+(async () => {
+  const importWithTimeout = (importPromise: Promise<any>, ms: number) => 
+    Promise.race([
+      importPromise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('import timeout')), ms))
+    ]);
 
-/* ---------- main api routes registration ---------- */
-// simple-routes.ts の完璧な実装を使用（重複定義を削除）
+  // Load Stripe webhook routes
+  try {
+    const stripeWebhookRouter = await importWithTimeout(import("./routes/stripe-webhook.ts"), 5000);
+    app.use(
+      "/api/stripe-webhook",
+      express.raw({ type: "application/json" }),
+      stripeWebhookRouter.default,
+    );
+    console.log("✅ Stripe webhook routes loaded");
+  } catch (error) {
+    console.log("⚠️ Stripe webhook routes skipped:", (error as Error).message);
+  }
 
-// 🚀 PRODUCTION GRADE: simple-routes.tsの完璧なClaude実装を使用
-try {
-  const { registerRoutes } = await import("./simple-routes.js");
-  registerRoutes(app);
-  console.log("✅ Production-grade routes with 100% Claude success rate registered successfully");
-} catch (fallbackError) {
-  console.error("CRITICAL ERROR: Simple-routes registration failed:", fallbackError.message);
-}
+  // Load admin routes
+  try {
+    const { registerAdminRoutes } = await importWithTimeout(import("./routes/admin.ts"), 10000);
+    registerAdminRoutes(app);
+    console.log("✅ Admin routes loaded");
+  } catch (error) {
+    console.log("⚠️ Admin routes skipped:", (error as Error).message);
+  }
+
+  // Load main routes (Claude API)
+  try {
+    const { registerRoutes } = await importWithTimeout(import("./simple-routes.ts"), 10000);
+    registerRoutes(app);
+    console.log("✅ Main routes (Claude API) loaded");
+  } catch (error) {
+    console.log("⚠️ Main routes skipped:", (error as Error).message);
+  }
+})();
 
 /* ---------- introspection endpoint (一時的なデバッグ用) ---------- */
 app.get("/__introspect", (_req, res) => {
@@ -185,9 +205,9 @@ console.log(
   "🚀 Emergency fix: Using existing build files to bypass TS errors",
 );
 
-/* ---------- server start ---------- */
+/* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
-app.listen(PORT, HOST, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
   console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
