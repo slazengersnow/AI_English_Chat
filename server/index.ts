@@ -147,22 +147,44 @@ app.use("/api/*", (_req, res) => {
   });
 });
 
-/* ---------- frontend serving logic ---------- */
-// 緊急修正：既存ビルドファイルを使用（TypeScript構文エラー回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
-app.get("*", (_req, res) => {
-  if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
-    res.sendFile(path.join(clientDist, "index.html"));
-  }
-});
-console.log(
-  "🚀 Emergency fix: Using existing build files to bypass TS errors",
-);
+/* ---------- frontend serving logic will be set up in bootstrap ---------- */
 
 /* ---------- async bootstrap function ---------- */
 async function startServer() {
   console.log("🔄 Starting server bootstrap...");
+
+  /* ---------- frontend serving setup ---------- */
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    // Production: 静的ファイル配信
+    const clientDist = path.resolve(process.cwd(), "dist/client");
+    app.use(express.static(clientDist));
+    app.get("*", (_req, res) => {
+      if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
+        res.sendFile(path.join(clientDist, "index.html"));
+      }
+    });
+    console.log("🏗️ Production: Serving static files from", clientDist);
+  } else {
+    // Development: Viteミドルウェア使用
+    try {
+      const { setupVite } = await import("./vite");
+      await setupVite(app, null);
+      console.log("🔥 Development: Vite middleware enabled on port", PORT);
+    } catch (error) {
+      console.error("❌ Failed to setup Vite middleware:", error);
+      // フォールバック：静的ファイル配信
+      const clientDist = path.resolve(process.cwd(), "dist/client");
+      app.use(express.static(clientDist));
+      app.get("*", (_req, res) => {
+        if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
+          res.sendFile(path.join(clientDist, "index.html"));
+        }
+      });
+      console.log("⚠️ Fallback: Using static files due to Vite error");
+    }
+  }
 
   // Stripe webhook用のraw bodyハンドリング（必要な場合）
   try {
