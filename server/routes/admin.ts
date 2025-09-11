@@ -265,10 +265,30 @@ export function registerAdminRoutes(app: Express) {
         .groupBy(trainingSessions.difficultyLevel);
       
       // Calculate correct rate based on actual ratings (rating >= 4 is considered "correct")
-      const categoryStatsWithCorrectRate = categoryStats.map(stat => ({
-        category: categoryNameMap[stat.category] || stat.category,
-        totalAttempts: stat.totalAttempts,
-        correctRate: Math.round((stat.averageRating / 5) * 100),
+      // Group by mapped category names to avoid duplicates
+      const categoryStatsGrouped = new Map<string, { totalAttempts: number; totalRating: number; count: number }>();
+      
+      categoryStats.forEach(stat => {
+        const mappedCategory = categoryNameMap[stat.category] || stat.category;
+        const existing = categoryStatsGrouped.get(mappedCategory);
+        
+        if (existing) {
+          existing.totalAttempts += stat.totalAttempts;
+          existing.totalRating += stat.averageRating * stat.totalAttempts;
+          existing.count += stat.totalAttempts;
+        } else {
+          categoryStatsGrouped.set(mappedCategory, {
+            totalAttempts: stat.totalAttempts,
+            totalRating: stat.averageRating * stat.totalAttempts,
+            count: stat.totalAttempts,
+          });
+        }
+      });
+      
+      const categoryStatsWithCorrectRate = Array.from(categoryStatsGrouped.entries()).map(([category, data]) => ({
+        category,
+        totalAttempts: data.totalAttempts,
+        correctRate: Math.round((data.totalRating / data.count / 5) * 100),
       }));
       
       // Get monthly stats (last 6 months)

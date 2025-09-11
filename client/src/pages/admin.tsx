@@ -110,7 +110,7 @@ export default function Admin() {
 
   const { data: analytics } = useQuery<LearningAnalytics>({
     queryKey: ["/api/admin/analytics"],
-    enabled: userSubscription?.isAdmin === true && activeTab === "analytics",
+    enabled: userSubscription?.isAdmin === true && (activeTab === "analytics" || activeTab === "content"),
   });
 
   const { data: paymentData } = useQuery<PaymentData>({
@@ -422,17 +422,168 @@ export default function Admin() {
 
         {/* Content Management Tab */}
         {activeTab === "content" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>コンテンツ管理</CardTitle>
-              <CardDescription>投稿・問題・コンテンツの管理</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                コンテンツ管理機能は開発中です
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            {/* Content Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">総問題数</CardTitle>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.totalLearningCount || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    全カテゴリの学習問題
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">カテゴリ数</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analytics?.categoryStats?.length || 0}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    アクティブなカテゴリ
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">平均正答率</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {analytics?.categoryStats ? 
+                      Math.round(analytics.categoryStats.reduce((sum, cat) => sum + cat.correctRate, 0) / analytics.categoryStats.length) : 0}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    全カテゴリ平均
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">総学習時間</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {analytics?.totalLearningTime ? Math.round(analytics.totalLearningTime / 60) : 0}h
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    累計学習時間
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Category Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Edit className="w-5 h-5 mr-2" />
+                  カテゴリ別コンテンツ管理
+                </CardTitle>
+                <CardDescription>各カテゴリの学習データと統計情報</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analytics?.categoryStats?.map((category, index) => (
+                    <div key={`${category.category}-${index}`} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <h3 className="font-medium">{category.category}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          問題数: {category.totalAttempts}回 | 正答率: {category.correctRate}%
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          variant={category.correctRate >= 70 ? "default" : category.correctRate >= 50 ? "secondary" : "destructive"}
+                        >
+                          {category.correctRate >= 70 ? "良好" : category.correctRate >= 50 ? "普通" : "要改善"}
+                        </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => exportDataMutation.mutate('sessions')}
+                          disabled={exportDataMutation.isPending}
+                        >
+                          <Download className="w-4 h-4 mr-1" />
+                          データ出力
+                        </Button>
+                      </div>
+                    </div>
+                  )) || <div className="text-center py-8 text-gray-500">カテゴリデータを読み込み中...</div>}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Content Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>データエクスポート</CardTitle>
+                  <CardDescription>学習データの一括取得</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button 
+                    onClick={() => exportDataMutation.mutate('users')}
+                    disabled={exportDataMutation.isPending}
+                    className="w-full"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    ユーザーデータをエクスポート
+                  </Button>
+                  <Button 
+                    onClick={() => exportDataMutation.mutate('sessions')}
+                    disabled={exportDataMutation.isPending}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    学習セッションデータをエクスポート
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>システム統計</CardTitle>
+                  <CardDescription>コンテンツの利用状況</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">最も人気のカテゴリ</span>
+                      <span className="font-bold">
+                        {analytics?.categoryStats?.reduce((prev, current) => 
+                          prev.totalAttempts > current.totalAttempts ? prev : current
+                        )?.category || "データなし"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">最高正答率カテゴリ</span>
+                      <span className="font-bold">
+                        {analytics?.categoryStats?.reduce((prev, current) => 
+                          prev.correctRate > current.correctRate ? prev : current
+                        )?.category || "データなし"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center border-t pt-2">
+                      <span className="text-sm font-medium">アクティブ月</span>
+                      <span className="font-bold">{analytics?.monthlyStats?.length || 0}ヶ月</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         )}
 
         {/* Payments Tab */}
@@ -444,13 +595,13 @@ export default function Admin() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">総売上</CardTitle>
+                      <CardTitle className="text-sm font-medium">現金回収済み</CardTitle>
                       <CreditCard className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">¥{paymentData.totalRevenue?.toLocaleString() || 0}</div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        全期間の累計売上
+                        実際に回収済みの売上
                       </p>
                     </CardContent>
                   </Card>
@@ -470,29 +621,90 @@ export default function Admin() {
 
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">総取引数</CardTitle>
+                      <CardTitle className="text-sm font-medium">売掛金 (予定収益)</CardTitle>
                       <MessageSquare className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{paymentData.totalTransactions || 0}</div>
+                      <div className="text-2xl font-bold">
+                        ¥{((paymentData.monthlyRecurringRevenue || 0) * 3).toLocaleString()}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        全決済取引数
+                        今後3ヶ月の予定売上
                       </p>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Stripe接続状況</CardTitle>
-                      <Badge variant={paymentData.stripeConnected ? "default" : "destructive"}>
-                        {paymentData.stripeConnected ? "接続中" : "未接続"}
-                      </Badge>
+                      <CardTitle className="text-sm font-medium">アクティブ顧客</CardTitle>
+                      <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-sm text-muted-foreground">
-                        {paymentData.stripeConnected 
-                          ? "決済データを取得中" 
-                          : paymentData.error || "設定が必要です"}
+                      <div className="text-2xl font-bold">{paymentData.activeSubscriptions || 0}</div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        継続課金中の顧客数
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Financial Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>財務サマリー</CardTitle>
+                      <CardDescription>売上・回収状況の詳細</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">現金回収済み</span>
+                          <span className="font-bold text-green-600">¥{(paymentData.totalRevenue || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">月間継続売上 (MRR)</span>
+                          <span className="font-bold text-blue-600">¥{(paymentData.monthlyRecurringRevenue || 0).toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">3ヶ月予定売掛金</span>
+                          <span className="font-bold text-orange-600">¥{((paymentData.monthlyRecurringRevenue || 0) * 3).toLocaleString()}</span>
+                        </div>
+                        <div className="border-t pt-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">年間予想売上</span>
+                            <span className="font-bold text-purple-600">¥{((paymentData.monthlyRecurringRevenue || 0) * 12).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Stripe接続状況</CardTitle>
+                      <CardDescription>決済システム連携情報</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">接続状況</span>
+                          <Badge variant={paymentData.stripeConnected ? "default" : "destructive"}>
+                            {paymentData.stripeConnected ? "正常接続中" : "未接続"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">総取引数</span>
+                          <span className="font-bold">{paymentData.totalTransactions || 0}件</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">アクティブ顧客</span>
+                          <span className="font-bold">{paymentData.activeSubscriptions || 0}名</span>
+                        </div>
+                        {!paymentData.stripeConnected && (
+                          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                            {paymentData.error || "STRIPE_SECRET_KEY環境変数が必要です"}
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -502,23 +714,23 @@ export default function Admin() {
                 {paymentData.stripeConnected && paymentData.recentPayments && paymentData.recentPayments.length > 0 && (
                   <Card>
                     <CardHeader>
-                      <CardTitle>最近の決済</CardTitle>
-                      <CardDescription>直近の決済取引一覧</CardDescription>
+                      <CardTitle>最近の決済履歴</CardTitle>
+                      <CardDescription>直近10件の取引詳細</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         {paymentData.recentPayments.map((payment) => (
-                          <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div key={payment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                             <div className="flex-1">
                               <div className="font-medium">{payment.description}</div>
                               <div className="text-sm text-muted-foreground">
-                                {payment.customerEmail} ・ {new Date(payment.created).toLocaleDateString('ja-JP')}
+                                顧客: {payment.customerEmail} ・ 日時: {new Date(payment.created).toLocaleDateString('ja-JP')}
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="font-bold">¥{payment.amount.toLocaleString()}</div>
+                              <div className="font-bold text-lg">¥{payment.amount.toLocaleString()}</div>
                               <Badge variant={payment.status === 'succeeded' ? 'default' : 'destructive'}>
-                                {payment.status === 'succeeded' ? '成功' : payment.status}
+                                {payment.status === 'succeeded' ? '決済成功' : payment.status}
                               </Badge>
                             </div>
                           </div>
