@@ -123,6 +123,8 @@ export default function MyPage() {
   );
   const { subscription, canAccessPremiumFeatures } = useSubscription();
 
+  }, []);
+
   // API queries
 
   const { data: progressData = [] } = useQuery<ProgressData[]>({

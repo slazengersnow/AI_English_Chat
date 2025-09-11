@@ -149,15 +149,23 @@ app.use("/api/*", (_req, res) => {
     });
 });
 /* ---------- frontend serving logic ---------- */
-// 緊急修正：既存ビルドファイルを使用（TypeScript構文エラー回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
+// 開発環境：Viteホスト制限回避のため直接ファイル配信（MIMEタイプ修正）
+const clientPath = path.resolve(process.cwd(), "client");
+// MIMEタイプ設定でTSX/JSXファイルを正しく配信
+app.use('/src', express.static(path.join(clientPath, 'src'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.tsx') || filePath.endsWith('.ts') || filePath.endsWith('.jsx')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
+app.use(express.static(clientPath));
 app.get("*", (_req, res) => {
     if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
-        res.sendFile(path.join(clientDist, "index.html"));
+        res.sendFile(path.join(clientPath, "index.html"));
     }
 });
-console.log("🚀 Emergency fix: Using existing build files to bypass TS errors");
+console.log("🔥 Development mode: Direct file serving (Vite host bypass)");
 /* ---------- server start ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
 app.listen(PORT, HOST, () => {

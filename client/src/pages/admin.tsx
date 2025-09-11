@@ -19,7 +19,6 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/providers/auth-provider";
 
 interface AdminStats {
   totalUsers: number;
@@ -94,55 +93,29 @@ export default function Admin() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // 🚨 緊急修正: AuthProviderから直接管理者権限を取得
-  const { user } = useAuth();
-  const userEmail = user?.email || '';
-  const isEmergencyAdmin = userEmail === 'slazengersnow@gmail.com';
-
-  console.log('🔑 EMERGENCY ADMIN CHECK:', { userEmail, isEmergencyAdmin, hasUser: !!user });
-
-  // 強制的に管理者アクセスを有効化
-  if (isEmergencyAdmin) {
-    console.log('🚨 EMERGENCY ADMIN ACCESS ACTIVATED for:', userEmail);
-  }
-
   // Check admin access
   const { data: userSubscription, isLoading: isLoadingAuth } = useQuery<UserSubscription>({
     queryKey: ["/api/user-subscription"],
-    enabled: !isEmergencyAdmin, // 管理者の場合はAPIコールをスキップ
   });
-
-  // 緊急管理者の場合は強制的に管理者権限を設定
-  const effectiveUserSubscription = isEmergencyAdmin ? {
-    isAdmin: true,
-    userId: userEmail,
-    subscriptionType: "premium" as const,
-    subscriptionStatus: "active",
-    planName: "管理者プラン",
-    id: 1,
-    validUntil: new Date('2099-12-31'),
-    createdAt: new Date(),
-    updatedAt: new Date()
-  } : userSubscription;
 
   const { data: adminStats } = useQuery<AdminStats>({
     queryKey: ["/api/admin/stats"],
-    enabled: effectiveUserSubscription?.isAdmin === true,
+    enabled: userSubscription?.isAdmin === true,
   });
 
   const { data: users } = useQuery<UserData[]>({
     queryKey: ["/api/admin/users"],
-    enabled: effectiveUserSubscription?.isAdmin === true && activeTab === "users",
+    enabled: userSubscription?.isAdmin === true && activeTab === "users",
   });
 
   const { data: analytics } = useQuery<LearningAnalytics>({
     queryKey: ["/api/admin/analytics"],
-    enabled: effectiveUserSubscription?.isAdmin === true && (activeTab === "analytics" || activeTab === "content"),
+    enabled: userSubscription?.isAdmin === true && (activeTab === "analytics" || activeTab === "content"),
   });
 
   const { data: paymentData } = useQuery<PaymentData>({
     queryKey: ["/api/admin/payments"],
-    enabled: effectiveUserSubscription?.isAdmin === true && activeTab === "payments",
+    enabled: userSubscription?.isAdmin === true && activeTab === "payments",
   });
 
   const exportDataMutation = useMutation({
@@ -211,8 +184,7 @@ export default function Admin() {
     );
   }
 
-  // 🚨 緊急対応: slazengersnow@gmail.com のアクセス制限を完全に無効化
-  if (!effectiveUserSubscription?.isAdmin && !isEmergencyAdmin) {
+  if (!userSubscription?.isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
