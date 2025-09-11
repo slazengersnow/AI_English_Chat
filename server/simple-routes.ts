@@ -1658,9 +1658,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.use("/api", router);
-}
-
+  // Debug endpoint for session troubleshooting (moved inside registerRoutes)
   router.get("/debug/sessions", requireAuth, async (req: Request, res: Response) => {
     try {
       const userEmail = req.user?.email || "anonymous";
@@ -1673,3 +1671,8 @@ export function registerRoutes(app: Express): void {
       res.status(500).json({ error: "Debug failed" });
     }
   });
+
+  // Mount router to /api path
+  app.use("/api", router);
+  console.log("🚀 API routes registered under /api");
+}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { claudeApiRequest } from "../lib/queryClient";
+import { claudeApiRequest } from "./lib/queryClient";
 
 // Web Speech API utility function
 const speakText = (text: string) => {
@@ -486,7 +486,6 @@ export default function ChatStyleTraining({
         modelAnswer: modelAnswer,
         feedback: "申し訳ございませんが、一時的にAI評価が利用できません。良い回答を心がけて続けましょう。",
         correctTranslation: modelAnswer,
-        improvements: ["継続的な練習を続けてください"],
         explanation: "AIの詳細な評価は現在利用できませんが、英語で回答する姿勢は素晴らしいです。",
         similarPhrases: [
           "Keep practicing!",
@@ -583,71 +582,6 @@ export default function ChatStyleTraining({
           Math.random() * selectedTemplate.explanations.length,
         );
         return selectedTemplate.explanations[randomIndex] || specificFeedback;
-      };
-
-      const detailedExplanation = getDetailedExplanation(
-        userAnswer,
-        japaneseSentence,
-        modelAnswer,
-        rating,
-        specificFeedback,
-      );
-
-      const fallbackSimilarPhrases: Record<string, string[]> = {
-        "明日は友達と遊びます。": [
-          "I will hang out with my friends tomorrow.",
-          "Tomorrow I'm going to spend time with my friends.",
-        ],
-        "私は毎日学校に行きます。": [
-          "I go to school every day.",
-          "I attend school daily.",
-        ],
-        "今日は雨が降っています。": [
-          "It is raining today.",
-          "It's a rainy day today.",
-        ],
-        "彼女は本を読むのが好きです。": [
-          "She likes reading books.",
-          "She enjoys reading books.",
-        ],
-        "私たちは昨日映画を見ました。": [
-          "We watched a movie yesterday.",
-          "We saw a film yesterday.",
-        ],
-      };
-
-      // Generate appropriate model answer based on Japanese sentence
-      const generateModelAnswer = (japaneseSentence: string): string => {
-        const modelAnswers: Record<string, string> = {
-          "明日は友達と遊びます。": "I will play with my friends tomorrow.",
-          "私は毎日学校に行きます。": "I go to school every day.",
-          "今日は雨が降っています。": "It is raining today.",
-          "彼女は本を読むのが好きです。": "She likes reading books.",
-          "私たちは昨日映画を見ました。": "We watched a movie yesterday.",
-          "彼は毎朝走ります。": "He runs every morning.",
-          "私は本を読みます。": "I read books.",
-          "彼女は料理を作ります。": "She cooks meals.",
-          "私たちは音楽を聞きます。": "We listen to music.",
-          "子供たちは公園で遊びます。": "Children play in the park.",
-        };
-        return modelAnswers[japaneseSentence] || "Please translate this sentence accurately.";
-      };
-
-      return {
-        rating,
-        overallEvaluation: overallEval[0] || "良い回答です",
-        detailedComment: overallEval[1] || "継続的な練習で更に向上できます",
-        correctTranslation: generateModelAnswer(japaneseSentence),
-        modelAnswer: generateModelAnswer(japaneseSentence),
-        explanation: detailedExplanation,
-        similarPhrases: fallbackSimilarPhrases[japaneseSentence] || [
-          "Good effort! Keep practicing.",
-          "Try using more natural English expressions.",
-        ],
-      };
-    } finally {
-      evaluatingRef.current = false;
-    }
   };
 
   const submitAnswer = async () => {

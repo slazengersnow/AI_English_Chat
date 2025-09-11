@@ -166,6 +166,20 @@ app.use("/api", (req, _res, next) => {
   } catch (error) {
     console.log("⚠️ Main routes skipped:", (error as Error).message);
   }
+
+  /* ---------- API Ping Test Endpoint (MUST BE BEFORE 404) ---------- */
+  app.get("/api/__ping", (_req, res) => {
+    res.json({ ok: true, timestamp: new Date().toISOString() });
+  });
+
+  /* ---------- 404 handler for API routes (MUST BE LAST) ---------- */
+  app.use("/api", (_req, res) => {
+    res.status(404).json({
+      error: "API endpoint not found", 
+      timestamp: new Date().toISOString(),
+    });
+  });
+  console.log("✅ 404 handler registered after all routes");
 })();
 
 /* ---------- introspection endpoint (一時的なデバッグ用) ---------- */
@@ -184,20 +198,14 @@ app.get("/__introspect", (_req, res) => {
   });
 });
 
-/* ---------- 404 handler for API routes ---------- */
-app.use("/api/*", (_req, res) => {
-  res.status(404).json({
-    error: "API endpoint not found",
-    timestamp: new Date().toISOString(),
-  });
-});
+/* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
 // 緊急修正：既存ビルドファイルを使用（TypeScript構文エラー回避）
 const clientDist = path.resolve(process.cwd(), "dist/client");
 app.use(express.static(clientDist));
-app.get("*", (_req, res) => {
-  if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
+app.get("*", (req, res) => {
+  if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
     res.sendFile(path.join(clientDist, "index.html"));
   }
 });
