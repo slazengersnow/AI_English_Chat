@@ -13,8 +13,8 @@ console.log('⚠️  No separate Vite server - preventing 3001 port access');
 process.env.NODE_ENV = 'development';
 process.env.VITE_DEV_MODE = 'true';
 
-// tsx server/index.ts のみを実行（watchなしで安定動作）
-const serverProcess = spawn('npx', ['tsx', 'server/index.ts'], {
+// tsx server/index.ts のみを実行（npx回避で確実起動）
+const serverProcess = spawn('./node_modules/.bin/tsx', ['server/index.ts'], {
   stdio: 'inherit',
   env: { ...process.env }
 });
