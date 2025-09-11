@@ -1,0 +1,290 @@
+🔗 Navigating to /admin
+Console.js:61 === GUARD DEBUG === {pathname: '/admin', isPublicPath: false, user: true, initialized: true, isLoading: false}
+Console.js:61 📡 API Request: GET /api/user-subscription
+Console.js:61 📡 API Request: GET /api/admin/stats
+Console.js:61 🔐 Auth token from Supabase session for /api/user-subscription
+Console.js:61 🔐 Auth token added for /api/user-subscription
+Console.js:61 🔐 Auth token from Supabase session for /api/admin/stats
+Console.js:61 🔐 Auth token added for /api/admin/stats
+Console.js:61 📨 Response: 200 OK for /api/user-subscription
+Console.js:61 ✅ API Success: /api/user-subscription {id: 1, userId: 'slazengersnow@gmail.com', subscriptionType: 'premium', subscriptionStatus: 'active', planName: '管理者プラン', …}
+Console.js:61 📨 Response: 200 OK for /api/admin/stats
+Console.js:61 ✅ API Success: /api/admin/stats {totalUsers: 4, totalSessions: 360, totalRevenue: 4880, activeSubscriptions: 4, monthlyActiveUsers: 1, …}
+Console.js:61 📡 API Request: GET /api/admin/users
+Console.js:61 🔐 Auth token from Supabase session for /api/admin/users
+Console.js:61 🔐 Auth token added for /api/admin/users
+Console.js:61 📨 Response: 200 OK for /api/admin/users
+Console.js:61 ✅ API Success: /api/admin/users (4) [{…}, {…}, {…}, {…}]
+Console.js:61 📡 API Request: GET /api/admin/analytics
+Console.js:61 🔐 Auth token from Supabase session for /api/admin/analytics
+Console.js:61 🔐 Auth token added for /api/admin/analytics
+Console.js:61 📨 Response: 200 OK for /api/admin/analytics
+Console.js:61 ✅ API Success: /api/admin/analytics {totalLearningTime: 1115, totalLearningCount: 360, categoryStats: Array(10), monthlyStats: Array(1)}
+Console.js:61 Warning: Encountered two children with the same key, `ビジネスメール`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:4655
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:3541
+    at div
+    at div
+    at div
+    at xye (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:364:107353)
+    at Je (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:109217)
+    at NY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:3243)
+    at AY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8954)
+    at yxe
+    at Nxe (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:135403)
+    at f (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:7840)
+    at nM (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:97445)
+    at VY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8060)
+    at GY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:233:3079)
+    at Mre (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:263:36313)
+    at TX (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:426)
+    at xxe
+Mt.forEach.n.<computed> @ Console.js:61
+u @ react-dom.development.js:86
+c @ react-dom.development.js:60
+ie @ react-dom.development.js:13529
+de @ react-dom.development.js:13566
+Vt @ react-dom.development.js:14057
+yi @ react-dom.development.js:19186
+GW @ react-dom.development.js:19953
+hA @ react-dom.development.js:21657
+fE @ react-dom.development.js:27465
+YA @ react-dom.development.js:26599
+wK @ react-dom.development.js:26505
+bb @ react-dom.development.js:26473
+HA @ react-dom.development.js:26124
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690
+setTimeout
+vX @ notifyManager.js:2
+c @ notifyManager.js:26
+batch @ notifyManager.js:44
+Co @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+v @ retryer.js:45
+Promise.then
+x @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+cp @ queryObserver.js:173
+setOptions @ queryObserver.js:113
+（匿名） @ useBaseQuery.js:68
+_l @ react-dom.development.js:23189
+Wq @ react-dom.development.js:24970
+Hq @ react-dom.development.js:24930
+Bq @ react-dom.development.js:24917
+zq @ react-dom.development.js:24905
+jK @ react-dom.development.js:27078
+Do @ react-dom.development.js:27023
+DK @ react-dom.development.js:26974
+Qc @ react-dom.development.js:26721
+HA @ react-dom.development.js:26156
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 Warning: Encountered two children with the same key, `基本動詞`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:4655
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:3541
+    at div
+    at div
+    at div
+    at xye (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:364:107353)
+    at Je (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:109217)
+    at NY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:3243)
+    at AY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8954)
+    at yxe
+    at Nxe (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:135403)
+    at f (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:7840)
+    at nM (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:97445)
+    at VY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8060)
+    at GY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:233:3079)
+    at Mre (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:263:36313)
+    at TX (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:426)
+    at xxe
+Mt.forEach.n.<computed> @ Console.js:61
+u @ react-dom.development.js:86
+c @ react-dom.development.js:60
+ie @ react-dom.development.js:13529
+de @ react-dom.development.js:13566
+Vt @ react-dom.development.js:14057
+yi @ react-dom.development.js:19186
+GW @ react-dom.development.js:19953
+hA @ react-dom.development.js:21657
+fE @ react-dom.development.js:27465
+YA @ react-dom.development.js:26599
+wK @ react-dom.development.js:26505
+bb @ react-dom.development.js:26473
+HA @ react-dom.development.js:26124
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690
+setTimeout
+vX @ notifyManager.js:2
+c @ notifyManager.js:26
+batch @ notifyManager.js:44
+Co @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+v @ retryer.js:45
+Promise.then
+x @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+cp @ queryObserver.js:173
+setOptions @ queryObserver.js:113
+（匿名） @ useBaseQuery.js:68
+_l @ react-dom.development.js:23189
+Wq @ react-dom.development.js:24970
+Hq @ react-dom.development.js:24930
+Bq @ react-dom.development.js:24917
+zq @ react-dom.development.js:24905
+jK @ react-dom.development.js:27078
+Do @ react-dom.development.js:27023
+DK @ react-dom.development.js:26974
+Qc @ react-dom.development.js:26721
+HA @ react-dom.development.js:26156
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 Warning: Encountered two children with the same key, `中学英語`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:4655
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:3541
+    at div
+    at div
+    at div
+    at xye (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:364:107353)
+    at Je (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:109217)
+    at NY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:3243)
+    at AY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8954)
+    at yxe
+    at Nxe (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:135403)
+    at f (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:7840)
+    at nM (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:97445)
+    at VY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8060)
+    at GY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:233:3079)
+    at Mre (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:263:36313)
+    at TX (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:426)
+    at xxe
+Mt.forEach.n.<computed> @ Console.js:61
+u @ react-dom.development.js:86
+c @ react-dom.development.js:60
+ie @ react-dom.development.js:13529
+de @ react-dom.development.js:13566
+Vt @ react-dom.development.js:14057
+yi @ react-dom.development.js:19186
+GW @ react-dom.development.js:19953
+hA @ react-dom.development.js:21657
+fE @ react-dom.development.js:27465
+YA @ react-dom.development.js:26599
+wK @ react-dom.development.js:26505
+bb @ react-dom.development.js:26473
+HA @ react-dom.development.js:26124
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690
+setTimeout
+vX @ notifyManager.js:2
+c @ notifyManager.js:26
+batch @ notifyManager.js:44
+Co @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+v @ retryer.js:45
+Promise.then
+x @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+cp @ queryObserver.js:173
+setOptions @ queryObserver.js:113
+（匿名） @ useBaseQuery.js:68
+_l @ react-dom.development.js:23189
+Wq @ react-dom.development.js:24970
+Hq @ react-dom.development.js:24930
+Bq @ react-dom.development.js:24917
+zq @ react-dom.development.js:24905
+jK @ react-dom.development.js:27078
+Do @ react-dom.development.js:27023
+DK @ react-dom.development.js:26974
+Qc @ react-dom.development.js:26721
+HA @ react-dom.development.js:26156
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
+Console.js:61 Warning: Encountered two children with the same key, `高校英語`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+    at div
+    at div
+    at div
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:4655
+    at div
+    at https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:271:3541
+    at div
+    at div
+    at div
+    at xye (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:364:107353)
+    at Je (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:109217)
+    at NY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:3243)
+    at AY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8954)
+    at yxe
+    at Nxe (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:410:135403)
+    at f (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:7840)
+    at nM (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:97445)
+    at VY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:224:8060)
+    at GY (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:233:3079)
+    at Mre (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:263:36313)
+    at TX (https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/assets/index-EH5J6yFa.js:254:426)
+    at xxe
+Mt.forEach.n.<computed> @ Console.js:61
+u @ react-dom.development.js:86
+c @ react-dom.development.js:60
+ie @ react-dom.development.js:13529
+de @ react-dom.development.js:13566
+Vt @ react-dom.development.js:14057
+yi @ react-dom.development.js:19186
+GW @ react-dom.development.js:19953
+hA @ react-dom.development.js:21657
+fE @ react-dom.development.js:27465
+YA @ react-dom.development.js:26599
+wK @ react-dom.development.js:26505
+bb @ react-dom.development.js:26473
+HA @ react-dom.development.js:26124
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690
+setTimeout
+vX @ notifyManager.js:2
+c @ notifyManager.js:26
+batch @ notifyManager.js:44
+Co @ query.js:366
+setData @ query.js:53
+onSuccess @ query.js:267
+v @ retryer.js:45
+Promise.then
+x @ retryer.js:84
+start @ retryer.js:121
+fetch @ query.js:295
+cp @ queryObserver.js:173
+setOptions @ queryObserver.js:113
+（匿名） @ useBaseQuery.js:68
+_l @ react-dom.development.js:23189
+Wq @ react-dom.development.js:24970
+Hq @ react-dom.development.js:24930
+Bq @ react-dom.development.js:24917
+zq @ react-dom.development.js:24905
+jK @ react-dom.development.js:27078
+Do @ react-dom.development.js:27023
+DK @ react-dom.development.js:26974
+Qc @ react-dom.development.js:26721
+HA @ react-dom.development.js:26156
+El @ react-dom.development.js:12042
+（匿名） @ react-dom.development.js:25690このエラーを分析
