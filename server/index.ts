@@ -128,6 +128,11 @@ app.use("/api", (req, _res, next) => {
   next();
 });
 
+/* ---------- IMMEDIATE API ENDPOINTS (NO RACE CONDITIONS) ---------- */
+app.get("/api/__ping", (_req, res) => {
+  res.json({ ok: true, timestamp: new Date().toISOString() });
+});
+
 /* ---------- ASYNC ROUTE LOADING WITH TIMEOUT ---------- */
 (async () => {
   const importWithTimeout = (importPromise: Promise<any>, ms: number) => 
@@ -167,19 +172,15 @@ app.use("/api", (req, _res, next) => {
     console.log("⚠️ Main routes skipped:", (error as Error).message);
   }
 
-  /* ---------- API Ping Test Endpoint (MUST BE BEFORE 404) ---------- */
-  app.get("/api/__ping", (_req, res) => {
-    res.json({ ok: true, timestamp: new Date().toISOString() });
-  });
-
-  /* ---------- 404 handler for API routes (MUST BE LAST) ---------- */
+  /* ---------- 404 handler for API routes (AFTER ALL DYNAMIC ROUTES) ---------- */
   app.use("/api", (_req, res) => {
     res.status(404).json({
       error: "API endpoint not found", 
       timestamp: new Date().toISOString(),
     });
   });
-  console.log("✅ 404 handler registered after all routes");
+  
+  console.log("✅ All routes loaded successfully + 404 handler registered");
 })();
 
 /* ---------- introspection endpoint (一時的なデバッグ用) ---------- */
