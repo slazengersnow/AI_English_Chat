@@ -1,0 +1,48 @@
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+
+Console.js:61 🔗 Navigating to /admin
+Console.js:61 === GUARD DEBUG === 
+{pathname: '/admin', isPublicPath: false, user: true, initialized: true, isLoading: false}
+Console.js:61 📡 API Request: GET /api/user-subscription
+Console.js:61 🔐 Auth token from Supabase session for /api/user-subscription
+Console.js:61 🔐 Auth token added for /api/user-subscription
+workspace_iframe.htm…2F&id=%3Ar1g%3A:142 Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com https://*.googleapis.com https://*.gstatic.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+injected.js:278 
+ GET https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/api/user-subscription 404 (Not Found)
+Console.js:61 📨 Response: 404 Not Found for /api/user-subscription
+Console.js:61 ❌ API Error: /api/user-subscription Error: 404: Not Found
+    at ma (queryClient.ts:121:13)
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+AIEnglishChat:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+﻿

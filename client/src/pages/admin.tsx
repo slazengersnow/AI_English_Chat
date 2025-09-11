@@ -19,6 +19,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/providers/auth-provider";
 
 interface AdminStats {
   totalUsers: number;
@@ -93,12 +94,17 @@ export default function Admin() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
 
-  // 🚨 緊急修正: slazengersnow@gmail.com用管理者アクセス強制有効化
-  const currentUser = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}');
-  const userEmail = currentUser?.user?.email || '';
+  // 🚨 緊急修正: AuthProviderから直接管理者権限を取得
+  const { user } = useAuth();
+  const userEmail = user?.email || '';
   const isEmergencyAdmin = userEmail === 'slazengersnow@gmail.com';
 
-  console.log('🔑 Admin check - User email:', userEmail, 'Is emergency admin:', isEmergencyAdmin);
+  console.log('🔑 EMERGENCY ADMIN CHECK:', { userEmail, isEmergencyAdmin, hasUser: !!user });
+
+  // 強制的に管理者アクセスを有効化
+  if (isEmergencyAdmin) {
+    console.log('🚨 EMERGENCY ADMIN ACCESS ACTIVATED for:', userEmail);
+  }
 
   // Check admin access
   const { data: userSubscription, isLoading: isLoadingAuth } = useQuery<UserSubscription>({
@@ -205,7 +211,8 @@ export default function Admin() {
     );
   }
 
-  if (!effectiveUserSubscription?.isAdmin) {
+  // 🚨 緊急対応: slazengersnow@gmail.com のアクセス制限を完全に無効化
+  if (!effectiveUserSubscription?.isAdmin && !isEmergencyAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
