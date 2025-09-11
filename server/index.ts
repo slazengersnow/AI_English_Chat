@@ -37,21 +37,31 @@ app.use(
 // きつすぎる独自 setHeader は削除（コメントアウトでもOK）
 // ❌ 削除: res.setHeader("Content-Security-Policy", "default-src 'none'");
 
-// Helmet で "通すべきものだけ通す" CSP を設定
+// Environment-aware CSP security setup
+const isDevelopment = process.env.NODE_ENV !== 'production';
+console.log(`🔒 Security: CSP mode = ${isDevelopment ? 'Development (permissive)' : 'Production (strict)'}`);
+
 app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
         "default-src": ["'self'"],
-        "script-src": [
+        "script-src": isDevelopment ? [
           "'self'", 
-          "'unsafe-inline'",
-          "'unsafe-eval'", // Google認証で必要
-          "https://js.stripe.com", // Stripe.js
-          "https://accounts.google.com", // Google OAuth
-          "https://*.googleapis.com", // Google APIs
-          "https://*.gstatic.com", // Google静的リソース
+          "'unsafe-inline'", // Development only
+          "'unsafe-eval'",   // Development only  
+          "https://js.stripe.com",
+          "https://accounts.google.com",
+          "https://*.googleapis.com",
+          "https://*.gstatic.com",
+        ] : [
+          "'self'",
+          "https://js.stripe.com",
+          "https://accounts.google.com", 
+          "https://*.googleapis.com",
+          "https://*.gstatic.com",
+          // Production: unsafe-inline/unsafe-eval removed for security
         ],
         "connect-src": [
           "'self'",
@@ -146,6 +156,45 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- async bootstrap function ---------- */
 async function startServer() {
   console.log("🔄 Starting server bootstrap...");
+
+  /* ---------- 3001ポート公開防止 - ポートプリエンプション + オートシングルポート ---------- */
+  const isReplit = process.env.REPLIT_SLUG || process.env.REPL_SLUG;
+  if (isReplit && !process.env.VITE_DEV_MODE) {
+    console.log("🔒 AUTO-SINGLE-PORT: Replit legacy run detected, activating port preemption...");
+    
+    // オートシングルポートモード有効化
+    process.env.VITE_DEV_MODE = 'true';
+    console.log("✅ AUTO-SINGLE-PORT: VITE_DEV_MODE enabled for integrated middleware");
+    
+    // ポートプリエンプション: 5001と24678をバインドして3001公開を防止
+    try {
+      const http = await import('http');
+      
+      // 5001ポート（Vite dev server）をプリエンプション
+      const viteBlocker = http.createServer((req, res) => {
+        res.writeHead(307, { 'Location': `http://${req.headers.host?.replace(':5001', ':5000') || 'localhost:5000'}${req.url}` });
+        res.end('Redirecting to single-port server on 5000...');
+      });
+      viteBlocker.listen(5001, '0.0.0.0', () => {
+        console.log("🛡️  PORT GUARD: 5001 preempted - legacy Vite cannot expose 3001");
+      });
+      
+      // 24678ポート（HMR）もプリエンプション
+      const hmrBlocker = http.createServer((req, res) => {
+        res.writeHead(404);
+        res.end('HMR integrated in main server on port 5000');
+      });
+      hmrBlocker.listen(24678, '0.0.0.0', () => {
+        console.log("🛡️  PORT GUARD: 24678 (HMR) preempted");
+      });
+      
+      console.log("🎯 AUTO-SINGLE-PORT: All legacy ports blocked, 3001 exposure ELIMINATED");
+    } catch (error) {
+      console.log("⚠️  PORT GUARD: Some ports may already be bound:", error.message);
+    }
+  } else if (!process.env.VITE_DEV_MODE) {
+    console.log("ℹ️  INFO: Non-Replit environment, consider using: node start-single-port.js");
+  }
 
   // Stripe webhook用のraw bodyハンドリング（必要な場合）
   try {
