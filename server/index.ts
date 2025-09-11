@@ -97,17 +97,7 @@ app.use(
   }),
 );
 
-// Stripe webhook用のraw bodyハンドリング（必要な場合）
-try {
-  const stripeWebhookRouter = await import("./routes/stripe-webhook");
-  app.use(
-    "/api/stripe-webhook",
-    express.raw({ type: "application/json" }),
-    stripeWebhookRouter.default,
-  );
-} catch (error) {
-  console.log("Stripe webhook routes not found, skipping...");
-}
+// Moved to async bootstrap function
 
 app.use(express.json());
 
@@ -126,27 +116,12 @@ app.use("/api", (req, _res, next) => {
   next();
 });
 
-/* ---------- admin routes registration (優先) ---------- */
-// 管理ルート登録（/api/admin配下）
-try {
-  const { registerAdminRoutes } = await import("./routes/admin");
-  registerAdminRoutes(app);
-  console.log("✅ Admin routes registered successfully");
-} catch (error) {
-  console.log("Admin routes not found, skipping...", error);
-}
+// Moved to async bootstrap function
 
 /* ---------- main api routes registration ---------- */
 // simple-routes.ts の完璧な実装を使用（重複定義を削除）
 
-// 🚀 PRODUCTION GRADE: simple-routes.tsの完璧なClaude実装を使用
-try {
-  const { registerRoutes } = await import("./simple-routes");
-  registerRoutes(app);
-  console.log("✅ Production-grade routes with 100% Claude success rate registered successfully");
-} catch (fallbackError) {
-  console.error("CRITICAL ERROR: Simple-routes registration failed:", fallbackError.message);
-}
+// Moved to async bootstrap function
 
 /* ---------- introspection endpoint (一時的なデバッグ用) ---------- */
 app.get("/__introspect", (_req, res) => {
@@ -185,14 +160,64 @@ console.log(
   "🚀 Emergency fix: Using existing build files to bypass TS errors",
 );
 
-/* ---------- server start ---------- */
-const HOST = process.env.HOST || "0.0.0.0";
-app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
-  console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(
-    `📁 Serve client: ${process.env.SERVE_CLIENT || "auto (dev: true, prod: false)"}`,
-  );
+/* ---------- async bootstrap function ---------- */
+async function startServer() {
+  console.log("🔄 Starting server bootstrap...");
+
+  // Stripe webhook用のraw bodyハンドリング（必要な場合）
+  try {
+    const { default: stripeWebhookRouter } = await import("./routes/stripe-webhook");
+    app.use(
+      "/api/stripe-webhook",
+      express.raw({ type: "application/json" }),
+      stripeWebhookRouter,
+    );
+    console.log("✅ Stripe webhook routes registered");
+  } catch (error) {
+    console.log("Stripe webhook routes not found, skipping...", error?.message);
+  }
+
+  /* ---------- admin routes registration (優先) ---------- */
+  // 管理ルート登録（/api/admin配下）
+  try {
+    const { registerAdminRoutes } = await import("./routes/admin");
+    registerAdminRoutes(app);
+    console.log("✅ Admin routes registered successfully");
+  } catch (error) {
+    console.log("Admin routes not found, skipping...", error?.message);
+  }
+
+  /* ---------- main api routes registration ---------- */
+  // 🚀 PRODUCTION GRADE: simple-routes.tsの完璧なClaude実装を使用
+  try {
+    const { registerRoutes } = await import("./simple-routes");
+    registerRoutes(app);
+    console.log("✅ Production-grade routes with 100% Claude success rate registered successfully");
+  } catch (fallbackError) {
+    console.error("CRITICAL ERROR: Simple-routes registration failed:", fallbackError?.message);
+  }
+
+  /* ---------- server start ---------- */
+  const HOST = process.env.HOST || "0.0.0.0";
+  const server = app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+    console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
+    console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(
+      `📁 Serve client: ${process.env.SERVE_CLIENT || "auto (dev: true, prod: false)"}`,
+    );
+  });
+
+  server.on('error', (err) => {
+    console.error('❌ Server listen error:', err);
+    process.exit(1);
+  });
+}
+
+// サーバー起動実行
+console.log("🔄 Starting server bootstrap...");
+startServer().catch((err) => {
+  console.error('💥 Fatal startup error:', err);
+  process.exit(1);
 });
