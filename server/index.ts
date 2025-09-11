@@ -194,22 +194,30 @@ async function startServer() {
     });
     console.log("🏗️ Production: Serving static files from", clientDist);
   } else {
-    // Development: Viteミドルウェア使用（全APIルート後に配置）
+    // Development: Viteミドルウェア使用（修正版で設定ファイル読み込み）
     try {
-      const { setupVite } = await import("./vite");
-      await setupVite(app, null);
-      console.log("🔥 Development: Vite middleware enabled on port", PORT);
+      const { setupViteFixed } = await import("./vite-fixed");
+      await setupViteFixed(app, null);
+      console.log("🔥 Development: Vite middleware (FIXED) enabled on port", PORT);
     } catch (error) {
-      console.error("❌ Failed to setup Vite middleware:", error);
-      // フォールバック：静的ファイル配信
-      const clientDist = path.resolve(process.cwd(), "dist/client");
-      app.use(express.static(clientDist));
-      app.get("*", (_req, res) => {
-        if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
-          res.sendFile(path.join(clientDist, "index.html"));
-        }
-      });
-      console.log("⚠️ Fallback: Using static files due to Vite error");
+      console.error("❌ Failed to setup fixed Vite middleware:", error);
+      // フォールバック：オリジナルVite設定を試行
+      try {
+        const { setupVite } = await import("./vite");
+        await setupVite(app, null);
+        console.log("🔄 Fallback: Using original Vite middleware on port", PORT);
+      } catch (originalError) {
+        console.error("❌ Original Vite also failed:", originalError);
+        // 最終フォールバック：静的ファイル配信
+        const clientDist = path.resolve(process.cwd(), "dist/client");
+        app.use(express.static(clientDist));
+        app.get("*", (_req, res) => {
+          if (!_req.path.startsWith('/api/') && !_req.path.startsWith('/__introspect')) {
+            res.sendFile(path.join(clientDist, "index.html"));
+          }
+        });
+        console.log("⚠️ Final fallback: Using static files due to all Vite errors");
+      }
     }
   }
 
