@@ -91,7 +91,7 @@ interface UserSubscription {
   trialStart?: string;
 }
 
-export default function MyPage() {
+export default function MyPage(): JSX.Element {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, isAdmin, signOut } = useAuth();

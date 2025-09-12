@@ -230,39 +230,43 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
-// 🚨 統合モード：Express単体でフロントエンド+バックエンド配信
-console.log("🔧 Express統合モード：フロントエンド+バックエンド統一配信");
-
-// 静的ファイル配信（client ディレクトリ直接）
-const clientRoot = path.resolve(process.cwd(), "client");
-app.use(express.static(clientRoot));
-app.use("/src", express.static(path.join(clientRoot, "src")));
-
-// TypeScript + CSS 特別処理
-app.get("/src/index.css", (req, res) => {
-  res.setHeader("Content-Type", "text/css");
-  const cssPath = path.join(clientRoot, "src", "index.css");
-  res.sendFile(cssPath);
-});
-
-// TypeScript ファイルのMIMEタイプ設定
-app.get("*.tsx", (req, res) => {
-  res.setHeader("Content-Type", "application/javascript");
-  res.sendFile(path.join(clientRoot, req.path));
-});
-
-app.get("*.ts", (req, res) => {
-  res.setHeader("Content-Type", "application/javascript");
-  res.sendFile(path.join(clientRoot, req.path));
-});
-
-// SPA フォールバック（全てのルートでReactアプリを配信）
-app.get("*", (req, res) => {
-  if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
-    const indexPath = path.join(clientRoot, "index.html");
-    res.sendFile(indexPath);
-  }
-});
+// 🔧 開発環境：Viteプロキシ設定
+if (process.env.NODE_ENV !== 'production') {
+  console.log("🔧 開発環境：Vite完全プロキシモード");
+  
+  // Vite専用プロキシ設定
+  const { createProxyMiddleware } = require('http-proxy-middleware');
+  
+  // Viteサーバーへのプロキシ（全フロントエンドリクエスト）
+  const viteProxy = createProxyMiddleware({
+    target: 'http://localhost:5001',
+    changeOrigin: true,
+    ws: true, // WebSocket対応
+    logLevel: 'error',
+  });
+  
+  // フロントエンドアセット・ページはすべてViteにプロキシ
+  app.use((req, res, next) => {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl === '/__introspect') {
+      // API・管理ルートはExpressが処理
+      return next();
+    } else {
+      // フロントエンドルートはViteが処理
+      return viteProxy(req, res, next);
+    }
+  });
+  
+} else {
+  // プロダクション環境：ビルド済みファイル配信
+  const clientDist = path.resolve(process.cwd(), "dist/client");
+  app.use(express.static(clientDist));
+  app.get("*", (req, res) => {
+    if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
+      res.sendFile(path.join(clientDist, "index.html"));
+    }
+  });
+  console.log("📦 プロダクション：ビルド済みファイル配信");
+}
 
 /* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
