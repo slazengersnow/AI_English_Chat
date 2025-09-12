@@ -56,12 +56,6 @@ const difficultyPrompts: Record<string, { description: string, constraints: stri
     examples: "お疲れさまです。 / 新しいプロジェクトについてご相談があります。 / 来月の出張予定をお知らせします。 / システムにトラブルが発生しております。 / 契約書の内容を再度確認させてください。 / 研修の参加者を募集しています。 / 売上実績をご報告いたします。 / 商品の納期が遅れる可能性があります。 / 面接の日程はいかがでしょうか。 / お客様からクレームをいただいています。",
     temperature: 0.6
   },
-  "simulation": {
-    description: "シミュレーション練習用の実践的な文",
-    constraints: "15-30文字、実際の状況で使える実践的な表現、日常・旅行・買い物・食事等のシーン",
-    examples: "駅までの道を教えてください。 / この商品の値段はいくらですか。 / 予約をキャンセルしたいのですが。 / 今日の天気はどうですか。 / 電話番号を教えてもらえますか。",
-    temperature: 0.4
-  }
 };
 
 // セッションベースの問題追跡（重複防止用）
@@ -72,8 +66,7 @@ const ProblemValidation = z.object({
     "middle_school", 
     "high_school",
     "basic_verbs",
-    "business_email",
-    "simulation"
+    "business_email"
   ])
 });
 
@@ -85,8 +78,7 @@ const EvaluateValidation = z.object({
     "middle_school",
     "high_school", 
     "basic_verbs",
-    "business_email",
-    "simulation"
+    "business_email"
   ])
 });
 
