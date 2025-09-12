@@ -57,10 +57,10 @@ app.use(
 app.use(
   helmet({
     contentSecurityPolicy: {
-      reportOnly: true, // 🚨 緊急修正: CSPエラーを警告のみに変更
-      useDefaults: true,
+      reportOnly: false, // 🔧 CSP有効化（適切な設定で）
+      useDefaults: false, // 🚨 デフォルト無効化（Replit環境対応）
       directives: {
-        defaultSrc: ["'self'"],
+        defaultSrc: ["'self'", "data:", "blob:"],
         scriptSrc: [
           "'self'", 
           "'unsafe-inline'",
@@ -69,6 +69,10 @@ app.use(
           "https://accounts.google.com", // Google OAuth
           "https://*.googleapis.com", // Google APIs
           "https://*.gstatic.com", // Google静的リソース
+          "https://replit.com", // 🚨 Replit必須
+          "https://*.replit.dev", // 🚨 Replit開発環境
+          "https://*.kirk.replit.dev", // 🚨 Kirk Replit
+          "'unsafe-hashes'", // 🚨 インラインハンドラー許可
         ],
         connectSrc: [
           "'self'",
@@ -95,9 +99,23 @@ app.use(
           "https://api.stripe.com", // Stripe API
         ],
         imgSrc: ["'self'", "data:", "blob:", "https:"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://replit.com", "https://*.replit.dev"],
+        scriptSrcElem: [
+          "'self'", 
+          "'unsafe-inline'",
+          "https://js.stripe.com",
+          "https://accounts.google.com",
+          "https://*.googleapis.com",
+          "https://*.gstatic.com",
+          "https://replit.com", // 🚨 Replit必須
+          "https://*.replit.dev", // 🚨 Replit開発環境
+          "https://*.kirk.replit.dev", // 🚨 Kirk Replit
+        ],
         frameSrc: [
           "'self'",
+          "https://replit.com", // 🚨 Replit必須
+          "https://*.replit.dev", // 🚨 Replit開発環境
+          "https://*.kirk.replit.dev", // 🚨 Kirk Replit
           "https://*.supabase.co",
           "https://*.supabase.net",
           "https://accounts.google.com", // Google認証iframe
@@ -212,21 +230,38 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
-// 🔧 開発環境: Viteが自動処理（静的ファイル配信無効化）
-if (process.env.NODE_ENV === 'production') {
-  // プロダクションのみ：ビルド済みファイル配信
-  const clientDist = path.resolve(process.cwd(), "dist/client");
-  app.use(express.static(clientDist));
-  app.get("*", (req, res) => {
-    if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
-      res.sendFile(path.join(clientDist, "index.html"));
-    }
-  });
-  console.log("📦 プロダクション: ビルド済みファイル配信");
-} else {
-  // 開発環境：Viteデブサーバーが処理（何もしない）
-  console.log("🔧 開発環境: Viteデブサーバーがフロントエンド処理");
-}
+// 🚨 緊急修正：フロントエンド配信強制有効化
+const clientDist = path.resolve(process.cwd(), "client");
+app.use(express.static(clientDist));
+app.use("/src", express.static(path.join(clientDist, "src")));
+app.use("/public", express.static(path.join(clientDist, "public")));
+
+// SPAフォールバック（Viteが無い場合のバックアップ）
+app.get("*", (req, res) => {
+  if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
+    const indexPath = path.join(clientDist, "index.html");
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        // index.htmlが見つからない場合の緊急措置
+        res.status(200).send(`
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI瞬間英作文チャット</title>
+  <script type="module" src="/src/main.tsx"></script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>
+        `);
+      }
+    });
+  }
+});
+console.log("🚨 緊急修正: Express+Vite統合モード");
 
 /* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
