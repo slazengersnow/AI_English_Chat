@@ -212,17 +212,21 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
-// 緊急修正：既存ビルドファイルを使用（TypeScript構文エラー回避）
-const clientDist = path.resolve(process.cwd(), "dist/client");
-app.use(express.static(clientDist));
-app.get("*", (req, res) => {
-  if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
-    res.sendFile(path.join(clientDist, "index.html"));
-  }
-});
-console.log(
-  "🚀 Emergency fix: Using existing build files to bypass TS errors",
-);
+// 🔧 開発環境: Viteが自動処理（静的ファイル配信無効化）
+if (process.env.NODE_ENV === 'production') {
+  // プロダクションのみ：ビルド済みファイル配信
+  const clientDist = path.resolve(process.cwd(), "dist/client");
+  app.use(express.static(clientDist));
+  app.get("*", (req, res) => {
+    if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
+      res.sendFile(path.join(clientDist, "index.html"));
+    }
+  });
+  console.log("📦 プロダクション: ビルド済みファイル配信");
+} else {
+  // 開発環境：Viteデブサーバーが処理（何もしない）
+  console.log("🔧 開発環境: Viteデブサーバーがフロントエンド処理");
+}
 
 /* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";

@@ -1,0 +1,94 @@
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/:1 The Content Security Policy directive 'upgrade-insecure-requests' is ignored when delivered in a report-only policy.このエラーを分析
+9Refused to load the script '<URL>' because it violates the following Content Security Policy directive: "default-src 'none'". Note that 'script-src-elem' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+（インデックス）:1 Refused to execute inline event handler because it violates the following Content Security Policy directive: "default-src 'none'". Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. Note also that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+（インデックス）:1 [Report Only] Refused to execute inline event handler because it violates the following Content Security Policy directive: "script-src-attr 'none'". Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present.
+
+workspace_iframe.html?initialPath=%2F&id=%3Ars8%3A:142 [Report Only] Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com https://*.googleapis.com https://*.gstatic.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+framework-cfeb12137669a7d8.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-cfeb12137669a7d8.js:1
+（匿名） @ framework-cfeb12137669a7d8.js:1
+uD @ framework-cfeb12137669a7d8.js:1
+uI @ framework-cfeb12137669a7d8.js:1
+uM @ framework-cfeb12137669a7d8.js:1
+uS @ framework-cfeb12137669a7d8.js:1
+C @ framework-cfeb12137669a7d8.js:1
+z @ framework-cfeb12137669a7d8.js:1このエラーを分析
+workspace_iframe.html?initialPath=%2F&id=%3Arsr%3A:151  GET https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/ 404 (Not Found)
+（匿名） @ workspace_iframe.html?initialPath=%2F&id=%3Arsr%3A:151このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/:1 The Content Security Policy directive 'upgrade-insecure-requests' is ignored when delivered in a report-only policy.このエラーを分析
+（インデックス）:1 Refused to execute inline event handler because it violates the following Content Security Policy directive: "default-src 'none'". Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. Note also that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+（インデックス）:1 [Report Only] Refused to execute inline event handler because it violates the following Content Security Policy directive: "script-src-attr 'none'". Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present.
+
+workspace_iframe.html?initialPath=%2F&id=%3Arsr%3A:142 [Report Only] Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com https://*.googleapis.com https://*.gstatic.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+framework-cfeb12137669a7d8.js:1 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+_ @ framework-cfeb12137669a7d8.js:1
+（匿名） @ framework-cfeb12137669a7d8.js:1
+uD @ framework-cfeb12137669a7d8.js:1
+uI @ framework-cfeb12137669a7d8.js:1
+uM @ framework-cfeb12137669a7d8.js:1
+uS @ framework-cfeb12137669a7d8.js:1
+C @ framework-cfeb12137669a7d8.js:1
+z @ framework-cfeb12137669a7d8.js:1このエラーを分析
+workspace_iframe.html?initialPath=%2F&id=%3Aruf%3A:151  GET https://ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/ 404 (Not Found)
+（匿名） @ workspace_iframe.html?initialPath=%2F&id=%3Aruf%3A:151このエラーを分析
+ce5ab24c-fe4b-418b-a02c-8bd8a6ed6e1d-00-1cp40i68ggx3z.kirk.replit.dev/:1 The Content Security Policy directive 'upgrade-insecure-requests' is ignored when delivered in a report-only policy.このエラーを分析
+（インデックス）:1 Refused to execute inline event handler because it violates the following Content Security Policy directive: "default-src 'none'". Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present. Note also that 'script-src' was not explicitly set, so 'default-src' is used as a fallback.
+このエラーを分析
+（インデックス）:1 [Report Only] Refused to execute inline event handler because it violates the following Content Security Policy directive: "script-src-attr 'none'". Either the 'unsafe-inline' keyword, a hash ('sha256-...'), or a nonce ('nonce-...') is required to enable inline execution. Note that hashes do not apply to event handlers, style attributes and javascript: navigations unless the 'unsafe-hashes' keyword is present.
+
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+ds @ web-client-content-script.js:2
+o.componentDidCatch.n.callback @ web-client-content-script.js:2
+qo @ web-client-content-script.js:2
+wu @ web-client-content-script.js:2
+yu @ web-client-content-script.js:2
+bu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+kl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Wa @ web-client-content-script.js:2
+cl @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+$l @ web-client-content-script.js:2
+t.render @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+p @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+Hve @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+workspace_iframe.html?initialPath=%2F&id=%3Aruf%3A:142 [Report Only] Refused to load the script 'https://replit.com/public/js/beacon.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://accounts.google.com https://*.googleapis.com https://*.gstatic.com". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
