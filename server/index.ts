@@ -230,33 +230,43 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
-// 🔧 開発環境：Viteプロキシ設定
-if (process.env.NODE_ENV !== 'production') {
-  console.log("🔧 開発環境：Vite完全プロキシモード");
-  
-  // Vite専用プロキシ設定
-  const { createProxyMiddleware } = require('http-proxy-middleware');
-  
-  // Viteサーバーへのプロキシ（全フロントエンドリクエスト）
-  const viteProxy = createProxyMiddleware({
-    target: 'http://localhost:5001',
-    changeOrigin: true,
-    ws: true, // WebSocket対応
-    logLevel: 'error',
-  });
-  
-  // フロントエンドアセット・ページはすべてViteにプロキシ
-  app.use((req, res, next) => {
-    if (req.originalUrl.startsWith('/api') || req.originalUrl === '/__introspect') {
-      // API・管理ルートはExpressが処理
-      return next();
-    } else {
-      // フロントエンドルートはViteが処理
-      return viteProxy(req, res, next);
+// 🎯 シンプルExpress配信：確実な動作
+console.log("🎯 シンプルExpress：確実なフロントエンド配信");
+
+const clientRoot = path.resolve(process.cwd(), "client");
+
+// ルートアクセス専用処理
+app.get("/", (req, res) => {
+  const indexPath = path.join(clientRoot, "index.html");
+  console.log(`📄 Index.html配信: ${indexPath}`);
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error("❌ index.html配信エラー:", err);
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html><head><title>Error</title></head>
+        <body><h1>Error loading application</h1><p>${err.message}</p></body></html>
+      `);
     }
   });
-  
-} else {
+});
+
+// 基本静的ファイル配信
+app.use(express.static(clientRoot));
+
+// src ディレクトリ配信
+app.use('/src', express.static(path.join(clientRoot, 'src')));
+
+// その他のSPAルート
+app.get("*", (req, res) => {
+  if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
+    console.log(`🔀 SPA Route: ${req.originalUrl}`);
+    const indexPath = path.join(clientRoot, "index.html");
+    res.sendFile(indexPath);
+  }
+});
+
+if (false) { // プロダクション環境コードブロック（無効化）
   // プロダクション環境：ビルド済みファイル配信
   const clientDist = path.resolve(process.cwd(), "dist/client");
   app.use(express.static(clientDist));
@@ -271,13 +281,9 @@ if (process.env.NODE_ENV !== 'production') {
 /* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
 
-// 🚨 Replit環境でのポート制御
-const isHosted = !!(process.env.REPL_ID || process.env.REPLIT_URL);
-const finalPORT = isHosted ? Number(process.env.PORT) : PORT;
-if (isHosted && !process.env.PORT) {
-  console.error('🚨 PORT未設定（Replit環境）: 終了します');
-  process.exit(1);
-}
+// ✅ ポート設定（フォールバック保証）
+const finalPORT = Number(process.env.PORT) || PORT;
+console.log(`🔧 ポート設定: PORT=${process.env.PORT} → 最終ポート=${finalPORT}`);
 
 const server = app.listen(finalPORT, HOST, () => {
   console.log(`🚀 Server running on http://${HOST}:${finalPORT}`);
