@@ -230,38 +230,39 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
-// 🚨 緊急修正：フロントエンド配信強制有効化
-const clientDist = path.resolve(process.cwd(), "client");
-app.use(express.static(clientDist));
-app.use("/src", express.static(path.join(clientDist, "src")));
-app.use("/public", express.static(path.join(clientDist, "public")));
+// 🚨 統合モード：Express単体でフロントエンド+バックエンド配信
+console.log("🔧 Express統合モード：フロントエンド+バックエンド統一配信");
 
-// SPAフォールバック（Viteが無い場合のバックアップ）
+// 静的ファイル配信（client ディレクトリ直接）
+const clientRoot = path.resolve(process.cwd(), "client");
+app.use(express.static(clientRoot));
+app.use("/src", express.static(path.join(clientRoot, "src")));
+
+// TypeScript + CSS 特別処理
+app.get("/src/index.css", (req, res) => {
+  res.setHeader("Content-Type", "text/css");
+  const cssPath = path.join(clientRoot, "src", "index.css");
+  res.sendFile(cssPath);
+});
+
+// TypeScript ファイルのMIMEタイプ設定
+app.get("*.tsx", (req, res) => {
+  res.setHeader("Content-Type", "application/javascript");
+  res.sendFile(path.join(clientRoot, req.path));
+});
+
+app.get("*.ts", (req, res) => {
+  res.setHeader("Content-Type", "application/javascript");
+  res.sendFile(path.join(clientRoot, req.path));
+});
+
+// SPA フォールバック（全てのルートでReactアプリを配信）
 app.get("*", (req, res) => {
   if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
-    const indexPath = path.join(clientDist, "index.html");
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        // index.htmlが見つからない場合の緊急措置
-        res.status(200).send(`
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI瞬間英作文チャット</title>
-  <script type="module" src="/src/main.tsx"></script>
-</head>
-<body>
-  <div id="root"></div>
-</body>
-</html>
-        `);
-      }
-    });
+    const indexPath = path.join(clientRoot, "index.html");
+    res.sendFile(indexPath);
   }
 });
-console.log("🚨 緊急修正: Express+Vite統合モード");
 
 /* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
@@ -275,10 +276,11 @@ if (isHosted && !process.env.PORT) {
 }
 
 const server = app.listen(finalPORT, HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-  console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
-  console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
+  console.log(`🚀 Server running on http://${HOST}:${finalPORT}`);
+  console.log(`📊 Health check: http://${HOST}:${finalPORT}/health`);
+  console.log(`🔍 Introspect: http://${HOST}:${finalPORT}/__introspect`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+  console.log(`🔧 Viteデブサーバー: http://${HOST}:5173 → Express: ${finalPORT}`);
   console.log(
     `📁 Serve client: ${process.env.SERVE_CLIENT || "auto (dev: true, prod: false)"}`,
   );
