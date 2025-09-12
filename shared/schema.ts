@@ -285,12 +285,6 @@ export const DIFFICULTY_LEVELS = {
     color: "red",
     icon: "mail",
   },
-  simulation: {
-    name: "シミュレーション練習",
-    description: "実際の場面を想定した英会話",
-    color: "orange",
-    icon: "users",
-  },
 } as const;
 
 export type ChatMessage = {

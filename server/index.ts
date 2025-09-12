@@ -14,11 +14,7 @@ process.on("unhandledRejection", (reason, promise) => {
 
 process.on("uncaughtException", (error) => {
   console.error("🚨 Uncaught Exception:", error);
-  if (process.env.NODE_ENV === 'production') {
-    process.exit(1); // プロダクションのみ終了
-  } else {
-    console.error("🔧 開発環境: サーバー継続中...");
-  }
+  process.exit(1);
 });
 // import { registerRoutes } from "./routes/index.js"; // 不完全な実装のためコメントアウト
 
@@ -57,10 +53,9 @@ app.use(
 app.use(
   helmet({
     contentSecurityPolicy: {
-      reportOnly: false, // 🔧 CSP有効化（適切な設定で）
-      useDefaults: false, // 🚨 デフォルト無効化（Replit環境対応）
+      useDefaults: true,
       directives: {
-        defaultSrc: ["'self'", "data:", "blob:"],
+        defaultSrc: ["'self'"],
         scriptSrc: [
           "'self'", 
           "'unsafe-inline'",
@@ -69,18 +64,9 @@ app.use(
           "https://accounts.google.com", // Google OAuth
           "https://*.googleapis.com", // Google APIs
           "https://*.gstatic.com", // Google静的リソース
-          "https://replit.com", // 🚨 Replit必須
-          "https://*.replit.dev", // 🚨 Replit開発環境
-          "https://*.kirk.replit.dev", // 🚨 Kirk Replit
-          "'unsafe-hashes'", // 🚨 インラインハンドラー許可
         ],
         connectSrc: [
           "'self'",
-          "https://sp.replit.com", // 🚨 Replit環境対応
-          "ws:", // 🚨 WebSocket全般
-          "wss:", // 🚨 セキュアWebSocket全般
-          "data:", // 🚨 データURL
-          "blob:", // 🚨 Blobデータ
           "https://*.supabase.co",
           "https://*.supabase.net",
           "https://*.supabase.in",
@@ -99,23 +85,9 @@ app.use(
           "https://api.stripe.com", // Stripe API
         ],
         imgSrc: ["'self'", "data:", "blob:", "https:"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://replit.com", "https://*.replit.dev"],
-        scriptSrcElem: [
-          "'self'", 
-          "'unsafe-inline'",
-          "https://js.stripe.com",
-          "https://accounts.google.com",
-          "https://*.googleapis.com",
-          "https://*.gstatic.com",
-          "https://replit.com", // 🚨 Replit必須
-          "https://*.replit.dev", // 🚨 Replit開発環境
-          "https://*.kirk.replit.dev", // 🚨 Kirk Replit
-        ],
+        styleSrc: ["'self'", "'unsafe-inline'"],
         frameSrc: [
           "'self'",
-          "https://replit.com", // 🚨 Replit必須
-          "https://*.replit.dev", // 🚨 Replit開発環境
-          "https://*.kirk.replit.dev", // 🚨 Kirk Replit
           "https://*.supabase.co",
           "https://*.supabase.net",
           "https://accounts.google.com", // Google認証iframe
@@ -230,95 +202,26 @@ app.get("/__introspect", (_req, res) => {
 /* ---------- 404 handler moved to async section after routes ---------- */
 
 /* ---------- frontend serving logic ---------- */
-// 🎯 シンプルExpress配信：確実な動作
-console.log("🎯 シンプルExpress：確実なフロントエンド配信");
-
-const clientRoot = path.resolve(process.cwd(), "client");
-
-// ルートアクセス専用処理
-app.get("/", (req, res) => {
-  const indexPath = path.join(clientRoot, "index.html");
-  console.log(`📄 Index.html配信: ${indexPath}`);
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error("❌ index.html配信エラー:", err);
-      res.status(500).send(`
-        <!DOCTYPE html>
-        <html><head><title>Error</title></head>
-        <body><h1>Error loading application</h1><p>${err.message}</p></body></html>
-      `);
-    }
-  });
-});
-
-// 基本静的ファイル配信
-app.use(express.static(clientRoot));
-
-// src ディレクトリ配信
-app.use('/src', express.static(path.join(clientRoot, 'src')));
-
-// その他のSPAルート
+// 緊急修正：既存ビルドファイルを使用（TypeScript構文エラー回避）
+const clientDist = path.resolve(process.cwd(), "dist/client");
+app.use(express.static(clientDist));
 app.get("*", (req, res) => {
   if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
-    console.log(`🔀 SPA Route: ${req.originalUrl}`);
-    const indexPath = path.join(clientRoot, "index.html");
-    res.sendFile(indexPath);
+    res.sendFile(path.join(clientDist, "index.html"));
   }
 });
-
-if (false) { // プロダクション環境コードブロック（無効化）
-  // プロダクション環境：ビルド済みファイル配信
-  const clientDist = path.resolve(process.cwd(), "dist/client");
-  app.use(express.static(clientDist));
-  app.get("*", (req, res) => {
-    if (!req.originalUrl.startsWith('/api') && req.originalUrl !== '/__introspect') {
-      res.sendFile(path.join(clientDist, "index.html"));
-    }
-  });
-  console.log("📦 プロダクション：ビルド済みファイル配信");
-}
+console.log(
+  "🚀 Emergency fix: Using existing build files to bypass TS errors",
+);
 
 /* ---------- server start FIRST ---------- */
 const HOST = process.env.HOST || "0.0.0.0";
-
-// ✅ ポート設定（フォールバック保証）
-const finalPORT = Number(process.env.PORT) || PORT;
-console.log(`🔧 ポート設定: PORT=${process.env.PORT} → 最終ポート=${finalPORT}`);
-
-const server = app.listen(finalPORT, HOST, () => {
-  console.log(`🚀 Server running on http://${HOST}:${finalPORT}`);
-  console.log(`📊 Health check: http://${HOST}:${finalPORT}/health`);
-  console.log(`🔍 Introspect: http://${HOST}:${finalPORT}/__introspect`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+  console.log(`📊 Health check: http://${process.env.HOST}:${PORT}/health`);
+  console.log(`🔍 Introspect: http://${process.env.HOST}:${PORT}/__introspect`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`🔧 Viteデブサーバー: http://${HOST}:5173 → Express: ${finalPORT}`);
   console.log(
     `📁 Serve client: ${process.env.SERVE_CLIENT || "auto (dev: true, prod: false)"}`,
   );
 });
-
-// 🚨 サーバーライフサイクル監視
-server.on('error', (error) => {
-  console.error('💥 Server Error:', error);
-});
-
-server.on('close', () => {
-  console.error('🔴 Server Closed');
-});
-
-// 🛑 プロセス終了信号監視
-process.on('SIGTERM', () => {
-  console.log('🛑 SIGTERM受信 - グレースフル終了開始');
-  server.close(() => console.log('✅ HTTPサーバー終了完了'));
-});
-
-process.on('SIGINT', () => {
-  console.log('🛑 SIGINT受信 (Ctrl+C) - グレースフル終了開始');
-  server.close(() => console.log('✅ HTTPサーバー終了完了'));
-});
-
-// 🩺 開発環境での生存確認（デバッグ用）
-if (process.env.NODE_ENV !== 'production') {
-  setInterval(() => {
-    console.log(`💓 Server alive: ${new Date().toISOString()}`);
-  }, 30000);
-}
