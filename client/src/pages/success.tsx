@@ -44,10 +44,6 @@ export default function Success() {
               <Check className="w-4 h-4 text-green-500" />
               <span>復習機能とブックマーク</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <Check className="w-4 h-4 text-green-500" />
-              <span>シミュレーション練習</span>
-            </div>
           </div>
         </div>
 

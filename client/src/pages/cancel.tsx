@@ -63,7 +63,7 @@ export default function Cancel() {
 
         {/* Note */}
         <p className="text-xs text-gray-500 mt-6">
-          プレミアム機能では無制限の練習問題、詳細な添削、シミュレーション練習などがご利用いただけます。
+          プレミアム機能では無制限の練習問題、詳細な添削などがご利用いただけます。
         </p>
       </div>
     </div>

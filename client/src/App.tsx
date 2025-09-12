@@ -15,8 +15,6 @@ import { SubscriptionGuard } from "./components/subscription-guard.js";
 import Home from "./pages/home.js";
 import CompleteTrainingUI from "./pages/CompleteTrainingUI.js";
 import MyPage from "./pages/my-page.tsx";
-import SimulationSelection from "./pages/simulation-selection.js";
-import SimulationPractice from "./pages/simulation-practice.js";
 import Admin from "./pages/admin.js";
 import Success from "./pages/success.js";
 import Cancel from "./pages/cancel.js";
@@ -657,30 +655,6 @@ function AppRoutes() {
         element={
           <Guard>
             <MyPage />
-          </Guard>
-        }
-      />
-      <Route
-        path="/simulation"
-        element={
-          <Guard>
-            <ProtectedRoute component={SimulationSelection} />
-          </Guard>
-        }
-      />
-      <Route
-        path="/simulation/:id"
-        element={
-          <Guard>
-            <ProtectedRoute component={SimulationPractice} />
-          </Guard>
-        }
-      />
-      <Route
-        path="/simulation-practice"
-        element={
-          <Guard>
-            <ProtectedRoute component={SimulationPractice} />
           </Guard>
         }
       />

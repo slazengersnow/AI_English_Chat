@@ -46,7 +46,7 @@ export function PremiumGate({ children, feature = "この機能", showUpgrade = 
                       この機能はプレミアムプラン限定です。
                     </p>
                     <p className="text-blue-800 text-sm">
-                      リアルなビジネスシーンを想定したシミュレーション練習を体験したい方は、プレミアムプランをご検討ください。
+                      より詳細な添削フィードバックと豊富な練習問題を体験したい方は、プレミアムプランをご検討ください。
                     </p>
                   </div>
                 </div>

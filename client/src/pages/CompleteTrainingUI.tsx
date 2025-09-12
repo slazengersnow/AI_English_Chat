@@ -7,8 +7,7 @@ type DifficultyLevel =
   | "middle_school"
   | "high_school"
   | "basic_verbs"
-  | "business_email"
-  | "simulation";
+  | "business_email";
 
 const difficultyLevels = {
   toeic: { name: "TOEIC", color: "bg-blue-500", textColor: "text-white" },
@@ -16,7 +15,6 @@ const difficultyLevels = {
   high_school: { name: "高校英語", color: "bg-purple-500", textColor: "text-white" },
   basic_verbs: { name: "基本動詞", color: "bg-orange-500", textColor: "text-white" },
   business_email: { name: "ビジネスメール", color: "bg-red-500", textColor: "text-white" },
-  simulation: { name: "シミュレーション練習", color: "bg-indigo-500", textColor: "text-white" },
 };
 
 export default function CompleteTrainingUI() {
@@ -203,26 +201,6 @@ export default function CompleteTrainingUI() {
           </div>
         </div>
 
-        {/* シミュレーション練習 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer transform hover:scale-[1.02]"
-             onClick={() => handleDifficultySelect('simulation')}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
-                <p className="text-sm text-gray-500">実際の場面を想定した練習</p>
-              </div>
-            </div>
-            <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
-            </svg>
-          </div>
-        </div>
 
         {/* Premium Features */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-white mt-6">

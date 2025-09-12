@@ -315,14 +315,8 @@ export default function MyPage() {
     // Store the problem data in sessionStorage for the practice interface
     sessionStorage.setItem("reviewProblem", JSON.stringify(reviewData));
 
-    // Navigate to appropriate practice interface
-    if (session.difficultyLevel.startsWith("simulation-")) {
-      const scenarioId = session.difficultyLevel.replace("simulation-", "");
-      navigate(`/simulation-practice?scenario=${scenarioId}`);
-    } else {
-      // Navigate to home page with difficulty selection
-      navigate(`/practice/${session.difficultyLevel}`);
-    }
+    // Navigate to practice interface
+    navigate(`/practice/${session.difficultyLevel}`);
   };
 
   const handleRepeatPractice = () => {
@@ -339,16 +333,8 @@ export default function MyPage() {
     // Start with the first session from recent sessions
     const firstSession = recentSessions[0];
 
-    // Navigate to appropriate practice interface
-    if (firstSession.difficultyLevel.startsWith("simulation-")) {
-      const scenarioId = firstSession.difficultyLevel.replace(
-        "simulation-",
-        "",
-      );
-      navigate(`/simulation-practice?scenario=${scenarioId}`);
-    } else {
-      navigate(`/practice/${firstSession.difficultyLevel}`);
-    }
+    // Navigate to practice interface
+    navigate(`/practice/${firstSession.difficultyLevel}`);
   };
 
   const handleLogout = async () => {

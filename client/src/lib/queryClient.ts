@@ -547,20 +547,6 @@ function getFallbackEvaluation(data: any) {
         "Business correspondence skills",
         "Corporate language proficiency"
       ]
-    },
-    simulation: {
-      feedback: `シミュレーション練習として、${qualityScore >= 3 ? '実践的な' : '基本的な'}コミュニケーション表現が見られます。AI評価復旧後、より詳細な実用性分析をお届けします。`,
-      improvements: [
-        "実際の会話場面を意識しましょう",
-        "自然な表現を心がけましょう",
-        "相手への配慮を示す表現を学びましょう"
-      ],
-      explanation: `「${japaneseSentence}」のシミュレーション練習について、AI評価システムが一時的に利用できません。実践的なコミュニケーション力を向上させましょう。`,
-      similarPhrases: [
-        "Real-world communication",
-        "Practical language use",
-        "Situational expression"
-      ]
     }
   };
   

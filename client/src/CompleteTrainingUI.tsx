@@ -6,7 +6,7 @@ import AdminDashboard from "./AdminDashboard";
 import MyPage from "./MyPage";
 import { SimpleAuth } from "./SimpleAuth";
 
-type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email" | "simulation";
+type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email";
 
 interface Problem {
   japaneseSentence: string;
@@ -466,23 +466,6 @@ export default function CompleteTrainingUI({ user, onLogout }: CompleteTrainingU
             </div>
           </div>
 
-          {/* シミュレーション練習 */}
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">シミュレーション練習</h3>
-                <p className="text-xs text-gray-500">この機能はプレミアム会員向けです。この機能により特定のシチュエーションを想定した瞬間英作文を練習することができます。</p>
-              </div>
-              <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
-            </div>
-          </div>
         </div>
 
         {/* Premium CTA */}
