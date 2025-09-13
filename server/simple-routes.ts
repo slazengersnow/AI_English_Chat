@@ -17,6 +17,7 @@ import {
   trainingSessions,
   userSubscriptions,
 } from "../shared/schema.js";
+import { DAILY_PROBLEM_LIMIT, ADMIN_EMAIL, ADMIN_DAILY_LIMIT } from "../shared/constants.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
 import { eq, lte, desc, gte, and, sql } from "drizzle-orm";
@@ -310,11 +311,11 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
       console.log(`🎯 Using authenticated user: ${userId}`);
     }
     
-    const canProceed = await storage.incrementDailyCount();
+    const canProceed = await storage.incrementDailyCount(userId);
     if (!canProceed) {
       return res.status(429).json({
         message:
-          "本日の最大出題数(50問)に達しました。明日また学習を再開できます。",
+          `本日の最大出題数(${DAILY_PROBLEM_LIMIT}問)に達しました。明日また学習を再開できます。`,
         dailyLimitReached: true,
       });
     }
@@ -1298,12 +1299,12 @@ export function registerRoutes(app: Express): void {
       console.log(`📅 Fetching today's real count for user: ${userEmail}`);
 
       // 管理者の場合は無制限
-      if (userEmail === 'slazengersnow@gmail.com') {
+      if (userEmail === ADMIN_EMAIL) {
         console.log('🔑 Admin user detected, returning unlimited daily count');
         return res.json({
           today: 0,
-          limit: 999,
-          remaining: 999,
+          limit: ADMIN_DAILY_LIMIT,
+          remaining: ADMIN_DAILY_LIMIT,
           resetTime: "2099-12-31T23:59:59Z"
         });
       }
@@ -1323,7 +1324,7 @@ export function registerRoutes(app: Express): void {
         .execute();
 
       const todayCount = Number(todayStats[0]?.todayCount || 0);
-      const limit = 50;
+      const limit = DAILY_PROBLEM_LIMIT;
       const remaining = Math.max(0, limit - todayCount);
 
       console.log(`🎯 Real daily stats: ${todayCount}問完了, 残り: ${remaining}問 (上限: ${limit})`);
@@ -1479,7 +1480,7 @@ export function registerRoutes(app: Express): void {
         .limit(1);
 
       // Daily limit for Standard plan only (Premium abolished)
-      let dailyLimit = 50; // Standard plan default
+      let dailyLimit = DAILY_PROBLEM_LIMIT; // Standard plan default
 
       const progressReport = {
         streak: streak,

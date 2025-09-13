@@ -1,4 +1,5 @@
 import { db } from "./db.js";
+import { DAILY_PROBLEM_LIMIT, ADMIN_EMAIL } from "../shared/constants.js";
 import { trainingSessions } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 
@@ -277,9 +278,28 @@ export class Storage {
     }
   }
 
-  async incrementDailyCount(): Promise<boolean> {
-    // 実装を簡略化：常に許可（1日50問制限は別途実装）
-    return true;
+  async incrementDailyCount(userId: string = "default_user"): Promise<boolean> {
+    try {
+      // 管理者は無制限
+      if (userId === ADMIN_EMAIL) {
+        return true;
+      }
+      
+      // 今日の問題数を取得
+      const todayCount = await this.getTodaysProblemCount(userId);
+      
+      // 制限に達している場合は拒否
+      if (todayCount >= DAILY_PROBLEM_LIMIT) {
+        console.log(`❌ Daily limit reached: ${todayCount}/${DAILY_PROBLEM_LIMIT} for user ${userId}`);
+        return false;
+      }
+      
+      console.log(`✅ Daily count check passed: ${todayCount}/${DAILY_PROBLEM_LIMIT} for user ${userId}`);
+      return true;
+    } catch (error) {
+      console.error("Failed to check daily count:", error);
+      return false;
+    }
   }
 }
 
