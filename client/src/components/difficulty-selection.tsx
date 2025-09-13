@@ -25,7 +25,7 @@ const colorMap = {
 };
 
 export function DifficultySelection({ onDifficultySelect }: DifficultySelectionProps) {
-  const { canAccessPremiumFeatures } = useSubscription();
+  const { canAccessPremiumFeatures, subscription } = useSubscription();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       {/* Header */}
@@ -76,31 +76,33 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
 
 
 
-      {/* Premium Features - Show for both standard and trial users */}
-      <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
-        <div className="text-center">
-          <h3 className="font-semibold mb-3">最短で英語力アップ</h3>
-          <div className="text-sm opacity-90 mb-4 text-center space-y-1">
-            <div className="flex items-center justify-center gap-2">
-              <span>•</span>
-              <span>ネイティブ水準の添削フィードバック</span>
+      {/* Trial Users Only - English Improvement Features */}
+      {subscription?.subscriptionType === "trialing" && (
+        <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
+          <div className="text-center">
+            <h3 className="font-semibold mb-3">最短で英語力アップ</h3>
+            <div className="text-sm opacity-90 mb-4 text-center space-y-1">
+              <div className="flex items-center justify-center gap-2">
+                <span>•</span>
+                <span>ネイティブ水準の添削フィードバック</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span>•</span>
+                <span>瞬間英作文で英会話対策</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <span>•</span>
+                <span>中学生英語レベル〜TOEIC対策まで対応</span>
+              </div>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <span>•</span>
-              <span>あなた専用の進捗レポートで実力が見える</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <span>•</span>
-              <span>中学生英語レベル〜TOEIC対策まで対応</span>
-            </div>
+            <Link href="/subscription-select">
+              <button className="bg-white text-blue-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
+                今すぐ本登録する
+              </button>
+            </Link>
           </div>
-          <Link href="/subscription-select">
-            <button className="bg-white text-blue-600 px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-100 transition-colors">
-              今すぐ本登録する
-            </button>
-          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
