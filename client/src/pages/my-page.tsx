@@ -50,7 +50,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate, Link } from "react-router-dom";
+import { useLocation, Link } from "wouter";
 
 interface ProgressData {
   date: string;
@@ -92,7 +92,7 @@ interface UserSubscription {
 }
 
 export default function MyPage() {
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -122,8 +122,6 @@ export default function MyPage() {
     null,
   );
   const { subscription, canAccessPremiumFeatures } = useSubscription();
-
-  }, []);
 
   // API queries
 
@@ -227,11 +225,10 @@ export default function MyPage() {
 
   const createCustomerPortalMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(
-        "POST",
-        "/api/create-customer-portal",
-        {},
-      );
+      const response = await apiRequest("/api/create-customer-portal", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
       return response.json();
     },
     onSuccess: (data) => {
@@ -248,7 +245,10 @@ export default function MyPage() {
 
   const upgradeSubscriptionMutation = useMutation({
     mutationFn: (planType: "monthly" | "yearly") =>
-      apiRequest("POST", "/api/upgrade-subscription", { planType }),
+      apiRequest("/api/upgrade-subscription", {
+        method: "POST",
+        body: JSON.stringify({ planType }),
+      }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user-subscription"] });
       toast({
@@ -316,7 +316,7 @@ export default function MyPage() {
     sessionStorage.setItem("reviewProblem", JSON.stringify(reviewData));
 
     // Navigate to practice interface
-    navigate(`/practice/${session.difficultyLevel}`);
+    setLocation(`/practice/${session.difficultyLevel}`);
   };
 
   const handleRepeatPractice = () => {
@@ -334,7 +334,7 @@ export default function MyPage() {
     const firstSession = recentSessions[0];
 
     // Navigate to practice interface
-    navigate(`/practice/${firstSession.difficultyLevel}`);
+    setLocation(`/practice/${firstSession.difficultyLevel}`);
   };
 
   const handleLogout = async () => {
@@ -363,7 +363,7 @@ export default function MyPage() {
       
       // Navigate immediately to prevent white page flash
       console.log("🏠 Redirecting to home after logout");
-      navigate("/", { replace: true });
+      setLocation("/");
       
     } catch (error) {
       console.error("❌ Logout error:", error);
