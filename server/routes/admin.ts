@@ -3,7 +3,7 @@ import { Router, type Express, type Request, type Response, type NextFunction } 
 import { supabaseAdmin } from "../supabase-admin.js";
 import { getStorage } from "../storage.js";
 import { eq, desc, sql, count } from "drizzle-orm";
-import { userSubscriptions, trainingSessions, dailyProgress, customScenarios } from "../../shared/schema.js";
+import { userSubscriptions, trainingSessions, dailyProgress } from "../../shared/schema.js";
 import Stripe from "stripe";
 
 // Initialize Stripe if secret key is available

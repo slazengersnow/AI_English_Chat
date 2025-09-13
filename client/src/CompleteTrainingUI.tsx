@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { claudeApiRequest } from "./lib/queryClient";
 import ChatStyleTraining from "./ChatStyleTraining";
 import AdminDashboard from "./AdminDashboard";
-import MyPage from "./MyPage";
+import MyPage from "./pages/my-page";
 import { SimpleAuth } from "./SimpleAuth";
 
 type DifficultyLevel = "toeic" | "middle_school" | "high_school" | "basic_verbs" | "business_email";

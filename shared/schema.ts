@@ -91,15 +91,6 @@ export const dailyProgress = pgTable("daily_progress", {
   averageRating: real("average_rating").default(0).notNull(),
 });
 
-// Custom scenarios table - Updated
-export const customScenarios = pgTable("custom_scenarios", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id", { length: 36 }).default("default_user").notNull(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 
 // Problem progress table - Updated
 export const problemProgress = pgTable(
@@ -148,12 +139,6 @@ export const insertDailyProgressSchema = z.object({
   averageRating: z.number(),
 });
 
-export const insertCustomScenarioSchema = z.object({
-  userId: z.string().optional(),
-  title: z.string(),
-  description: z.string(),
-  isActive: z.boolean().optional(),
-});
 
 export const insertUserSubscriptionSchema = z.object({
   userId: z.string().optional(),
@@ -180,14 +165,12 @@ export const insertProblemProgressSchema = z.object({
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = typeof userGoals.$inferSelect;
 export type DailyProgress = typeof dailyProgress.$inferSelect;
-export type CustomScenario = typeof customScenarios.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type ProblemProgress = typeof problemProgress.$inferSelect;
 
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
 export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
-export type InsertCustomScenario = z.infer<typeof insertCustomScenarioSchema>;
 export type InsertUserSubscription = z.infer<
   typeof insertUserSubscriptionSchema
 >;
