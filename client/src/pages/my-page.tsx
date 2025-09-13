@@ -786,8 +786,8 @@ export default function MyPage() {
                         </h3>
                         <p className="text-sm text-gray-600">
                           {subscription?.subscriptionStatus === "trialing"
-                            ? "基本機能・100問/日（トライアル中）"
-                            : "基本機能・100問/日"}
+                            ? "基本機能・50問/日（トライアル中）"
+                            : "基本機能・50問/日"}
                         </p>
                       </div>
                     </div>
