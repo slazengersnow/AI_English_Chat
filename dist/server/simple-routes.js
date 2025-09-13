@@ -1,6 +1,7 @@
 import { Router } from "express";
 import storage from "./storage.js";
 import { problemRequestSchema, translateRequestSchema, trainingSessions, userSubscriptions, } from "../shared/schema.js";
+import { DAILY_PROBLEM_LIMIT, ADMIN_EMAIL, ADMIN_DAILY_LIMIT } from "../shared/constants.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
 import { eq, desc, gte, and, sql } from "drizzle-orm";
@@ -210,6 +211,7 @@ export const handleProblemGeneration = async (req, res) => {
     try {
         // ✅ 改良されたユーザーID取得ロジック
         let userId = "default_user";
+        let userEmail = undefined;
         let authenticationFailed = false;
         console.log(`🔍 Problem generation - Auth header present: ${!!req.headers.authorization}`);
         const authHeader = req.headers.authorization;
@@ -229,6 +231,7 @@ export const handleProblemGeneration = async (req, res) => {
                 }
                 else if (user) {
                     userId = user.id;
+                    userEmail = user.email;
                     console.log(`✅ User authenticated successfully: ${user.email}`);
                 }
                 else {
@@ -250,12 +253,13 @@ export const handleProblemGeneration = async (req, res) => {
             console.log(`⚠️ Using default user due to authentication failure`);
         }
         else {
-            console.log(`🎯 Using authenticated user: ${userId}`);
+            console.log(`🎯 Using authenticated user: ${userId} (${userEmail || 'unknown'})`);
         }
-        const canProceed = await storage.incrementDailyCount();
+        // ✅ 修正済み: userEmailも渡して管理者バイパスを有効化
+        const canProceed = await storage.incrementDailyCount(userId, userEmail);
         if (!canProceed) {
             return res.status(429).json({
-                message: "本日の最大出題数(100問)に達しました。明日また学習を再開できます。",
+                message: `本日の最大出題数(${DAILY_PROBLEM_LIMIT}問)に達しました。明日また学習を再開できます。`,
                 dailyLimitReached: true,
             });
         }
@@ -1121,12 +1125,12 @@ export function registerRoutes(app) {
             const userEmail = req.user?.email || "anonymous";
             console.log(`📅 Fetching today's real count for user: ${userEmail}`);
             // 管理者の場合は無制限
-            if (userEmail === 'slazengersnow@gmail.com') {
+            if (userEmail === ADMIN_EMAIL) {
                 console.log('🔑 Admin user detected, returning unlimited daily count');
                 return res.json({
                     today: 0,
-                    limit: 999,
-                    remaining: 999,
+                    limit: ADMIN_DAILY_LIMIT,
+                    remaining: ADMIN_DAILY_LIMIT,
                     resetTime: "2099-12-31T23:59:59Z"
                 });
             }
@@ -1139,7 +1143,7 @@ export function registerRoutes(app) {
                 .where(and(eq(trainingSessions.userId, userEmail), sql `DATE(created_at) = CURRENT_DATE`))
                 .execute();
             const todayCount = Number(todayStats[0]?.todayCount || 0);
-            const limit = 100;
+            const limit = DAILY_PROBLEM_LIMIT;
             const remaining = Math.max(0, limit - todayCount);
             console.log(`🎯 Real daily stats: ${todayCount}問完了, 残り: ${remaining}問 (上限: ${limit})`);
             res.json({
@@ -1273,11 +1277,8 @@ export function registerRoutes(app) {
                 .from(userSubscriptions)
                 .where(eq(userSubscriptions.userId, "default_user"))
                 .limit(1);
-            // Determine daily limit based on subscription
-            let dailyLimit = 50; // Standard default
-            if (subscription && subscription.subscriptionType === 'premium') {
-                dailyLimit = 100;
-            }
+            // Daily limit for Standard plan only (Premium abolished)
+            let dailyLimit = DAILY_PROBLEM_LIMIT; // Standard plan default
             const progressReport = {
                 streak: streak,
                 monthlyProblems: monthlyCount,

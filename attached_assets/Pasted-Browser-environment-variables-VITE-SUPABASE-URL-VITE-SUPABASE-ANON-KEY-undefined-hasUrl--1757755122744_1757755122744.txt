@@ -1,0 +1,281 @@
+Browser environment variables: {VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: 'undefined', hasUrl: false, hasKey: false}
+supabase.js:39 Supabase config: {environment: 'browser', url: 'https://xcjplyhqxgrbdhixmzse.s...', keyLength: 208, keyPrefix: 'eyJhbGciOi...', hasUrl: true, …}
+supabase.js:53 Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.
+overrideMethod @ hook.js:608
+nl @ GoTrueClient.js:71
+V8 @ SupabaseAuthClient.js:4
+_initSupabaseAuthClient @ SupabaseClient.js:187
+xC @ SupabaseClient.js:64
+ju @ index.js:11
+（匿名） @ supabase.js:53この警告を分析
+checkout.tsx:13 Missing VITE_STRIPE_PUBLIC_KEY environment variable
+overrideMethod @ hook.js:608
+（匿名） @ checkout.tsx:13このエラーを分析
+main.tsx:1 🔥 MAIN.TSX LOADED - ファイル読み込み開始
+main.tsx:6 🔥 MAIN.TSX - App imported successfully
+main.tsx:10 🔥 MAIN.TSX - React root created
+hash-handler.tsx:14 HashHandler - Full URL: https://ai-english-chat.fly.dev/
+hash-handler.tsx:15 HashHandler - Hash: 
+hash-handler.tsx:16 HashHandler - Pathname: /
+hash-handler.tsx:19 HashHandler - No hash found
+auth-provider.tsx:31 🔄 AuthProvider: Initializing...
+auth-provider.tsx:47 🔄 Auth state change: {event: 'SIGNED_IN', hasSession: true, hasUser: true, userEmail: 'slazengersnow@gmail.com'}
+auth-provider.tsx:61 ✅ AuthProvider: Initialized after first auth change
+auth-provider.tsx:66 🚀 User signed in: slazengersnow@gmail.com
+auth-provider.tsx:79 💾 Session persisted to localStorage
+App.tsx:149 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+queryClient.ts:34 📡 API Request: GET /api/user-subscription
+auth-provider.tsx:35 🔄 Initial session check: {hasSession: true, hasUser: true, userEmail: 'slazengersnow@gmail.com', error: null}
+App.tsx:149 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+auth-provider.tsx:47 🔄 Auth state change: {event: 'INITIAL_SESSION', hasSession: true, hasUser: true, userEmail: 'slazengersnow@gmail.com'}
+App.tsx:149 === GUARD DEBUG === {pathname: '/', isPublicPath: false, user: true, initialized: true, isLoading: false}
+queryClient.ts:46 🔐 Auth token from Supabase session for /api/user-subscription
+queryClient.ts:98 🔐 Auth token added for /api/user-subscription
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+ds @ web-client-content-script.js:2
+o.componentDidCatch.n.callback @ web-client-content-script.js:2
+qo @ web-client-content-script.js:2
+wu @ web-client-content-script.js:2
+yu @ web-client-content-script.js:2
+bu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+kl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Wa @ web-client-content-script.js:2
+cl @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+$l @ web-client-content-script.js:2
+t.render @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+p @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+Hve @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+web-client-content-script.js:2 Error: An error occured while selecting the store state: Cannot read properties of undefined (reading 'classificationList').
+    at De (web-client-content-script.js:2:376827)
+    at Kt (web-client-content-script.js:2:411837)
+    at Kf (web-client-content-script.js:2:641151)
+    at vi (web-client-content-script.js:2:111219)
+    at xu (web-client-content-script.js:2:170870)
+    at yl (web-client-content-script.js:2:159976)
+    at gl (web-client-content-script.js:2:159904)
+    at vl (web-client-content-script.js:2:159767)
+    at ul (web-client-content-script.js:2:156883)
+    at Wa (web-client-content-script.js:2:97530)
+ds @ web-client-content-script.js:2
+o.componentDidCatch.n.callback @ web-client-content-script.js:2
+qo @ web-client-content-script.js:2
+wu @ web-client-content-script.js:2
+yu @ web-client-content-script.js:2
+bu @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+kl @ web-client-content-script.js:2
+ul @ web-client-content-script.js:2
+Wa @ web-client-content-script.js:2
+cl @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+$l @ web-client-content-script.js:2
+t.render @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+p @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+Promise.then
+u @ web-client-content-script.js:2
+i @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+Hve @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2
+（匿名） @ web-client-content-script.js:2このエラーを分析
+ChatStyleTraining.tsx:199 No initial problem provided, generating first problem
+ChatStyleTraining.tsx:360 Fetching problem with difficulty: middle_school
+ChatStyleTraining.tsx:362  POST https://ai-english-chat.fly.dev/api/problem 404 (Not Found)
+Ye @ ChatStyleTraining.tsx:362
+（匿名） @ ChatStyleTraining.tsx:200
+Rh @ react-dom.production.min.js:243
+ko @ react-dom.production.min.js:285
+n4 @ react-dom.production.min.js:282
+Xi @ react-dom.production.min.js:280
+uj @ react-dom.production.min.js:272
+Mi @ react-dom.production.min.js:127
+（匿名） @ react-dom.production.min.js:266このエラーを分析
+ChatStyleTraining.tsx:406 Failed to fetch problem: Error: HTTP error! status: 404
+    at Ye (ChatStyleTraining.tsx:373:15)
+overrideMethod @ hook.js:608
+Ye @ ChatStyleTraining.tsx:406
+await in Ye
+（匿名） @ ChatStyleTraining.tsx:200
+Rh @ react-dom.production.min.js:243
+ko @ react-dom.production.min.js:285
+n4 @ react-dom.production.min.js:282
+Xi @ react-dom.production.min.js:280
+uj @ react-dom.production.min.js:272
+Mi @ react-dom.production.min.js:127
+（匿名） @ react-dom.production.min.js:266このエラーを分析
+ChatStyleTraining.tsx:460 Calling Claude API with: {userAnswer: 'I went to see the movie with my friend yesterday.', japaneseSentence: '昨日友達と映画を見に行きました。', modelAnswer: 'Please translate this sentence.', difficulty: 'middle_school'}
+queryClient.ts:225 Claude API request to /api/evaluate-with-claude (attempt 1/5): {japaneseSentence: '昨日友達と映画を見に行きました。', userTranslation: 'I went to see the movie with my friend yesterday.', difficultyLevel: 'middle-school'}
+queryClient.ts:227  POST https://ai-english-chat.fly.dev/api/evaluate-with-claude 404 (Not Found)
+hE @ queryClient.ts:227
+gr @ ChatStyleTraining.tsx:468
+Ur @ ChatStyleTraining.tsx:613
+onKeyPress @ ChatStyleTraining.tsx:1026
+jM @ react-dom.production.min.js:54
+NM @ react-dom.production.min.js:54
+PM @ react-dom.production.min.js:55
+Rw @ react-dom.production.min.js:105
+D_ @ react-dom.production.min.js:106
+（匿名） @ react-dom.production.min.js:117
+Dx @ react-dom.production.min.js:273
+i_ @ react-dom.production.min.js:52
+Sp @ react-dom.production.min.js:109
+cx @ react-dom.production.min.js:74
+zM @ react-dom.production.min.js:73このエラーを分析
+queryClient.ts:285 Claude API error for /api/evaluate-with-claude (attempt 1): Error: HTTP 404: 
+    at hE (queryClient.ts:239:15)
+    at async gr (ChatStyleTraining.tsx:468:26)
+    at async Ur (ChatStyleTraining.tsx:613:26)
+overrideMethod @ hook.js:608
+hE @ queryClient.ts:285
+await in hE
+gr @ ChatStyleTraining.tsx:468
+Ur @ ChatStyleTraining.tsx:613
+onKeyPress @ ChatStyleTraining.tsx:1026
+jM @ react-dom.production.min.js:54
+NM @ react-dom.production.min.js:54
+PM @ react-dom.production.min.js:55
+Rw @ react-dom.production.min.js:105
+D_ @ react-dom.production.min.js:106
+（匿名） @ react-dom.production.min.js:117
+Dx @ react-dom.production.min.js:273
+i_ @ react-dom.production.min.js:52
+Sp @ react-dom.production.min.js:109
+cx @ react-dom.production.min.js:74
+zM @ react-dom.production.min.js:73このエラーを分析
+queryClient.ts:292 ❌ CRITICAL: Claude API fallback triggered for evaluation {endpoint: '/api/evaluate-with-claude', data: {…}, error: 'HTTP 404: ', attempt: 'all retries failed'}
+overrideMethod @ hook.js:608
+hE @ queryClient.ts:292
+await in hE
+gr @ ChatStyleTraining.tsx:468
+Ur @ ChatStyleTraining.tsx:613
+onKeyPress @ ChatStyleTraining.tsx:1026
+jM @ react-dom.production.min.js:54
+NM @ react-dom.production.min.js:54
+PM @ react-dom.production.min.js:55
+Rw @ react-dom.production.min.js:105
+D_ @ react-dom.production.min.js:106
+（匿名） @ react-dom.production.min.js:117
+Dx @ react-dom.production.min.js:273
+i_ @ react-dom.production.min.js:52
+Sp @ react-dom.production.min.js:109
+cx @ react-dom.production.min.js:74
+zM @ react-dom.production.min.js:73このエラーを分析
+queryClient.ts:298 🔄 Using enhanced fallback evaluation - continuing learning experience
+queryClient.ts:436 🎉 素晴らしい回答です！新しい評価をお楽しみください。
+ChatStyleTraining.tsx:474 Claude API evaluation received: {rating: 1, correctTranslation: '適切な英訳: (回答なし)', feedback: '🎉 新しい評価をお楽しみください！ TOEICレベルの翻訳として、基本的な構造が確認できます。現在AI評価が一時的に利用できませんが、ビジネス英語のスキル向上に取り組む姿勢は素晴らしいです。', improvements: Array(3), explanation: '「昨日友達と映画を見に行きました。」のTOEICレベル英訳について、AI評価システムが一時的に利用できません。ビジネスコンテクストでの表現力向上を継続しましょう。', …}
+ChatStyleTraining.tsx:360 Fetching problem with difficulty: middle_school
+ChatStyleTraining.tsx:362  POST https://ai-english-chat.fly.dev/api/problem 404 (Not Found)
+Ye @ ChatStyleTraining.tsx:362
+tt @ ChatStyleTraining.tsx:305
+（匿名） @ ChatStyleTraining.tsx:684
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:683
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:671
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:661
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:651
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:631
+setTimeout
+Ur @ ChatStyleTraining.tsx:620
+await in Ur
+onKeyPress @ ChatStyleTraining.tsx:1026
+jM @ react-dom.production.min.js:54
+NM @ react-dom.production.min.js:54
+PM @ react-dom.production.min.js:55
+Rw @ react-dom.production.min.js:105
+D_ @ react-dom.production.min.js:106
+（匿名） @ react-dom.production.min.js:117
+Dx @ react-dom.production.min.js:273
+i_ @ react-dom.production.min.js:52
+Sp @ react-dom.production.min.js:109
+cx @ react-dom.production.min.js:74
+zM @ react-dom.production.min.js:73このエラーを分析
+ChatStyleTraining.tsx:406 Failed to fetch problem: Error: HTTP error! status: 404
+    at Ye (ChatStyleTraining.tsx:373:15)
+    at async tt (ChatStyleTraining.tsx:305:7)
+overrideMethod @ hook.js:608
+Ye @ ChatStyleTraining.tsx:406
+await in Ye
+tt @ ChatStyleTraining.tsx:305
+（匿名） @ ChatStyleTraining.tsx:684
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:683
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:671
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:661
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:651
+setTimeout
+（匿名） @ ChatStyleTraining.tsx:631
+setTimeout
+Ur @ ChatStyleTraining.tsx:620
+await in Ur
+onKeyPress @ ChatStyleTraining.tsx:1026
+jM @ react-dom.production.min.js:54
+NM @ react-dom.production.min.js:54
+PM @ react-dom.production.min.js:55
+Rw @ react-dom.production.min.js:105
+D_ @ react-dom.production.min.js:106
+（匿名） @ react-dom.production.min.js:117
+Dx @ react-dom.production.min.js:273
+i_ @ react-dom.production.min.js:52
+Sp @ react-dom.production.min.js:109
+cx @ react-dom.production.min.js:74
+zM @ react-dom.production.min.js:73このエラーを分析

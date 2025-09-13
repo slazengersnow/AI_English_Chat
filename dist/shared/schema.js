@@ -77,6 +77,18 @@ export const problemProgress = pgTable("problem_progress", {
 }, (table) => ({
     uniqueUserDifficulty: unique().on(table.userId, table.difficultyLevel),
 }));
+// Daily requests table - Track problem generation requests
+export const dailyRequests = pgTable("daily_requests", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    userEmail: text("user_email"),
+    requestDate: date("request_date").notNull(),
+    requestCount: integer("request_count").default(1).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+    uniqueUserDate: unique().on(table.userId, table.requestDate),
+}));
 // All tables defined above - schema complete
 // Insert schemas - manual Zod schemas to match exact table structure
 export const insertTrainingSessionSchema = z.object({
@@ -119,6 +131,12 @@ export const insertProblemProgressSchema = z.object({
     currentProblemNumber: z.number().optional(),
     isBookmarked: z.boolean().optional(),
     reviewCount: z.number().optional(),
+});
+export const insertDailyRequestSchema = z.object({
+    userId: z.string(),
+    userEmail: z.string().nullable().optional(),
+    requestDate: z.string(),
+    requestCount: z.number().optional(),
 });
 // Zod Schemas - Date型に統一
 export const trainingSessionSchema = z.object({
