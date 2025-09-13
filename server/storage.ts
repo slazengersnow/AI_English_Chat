@@ -278,7 +278,7 @@ export class Storage {
   }
 
   async incrementDailyCount(): Promise<boolean> {
-    // 実装を簡略化：常に許可（1日100問制限は別途実装）
+    // 実装を簡略化：常に許可（1日50問制限は別途実装）
     return true;
   }
 }
