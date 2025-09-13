@@ -25,7 +25,7 @@ const colorMap = {
 };
 
 export function DifficultySelection({ onDifficultySelect }: DifficultySelectionProps) {
-  const { canAccessPremiumFeatures, subscription } = useSubscription();
+  const { subscription } = useSubscription();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       {/* Header */}
@@ -77,7 +77,7 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
 
 
       {/* Trial Users Only - English Improvement Features */}
-      {subscription?.subscriptionType === "trialing" && (
+      {subscription?.subscriptionStatus === "trialing" && (
         <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
           <div className="text-center">
             <h3 className="font-semibold mb-3">最短で英語力アップ</h3>
