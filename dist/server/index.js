@@ -139,7 +139,7 @@ app.get("/api/__ping", (_req, res) => {
     }
     // Load main routes (Claude API)
     try {
-        const { registerRoutes } = await importWithTimeout(import("./simple-routes.js"), 10000);
+        const { registerRoutes } = await importWithTimeout(import("./simple-routes.js"), 30000);
         registerRoutes(app);
         console.log("✅ Main routes (Claude API) loaded");
     }
