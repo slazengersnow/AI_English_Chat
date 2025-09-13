@@ -777,42 +777,23 @@ export default function MyPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      {subscription?.subscriptionType === "premium" ? (
-                        <Crown className="w-6 h-6 text-purple-600" />
-                      ) : (
-                        <User className="w-6 h-6 text-blue-600" />
-                      )}
+                      <User className="w-6 h-6 text-blue-600" />
                       <div>
                         <h3 className="font-semibold text-lg">
                           {subscription?.subscriptionStatus === "trialing"
-                            ? `${subscription?.subscriptionType === "premium" ? "プレミアム" : "スタンダード"}プラン（トライアル中）`
-                            : subscription?.subscriptionType === "premium"
-                              ? "プレミアムプラン"
-                              : "スタンダードプラン"}
+                            ? "スタンダードプラン（トライアル中）"
+                            : "スタンダードプラン"}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {subscription?.subscriptionType === "premium" &&
-                          subscription?.subscriptionStatus === "trialing"
-                            ? "全機能・無制限アクセス（トライアル中）"
-                            : subscription?.subscriptionType === "premium"
-                              ? "全機能・無制限アクセス"
-                              : subscription?.subscriptionStatus === "trialing"
-                                ? "基本機能・50問/日（トライアル中）"
-                                : "基本機能・50問/日"}
+                          {subscription?.subscriptionStatus === "trialing"
+                            ? "基本機能・100問/日（トライアル中）"
+                            : "基本機能・100問/日"}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge
-                        variant={
-                          subscription?.subscriptionType === "premium"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {subscription?.subscriptionType === "premium"
-                          ? "プレミアム"
-                          : "スタンダード"}
+                      <Badge variant="secondary">
+                        スタンダード
                       </Badge>
                     </div>
                   </div>
@@ -840,11 +821,7 @@ export default function MyPage() {
                           </span>
                         </div>
                         <p className="text-sm text-green-700">
-                          トライアル期間終了後、自動的に
-                          {subscription?.subscriptionType === "premium"
-                            ? "プレミアムプラン（月額1,300円）"
-                            : "スタンダードプラン（月額980円）"}
-                          に移行されます。
+                          トライアル期間終了後、自動的にスタンダードプラン（月額980円）に移行されます。
                         </p>
                       </div>
                     )}
@@ -860,97 +837,26 @@ export default function MyPage() {
                   プラン変更
                 </CardTitle>
                 <CardDescription>
-                  サブスクリプションプランのアップグレード・ダウングレード
+                  年会費プランへの変更で2ヶ月分お得に
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {subscription?.subscriptionType === "standard" ? (
-                    <div className="space-y-4">
-                      <div className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">
-                              プレミアム月額プランにアップグレード
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              無制限問題、カスタムシナリオ、詳細分析機能（日割り計算でアップグレード）
-                            </p>
-                          </div>
-                          <Button
-                            className="bg-purple-600 hover:bg-purple-700"
-                            onClick={() => handleUpgradeSubscription("monthly")}
-                            disabled={upgradeSubscriptionMutation.isPending}
-                          >
-                            <Crown className="w-4 h-4 mr-2" />
-                            {upgradeSubscriptionMutation.isPending
-                              ? "処理中..."
-                              : "月額にアップグレード"}
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">
-                              プレミアム年間プランにアップグレード
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              2ヶ月分お得、無制限問題、カスタムシナリオ（日割り計算でアップグレード）
-                            </p>
-                          </div>
-                          <Button
-                            className="bg-purple-600 hover:bg-purple-700"
-                            onClick={() => handleUpgradeSubscription("yearly")}
-                            disabled={upgradeSubscriptionMutation.isPending}
-                          >
-                            <Crown className="w-4 h-4 mr-2" />
-                            {upgradeSubscriptionMutation.isPending
-                              ? "処理中..."
-                              : "年間にアップグレード"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">
-                            スタンダードプランにダウングレード
-                          </h4>
-                          <p className="text-sm text-gray-600 mt-1">
-                            基本機能のみ利用（次回請求時から適用）
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          onClick={() => createCustomerPortalMutation.mutate()}
-                          disabled={createCustomerPortalMutation.isPending}
-                        >
-                          {createCustomerPortalMutation.isPending
-                            ? "処理中..."
-                            : "ダウングレード"}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
                         <h4 className="font-medium">年会費プランに変更</h4>
                         <p className="text-sm text-gray-600 mt-1">
-                          月額プランより2ヶ月分お得
+                          月額980円 → 年額9,800円（2ヶ月分お得）
                         </p>
                       </div>
                       <Button
-                        variant="outline"
-                        onClick={() => createCustomerPortalMutation.mutate()}
-                        disabled={createCustomerPortalMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => handleUpgradeSubscription("yearly")}
+                        disabled={upgradeSubscriptionMutation.isPending}
                       >
-                        {createCustomerPortalMutation.isPending
+                        <Calendar className="w-4 h-4 mr-2" />
+                        {upgradeSubscriptionMutation.isPending
                           ? "処理中..."
                           : "年会費に変更"}
                       </Button>
@@ -968,7 +874,7 @@ export default function MyPage() {
                   プラン比較
                 </CardTitle>
                 <CardDescription>
-                  スタンダードプランとプレミアムプランの機能比較
+                  スタンダードプランの機能一覧
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -982,9 +888,6 @@ export default function MyPage() {
                         <th className="border border-gray-200 px-4 py-3 text-center font-medium text-gray-900">
                           スタンダードプラン
                         </th>
-                        <th className="border border-gray-200 px-4 py-3 text-center font-medium text-gray-900">
-                          プレミアムプラン
-                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -995,9 +898,6 @@ export default function MyPage() {
                         <td className="border border-gray-200 px-4 py-3 text-center font-medium">
                           980円
                         </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">
-                          1,300円
-                        </td>
                       </tr>
                       <tr className="bg-gray-50/50">
                         <td className="border border-gray-200 px-4 py-3 font-medium">
@@ -1006,16 +906,10 @@ export default function MyPage() {
                         <td className="border border-gray-200 px-4 py-3 text-center font-medium">
                           9,800円
                         </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center font-medium">
-                          13,000円
-                        </td>
                       </tr>
                       <tr>
                         <td className="border border-gray-200 px-4 py-3 font-medium">
                           基本練習機能
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
-                          ✓
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
                           ✓
@@ -1026,18 +920,12 @@ export default function MyPage() {
                           1日の練習問題上限
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center">
-                          50問
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center">
                           100問
                         </td>
                       </tr>
                       <tr>
                         <td className="border border-gray-200 px-4 py-3 font-medium">
-                          繰り返し練習
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-red-500">
-                          ✗
+                          進捗分析
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
                           ✓
@@ -1045,32 +933,7 @@ export default function MyPage() {
                       </tr>
                       <tr className="bg-gray-50/50">
                         <td className="border border-gray-200 px-4 py-3 font-medium">
-                          模擬練習
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-red-500">
-                          ✗
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
-                          ✓
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="border border-gray-200 px-4 py-3 font-medium">
-                          進捗
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
-                          ✓
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
-                          ✓
-                        </td>
-                      </tr>
-                      <tr className="bg-gray-50/50">
-                        <td className="border border-gray-200 px-4 py-3 font-medium">
-                          ブック機能
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
-                          ✓
+                          ブックマーク機能
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
                           ✓
@@ -1079,9 +942,6 @@ export default function MyPage() {
                       <tr>
                         <td className="border border-gray-200 px-4 py-3 font-medium">
                           音声読み上げ
-                        </td>
-                        <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
-                          ✓
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center text-green-600">
                           ✓
@@ -1120,7 +980,7 @@ export default function MyPage() {
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">請求金額</h4>
                       <span className="text-lg font-bold">
-                        {isAdmin ? "¥0" : "月額1,300円"}
+                        {isAdmin ? "¥0" : "月額980円"}
                       </span>
                     </div>
                   </div>
