@@ -527,14 +527,14 @@ export default function MyPage() {
                 </CardHeader>
                 <CardContent className="pt-1 md:pt-2">
                   <div className="text-lg md:text-2xl font-bold text-orange-600">
-                    {(dailyCount as any)?.count || 0}/{(dailyCount as any)?.limit || 100}
+                    {(dailyCount as any)?.count || 0}/{(dailyCount as any)?.limit || 50}
                   </div>
                   <Progress
-                    value={((dailyCount as any)?.count || 0) / ((dailyCount as any)?.limit || 100) * 100}
+                    value={((dailyCount as any)?.count || 0) / ((dailyCount as any)?.limit || 50) * 100}
                     className="mt-1 md:mt-2 h-2"
                   />
                   <p className="text-[10px] md:text-xs text-muted-foreground mt-1">
-                    残り {(dailyCount as any)?.remaining || 100}問
+                    残り {(dailyCount as any)?.remaining || 50}問
                   </p>
                 </CardContent>
               </Card>
@@ -851,7 +851,7 @@ export default function MyPage() {
                         </p>
                       </div>
                       <Button
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                         onClick={() => handleUpgradeSubscription("yearly")}
                         disabled={upgradeSubscriptionMutation.isPending}
                       >
@@ -871,7 +871,7 @@ export default function MyPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-purple-500" />
-                  プラン比較
+                  料金プラン
                 </CardTitle>
                 <CardDescription>
                   スタンダードプランの機能一覧
@@ -920,7 +920,7 @@ export default function MyPage() {
                           1日の練習問題上限
                         </td>
                         <td className="border border-gray-200 px-4 py-3 text-center">
-                          100問
+                          50問
                         </td>
                       </tr>
                       <tr>
