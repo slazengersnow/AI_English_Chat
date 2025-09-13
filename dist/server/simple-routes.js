@@ -1,6 +1,6 @@
 import { Router } from "express";
 import storage from "./storage.js";
-import { problemRequestSchema, translateRequestSchema, trainingSessions, userSubscriptions, customScenarios, } from "../shared/schema.js";
+import { problemRequestSchema, translateRequestSchema, trainingSessions, userSubscriptions, } from "../shared/schema.js";
 import Anthropic from "@anthropic-ai/sdk";
 import { db } from "./db.js";
 import { eq, desc, gte, and, sql } from "drizzle-orm";
@@ -84,7 +84,6 @@ const DIFFICULTY_ALIASES = {
     "basic-verbs": "basic-verbs",
     business_email: "business-email",
     "business-email": "business-email",
-    simulation: "simulation",
 };
 function normalizeDifficulty(input) {
     if (!input)
@@ -204,28 +203,6 @@ const problemSets = {
         "ご理解のほど、よろしくお願いいたします。",
         "引き続きよろしくお願いいたします。"
     ],
-    simulation: [
-        "レストランで注文をお願いします。",
-        "道に迷ったので道案内をお願いします。",
-        "体調が悪いので病院に行きたいです。",
-        "買い物で値段を聞きたいです。",
-        "電車の時刻を確認したいです。",
-        "ホテルの予約を取りたいです。",
-        "空港への行き方を教えてください。",
-        "Wi-Fiのパスワードを教えてください。",
-        "荷物を預けたいのですが。",
-        "チェックアウトの時間を知りたいです。",
-        "タクシーを呼んでもらえませんか。",
-        "両替をしたいのですが。",
-        "観光地への行き方を教えてください。",
-        "緊急事態です。助けてください。",
-        "薬局はどこにありますか。",
-        "この商品は税抜きの価格ですか。",
-        "クレジットカードは使えますか。",
-        "トイレはどこにありますか。",
-        "メニューを英語で説明してください。",
-        "予約の変更をしたいのですが。"
-    ],
 };
 /* -------------------- マイページ関連 API -------------------- */
 /* -------------------- 問題出題 -------------------- */
@@ -342,11 +319,6 @@ export const handleProblemGeneration = async (req, res) => {
                 constraints: "15-25文字、敬語・丁寧語必須。【多様性必須】挨拶・依頼・確認・報告・提案・案内・スケジュール・顧客対応・緊急事態・人事・経理・法務・営業・技術・研修・会議・出張・契約・品質管理・プロジェクト管理・苦情対応・感謝・謝罪・祝賀・お知らせ・招待・質問・回答など25以上のシーンから1つ選択し、「この度」「つきまして」以外の多様な表現パターンを使用",
                 examples: "新システム導入についてご案内します。 / お忙しい中、ありがとうございます。 / 会議の議題を送付いたします。 / ご質問がございましたらお聞かせください。 / 来週の予定を調整させていただきます。 / おかげ様で売上が向上しました。"
             },
-            simulation: {
-                description: "実用的な日常会話（実生活の多様なシチュエーション）",
-                constraints: "10-20文字、場面設定明確、自然な話し言葉。【多様性最優先】以下の実生活場面から毎回ランダムに選択：\n\n旅行手配・ショッピング・レストラン注文・病院診察・銀行手続き・郵便局・電車バス・ホテル宿泊・観光案内・緊急時対応・道案内・予約変更・お礼挨拶・謝罪・タクシー・両替・Wi-Fi・荷物・チェックアウト・薬局・クレジットカード・トイレ・メニュー・価格確認・営業時間・サイズ交換・返品・修理・配送など30以上の実用場面\n\n【重要】毎回異なる場面設定で、実際に使える自然な日本語表現を作成",
-                examples: "この電車は空港に行きますか。 / レストランを予約したいです。 / 薬局はどこにありますか。 / WiFiのパスワードを教えてください。 / この服のサイズはありますか。 / タクシーを呼んでもらえますか。 / 両替はここでできますか。 / 道に迷ってしまいました。 / チェックアウトは何時ですか。 / この商品を返品したいです。"
-            }
         };
         const promptConfig = difficultyPrompts[difficultyLevel] || difficultyPrompts["middle-school"];
         while (attempts < maxRetries && !selectedSentence) {
@@ -1144,78 +1116,6 @@ export function registerRoutes(app) {
             res.status(500).json({ error: 'Failed to fetch bookmarked sessions' });
         }
     });
-    router.get("/custom-scenarios", requireAuth, async (req, res) => {
-        try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`🎯 Fetching custom scenarios for user: ${userEmail}`);
-            // Get custom scenarios from the database for the current user
-            const scenarios = await db
-                .select()
-                .from(customScenarios)
-                .where(eq(customScenarios.userId, userEmail))
-                .orderBy(desc(customScenarios.createdAt));
-            console.log(`🎯 Found ${scenarios.length} custom scenarios for ${userEmail}`);
-            res.json(scenarios);
-        }
-        catch (error) {
-            console.error('Error fetching custom scenarios:', error);
-            res.status(500).json({ error: 'Failed to fetch custom scenarios' });
-        }
-    });
-    // Create a new custom scenario
-    router.post("/custom-scenarios", requireAuth, async (req, res) => {
-        try {
-            const userEmail = req.user?.email || "anonymous";
-            console.log(`🎯 Creating custom scenario for user: ${userEmail}`);
-            const { title, description } = req.body;
-            if (!title || !description) {
-                return res.status(400).json({ error: 'Title and description are required' });
-            }
-            const newScenario = await db
-                .insert(customScenarios)
-                .values({
-                userId: userEmail,
-                title,
-                description,
-                isActive: true
-            })
-                .returning()
-                .execute();
-            console.log(`🎯 Created custom scenario with ID: ${newScenario[0].id}`);
-            res.status(201).json(newScenario[0]);
-        }
-        catch (error) {
-            console.error('Error creating custom scenario:', error);
-            res.status(500).json({ error: 'Failed to create custom scenario' });
-        }
-    });
-    // Delete a custom scenario
-    router.delete("/custom-scenarios/:id", requireAuth, async (req, res) => {
-        try {
-            const userEmail = req.user?.email || "anonymous";
-            const scenarioId = parseInt(req.params.id);
-            console.log(`🎯 Deleting custom scenario ${scenarioId} for user: ${userEmail}`);
-            // First check if the scenario belongs to the user
-            const scenario = await db
-                .select()
-                .from(customScenarios)
-                .where(and(eq(customScenarios.id, scenarioId), eq(customScenarios.userId, userEmail)))
-                .execute();
-            if (scenario.length === 0) {
-                return res.status(404).json({ error: 'Scenario not found or not owned by user' });
-            }
-            await db
-                .delete(customScenarios)
-                .where(and(eq(customScenarios.id, scenarioId), eq(customScenarios.userId, userEmail)))
-                .execute();
-            console.log(`🎯 Successfully deleted custom scenario ${scenarioId}`);
-            res.json({ message: 'Scenario deleted successfully' });
-        }
-        catch (error) {
-            console.error('Error deleting custom scenario:', error);
-            res.status(500).json({ error: 'Failed to delete custom scenario' });
-        }
-    });
     router.get("/daily-count", requireAuth, async (req, res) => {
         try {
             const userEmail = req.user?.email || "anonymous";
@@ -1430,18 +1330,21 @@ export function registerRoutes(app) {
             res.status(500).json({ error: 'Failed to fetch weekly progress' });
         }
     });
+    // Debug endpoint for session troubleshooting (moved inside registerRoutes)
+    router.get("/debug/sessions", requireAuth, async (req, res) => {
+        try {
+            const userEmail = req.user?.email || "anonymous";
+            const allSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.userId, userEmail)).orderBy(desc(trainingSessions.createdAt)).limit(10);
+            console.log(`🔍 Debug: Found ${allSessions.length} total sessions for ${userEmail}`);
+            allSessions.forEach(s => console.log(`  - Rating: ${s.rating}, Sentence: ${s.japaneseSentence?.substring(0, 30)}...`));
+            res.json(allSessions);
+        }
+        catch (error) {
+            console.error("Debug error:", error);
+            res.status(500).json({ error: "Debug failed" });
+        }
+    });
+    // Mount router to /api path
     app.use("/api", router);
+    console.log("🚀 API routes registered under /api");
 }
-router.get("/debug/sessions", requireAuth, async (req, res) => {
-    try {
-        const userEmail = req.user?.email || "anonymous";
-        const allSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.userId, userEmail)).orderBy(desc(trainingSessions.createdAt)).limit(10);
-        console.log(`🔍 Debug: Found ${allSessions.length} total sessions for ${userEmail}`);
-        allSessions.forEach(s => console.log(`  - Rating: ${s.rating}, Sentence: ${s.japaneseSentence?.substring(0, 30)}...`));
-        res.json(allSessions);
-    }
-    catch (error) {
-        console.error("Debug error:", error);
-        res.status(500).json({ error: "Debug failed" });
-    }
-});

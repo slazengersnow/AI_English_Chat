@@ -3,6 +3,8 @@ import { trainingSessions } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 // 実際のデータベース接続を使用するストレージ
 export class Storage {
+    // Expose db for admin routes
+    db = db;
     async addTrainingSession(data) {
         try {
             const [session] = await db
@@ -193,7 +195,16 @@ export class Storage {
         }
     }
     async updateBookmark(sessionId, isBookmarked) {
-        // ダミー実装
+        try {
+            await db
+                .update(trainingSessions)
+                .set({ isBookmarked })
+                .where(eq(trainingSessions.id, parseInt(sessionId)));
+        }
+        catch (error) {
+            console.error("Failed to update bookmark:", error);
+            throw error;
+        }
     }
     async updateReviewCount(sessionId) {
         // ダミー実装
@@ -235,3 +246,11 @@ export class Storage {
 // デフォルトエクスポート
 const storage = new Storage();
 export default storage;
+// getStorage function for admin routes
+export function getStorage() {
+    return {
+        db: storage.db,
+    };
+}
+// Export the db for direct access
+export { db } from "./db.js";

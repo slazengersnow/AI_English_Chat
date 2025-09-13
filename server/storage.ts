@@ -227,7 +227,15 @@ export class Storage {
     sessionId: string,
     isBookmarked: boolean,
   ): Promise<void> {
-    // ダミー実装
+    try {
+      await db
+        .update(trainingSessions)
+        .set({ isBookmarked })
+        .where(eq(trainingSessions.id, parseInt(sessionId)));
+    } catch (error) {
+      console.error("Failed to update bookmark:", error);
+      throw error;
+    }
   }
 
   async updateReviewCount(sessionId: string): Promise<void> {

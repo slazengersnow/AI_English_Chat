@@ -143,7 +143,7 @@ app.get("/api/__ping", (_req, res) => {
 
   // Load Stripe webhook routes
   try {
-    const stripeWebhookRouter = await importWithTimeout(import("./routes/stripe-webhook.ts"), 5000);
+    const stripeWebhookRouter = await importWithTimeout(import("./routes/stripe-webhook.js"), 5000);
     app.use(
       "/api/stripe-webhook",
       express.raw({ type: "application/json" }),
@@ -156,7 +156,7 @@ app.get("/api/__ping", (_req, res) => {
 
   // Load admin routes
   try {
-    const { registerAdminRoutes } = await importWithTimeout(import("./routes/admin.ts"), 10000);
+    const { registerAdminRoutes } = await importWithTimeout(import("./routes/admin.js"), 10000);
     registerAdminRoutes(app);
     console.log("✅ Admin routes loaded");
   } catch (error) {
@@ -165,7 +165,7 @@ app.get("/api/__ping", (_req, res) => {
 
   // Load main routes (Claude API)
   try {
-    const { registerRoutes } = await importWithTimeout(import("./simple-routes.ts"), 10000);
+    const { registerRoutes } = await importWithTimeout(import("./simple-routes.js"), 10000);
     registerRoutes(app);
     console.log("✅ Main routes (Claude API) loaded");
   } catch (error) {

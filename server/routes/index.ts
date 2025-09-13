@@ -57,6 +57,7 @@ export function registerRoutes(app: Express) {
 
   /* ----------------------- ブックマーク ----------------------- */
   router.get("/bookmarks", handleGetBookmarks);
+  router.get("/bookmarked-sessions", handleGetBookmarkedSessions);
   router.post("/bookmarks/:sessionId", handleToggleBookmark);
 
   /* ----------------------- カスタムシナリオ ----------------------- */
@@ -617,10 +618,60 @@ async function handleGetBookmarks(_req: Request, res: Response) {
   }
 }
 
+async function handleGetBookmarkedSessions(req: Request, res: Response) {
+  try {
+    // ユーザー認証の確認
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Supabaseでトークンを検証
+    const { supabaseAdmin } = await import('../supabase-admin.js');
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // ストレージからブックマークされたセッションを取得
+    const storage = (await import('../storage.js')).default;
+    const bookmarkedSessions = await storage.getBookmarkedSessions(user.id);
+    
+    res.json(bookmarkedSessions);
+  } catch (error) {
+    console.error("Get bookmarked sessions error:", error);
+    res.status(500).json({ error: "Failed to get bookmarked sessions" });
+  }
+}
+
 async function handleToggleBookmark(req: Request, res: Response) {
   try {
     const { sessionId } = req.params;
     const { isBookmarked } = req.body;
+
+    // ユーザー認証の確認
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No authorization header' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    
+    // Supabaseでトークンを検証
+    const { supabaseAdmin } = await import('../supabase-admin.js');
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    // ブックマーク状態を更新
+    const storage = (await import('../storage.js')).default;
+    await storage.updateBookmark(sessionId, !isBookmarked);
+
     res.json({
       success: true,
       data: {
