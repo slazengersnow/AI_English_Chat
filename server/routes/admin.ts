@@ -202,7 +202,6 @@ export function registerAdminRoutes(app: Express) {
         'basic-verbs': '基本動詞',
         'business_email': 'ビジネスメール',
         'business-email': 'ビジネスメール',
-        'simulation': 'シミュレーション練習',
       };
       
       // Get total learning stats
@@ -239,7 +238,6 @@ export function registerAdminRoutes(app: Express) {
             case 'high-school': return 1.3;
             case 'toeic': return 1.5;
             case 'business-email': return 1.8;
-            case 'simulation': return 2.0;
             default: return 1.2;
           }
         })();

@@ -215,7 +215,6 @@ export const problemRequestSchema = z.object({
     "high-school",
     "basic-verbs",
     "business-email",
-    "simulation",
   ]),
 });
 

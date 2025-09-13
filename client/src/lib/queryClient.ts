@@ -410,26 +410,6 @@ function getEnhancedFallbackProblem(difficulty: string) {
         difficulty: "business-email"
       }
     ],
-    simulation: [
-      {
-        japaneseSentence: "レストランで注文をお願いします。",
-        hints: ["restaurant", "order", "please"],
-        modelAnswer: "I'd like to order at the restaurant, please.",
-        difficulty: "simulation"
-      },
-      {
-        japaneseSentence: "空港でチェックインしたいです。",
-        hints: ["airport", "check in", "want to"],
-        modelAnswer: "I want to check in at the airport.",
-        difficulty: "simulation"
-      },
-      {
-        japaneseSentence: "道に迷いました。助けてください。",
-        hints: ["lost", "help", "please"],
-        modelAnswer: "I'm lost. Please help me.",
-        difficulty: "simulation"
-      }
-    ]
   };
   
   const problemSet = problemSets[difficulty as keyof typeof problemSets] || problemSets.toeic;

@@ -188,9 +188,6 @@ async function handleGenerateProblem(req: Request, res: Response) {
       "business-email": [
         "商品の納期が遅れる可能性があります。", "会議の議事録をお送りします。", "新しい提案についてご検討ください。"
       ],
-      simulation: [
-        "駅はどこにありますか？", "この荷物を送りたいのですが。", "予約を変更したいのですが。"
-      ]
     };
     
     // Normalize difficulty level
