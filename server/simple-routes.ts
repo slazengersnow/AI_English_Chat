@@ -263,6 +263,7 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
   try {
     // ✅ 改良されたユーザーID取得ロジック
     let userId = "default_user";
+    let userEmail: string | undefined = undefined;
     let authenticationFailed = false;
     
     console.log(`🔍 Problem generation - Auth header present: ${!!req.headers.authorization}`);
@@ -290,6 +291,7 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
           authenticationFailed = true;
         } else if (user) {
           userId = user.id;
+          userEmail = user.email;
           console.log(`✅ User authenticated successfully: ${user.email}`);
         } else {
           console.log(`⚠️ No user found in token`);
@@ -308,10 +310,11 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
     if (authenticationFailed && userId === "default_user") {
       console.log(`⚠️ Using default user due to authentication failure`);
     } else {
-      console.log(`🎯 Using authenticated user: ${userId}`);
+      console.log(`🎯 Using authenticated user: ${userId} (${userEmail || 'unknown'})`);
     }
     
-    const canProceed = await storage.incrementDailyCount(userId);
+    // ✅ 修正済み: userEmailも渡して管理者バイパスを有効化
+    const canProceed = await storage.incrementDailyCount(userId, userEmail);
     if (!canProceed) {
       return res.status(429).json({
         message:

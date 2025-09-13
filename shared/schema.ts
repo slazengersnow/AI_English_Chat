@@ -111,6 +111,23 @@ export const problemProgress = pgTable(
   }),
 );
 
+// Daily requests table - Track problem generation requests
+export const dailyRequests = pgTable(
+  "daily_requests",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    userEmail: text("user_email"),
+    requestDate: date("request_date").notNull(),
+    requestCount: integer("request_count").default(1).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueUserDate: unique().on(table.userId, table.requestDate),
+  }),
+);
+
 // All tables defined above - schema complete
 
 // Insert schemas - manual Zod schemas to match exact table structure
@@ -161,12 +178,20 @@ export const insertProblemProgressSchema = z.object({
   reviewCount: z.number().optional(),
 });
 
+export const insertDailyRequestSchema = z.object({
+  userId: z.string(),
+  userEmail: z.string().nullable().optional(),
+  requestDate: z.string(),
+  requestCount: z.number().optional(),
+});
+
 // Type definitions
 export type TrainingSession = typeof trainingSessions.$inferSelect;
 export type UserGoal = typeof userGoals.$inferSelect;
 export type DailyProgress = typeof dailyProgress.$inferSelect;
 export type UserSubscription = typeof userSubscriptions.$inferSelect;
 export type ProblemProgress = typeof problemProgress.$inferSelect;
+export type DailyRequest = typeof dailyRequests.$inferSelect;
 
 export type InsertTrainingSession = z.infer<typeof insertTrainingSessionSchema>;
 export type InsertUserGoal = z.infer<typeof insertUserGoalSchema>;
@@ -175,6 +200,7 @@ export type InsertUserSubscription = z.infer<
   typeof insertUserSubscriptionSchema
 >;
 export type InsertProblemProgress = z.infer<typeof insertProblemProgressSchema>;
+export type InsertDailyRequest = z.infer<typeof insertDailyRequestSchema>;
 
 // Zod Schemas - Date型に統一
 export const trainingSessionSchema = z.object({

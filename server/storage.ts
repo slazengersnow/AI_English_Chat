@@ -1,7 +1,7 @@
 import { db } from "./db.js";
 import { DAILY_PROBLEM_LIMIT, ADMIN_EMAIL } from "../shared/constants.js";
-import { trainingSessions } from "../shared/schema.js";
-import { eq } from "drizzle-orm";
+import { trainingSessions, dailyRequests } from "../shared/schema.js";
+import { eq, and, sql } from "drizzle-orm";
 
 // 実際のデータベース接続を使用するストレージ
 export class Storage {
@@ -278,26 +278,78 @@ export class Storage {
     }
   }
 
-  async incrementDailyCount(userId: string = "default_user"): Promise<boolean> {
+  async getTodaysRequestCount(userId: string): Promise<number> {
     try {
-      // 管理者は無制限
-      if (userId === ADMIN_EMAIL) {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      const result = await db
+        .select({ requestCount: dailyRequests.requestCount })
+        .from(dailyRequests)
+        .where(and(
+          eq(dailyRequests.userId, userId),
+          eq(dailyRequests.requestDate, today)
+        ));
+      
+      const count = result.length > 0 ? result[0].requestCount : 0;
+      console.log(`📊 Today's request count for user ${userId}: ${count}`);
+      
+      return count;
+    } catch (error) {
+      console.error("Failed to get today's request count:", error);
+      return 0;
+    }
+  }
+
+  async incrementDailyCount(userId: string = "default_user", userEmail?: string): Promise<boolean> {
+    try {
+      // ✅ 管理者チェック - emailで比較（修正済み）
+      if (userEmail === ADMIN_EMAIL) {
+        console.log(`🔑 Admin user bypassing daily limit: ${userEmail}`);
         return true;
       }
       
-      // 今日の問題数を取得
-      const todayCount = await this.getTodaysProblemCount(userId);
+      // 今日のリクエスト数を取得（修正済み：dailyRequestsテーブルを使用）
+      const todayCount = await this.getTodaysRequestCount(userId);
       
       // 制限に達している場合は拒否
       if (todayCount >= DAILY_PROBLEM_LIMIT) {
-        console.log(`❌ Daily limit reached: ${todayCount}/${DAILY_PROBLEM_LIMIT} for user ${userId}`);
+        console.log(`❌ Daily limit reached: ${todayCount}/${DAILY_PROBLEM_LIMIT} for user ${userId} (${userEmail || 'unknown'})`);
         return false;
       }
       
-      console.log(`✅ Daily count check passed: ${todayCount}/${DAILY_PROBLEM_LIMIT} for user ${userId}`);
-      return true;
+      // ✅ 実際にカウンターを増加（修正済み：実装していた不備を修正）
+      const today = new Date().toISOString().split('T')[0];
+      
+      try {
+        // INSERT ON CONFLICT UPDATE pattern でカウンターを安全に増加
+        await db
+          .insert(dailyRequests)
+          .values({
+            userId,
+            userEmail: userEmail || null,
+            requestDate: today,
+            requestCount: 1,
+          })
+          .onConflictDoUpdate({
+            target: [dailyRequests.userId, dailyRequests.requestDate],
+            set: {
+              requestCount: sql`${dailyRequests.requestCount} + 1`,
+              userEmail: userEmail || null,
+              updatedAt: new Date(),
+            },
+          });
+        
+        const newCount = todayCount + 1;
+        console.log(`✅ Daily request count incremented: ${newCount}/${DAILY_PROBLEM_LIMIT} for user ${userId} (${userEmail || 'unknown'})`);
+        return true;
+        
+      } catch (insertError) {
+        console.error("Failed to increment daily request count:", insertError);
+        return false;
+      }
+      
     } catch (error) {
-      console.error("Failed to check daily count:", error);
+      console.error("Failed to process daily count:", error);
       return false;
     }
   }
