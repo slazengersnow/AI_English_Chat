@@ -314,7 +314,7 @@ export const handleProblemGeneration = async (req: Request, res: Response) => {
     if (!canProceed) {
       return res.status(429).json({
         message:
-          "本日の最大出題数(100問)に達しました。明日また学習を再開できます。",
+          "本日の最大出題数(50問)に達しました。明日また学習を再開できます。",
         dailyLimitReached: true,
       });
     }
@@ -1323,7 +1323,7 @@ export function registerRoutes(app: Express): void {
         .execute();
 
       const todayCount = Number(todayStats[0]?.todayCount || 0);
-      const limit = 100;
+      const limit = 50;
       const remaining = Math.max(0, limit - todayCount);
 
       console.log(`🎯 Real daily stats: ${todayCount}問完了, 残り: ${remaining}問 (上限: ${limit})`);
@@ -1478,11 +1478,8 @@ export function registerRoutes(app: Express): void {
         .where(eq(userSubscriptions.userId, "default_user"))
         .limit(1);
 
-      // Determine daily limit based on subscription
-      let dailyLimit = 50; // Standard default
-      if (subscription && subscription.subscriptionType === 'premium') {
-        dailyLimit = 100;
-      }
+      // Daily limit for Standard plan only (Premium abolished)
+      let dailyLimit = 50; // Standard plan default
 
       const progressReport = {
         streak: streak,
