@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check, Star } from 'lucide-react';
 
 export default function SubscriptionSelect() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const plans = [
@@ -48,12 +48,12 @@ export default function SubscriptionSelect() {
   const handlePlanSelect = (planId: string) => {
     setSelectedPlan(planId);
     // Stripe決済ページに遷移
-    navigate(`/checkout?plan=${planId}`);
+    setLocation(`/checkout?plan=${planId}`);
   };
 
   const handleSkipTrial = () => {
     // 7日間無料トライアルで開始
-    navigate('/payment-success?trial=true');
+    setLocation('/payment-success?trial=true');
   };
 
   return (
