@@ -44,10 +44,6 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
       {/* Difficulty Selection Cards */}
       <div className="max-w-md mx-auto space-y-3">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2">レベルを選択してください</h2>
-        {/* 🔧 DEBUG: Component mounted - subscription check */}
-        <div className="text-xs text-gray-500 px-2">
-          [DEBUG] Component loaded. Subscription: {subscription ? JSON.stringify({status: subscription.status, subscriptionStatus: subscription.subscriptionStatus}) : 'null'}
-        </div>
         
         {Object.entries(DIFFICULTY_LEVELS).map(([key, level], index) => {
           const Icon = iconMap[level.icon as keyof typeof iconMap];
@@ -81,7 +77,7 @@ export function DifficultySelection({ onDifficultySelect }: DifficultySelectionP
 
 
       {/* Trial Users Only - English Improvement Features */}
-      {(subscription?.subscriptionStatus === "trialing" || subscription?.status === "trialing") && (
+      {subscription?.subscriptionStatus === "trialing" && (
         <div className="max-w-md mx-auto mt-8 p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white">
           <div className="text-center">
             <h3 className="font-semibold mb-3">最短で英語力アップ</h3>

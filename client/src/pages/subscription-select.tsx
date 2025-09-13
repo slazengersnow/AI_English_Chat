@@ -26,53 +26,19 @@ export default function SubscriptionSelect() {
       buttonColor: 'bg-blue-600 hover:bg-blue-700'
     },
     {
-      id: 'premium',
-      name: 'プレミアム',
-      price: '¥1,300',
-      period: '/月',
-      popular: true,
-      features: [
-        '月額1,300円',
-        '基本練習機能（全レベル対応）',
-        '1日100問まで',
-        '詳しい解説・類似フレーズ',
-        'カスタムシナリオ作成',
-        '復習機能'
-      ],
-      buttonText: '申し込む',
-      buttonColor: 'bg-purple-600 hover:bg-purple-700'
-    },
-    {
       id: 'standard-yearly',
       name: 'スタンダード年間',
       price: '¥9,800',
       period: '/年',
       originalPrice: '¥11,760',
       discount: '年額16%お得（2ヶ月無料）',
+      popular: true,
       features: [
         '年額9,800円（2ヶ月無料）',
         '基本練習機能（全レベル対応）',
         '1日50問まで',
         '詳しい解説・類似フレーズ',
         '基本的な進捗管理'
-      ],
-      buttonText: '申し込む',
-      buttonColor: 'bg-blue-600 hover:bg-blue-700'
-    },
-    {
-      id: 'premium-yearly',
-      name: 'プレミアム年間',
-      price: '¥13,000',
-      period: '/年',
-      originalPrice: '¥15,600',
-      discount: '年額16%お得（2ヶ月無料）',
-      features: [
-        '年額13,000円（2ヶ月無料）',
-        '基本練習機能（全レベル対応）',
-        '1日100問まで',
-        '詳しい解説・類似フレーズ',
-        'カスタムシナリオ作成',
-        '復習機能'
       ],
       buttonText: '申し込む',
       buttonColor: 'bg-blue-600 hover:bg-blue-700'
@@ -112,7 +78,7 @@ export default function SubscriptionSelect() {
         </div>
 
         {/* プランカード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
           {plans.map((plan) => (
             <Card 
               key={plan.id} 
