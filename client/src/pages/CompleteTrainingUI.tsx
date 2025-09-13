@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ChatStyleTraining from "../ChatStyleTraining";
 import { useNavigate } from "react-router-dom";
+import { useSubscription } from "../hooks/useSubscription";
 
 type DifficultyLevel =
   | "toeic"
@@ -22,6 +23,7 @@ export default function CompleteTrainingUI() {
   const [showMyPage, setShowMyPage] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const navigate = useNavigate();
+  const { subscription } = useSubscription();
 
   const handleDifficultySelect = (difficulty: DifficultyLevel) => {
     setSelectedDifficulty(difficulty);
@@ -202,18 +204,23 @@ export default function CompleteTrainingUI() {
         </div>
 
 
-        {/* Premium Features */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-white mt-6">
-          <h3 className="font-semibold mb-2">プレミアム機能</h3>
-          <div className="text-sm opacity-90 space-y-1">
-            <p>・詳細な添削フィードバック</p>
-            <p>・進捗レポート機能</p>
-            <p>・無制限の練習問題</p>
+        {/* Trial Users Only - English Improvement Features */}
+        {subscription?.subscriptionStatus === "trialing" && (
+          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 text-white mt-6">
+            <h3 className="font-semibold mb-2">最短で英語力アップ</h3>
+            <div className="text-sm opacity-90 space-y-1">
+              <p>・ネイティブ水準の添削フィードバック</p>
+              <p>・瞬間英作文で英会話力向上</p>
+              <p>・中学生レベル〜TOEIC対策まで対応</p>
+            </div>
+            <button 
+              onClick={() => navigate("/subscription-select")}
+              className="mt-3 bg-white bg-opacity-20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-30 transition-all"
+            >
+              今すぐ本登録する
+            </button>
           </div>
-          <button className="mt-3 bg-white bg-opacity-20 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-30 transition-all">
-            7日間無料でお試し
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
